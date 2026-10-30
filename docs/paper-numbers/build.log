@@ -1,25 +1,25 @@
-⚠ [1/525] Replayed RelCertifier.Trusted.Parse
+⚠ [1/471] Replayed RelCertifier.Trusted.Parse
 warning: RelCertifier/Trusted/Parse.lean:35:45: `String.dropRight` has been deprecated: Use `String.dropEnd` instead
 
 Note: The updated constant has a different type:
   String → Nat → String.Slice
 instead of
   String → Nat → String
-warning: RelCertifier/Trusted/Parse.lean:90:5: `String.data` has been deprecated: Use `String.toList` instead
-warning: RelCertifier/Trusted/Parse.lean:90:36: `String.data` has been deprecated: Use `String.toList` instead
-warning: RelCertifier/Trusted/Parse.lean:91:27: `String.data` has been deprecated: Use `String.toList` instead
-warning: RelCertifier/Trusted/Parse.lean:91:58: `String.data` has been deprecated: Use `String.toList` instead
-warning: RelCertifier/Trusted/Parse.lean:360:26: `String.data` has been deprecated: Use `String.toList` instead
-⚠ [134/525] Replayed RelCertifier.Core.QFrac
+warning: RelCertifier/Trusted/Parse.lean:93:5: `String.data` has been deprecated: Use `String.toList` instead
+warning: RelCertifier/Trusted/Parse.lean:93:36: `String.data` has been deprecated: Use `String.toList` instead
+warning: RelCertifier/Trusted/Parse.lean:94:27: `String.data` has been deprecated: Use `String.toList` instead
+warning: RelCertifier/Trusted/Parse.lean:94:58: `String.data` has been deprecated: Use `String.toList` instead
+warning: RelCertifier/Trusted/Parse.lean:363:26: `String.data` has been deprecated: Use `String.toList` instead
+⚠ [134/471] Replayed RelCertifier.Core.QFrac
 warning: RelCertifier/Core/QFrac.lean:77:53: `String.data` has been deprecated: Use `String.toList` instead
-⚠ [8560/8806] Replayed RelCertifier.Trusted.Z3
+⚠ [8560/8850] Replayed RelCertifier.Trusted.Z3
 warning: RelCertifier/Trusted/Z3.lean:87:17: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:
   String → String.Slice
 instead of
   String → String
-⚠ [8565/8806] Replayed RelCertifier.Trusted.KeyAudit
+⚠ [8565/8850] Replayed RelCertifier.Trusted.KeyAudit
 warning: RelCertifier/Trusted/KeyAudit.lean:46:17: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:
@@ -566,46 +566,46 @@ The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
 ⚠ [8704/8850] Replayed RelCertifier.Proofs.Soundness.CutLift
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:190:40: Variable name `hr` is not explicitly referenced.
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:219:40: Variable name `hr` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:367:15: This simp argument is unused:
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:396:15: This simp argument is unused:
   reduceIte
 
 Hint: Omit it from the simp argument list.
   simp only [̵r̵e̵d̵u̵c̵e̵I̵t̵e̵]̵ ̵at haI
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:378:15: This simp argument is unused:
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:407:15: This simp argument is unused:
   reduceIte
 
 Hint: Omit it from the simp argument list.
   simp only [̵r̵e̵d̵u̵c̵e̵I̵t̵e̵]̵ ̵at haI
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:417:17: Variable name `ν` is not explicitly referenced.
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:446:17: Variable name `ν` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:432:17: Variable name `ν` is not explicitly referenced.
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:461:17: Variable name `ν` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:447:17: Variable name `ν` is not explicitly referenced.
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:476:17: Variable name `ν` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:462:17: Variable name `ν` is not explicitly referenced.
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:491:17: Variable name `ν` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: RelCertifier/Proofs/Soundness/CutLift.lean:478:17: Variable name `ν` is not explicitly referenced.
+warning: RelCertifier/Proofs/Soundness/CutLift.lean:507:17: Variable name `ν` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 

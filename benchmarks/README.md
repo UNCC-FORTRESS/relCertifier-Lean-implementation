@@ -667,10 +667,11 @@ rows dependent on the stretch grid) and `canal_gate_notches` (one of several X-o
 the literature cases now show X) to the reserve.
 
 **Relation to the running example.** The NAHS 2025 salt-tank case, now `lit_nahs25_salt_tank`, is a
-related published scenario (one tank, a sensor attack of magnitude 3 and a deviation band of 3,
-the same attack magnitude and band as `watertank`), not the source of the paper's running example
+related published scenario (one tank, a sensor attack of magnitude 3, the same attack magnitude as
+`watertank`; its claim is the source's Def. 8 distance 0 by stutter since 2026-10-29, the band 3
+of the lock-step reading before), not the source of the paper's running example
 `watertank`: the plants, the attacks (a bounded reading error at every sample against a constant
-3 dm offset with a tampered pump) and the mechanisms (I at lambda 1 against S M B at stretch 2)
+3 dm offset with a tampered pump) and the mechanisms (W at stretch 0 against S M B at stretch 2)
 differ (`lit_nahs25_salt_tank`'s header, "RELATION TO THE RUNNING EXAMPLE").
 
 ## Batch I7 (2026-10-27): two tier-2 members swapped for reserve designs
@@ -881,7 +882,8 @@ the domains and any coverage gap of the right guards, and the verdict under ever
 Where only a model change could make a header claim true, the header states the limitation.
 A ninth letter, W (the witness waits, the dual of R; 2026-10-29, `docs/STUTTER.md`): a cover has a
 stretch-0 (stutter) pairing, opted in with `[problem] stutter = true`, and the file without the
-key declines. No suite_v2 file sets the key, so no header carries W.
+key declines. One suite_v2 file sets the key (since 2026-10-29, `lit_nahs25_salt_tank`, whose
+header carries W).
 
 ## The benchmarks
 
@@ -934,7 +936,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan; batch I9: the plan's speed loop at the wheel loop's 3 /s again, progress against the plan re-timed within `lambda in [1, 3]` (S M I) |
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T`; lambda pinned to 1 (batch I6) |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T`; lambda pinned to 1 (batch I6) |
-| `lit_nahs25_salt_tank` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), load-bearing mode facts; new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
+| `lit_nahs25_salt_tank` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), the source's Def. 8 distance 0 by stutter (W, `stutter = true`, 2026-10-29; the lock-step distance 3 before); new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: both sides at the design-model level (one cause: the weakened gain); batch I9: the exact re-timed claim at the derating ratio 4/5 and the power-saving 2 s period (S M B X) |

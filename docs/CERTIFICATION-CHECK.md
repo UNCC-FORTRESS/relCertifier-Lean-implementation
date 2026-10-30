@@ -4,7 +4,7 @@ This is the reproduction recipe: starting from the benchmark files, what to run,
 you should see, to confirm that every suite_v2 benchmark carries a machine-checked
 Theorem 3 (the paper's Soundness of Synthesis) whose hypotheses all hold. Read `README.md` first for what the theorems say.
 
-> **Last run:** 2026-10-29, branch `benchmark-fixes` (literature migration and audit, `docs/OVERNIGHT-2026-10-29.md` "Literature migration + audit (2026-10-29)": `lit_gpt10_boost_converter` (Girard, Pola, Tabuada, TAC 2010) in place of `lit_drl_car_stop`, `lit_csf25_salt_tank_hold` (CSF 2025 timed attacks) in place of `zone_lightmass_schedule`, `rampmeter_poll_2to1` back from the reserve in place of `insulin_basal_cgmloss`; header fixes from an independent audit of the nine literature files). All green: `lake build` exit 0 (library and the five executables, no `sorry`); `--check-quick-v2` 50 certified, modal 1160/1160, handoff 2827/2827, non-connection 44/44, pruned 22/22, reposition 74/74, strict gate 181/181 (80 invariant, 101 exit); one domain PASS (48 + 2 kind (iii)); `relcert-test` ALL PASS; bridge 7433/7433; progress 194/194; refute 204/204 (74 instances); WellFormedBattery 66 lines at the three standard axioms (plus the 11 `CutLiftX` replay lines), AxiomCheck 9; the three negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED under strict.
+> **Last run:** 2026-10-29, branch `benchmark-fixes` after the merge of branch `stutter` (opt-in stretch 0, `docs/STUTTER.md`) and `lit_nahs25_salt_tank` set to the source's Def. 8 distance 0 with `stutter = true` (`docs/OVERNIGHT-2026-10-29.md` "Stutter merge (2026-10-29)"). All green: `lake build` exit 0 (library and the five executables, no `sorry`); `--check-quick-v2` 50 certified, modal 1162/1162, handoff 2827/2827, non-connection 44/44, pruned 22/22, reposition 74/74, strict gate 181/181 (80 invariant, 101 exit); one domain PASS (48 + 2 kind (iii)); `relcert-test` ALL PASS; bridge 7437/7437; progress 194/194; refute 206/206 (75 instances); WellFormedBattery 66 lines at the three standard axioms (plus the 11 `CutLiftX` replay lines), AxiomCheck 9; the three negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED under strict; `scripts/stutter_tests.py` 91/91; stutter demo 54/54 groups.
 
 ---
 
@@ -127,8 +127,8 @@ standalone battery (`BatteryV2`, 72 lines) is on branch `archive/legacy-2026-10`
 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
 ```
 
-`--check-quick-v2` refuses to run without `RELCERT_IMPLIED_CUT=1` (4 suite_v2 benchmarks
-DECLINE without the widened cut channel). Check 1/3 certifies in the STRICT well-formedness
+`--check-quick-v2` refuses to run without `RELCERT_IMPLIED_CUT=1` (6 suite_v2 benchmarks
+DECLINE without the widened cut channel, measured 2026-10-29). Check 1/3 certifies in the STRICT well-formedness
 mode (`RELCERT_WELLFORMED_STRICT` forced on: a CERTIFIED file with an `UNKNOWN` or `BLOCKING`
 right mode is DECLINED, a `[wellformed]` line per file on stderr); check 3/3 is the
 `--wellformed` report, gated. Expected tail:

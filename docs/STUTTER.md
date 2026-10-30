@@ -133,5 +133,8 @@ S stays the positive-stretch letter: a stretch-0 pairing alone does not credit S
 pairing at a positive stretch other than 1; covers without stutter pairings keep the old S rule
 exactly). The matrix (`suite_v2_matrix.py`) is unchanged; its M1 cell counts positive stretches
 only. Measured on the demo (matrix and letters run over `benchmarks/stutter_demo`):
-`salt_tank_stutter: W`, `TOTALS S=0 … W=1`. No suite_v2 file sets the key, so every suite
-letter is unchanged; `letters.json` gains the key `W` (false everywhere) and the total `W 0`.
+`salt_tank_stutter: W`, `TOTALS S=0 … W=1`. On this branch no suite_v2 file set the key, so every
+suite letter was unchanged; `letters.json` gained the key `W` (false everywhere) and the total
+`W 0`. Since the merge into `benchmark-fixes` (2026-10-29, `docs/OVERNIGHT-2026-10-29.md`,
+"Stutter merge") the suite file `lit_nahs25_salt_tank` sets the key at the band 0 (the demo's
+model under its suite name): its letters I -> W.

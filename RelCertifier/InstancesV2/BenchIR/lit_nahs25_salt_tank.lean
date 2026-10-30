@@ -49,7 +49,8 @@ def lit_nahs25_salt_tank_IRv2 : PProblem :=
           evolve := (.cmp "<=" (.num "0.0") (.num "1.0"))
           next := ["On", "Off"] } ] }
     invariants := [
-      ("On", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "3.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "3.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0")))),
-      ("Off", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "3.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "3.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0"))))] }
+      ("On", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "0.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "0.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0")))),
+      ("Off", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "0.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "0.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0"))))]
+    stutter := true }
 
 end RelCertifier.Parse

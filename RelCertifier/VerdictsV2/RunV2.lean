@@ -245,11 +245,13 @@ def packsV2 : List PackV2 :=
     ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 2, 3⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 3, 3⟩,
-    -- lit_nahs25_salt_tank (cover replay at λ = 1, budget 1; dimension 3, the Assumption 1 lemma's)
+    -- lit_nahs25_salt_tank (cover replay, budget 1: On_L at λ = 1, Off_L at the stutter λ = 0
+    -- (`stutter = true`); rows derived from the emitted cover 2026-10-29; dimension 3, the
+    -- Assumption 1 lemma's)
     ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
     ⟨"lit_nahs25_salt_tank", 3, 0, [1, 2, 3, 0], 1, 1, 0, 1⟩,
-    ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 1, 0⟩,
-    ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 0, 1, 1, 0⟩,
+    ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 0, 1, 1, 1⟩,
     -- bottling_fill_strainer (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 17, 20, 0, 0⟩,
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,

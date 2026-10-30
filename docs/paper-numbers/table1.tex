@@ -7,72 +7,33 @@
 % Dyn/Inv use \dyntypeL, \dyntypeP, \invtypeLin, \invtypeQuad (the paper's macros).
 
 % Table 1: the suite by group; a group's cell is the strongest level among its members
-% (needed > used > none); the last row: needed/used counts per letter over the suite.
+% (needed > used > none); the last two rows: needed and used counts per letter over the suite.
 \begin{tabular}{@{}l c c c c c c c c c c c c c@{}}
 \toprule
-Benchmark group & \# & Sync & Dim & Modes & Dyn/Inv & S & M & R & B & P & D & I & X \\
+Group & \# & Sync & Dim & Modes & Dyn/Inv & S & M & R & B & P & D & I & X \\
 \midrule
-ACC under sensor spoofing / retune & 4 & 1 & 1--2 & 1--2/1--3 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  & \mechNeeded &  & \mechNeeded & \mechNeeded & \mechNeeded \\
-Quadrotor climb, lighter airframe & 2 & 0 & 2--3 & 1--3/1--3 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  & \mechNeeded &  &  &  & \mechNeeded \\
-Platoon follower (CACC: link loss, latency, profiles) & 2 & 1 & 2 & 1--2/1 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  &  &  &  &  &  \\
-Gantry speed zones (multi-cycle matching) & 1 & 0 & 2 & 3/1 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  &  &  &  &  &  \\
-Rover ladder & 4 & 2 & 3--12 & 3/3 & $\dyntypeP$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded & \mechNeeded &  &  &  &  & \mechNeeded &  \\
-Terrain chain & 2 & 2 & 4--6 & 3/3 & $\dyntypeL$/$\invtypeLin$ &  &  &  &  &  &  & \mechNeeded &  \\
-Watertank & 2 & 0 & 1 & 3/5--6 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  & \mechNeeded &  &  & \mechUsed &  \\
-Tank under sampling DoS & 1 & 1 & 2 & 4/4 & $\dyntypeP$/$\invtypeLin$ &  & \mechNeeded &  &  &  &  & \mechNeeded &  \\
-Turbofan ground start & 1 & 0 & 3 & 6/6 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded &  \\
-Train speed control (ATO) & 1 & 0 & 1 & 3/3 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  & \mechNeeded &  &  &  &  \\
-Wind turbine start-up & 1 & 0 & 3 & 5/5 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded & \mechNeeded \\
-Injection molding pack and hold & 1 & 1 & 3 & 2/2 & $\dyntypeL$/$\invtypeLin$ &  &  &  &  &  & \mechNeeded &  &  \\
-Elevator trip & 1 & 0 & 3 & 4/4 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechUsed &  \\
-Heat-treatment furnace program & 1 & 0 & 2 & 3/3 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded &  &  &  &  &  & \mechNeeded &  \\
-Syringe-pump relay & 1 & 0 & 4 & 6/4 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechUsed &  \\
-Hydro unit load rejection & 1 & 1 & 3 & 2/2 & $\dyntypeL$/$\invtypeLin$ &  &  &  &  &  & \mechNeeded &  &  \\
-Volume-controlled ventilation & 1 & 1 & 2 & 2/2 & $\dyntypeL$/$\invtypeLin$ &  &  &  &  &  & \mechNeeded & \mechNeeded &  \\
-Freeway ramp metering (polled detectors) & 1 & 1 & 3 & 6/6 & $\dyntypeL$/$\invtypeLin$ &  & \mechNeeded &  & \mechNeeded & \mechUsed &  &  &  \\
-Bottle filler (clogged product strainer) & 1 & 0 & 2 & 2/2 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded &  &  &  &  &  & \mechNeeded &  \\
-Airliner flap extension (one hydraulic system lost) & 1 & 0 & 2 & 2/2 & $\dyntypeP$/$\invtypeLin$ & \mechNeeded &  &  &  &  &  &  &  \\
-Ground-station antenna (servo retune) & 1 & 1 & 3 & 3/3 & $\dyntypeL$/$\invtypeLin$ &  &  &  &  &  & \mechNeeded &  &  \\
-Rigid-body detumbling (polynomial) & 3 & 2 & 4--6 & 1--2/3--4 & $\dyntypeP$/$\invtypeQuad$ & \mechNeeded & \mechNeeded &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded \\
-Hydrogen refuelling (sensor bias) & 1 & 0 & 1 & 7/5 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded &  \\
-Exothermic reactor feed interlock & 1 & 1 & 2 & 4/4 & $\dyntypeL$/$\invtypeLin$ &  & \mechNeeded &  & \mechNeeded & \mechNeeded &  &  &  \\
-Extruder start-up (manual speed steps) & 1 & 1 & 2 & 4/4 & $\dyntypeL$/$\invtypeLin$ &  & \mechNeeded &  & \mechNeeded & \mechNeeded &  & \mechNeeded &  \\
-Steam sterilizer liquids cycle & 1 & 0 & 3 & 4/4 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded &  & \mechNeeded &  &  & \mechNeeded &  &  \\
-Steam boiler cold start (purge retrofit) & 1 & 0 & 3 & 2/2 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded &  &  \\
-Irrigation canal gate notches & 1 & 1 & 1 & 3/4 & $\dyntypeL$/$\invtypeLin$ &  &  &  &  &  &  &  & \mechNeeded \\
+Automotive & 7 & 2 & 1--2 & 1--3/1--3 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  & \mechNeeded & \mechUsed & \mechNeeded & \mechNeeded & \mechNeeded \\
+Rovers & 6 & 4 & 3--12 & 3/3 & $\dyntypeL$,$\dyntypeP$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded & \mechNeeded &  &  &  &  & \mechNeeded &  \\
+Aerospace & 7 & 2 & 2--6 & 1--6/1--6 & $\dyntypeL$,$\dyntypeP$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded & \mechNeeded & \mechNeeded & \mechNeeded & \mechUsed & \mechNeeded & \mechNeeded & \mechNeeded \\
+Process & 8 & 4 & 2--3 & 2--4/2--4 & $\dyntypeL$,$\dyntypeP$/$\invtypeLin$ & \mechNeeded & \mechNeeded & \mechNeeded & \mechNeeded & \mechNeeded & \mechNeeded & \mechNeeded &  \\
+Energy & 3 & 1 & 1--3 & 2--7/2--5 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded & \mechNeeded \\
+Medical & 2 & 1 & 2--4 & 2--6/2--4 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded &  \\
+Infrastructure & 5 & 3 & 1--3 & 3--6/1--6 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded & \mechNeeded & \mechNeeded & \mechUsed & \mechNeeded & \mechUsed & \mechNeeded \\
+Water tank & 2 & 0 & 1 & 3/5--6 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechNeeded &  & \mechNeeded & \mechUsed &  & \mechUsed &  \\
 Literature & 10 & 7 & 1--6 & 2--48/2--12 & $\dyntypeL$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded & \mechNeeded \\
 \midrule
-Total (needed/used) & 50 & 24 & & & & 19/19 & 21/21 & 8/8 & 9/9 & 2/3 & 13/13 & 17/21 & 14/14 \\
+Total needed & 50 & 24 & & & & 19 & 21 & 8 & 9 & 2 & 13 & 17 & 14 \\
+Total used & & & & & & 19 & 21 & 8 & 9 & 8 & 13 & 49 & 14 \\
 \bottomrule
 \end{tabular}
 
-% Group mapping (benchmark -> group, from the name-prefix families of scripts/suite_v2_matrix.py):
-%   ACC under sensor spoofing / retune: acc_spoof_lag, acc_spoof_limp, acc_tune_lag, acc_tune_limp
-%   Quadrotor climb, lighter airframe: quad_light_lag, quad_light_profiles
-%   Platoon follower (CACC: link loss, latency, profiles): platoon_linkloss, platoon_profiles
-%   Gantry speed zones (multi-cycle matching): gantry_speed_zones
-%   Rover ladder: rover_ladder_2to3, rover_ladder_3to6, rover_ladder_6to8, rover_ladder_8to12
-%   Terrain chain: rover_terrain_2to4, rover_terrain_4to6
-%   Watertank: watertank, watertank_twospeed
-%   Tank under sampling DoS: tank_dos_3to1
-%   Turbofan ground start: engine_start_highidle
-%   Train speed control (ATO): train_ato_odometry
-%   Wind turbine start-up: turbine_startup_gearratio
-%   Injection molding pack and hold: molding_pack_checkring
-%   Elevator trip: elevator_start_discbrake
-%   Heat-treatment furnace program: furnace_program_timebase
-%   Syringe-pump relay: syringe_relay_prearm
-%   Hydro unit load rejection: hydro_rejection_gatecal
-%   Volume-controlled ventilation: ventilator_vc_cuffleak
-%   Freeway ramp metering (polled detectors): rampmeter_poll_2to1
-%   Bottle filler (clogged product strainer): bottling_fill_strainer
-%   Airliner flap extension (one hydraulic system lost): flaps_slow_approach
-%   Ground-station antenna (servo retune): antenna_track_kvretune
-%   Rigid-body detumbling (polynomial): sat3w_detumble_phases, sat_detumble_phases, sat_detumble_weak
-%   Hydrogen refuelling (sensor bias): h2_refuel_ambientbias
-%   Exothermic reactor feed interlock: reactor_feed_wireless
-%   Extruder start-up (manual speed steps): extruder_pe100_manualstart
-%   Steam sterilizer liquids cycle: autoclave_liquid_steambank
-%   Steam boiler cold start (purge retrofit): boiler_purge_vfd
-%   Irrigation canal gate notches: canal_gate_notches
+% Group mapping (benchmark -> application area, AREAS in scripts/suite_v2_letters.py):
+%   Automotive: acc_spoof_lag, acc_spoof_limp, acc_tune_lag, acc_tune_limp, platoon_linkloss, platoon_profiles, train_ato_odometry
+%   Rovers: rover_ladder_2to3, rover_ladder_3to6, rover_ladder_6to8, rover_ladder_8to12, rover_terrain_2to4, rover_terrain_4to6
+%   Aerospace: engine_start_highidle, flaps_slow_approach, quad_light_lag, quad_light_profiles, sat3w_detumble_phases, sat_detumble_phases, sat_detumble_weak
+%   Process: autoclave_liquid_steambank, boiler_purge_vfd, bottling_fill_strainer, extruder_pe100_manualstart, furnace_program_timebase, molding_pack_checkring, reactor_feed_wireless, tank_dos_3to1
+%   Energy: h2_refuel_ambientbias, hydro_rejection_gatecal, turbine_startup_gearratio
+%   Medical: syringe_relay_prearm, ventilator_vc_cuffleak
+%   Infrastructure: antenna_track_kvretune, canal_gate_notches, elevator_start_discbrake, gantry_speed_zones, rampmeter_poll_2to1
+%   Water tank: watertank, watertank_twospeed
 %   Literature: lit_csf21_vehicle_bus, lit_csf21_vehicle_thermo, lit_csf25_salt_tank_hold, lit_drl_lane_control, lit_freedm_meter, lit_girard08_robot, lit_gpt10_boost_converter, lit_lz21_vehicle_position, lit_nahs25_engine_cooling, lit_nahs25_salt_tank

@@ -1,6 +1,6 @@
-commit 3c0ced67db173e4bfeff6ce17fa53f4a772c2f78 DIRTY
+commit bc00d53d41432625d9c310ec38e519e5a4d55884 clean
 z3 Z3 version 4.15.1 - 64 bit
 os Darwin 25.5.0 arm64
-date 2026-10-30T14:02:20Z
+date 2026-10-30T17:48:36Z
 flags RELCERT_IMPLIED_CUT=1 (all runs); per-run switches in the run names
 covers identical

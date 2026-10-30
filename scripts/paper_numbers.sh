@@ -5,7 +5,8 @@
 # byte-identical; runs every configuration; runs the mechanism matrix; writes OUTDIR/numbers.tex.
 # Letter macros (2026-10-30; scripts/suite_v2_letters.py, docstring "USED and NEEDED"):
 #   \numletter<L>      files whose certificate NEEDS mechanism <L> (the rule kept for continuity:
-#                      the file declines with <L> switched off; M and B by the cover shape)
+#                      the file declines with <L> switched off; D by the uniform-row test; not
+#                      defined for M and B, which have no switch-off and are never needed)
 #   \numletter<L>used  files whose certificate USES <L> (it appears in the emitted certificate)
 #   <L> in S M R B P D I X; needed <= used for every letter.
 # Table snippets (same script): OUTDIR/table1.tex (Table 1, by group, one column per letter,

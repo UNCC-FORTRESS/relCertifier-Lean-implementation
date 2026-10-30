@@ -60,9 +60,9 @@ def jointGroups (l q : ℕ) : Option (List (List (IForm n))) :=
 
 def dynGroups (l q : ℕ) (pre : Bool) : Option (List (List (IForm n))) :=
   if (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) then
-    (modalVerdDynXQueries p cX n (rowIdx p l)
+    modalVerdDynXGroups p cX n (rowIdx p l)
       (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder)
-      pre l q).map (·.map ([·]))
+      pre l q (dynRegionI p n cov prog l q pre)
   else some []
 
 def admGroups (l : ℕ) : Option (List (List (IForm n))) :=
@@ -88,7 +88,7 @@ def bridgeGroups : Option (List (List (IForm n))) := do
   let nc ← (List.range (nR p)).mapM (nonConnGroups p n cX cov)
   let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroups p n cX cov l))
   let dy ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (fun q =>
-    [true, false].mapM (dynGroups p n cX cov l q)))
+    [true, false].mapM (dynGroups p n cX cov prog l q)))
   let ad ← (List.range (nL p)).mapM (admGroups p n cov)
   let ho ← (List.range (nL p)).mapM (handoffGroups p n)
   let pr ← prog.certs.mapM (progGroups p n cX)
@@ -162,23 +162,31 @@ theorem jointVerd_of_groups {l q : ℕ} {gs : List (List (IForm n))}
   exact modalVerdX_of_queries h (fun i hi => hok _ (List.getElem_mem hi))
 
 theorem dynVerd_of_groups {l q : ℕ} {pre : Bool} {gs : List (List (IForm n))}
-    (h : dynGroups p n cX cov l q pre = some gs) (hok : GroupsOK gs)
+    (h : dynGroups p n cX cov prog l q pre = some gs) (hok : GroupsOK gs)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true) :
-    DynVerd p n cX cov l q pre := by
+    DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre) := by
   unfold dynGroups at h
   rw [if_pos hd] at h
-  rcases hq : modalVerdDynXQueries p cX n (rowIdx p l)
-      (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder)
-      pre l q with _ | qs
-  · rw [hq] at h; simp at h
-  · rw [hq] at h
-    simp only [Option.map_some, Option.some.injEq] at h
-    subst h
-    unfold DynVerd
-    refine modalVerdDynX_of_queries hq (fun i hi => ?_)
-    obtain ⟨a, ha, hz⟩ := hok [qs[i]] (List.mem_map.mpr ⟨qs[i], List.getElem_mem hi, rfl⟩)
-    rw [List.mem_singleton] at ha; subst ha
-    exact hz
+  unfold dynRegionI at h
+  unfold dynRegion
+  rcases hns : nodeStage p n prog l q pre with _ | ⟨v, st⟩
+  · rw [hns] at h
+    simp only [Option.map_none, modalVerdDynXGroups] at h
+    rcases hq : modalVerdDynXQueries p cX n (rowIdx p l)
+        (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder)
+        pre l q with _ | qs
+    · rw [hq] at h; simp at h
+    · rw [hq] at h
+      simp only [Option.map_some, Option.some.injEq] at h
+      subst h
+      unfold DynVerd
+      refine modalVerdDynX_of_queries hq (fun i hi => ?_)
+      obtain ⟨a, ha, hz⟩ := hok [qs[i]] (List.mem_map.mpr ⟨qs[i], List.getElem_mem hi, rfl⟩)
+      rw [List.mem_singleton] at ha; subst ha
+      exact hz
+  · rw [hns] at h
+    simp only [Option.map_some, modalVerdDynXGroups] at h
+    exact modalVerdDynX_of_queriesPre h (fun i hi => hok _ (List.getElem_mem hi)) _ _
 
 theorem admVerd_of_groups {l : ℕ} {gs : List (List (IForm n))}
     (h : admGroups p n cov l = some gs) (hok : GroupsOK gs) :

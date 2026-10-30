@@ -118,5 +118,30 @@ theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
 
 end Proofs
 
+
+/-! ## The pre-landing record (opt-in `prelanding = true`, `docs/PRELANDING.md`) -/
+
+section PL
+
+variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
+  {ce : Choice.ChoiceEmitE}
+
+/-- **Theorem 3 of a one-row benchmark with a pre-landing record, over its EMITTED cover**:
+the records' theorem on the merged cover `withPL cov pl` (the claim reads the pruned edges
+only, which the merge keeps), behind the data gate `plOK` (the record only under the key). -/
+theorem theorem3_window_of_records_pl {pl : Preland.PrelandEmitE} (_hpl : plOK p cov pl = true)
+    (hs : structOK p n (withPL cov pl) cX = true) (hv : Verdicts p n cX (withPL cov pl) prog ce)
+    (hpo : progOK p n (withPL cov pl) prog = true)
+    (hcovers : coversOK p n (withPL cov pl) ce = true)
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
+    (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
+    (hdt : dt ≤ epsL p) :
+    windowClaim p n cX cov reg a b d dt :=
+  theorem3_window_of_records hs hv hpo hcovers hregR hinv hwf hsame a b d hab hda hdb dt hdt
+
+end PL
+
 end Emitted
 end RelCertifier

@@ -35,6 +35,7 @@ import RelCertifier.Proofs.Encoding.NonConnBridge
 import RelCertifier.Checker.CoverEmit
 import RelCertifier.Trusted.Handoff
 import RelCertifier.Trusted.ProgressEmit
+import RelCertifier.Trusted.PrelandEmit
 
 set_option autoImplicit false
 
@@ -484,6 +485,36 @@ theorem name_tgtIdx (h : namesResolve p = true) {q : ℕ} (hq : q < nR p) {nm : 
   simpa using this
 
 end Struct
+
+
+/-! ## The pre-landing record (opt-in `prelanding = true`, `docs/PRELANDING.md`)
+
+The pre-landing right-only nodes are emitted in their own record (`Preland.PrelandEmitE`), never
+as the cover's `dynPre`/`dynPost` flags. The record carries the region kind: a node it lists is
+certified on the pre-landing region (`Emitted.dynRegion`). -/
+
+/-- The cover with the pre-landing nodes merged into its flag rows (and their strata orders):
+the rows the cover graph is built on (`OracleAPI.coverMode`'s `effRows`). -/
+def withPL (cov : CoverEmitE) (pl : Preland.PrelandEmitE) : CoverEmitE :=
+  { cov with covers := cov.covers.map (fun lc =>
+      { lc with
+        flags := lc.flags.map (fun f =>
+          { f with dynPre := f.dynPre || (pl.find lc.mL f.name true).isSome,
+                   dynPost := f.dynPost || (pl.find lc.mL f.name false).isSome }),
+        strata := lc.strata.map (fun s =>
+          { s with dynPreOrder := ((pl.find lc.mL s.mR true).map (·.order)).getD s.dynPreOrder,
+                   dynPostOrder := ((pl.find lc.mL s.mR false).map (·.order)).getD
+                     s.dynPostOrder }) }) }
+
+/-- **The kernel-side data gate**: a pre-landing record is admitted only for a problem with the
+opt-in key, and then every reposition node of the emitted cover is a pre-landing one (its
+whole-domain flags are all off). -/
+def plOK (p : PProblem) (cov : CoverEmitE) (pl : Preland.PrelandEmitE) : Bool :=
+  (pl.nodes.isEmpty || p.prelanding) &&
+  (!p.prelanding || cov.covers.all (fun lc => lc.flags.all (fun f => !f.dynPre && !f.dynPost)))
+
+theorem prunedOf_withPL (cov : CoverEmitE) (pl : Preland.PrelandEmitE) :
+    prunedOf (withPL cov pl) = prunedOf cov := rfl
 
 end Emitted
 end RelCertifier

@@ -418,8 +418,9 @@ Problem key `[problem] prelanding = true` (opt-in, default off): a right-only (r
 needs its flow certificate only on the half-open region before its progress certificate's last
 threshold (routes A, B or C), and the witness right run stops at its first entry into the closed
 target, ending its cycle early. The node is emitted in its own record (`RELCERT_PRELANDING_OUT`),
-never as a `dynPre`/`dynPost` flag. Backed in Lean (`Proofs/Encoding/ProgressPL.lean`,
-`Emitted/Prelanding.lean`; the data gate `Emitted.plOK` admits a record only under the key);
+never as a `dynPre`/`dynPost` flag. Backed in Lean by the same chain, parameterized by the region
+(`DynRegion`, `Emitted.dynRegion`; strict components on the closed region; the data gate
+`Emitted.plOK` admits a record only under the key);
 without the key the CLI never certifies with a pre-landing node. No suite_v2 file sets it. See
 [`docs/PRELANDING.md`](docs/PRELANDING.md).
 

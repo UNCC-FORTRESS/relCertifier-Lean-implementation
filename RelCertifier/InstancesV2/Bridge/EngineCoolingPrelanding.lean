@@ -5,21 +5,21 @@ Released under Apache 2.0 license.
 # `engine_cooling_prelanding` (prelanding_demo) through the generic bridge (GENERATED —
 `scripts/gen_prelanding_demo.py`)
 
-The NAHS 2025 engine cooling system at the paper's distance 0.3, with the opt-in key
-`prelanding = true` (`docs/PRELANDING.md`). Each left mode's cover has one pre-landing
-right-only node (the genuine heats alone up to 100 against the attacked Cool, cools alone down
-to 100 against the attacked Heat), recorded in the pre-landing record `pl`, never as the
-cover's `dynPre`/`dynPost` flags; the kernel merges them (`withPL`) for the cover graph and
-backs each by the pre-landing pack at the region before its progress certificate's last stage.
+With the opt-in key `prelanding = true` (`docs/PRELANDING.md`) the cover's right-only nodes are
+pre-landing nodes, recorded in the pre-landing record `pl`, never as the cover's
+`dynPre`/`dynPost` flags. The kernel merges them (`withPL`) for the cover graph; each node's
+reposition pack is on its region (`dynRegion`: before its progress certificate's last threshold,
+strict components on the closure).
 
 Theorem 3 of the benchmark from its emitted records: the structural bundles decided in the
 kernel on the merged cover (`struct_ok`, `prog_ok`, `covers_ok`, `rows_same`, `pad_ok`), the data
 gate `pl_ok` (the key is set, the whole-domain flags are off), Assumption 1 from the demo's own
-lemma at dimension 3 lifted to 4 (the right clock), the verdicts assumed (`VerdictsPL`: the groups
-`scripts/prelanding_demo_verdicts.lean` discharges, `Emitted.verdictsPL_of_groups`). The claim is
-over the emitted cover `cov`.
+lemma at dimension 3 lifted to 4 (the right clock), the verdicts assumed (`Verdicts`: the groups
+`scripts/prelanding_demo_verdicts.lean` discharges, `Emitted.verdicts_of_groups`). The claim is over the
+emitted cover `cov`.
 -/
-import RelCertifier.Proofs.Encoding.Emitted.Prelanding
+import RelCertifier.Proofs.Encoding.Emitted.Window
+import RelCertifier.Proofs.Encoding.Emitted.Run
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Proofs.Encoding.Emitted.Lift
 import RelCertifier.InstancesV2.WellFormed.EngineCoolingPrelanding
@@ -66,16 +66,16 @@ theorem uses_prelanding : pl.nodes.isEmpty = false := by decide +kernel
 
 /-- **Theorem 3 of `engine_cooling_prelanding`** (window form, over the emitted cover): every verdict group of the
 benchmark `unsat`. -/
-theorem engine_cooling_prelanding_bridge (hv : VerdictsPL IR 4 cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem engine_cooling_prelanding_bridge (hv : Verdicts IR 4 cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR 4 cX cov reg 0 1 2 dt :=
   theorem3_window_of_records_pl pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
     rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 
-/-- The same from a green run of the benchmark's groups (`bridgeGroupsPL`,
+/-- The same from a green run of the benchmark's groups (`bridgeGroups`,
 `scripts/prelanding_demo_verdicts.lean`). -/
 theorem engine_cooling_prelanding_bridge_run {gs : List (List (IForm 4))}
-    (hrun : bridgeGroupsPL IR 4 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+    (hrun : bridgeGroups IR 4 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : windowClaim IR 4 cX cov reg 0 1 2 dt :=
-  engine_cooling_prelanding_bridge (verdictsPL_of_groups hrun hok) dt hdt
+  engine_cooling_prelanding_bridge (verdicts_of_groups hrun hok) dt hdt
 
 end RelCertifier.Bridge.EngineCoolingPrelanding

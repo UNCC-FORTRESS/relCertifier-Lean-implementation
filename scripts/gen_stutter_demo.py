@@ -76,6 +76,17 @@ def main():
         sys.exit(f"{B}: bridge instance not emitted")
     fn = f"{G.OUT}/{G.camel(B)}.lean"
     txt = open(fn).read().replace(f"{B}_wellFormedR", f"{WF_FROM}_wellFormedR")
+    # `gen_bridge.py` emits `stutter_on` / `uses_stutter` itself for a file with the key (since
+    # the suite salt tank set it); the demo's window claim states them, so drop the generic copy
+    generic = ('''/-- The benchmark opts in to stretch 0 (`stutter = true`), and its cover really uses a
+stretch-0 pairing (decided in the kernel). -/
+theorem stutter_on : IR.stutter = true := by decide +kernel
+theorem uses_stutter : (cov.covers.any fun lc => lc.strata.any (·.lamN == 0)) = true := by
+  decide +kernel
+''')
+    if txt.count("theorem stutter_on") == 2:
+        assert generic in txt, "the generic stutter block changed"
+        txt = txt.replace(generic, "", 1)
     open(fn, "w").write(txt)
     print(f"  emitted RelCertifier/InstancesV2/Bridge/{G.camel(B)}.lean (dim {n + 1})")
 

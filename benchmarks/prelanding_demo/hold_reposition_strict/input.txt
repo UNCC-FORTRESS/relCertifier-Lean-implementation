@@ -1,0 +1,52 @@
+# hold_reposition_strict: the pre-landing demo at a STRICT row (NOT part of suite_v2;
+# docs/PRELANDING.md).
+#
+# A synthetic pair that isolates the pre-landing right-only certificate at a row with a strict
+# component. The left holds its level (Hold, y' = 0). The right repositions upward in Up
+# (y' = 1, guard y <= 0) until it can switch to Hold (y' = 0, guard y >= 0). The claim:
+#   y_L < y_R + 5   (strict: the right never falls 5 below the left)
+#   y_R <= 0        (non-strict: the right never overshoots the landing level)
+# The non-strict component breaks only AFTER the landing threshold y_R = 0 (the right keeps
+# rising in Up past it), so the whole-domain right-only certificate fails and the file declines
+# without the key. With `prelanding = true` the non-strict component is certified on the
+# half-open region y_R < 0 (route B: its boundary lies outside it) and the strict one on the
+# closed region y_R <= 0 (route A: it decreases while the right rises), so it is `< 0` at the
+# stop point too. The witness right run stops at its first entry into y_R >= 0, ends its cycle
+# early and switches to Hold.
+#
+[problem]
+name = hold_reposition_strict
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+prelanding = true
+
+[Lsys]
+state_vars = [y]
+epsilon = 1.0
+
+[Lsys.mode.Hold]
+ode = y' = smt2:0.0;
+guard = y >= -10.0
+evolve = y >= -10.0
+next = [Hold]
+
+[Rsys]
+state_vars = [y]
+epsilon = 1.0
+
+[Rsys.mode.Up]
+ode = y' = smt2:1.0;
+guard = y <= 0.0
+evolve = y >= -10.0
+next = [Up, Hold]
+
+[Rsys.mode.Hold]
+ode = y' = smt2:0.0;
+guard = y >= 0.0
+evolve = y >= -10.0
+next = [Hold]
+
+[relational_invariant]
+Hold = y[l] < y[r] + 5.0 and y[r] <= 0.0

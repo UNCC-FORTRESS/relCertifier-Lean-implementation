@@ -35,14 +35,58 @@ noncomputable def dynDomHost (pre : Bool) (D gL : Formula (Var n)) (prev : List 
     Formula (Var n) :=
   if pre then Formula.and (strataDomHost D prev) gL else strataDomHost D prev
 
-/-- **The stratified route-A pack of a dynamic reposition.** Per component (in the cover's
-`dynPreOrder` / `dynPostOrder`), the route-A query `domain ∧ ġ > 0` with the left frozen
-(`fL = 0`) and stretch 1 is `UNSAT`. -/
+/-- **The region on which a reposition pack requires invariance.** `whole`: the whole
+reposition domain (the default; `OracleAPI.checkDynRepo` without a region). `pre Bo Bc mask`: the
+PRE-LANDING region of the node's progress certificate (opt-in `prelanding = true`,
+`docs/PRELANDING.md`): the half-open region `Bo` before the last threshold (`x < θ`) for the
+components the `mask` marks non-strict, its closure `Bc` (`x ≤ θ`) for the strict ones (at the
+stop point a strict component needs `< 0`, which the limit along the half-open region does not
+give). -/
+inductive DynRegion (n : ℕ) where
+  | whole
+  | pre (Bo Bc : Formula (Var n)) (mask : List Bool)
+      (hmono : ∀ x, Formula.sat Bo x → Formula.sat Bc x)
+      (hclosed : ∀ (f : ℝ → State (Var n)) (T : ℝ), 0 < T → ContinuousOn f (Icc 0 T) →
+        (∀ t ∈ Ico (0 : ℝ) T, Formula.sat Bo (f t)) → Formula.sat Bc (f T))
+
+/-- The base domain narrowed by the region's (half-open) part. -/
+def DynRegion.dom : DynRegion n → Formula (Var n) → Formula (Var n)
+  | .whole, D => D
+  | .pre Bo _ _ _ _, D => Formula.and D Bo
+
+/-- The region's half-open part as a predicate on states (`⊤` for the whole domain). -/
+def DynRegion.pred : DynRegion n → State (Var n) → Prop
+  | .whole, _ => True
+  | .pre Bo _ _ _ _, x => Formula.sat Bo x
+
+/-- The region's half-open part reads right coordinates only. -/
+def DynRegion.fvR : DynRegion n → Prop
+  | .whole => True
+  | .pre Bo _ _ _ _ => Bo.fv ⊆ range Rv
+
+/-- **The stratified pack of a dynamic reposition, on a region.** Per component (in the
+cover's `dynPreOrder` / `dynPostOrder`), the left frozen (`fL = 0`) at stretch 1:
+* `whole`: the route-A query `domain ∧ ġ > 0` is `UNSAT` (the whole-domain pack);
+* `pre Bo Bc mask`: a strict component's route-A query over `domain ∧ Bc`, or one of a
+  non-strict component's routes A (`ġ > 0`), B (`g = 0 ∧ ġ ≥ 0`), C (`g ≥ 0 ∧ ġ > 0`) over
+  `domain ∧ Bo`, is `UNSAT` (`OracleAPI.checkDynRepo` with a region). -/
 def VerdDynCore (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n → Term (Var n))
-    (D gL : Formula (Var n)) : Prop :=
-  ∀ i (hi : i < comps.length),
+    (D gL : Formula (Var n)) (rg : DynRegion n := .whole) : Prop :=
+  match rg with
+  | .whole => ∀ i (hi : i < comps.length),
     z3solve (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
       dynDomHost pre D gL (comps.take i)⟩) = Verdict.unsat
+  | .pre Bo Bc mask _ _ => ∀ i (hi : i < comps.length),
+    if mask.getD i false then
+      z3solve (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bc) gL (comps.take i)⟩) = Verdict.unsat
+    else
+      z3solve (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩) = Verdict.unsat
+      ∨ z3solve (flowQueryStrict ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩) = Verdict.unsat
+      ∨ z3solve (flowQuerySuperlevel ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩) = Verdict.unsat
 
 /-- **The suite_v2 reposition pack, read off the IR and the extended certificate.** Left mode
 `l` (its guard, its kept atoms, its evolve domain), right mode `m` (its field, its kept atoms,
@@ -50,7 +94,7 @@ its evolve domain), the invariant row `invRow`'s components in the cover's repos
 `order`; `pre` selects the pre-joint form (the left guard conjoined). Exactly the queries
 `OracleAPI.checkDynRepo` sends (`segPartsRO`, `andCuts`, `strataDomIR`, route A). -/
 noncomputable def modalVerdDynX (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
-    (order : List ℕ) (pre : Bool) (l m : ℕ) : Prop :=
+    (order : List ℕ) (pre : Bool) (l m : ℕ) (rg : DynRegion n := .whole) : Prop :=
   let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mL := p.L.modes.getD l dm
@@ -61,7 +105,7 @@ noncomputable def modalVerdDynX (p : PProblem) (cX : EvolStrengtheningX) (n invR
   let cL := cutPairsX vars n Side.L (cutAtomsOfX cX.L mL.name)
   let cR := cutPairsX vars n Side.R (cutAtomsOfX cX.R mR.name)
   VerdDynCore pre comps (hostDyn vars n Side.R mR) (domCutX base cL cR)
-    (hostGuard vars n Side.L mL)
+    (hostGuard vars n Side.L mL) rg
 
 /-! ## From the pack to preservation along the frozen-left flow -/
 
@@ -77,21 +121,67 @@ theorem sat_dynDomHost (pre : Bool) (D gL : Formula (Var n)) (prev : List (Term 
   cases pre <;> simp only [Bool.false_eq_true, if_false, if_true, Formula.sat,
     sat_strataDomHost, sat_bigLe_iff] <;> tauto
 
+/-- A wider base domain widens the pack's query domain. -/
+theorem dynDomHost_mono (pre : Bool) {D D' gL : Formula (Var n)} (prev : List (Term (Var n)))
+    (h : ∀ x, Formula.sat D x → Formula.sat D' x) (x : State (Var n))
+    (hx : Formula.sat (dynDomHost pre D gL prev) x) :
+    Formula.sat (dynDomHost pre D' gL prev) x := by
+  rw [sat_dynDomHost] at hx ⊢
+  obtain ⟨h1, h2⟩ := hx
+  refine ⟨?_, h2⟩
+  unfold dynBase at h1 ⊢
+  cases pre
+  · exact h x h1
+  · exact ⟨h x h1.1, h1.2⟩
+
+/-- A run on a domain is a run on a wider one. -/
+theorem sem_ode_dom_mono {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
+    (h : ∀ x, Formula.sat D x → Formula.sat D' x) {ν ω : State (Var n)}
+    (hsem : Program.sem (Program.ode sys D) ν ω) : Program.sem (Program.ode sys D') ν ω := by
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hsem
+  exact ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => h _ (hdom t ht)⟩
+
+/-- The region covers a strictness tagging: every strict component is marked strict (so its
+pre-landing certificate is the closed-region route A, which keeps `< 0`). -/
+def DynRegion.covers : DynRegion n → List Bool → Prop
+  | .whole, _ => True
+  | .pre _ _ mask _ _, tags => ∀ i, tags.getD i false = true → mask.getD i false = true
+
+/-- A box bound on a domain holds on a smaller one. -/
+theorem boxle_dom_mono {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
+    (h : ∀ x, Formula.sat D x → Formula.sat D' x) {f : State (Var n) → ℝ} {ν : State (Var n)}
+    (hbox : BoxLe (Program.ode sys D') f ν) : BoxLe (Program.ode sys D) f ν := by
+  intro ω hsem
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hsem
+  exact hbox ω ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => h _ (hdom t ht)⟩
+
 /-- The reposition pack gives simultaneous preservation of the components along the frozen-left
-right flow, on the (cut-narrowed) base domain. -/
+right flow, on the (cut-narrowed) base domain narrowed by the region's half-open part. -/
 theorem segPresAll_dyn (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n → Term (Var n))
-    (D gL : Formula (Var n)) (hv : VerdDynCore pre comps fR D gL) :
+    (D gL : Formula (Var n)) {rg : DynRegion n} (hv : VerdDynCore pre comps fR D gL rg) :
     SegPreservesAllOn comps (jointSys (fun _ => Term.const 0) fR (Term.const 1))
-      (dynBase pre D gL) := by
+      (dynBase pre (rg.dom D) gL) := by
   intro ν hinit
-  refine stratified_barrier_boxle _ (dynBase pre D gL) comps ?_ hinit
+  refine stratified_barrier_boxle _ (dynBase pre (rg.dom D) gL) comps ?_ hinit
   intro i hi ν' hν'
-  have hcong : ∀ x, Formula.sat (Formula.and (dynBase pre D gL) (bigLe (comps.take i))) x ↔
-      Formula.sat (dynDomHost pre D gL (comps.take i)) x :=
-    fun x => (sat_dynDomHost pre D gL _ x).symm
+  have hcong : ∀ x, Formula.sat (Formula.and (dynBase pre (rg.dom D) gL)
+      (bigLe (comps.take i))) x ↔ Formula.sat (dynDomHost pre (rg.dom D) gL (comps.take i)) x :=
+    fun x => (sat_dynDomHost pre (rg.dom D) gL _ x).symm
   refine boxle_dom_congr hcong ?_
-  exact flow_cert_sound ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-    dynDomHost pre D gL (comps.take i)⟩ (z3_unsat_sound (hv i hi)) hν'
+  cases rg with
+  | whole =>
+      exact flow_cert_sound ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre D gL (comps.take i)⟩ (z3_unsat_sound (hv i hi)) hν'
+  | pre Bo Bc mask hmono _ =>
+      have h := hv i hi
+      split_ifs at h with hm
+      · refine boxle_dom_mono (dynDomHost_mono (D := Formula.and D Bo) (D' := Formula.and D Bc)
+          pre _ (fun x hx => ⟨hx.1, hmono x hx.2⟩)) ?_
+        exact flow_cert_sound _ (z3_unsat_sound h) hν'
+      · rcases h with h | h | h
+        · exact flow_cert_sound _ (z3_unsat_sound h) hν'
+        · exact flow_cert_sound_strict _ (z3_unsat_sound h) hν'
+        · exact flow_cert_sound_superlevel _ (z3_unsat_sound h) hν'
 
 /-- Left coordinates are frozen at every instant of a frozen-left run. -/
 theorem frozen_left_all {fR : Fin n → Term (Var n)} {lam : Term (Var n)} {dom : Formula (Var n)}
@@ -143,33 +233,34 @@ state satisfying the rows and both sides' atoms (and the left guard, pre-joint),
 the atoms hold at the end. -/
 theorem couple_box_dyn (pre : Bool) (g : Term (Var n)) (gs comps : List (Term (Var n)))
     (cL cR : List (CutAtomP n)) (fR : Fin n → Term (Var n)) (domL domR gL : Formula (Var n))
-    (hsub1 : ∀ c ∈ comps, c ∈ g :: gs) (hsub2 : ∀ g' ∈ g :: gs, g' ∈ comps)
+    {rg : DynRegion n} (hsub1 : ∀ c ∈ comps, c ∈ g :: gs) (hsub2 : ∀ g' ∈ g :: gs, g' ∈ comps)
     (hiffL : AtomsIff cL) (hiffR : AtomsIff cR) (hLfv : ∀ a ∈ cL, a.2.fv ⊆ range Lv)
     (hgL : gL.fv ⊆ range Lv)
     (hstayR : AtomsStayC cR (jointSys (fun _ => Term.const 0) fR (Term.const 1))
-      (dynBase pre (Formula.and domL domR) gL))
-    (hverd : VerdDynCore pre comps fR (domCutX (Formula.and domL domR) cL cR) gL) :
+      (dynBase pre (Formula.and domL (rg.dom domR)) gL))
+    (hverd : VerdDynCore pre comps fR (domCutX (Formula.and domL domR) cL cR) gL rg) :
     ∀ σ ω, Formula.sat (FM g (gs ++ atomTerms cL cR)) σ → (pre = true → Formula.sat gL σ) →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR (Term.const 1))
-        (Formula.and domL domR)) σ ω →
+        (Formula.and domL (rg.dom domR))) σ ω →
       Formula.sat (FM g (gs ++ atomTerms cL cR)) ω := by
   intro σ ω hσ hgσ hω
   set sys := jointSys (fun _ => Term.const 0) fR (Term.const 1) with hsys
-  have hrun : Program.sem (Program.ode sys (dynBase pre (Formula.and domL domR) gL)) σ ω := by
+  have hrun : Program.sem (Program.ode sys
+      (dynBase pre (Formula.and domL (rg.dom domR)) gL)) σ ω := by
     unfold dynBase
     cases pre with
     | false => simpa using hω
     | true => simpa using frozen_run_narrow hgL hω (hgσ rfl)
   have hnarrow : SegPreservesAllOn comps sys
-      (dynBase pre (domCutX (Formula.and domL domR) cL cR) gL) :=
+      (dynBase pre (rg.dom (domCutX (Formula.and domL domR) cL cR)) gL) :=
     segPresAll_dyn pre comps fR _ gL hverd
   have hnarrow' : SegPreservesAllOn comps sys
-      (Formula.and (dynBase pre (Formula.and domL domR) gL)
+      (Formula.and (dynBase pre (Formula.and domL (rg.dom domR)) gL)
         (Formula.and (cutF cL) (cutF cR))) := by
     refine segPresAll_congr (fun x => ?_) hnarrow
     unfold dynBase
-    cases pre <;> simp only [Bool.false_eq_true, if_false, if_true, Formula.sat,
-      sat_domCutX, sat_cutF] <;> tauto
+    cases rg <;> cases pre <;> simp only [DynRegion.dom, Bool.false_eq_true, if_false, if_true,
+      Formula.sat, sat_domCutX, sat_cutF] <;> tauto
   have hlift := segPresAll_cut_liftX hiffL hiffR
     (atomsStayC_frozenL hiffL hLfv fR (Term.const 1) _) hstayR hnarrow'
   obtain ⟨hFσ, hatσ⟩ := (sat_FM_append g gs _ σ).mp hσ

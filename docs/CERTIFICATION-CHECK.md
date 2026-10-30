@@ -236,12 +236,13 @@ kernel negatives (the IR with the key off fails `structOK` on a stretch-0 cover)
 `prelanding`, `docs/PRELANDING.md`): the `[problem] prelanding = true` key checks a right-only
 node's flow certificate only before its progress certificate's last threshold. No suite_v2 file
 sets it; with the key absent the covers, verdicts and `--check-quick-v2` output are
-byte-identical to `4b154c3`. Tests: `python3 scripts/prelanding_tests.py` (101/101: the engine
-cooling demo's tight band 0.3, the cause test, the adversarial fails-after / fails-before /
-strict-target files, the 78 negatives with the key DECLINED); end to end:
-`python3 scripts/gen_prelanding_demo.py`, `lake build
-RelCertifier.InstancesV2.Bridge.EngineCoolingPrelanding`, `lake env lean
-scripts/prelanding_demo_verdicts.lean` (18/18 groups), `lake env lean
+byte-identical to `4b154c3`. Tests: `python3 scripts/prelanding_tests.py` (105/105: the engine
+cooling demo's tight band 0.3, the cause test, the strict-row demo, the adversarial fails-after /
+fails-before / strict-target / strict-equality files, the 78 negatives with the key DECLINED);
+end to end: `python3 scripts/gen_prelanding_demo.py`, `lake build
+RelCertifier.InstancesV2.Bridge.EngineCoolingPrelanding
+RelCertifier.InstancesV2.Bridge.HoldRepositionStrict`, `lake env lean
+scripts/prelanding_demo_verdicts.lean` (18/18 and 15/15 groups), `lake env lean
 scripts/prelanding_kernel_checks.lean` (the axioms, and the kernel negatives: the record with the
 key off fails `plOK`, the cover without the pre-landing nodes fails `coversOK`).
 

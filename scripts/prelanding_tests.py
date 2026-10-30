@@ -22,6 +22,13 @@ RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a s
              the landing (DECLINED with the key; the claim is false);
              strict-target: fails-after with the Hold guard opened to y > 0 (DECLINED: no
              closed target)
+  strict     benchmarks/prelanding_demo/hold_reposition_strict (a row with a strict component that
+             falls while the right repositions, and a non-strict one that breaks only past the
+             landing): CERTIFIED with the key (the strict component on the CLOSED pre-landing
+             region, route A), DECLINED without the key and under RELCERT_NO_REPO;
+             strict-equality: the synthetic file with the strict row y_R < 0, which reaches
+             equality exactly at the landing y_R = 0: DECLINED (on the half-open region route B
+             would pass vacuously, its boundary lying outside it; the closed region refuses it)
   negatives  every benchmarks/refute_mutants/*/input.txt and benchmarks/negative/*/input.txt
              with `prelanding = true` added: DECLINED
 
@@ -33,6 +40,7 @@ import argparse, glob, os, re, subprocess, sys, tempfile
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 DEMO = os.path.join(ROOT, "benchmarks", "prelanding_demo", "engine_cooling_prelanding", "input.txt")
+STRICT = os.path.join(ROOT, "benchmarks", "prelanding_demo", "hold_reposition_strict", "input.txt")
 VERD = re.compile(r": (CERTIFIED|DECLINED|ERROR)")
 
 
@@ -145,6 +153,12 @@ def main():
                   synthetic("1.0", "y >= 1.0", "y[r] <= 0.5 and y[l] <= y[l]"), "DECLINED", None))
     cases.append(("adversarial strict-target (Hold guard y > 0)",
                   synthetic("0.0", "y > 0.0", "y[r] <= 0.0 and y[l] <= y[l]"), "DECLINED", None))
+    strict = open(STRICT).read()
+    cases.append(("strict demo", strict, "CERTIFIED", None))
+    cases.append(("strict demo without the key", with_key(strict, False), "DECLINED", None))
+    cases.append(("strict demo RELCERT_NO_REPO", strict, "DECLINED", {"RELCERT_NO_REPO": "1"}))
+    cases.append(("adversarial strict-equality (row y_R < 0 reaches 0 at the landing)",
+                  synthetic("0.0", "y >= 0.0", "y[r] < 0.0 and y[l] <= y[l]"), "DECLINED", None))
     if not a.skip_negatives:
         negs = sorted(glob.glob(os.path.join(ROOT, "benchmarks", "refute_mutants", "*", "input.txt")) +
                       glob.glob(os.path.join(ROOT, "benchmarks", "negative", "*", "input.txt")))

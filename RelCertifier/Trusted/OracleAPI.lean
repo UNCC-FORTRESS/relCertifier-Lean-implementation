@@ -403,21 +403,25 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   return ((if proven.length == comps.length then Seg.pass
            else if lastIncon then Seg.incon else Seg.fail), proven)
 
-/-- **DYNAMIC REPOSITION check (the right-only flow certificate of Lemma 4)** — the right-only FLOW cert via the **whole-domain**
-`DI_nonstrict_domain` route (route A: `UNSAT(ġ > 0 ∧ domain)`), left FROZEN (`fL=0`, `ġ` via
-`segPartsRO`). `withGuardL` selects σ: pre-j domain `guardL ∧ evolveL ∧ evolveR`, post-j
-`evolveL ∧ evolveR`. **Whole-domain, NOT boundary** (`g=0 ∧ ġ≥0`) — that is the `t²` guard and the
-reason the right-only flow segment is sound this time. Per component, the OTHER components restrict
-the domain (multi-barrier). `true` iff every component's route-A query is definitive Z3 `unsat`;
-any sat/unknown/error → `false` (withhold — drop-only-on-UNSAT). -/
+/-- **DYNAMIC REPOSITION check (the right-only flow certificate of Lemma 4)**, on a region.
+The left FROZEN (`fL=0`, `ġ` via `segPartsRO`), stratified like `checkSeg` (a component's domain
+is narrowed only by components proven in earlier rounds, docs/history/COVER-AUDIT.md R4).
+`withGuardL` selects σ: pre-j domain `guardL ∧ evolveL ∧ evolveR`, post-j `evolveL ∧ evolveR`.
+* `rg = none` (default): the WHOLE domain, route A only (`UNSAT(ġ > 0 ∧ domain)`,
+  `DI_nonstrict_domain`). Whole-domain, NOT boundary (`g=0 ∧ ġ≥0`): the `t²` guard.
+* `rg = some (Bo, Bc)` (opt-in `prelanding = true`, `docs/PRELANDING.md`): the PRE-LANDING region
+  of the node's progress certificate, `Bo` = before its last threshold (`x < θ`), `Bc` its
+  closure (`x ≤ θ`). A non-strict component: routes A, B or C over `domain ∧ Bo` (the invariant
+  at the first entry into the target follows by continuity); a strict one (`strict`, the row's
+  `invStrictFlags`): route A over `domain ∧ Bc` (the limit along `Bo` gives only `≤ 0`; route A
+  on the closure keeps `< 0` up to and including the stop point).
+`true` iff every component has a definitive `unsat` route; sat/unknown/error → withhold. -/
 def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
-    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (withGuardL : Bool) :
+    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (withGuardL : Bool)
+    (rg : Option (IForm n × IForm n) := none) (strict : List Bool := []) :
     IO (Bool × List Nat) := do
   let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
-  -- STRATIFIED (soundness, same discipline as checkSeg — the previous mutual narrowing
-  -- was a circular cut, unsound for the whole-domain route; see docs/history/COVER-AUDIT.md R4):
-  -- a component's domain is narrowed only by components proven in earlier rounds.
   let mut proven : List Nat := []
   for _ in List.range (comps.length + 1) do
     let mut progress := false
@@ -429,53 +433,18 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         match segPartsRO vars n g mL mR with        -- (evolveL∧evolveR, ġ) with fL=0, λ=1
         | none => pure ()
         | some (baseDom, gdot) =>
+            let isStrict := strict.getD i false
             let baseDom := andCuts baseDom cutL cutR   -- checked-cut narrowing
+            let baseDom := match rg with
+              | none => baseDom
+              | some (bo, bc) => IForm.and baseDom (if isStrict then bc else bo)
             let dom0 := strataDomIR comps proven baseDom
             -- σ-matched, shape-normalized: conjoin guardL ONLY pre-j (no tt-noise post-j)
             let dom := if withGuardL then IForm.and dom0 gLform else dom0
-            -- route A (DI_nonstrict_domain, WHOLE-DOMAIN): domain ∧ ġ>0 UNSAT
-            let q := IForm.and dom (IForm.cmp .gt gdot (.rat 0))
-            let script := q.toScript coord
-            if script.length > maxSmt then pure ()
-            else do
-              cnt.modify (· + 1)
-              if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-              if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-              match ← s.check script with
-              | .ok .unsat => proven := proven ++ [i]; progress := true
-              | _          => pure ()
-    if !progress then break
-  pure (proven.length == comps.length, proven)
-
-/-- **PRE-LANDING REPOSITION check** (opt-in `prelanding = true`, `docs/PRELANDING.md`): the
-right-only flow certificate of `checkDynRepo` over the domain narrowed by `before`, the
-half-open region before the progress certificate's last threshold (`x < θ` / `x > θ`), with
-routes A, B or C per component (route A only for a strict component: at the first entry into
-the target the invariant follows by continuity, which keeps `< 0` only through monotonicity).
-The query domain is `andCuts (evolveL ∧ evolveR) cutL cutR ∧ before`, then the proven strata,
-then (pre-joint) the left guard; stratified exactly like `checkDynRepo`. `true` iff every
-component has a definitive `unsat` route. -/
-def checkDynRepoPL (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
-    (vars : List String) (n : ℕ) (coord : Fin n → String)
-    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (withGuardL : Bool)
-    (before : IForm n) (strict : List Bool) : IO (Bool × List Nat) := do
-  let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
-  let mut proven : List Nat := []
-  for _ in List.range (comps.length + 1) do
-    let mut progress := false
-    for i in List.range comps.length do
-      if proven.contains i then pure () else
-      match comps[i]? with
-      | none => pure ()
-      | some g =>
-        match segPartsRO vars n g mL mR with        -- (evolveL∧evolveR, ġ) with fL=0, λ=1
-        | none => pure ()
-        | some (baseDom, gdot) =>
-            let baseDom := IForm.and (andCuts baseDom cutL cutR) before
-            let dom0 := strataDomIR comps proven baseDom
-            let dom := if withGuardL then IForm.and dom0 gLform else dom0
-            let qs := if strict.getD i false then (routeQueries dom g gdot).take 1
-              else routeQueries dom g gdot
+            -- route A first (the whole-domain pack's only route); B, C on the pre-landing region
+            let qs := match rg with
+              | none => (routeQueries dom g gdot).take 1
+              | some _ => if isStrict then (routeQueries dom g gdot).take 1 else routeQueries dom g gdot
             let mut compPass := false
             for q in qs do
               if compPass then pure () else
@@ -754,7 +723,7 @@ flow preserves), field `fR`, and exits. Candidates: a threshold atom of an exit 
 last stage (its landing query first, then its rate on a geometric grid); failing that, one
 helper stage on a coordinate the field reads (its keep query, its rate, then the last stage's
 rate under the helper's crossed fact). Two stages at most. `accept` (the pre-landing check,
-`checkDynRepoPL`, which reads only the last stage): a found stage list is returned only if it
+`checkDynRepo` on the region, which reads only the last stage): a found stage list is returned only if it
 holds, otherwise the next candidate is tried; the default accepts, so without the key the
 search is the old one. -/
 def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
@@ -869,7 +838,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   let mut progMap : List (String × Bool × Bool) := []
   -- PRE-LANDING (`prelanding = true`, `docs/PRELANDING.md`): the progress search runs first;
   -- each candidate stage list is accepted only if the pre-landing pack holds on the half-open
-  -- region before its last stage (`checkDynRepoPL`). `(mR, pre, order)` per node found.
+  -- region before its last stage (`checkDynRepo` on the region). `(mR, pre, order)` per node found.
   let mut plMap : List (String × Bool × List Nat) := []
   let plOrd ← IO.mkRef ([] : List Nat)
   if progressOn then
@@ -895,8 +864,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
                 match resolveVar vars n Side.R st.var with
                 | none => return false
                 | some v =>
-                  let (ok, ord) ← checkDynRepoPL s cnt maxQ maxSmt deadline vars n coord comps cutL
-                    (cutOfR mR.name) mL mR pre (Progress.before v st) strict
+                  let (ok, ord) ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL
+                    (cutOfR mR.name) mL mR pre (some (Progress.before v st, Progress.beforeCl v st))
+                    strict
                   if ok then plOrd.set ord
                   return ok
             match ← checkProgress s cnt maxQ maxSmt deadline vars coord R guardq fRm exitModes accept with

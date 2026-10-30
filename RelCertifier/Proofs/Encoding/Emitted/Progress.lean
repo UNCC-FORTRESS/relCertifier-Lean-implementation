@@ -72,7 +72,78 @@ noncomputable def regionF (l q : ℕ) (pre : Bool) : Formula (Var n) :=
     (cutF (cL p n cX l))) (FRow p n l)) (if pre then guardL p n l else Formula.tt))
     (Formula.and (hostEvolve (vars p) n Side.R (mRof p q)) (cutF (cR p n cX q)))
 
+/-! ### The region of a reposition node's pack -/
+
+/-- The landing stage of node `(l, q, pre)` under the opt-in key: its certificate's last stage
+with its resolved coordinate. `none` without the key (or without a certificate). -/
+def nodeStage (l q : ℕ) (pre : Bool) : Option (Var n × ProgressStageE) :=
+  if p.prelanding then
+    match certFor p prog l q pre with
+    | none => none
+    | some c =>
+      match c.stages.getLast? with
+      | none => none
+      | some st => (resolveVar (vars p) n Side.R st.var).map (fun v => (v, st))
+  else none
+
+/-- The strictness mask of a node's pack, in its strata order. -/
+def dynMask (l q : ℕ) (pre : Bool) : List Bool :=
+  (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder).map
+    (fun i => (maskOf p n l).getD i false)
+
+/-- The pack's region at the IR level (the bridge's `dynGroups`): the pre-landing region of the
+node's landing stage, `none` (the whole domain) without the key. -/
+def dynRegionI (l q : ℕ) (pre : Bool) : Option (IForm n × IForm n × List Bool) :=
+  (nodeStage p n prog l q pre).map (fun vs => (before vs.1 vs.2, beforeCl vs.1 vs.2, dynMask p n cov l q pre))
+
 end Defs
+
+section Region
+
+theorem sat_beforeCl (v : Var n) (st : ProgressStageE) (y : State (Var n)) :
+    Formula.sat (beforeCl v st).toHost y ↔
+      (if st.up then y v ≤ (st.theta : ℝ) else (st.theta : ℝ) ≤ y v) := by
+  cases h : st.up <;>
+    simp [beforeCl, h, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval]
+
+theorem sat_before (v : Var n) (st : ProgressStageE) (y : State (Var n)) :
+    Formula.sat (before v st).toHost y ↔
+      (if st.up then y v < (st.theta : ℝ) else (st.theta : ℝ) < y v) := by
+  cases h : st.up
+  · simpa [h] using sat_before_down v st h y
+  · simpa [h] using sat_before_up v st h y
+
+/-- The pre-landing region of a landing stage: `x < θ` (half-open) and `x ≤ θ` (its closure),
+upward; the mirror downward. -/
+noncomputable def regionOfStage (v : Var n) (st : ProgressStageE) (mask : List Bool) :
+    DynRegion n :=
+  .pre (before v st).toHost (beforeCl v st).toHost mask
+    (fun x hx => by
+      rw [sat_before] at hx; rw [sat_beforeCl]
+      split_ifs at hx ⊢ <;> linarith)
+    (fun f T hT hf hB => by
+      rw [sat_beforeCl]
+      have hc : ContinuousOn (fun t => f t v) (Icc 0 T) :=
+        (continuous_apply v).comp_continuousOn hf
+      split_ifs with hup
+      · have := le_zero_of_Ico hT (hc.sub continuousOn_const) (fun t ht => by
+          have h := (sat_before v st (f t)).mp (hB t ht); rw [if_pos hup] at h
+          show f t v - (st.theta : ℝ) ≤ 0; linarith)
+        linarith
+      · have := le_zero_of_Ico hT (continuousOn_const.sub hc) (fun t ht => by
+          have h := (sat_before v st (f t)).mp (hB t ht); rw [if_neg hup] at h
+          show (st.theta : ℝ) - f t v ≤ 0; linarith)
+        linarith)
+
+/-- **The region of node `(l, q, pre)`'s pack**: the whole domain without the key; with it, the
+pre-landing region of the node's landing stage, strict components on its closure. -/
+noncomputable def dynRegion (p : PProblem) (n : ℕ) (cov : CoverEmitE) (prog : ProgressEmitE)
+    (l q : ℕ) (pre : Bool) : DynRegion n :=
+  match nodeStage p n prog l q pre with
+  | none => .whole
+  | some vs => regionOfStage vs.1 vs.2 (dynMask p n cov l q pre)
+
+end Region
 
 section Proofs
 
@@ -191,7 +262,19 @@ theorem exit_edge {q : ℕ} (hq : q < nR p) {c : ProgressE} (hc : certOK p n cov
   · show Formula.sat (guardR p n (tgtIdx p nm)) y
     unfold guardR; rw [hmd']; exact hg
 
-/-- **The reposition-progress premise of every reposition node of window `l`.** -/
+omit hs in
+theorem dynRegion_cases {l q : ℕ} {pre : Bool} {c : ProgressE} {st : ProgressStageE} {v : Var n}
+    (hcf : certFor p prog l q pre = some c) (hlast : c.stages.getLast? = some st)
+    (hv : resolveVar (vars p) n Side.R st.var = some v) :
+    dynRegion p n cov prog l q pre =
+      (if p.prelanding then regionOfStage v st (dynMask p n cov l q pre) else .whole) := by
+  unfold dynRegion nodeStage
+  by_cases hk : p.prelanding = true <;> simp [hk, hcf, hlast, hv]
+
+/-- **The reposition-progress premise of every reposition node of window `l`**, from the node's
+progress certificate and its right-only pack on the node's region (`dynRegion`: the whole domain
+without the key, the pre-landing region with it). The landing cycle stops at the first entry into
+the certificate's closed target (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
 theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
@@ -199,7 +282,7 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
     (hdyn : ∀ l < nL p, ∀ q < nR p, ∀ pre : Bool,
       (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true →
-      DynVerd p n cX cov l q pre)
+      DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre))
     (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
     {l : ℕ} (hl : l < nL p) :
     ∀ q m, (grOf p n (prunedOf cov)).modeAt q = some m → ∀ pre : Bool,
@@ -214,6 +297,7 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
   obtain ⟨c, hcf, hok⟩ := hcert pre hflag'
   obtain ⟨hcmem, hcL, hcR, hcpre⟩ := certFor_mem hcf
   have hv := hprog c hcmem
+  have hdv := hdyn l hl q hq pre hflag'
   -- Assumption 1 at `q`
   have hwfq := hwf q (by rw [grOf_len]; exact hq) (modeOf p n q) hm
   have hex : ∀ x, Formula.sat (guardR p n q) x → Formula.sat (domR p n) x → Formula.sat reg x →
@@ -224,42 +308,73 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
       ODESol (rightBlock (fR p n q) (Term.const 1)) (domR p n) x t Φ →
       ∃ e ∈ (grOf p n (prunedOf cov)).edgesFrom q, Formula.sat (guardR p n e.tgt) (Φ t) :=
     fun x hg hd hr t Φ ht H => (hwfq x hg hd hr).2 t Φ ht H
-  -- the anchor with the region, kept along the frozen flow
   have hAfv' : (AGr p n cX cov reg l q).fv ⊆ range Lv ∪ range Rv := by
     intro v hv
     rcases hv with hv | hv
     · exact AG_fv hs hl hq hv
     · exact Or.inr (hregR hv)
-  have hboxD' : ∀ σ ω, Formula.sat (AGr p n cX cov reg l q) σ →
-      (pre = true → Formula.sat (guardL p n l) σ) →
-      Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR p n q) (Term.const 1))
-        (Formula.and (domL p n) (domR p n))) σ ω → Formula.sat (AGr p n cX cov reg l q) ω :=
-    fun σ ω hA hg hω => ⟨AG_boxD hs hnc hst hl hq pre hflag' (hdyn l hl q hq pre hflag') σ ω hA.1 hg hω,
-      reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm rfl rfl 1 zero_le_one hω hA.2⟩
+  -- the anchor with the region, kept along a right-only run that stays in the node's region
+  -- before its last instant
+  have hboxB : (dynRegion p n cov prog l q pre).fvR →
+      ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (AGr p n cX cov reg l q) y →
+      (pre = true → Formula.sat (guardL p n l) y) →
+      ∀ T Φ, ODESol (rightBlock (fR p n q) (Term.const 1)) (domR p n) ρ T Φ →
+      (∀ t ∈ Ico (0 : ℝ) T, (dynRegion p n cov prog l q pre).pred (Φ t)) →
+      Formula.sat (AGr p n cX cov reg l q) (mergeLR y y (Φ T)) := by
+    intro hrg y ρ hyρ hA hgLy T Φ H hB
+    refine ⟨AG_boxR hs hnc hst hl hq pre hflag' hrg hdv y ρ hyρ hA.1 hgLy T Φ H hB, ?_⟩
+    have hrunW := right_sol_merge_joint (fR_fv (hnames hs) q) (domL_fv (hnames hs))
+      (domR_fv (hnames hs)) H y y hA.1.2.1
+    have hregσ : Formula.sat reg (mergeLR y y ρ) :=
+      (sat_merge_R hregR y y ρ).mpr ((Formula.coincidence reg (fun v hv => by
+        obtain ⟨i, rfl⟩ := hregR hv; exact hyρ i)).mp hA.2)
+    exact reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm rfl rfl 1
+      zero_le_one hrunW hregσ
+  -- the region from the certificate's last stage (`st`, coordinate `v`)
+  have hregion : ∀ (st : ProgressStageE) (v : Var n), c.stages.getLast? = some st →
+      resolveVar (vars p) n Side.R st.var = some v → v = Rv v.2 →
+      (dynRegion p n cov prog l q pre).fvR ∧
+      ∀ x, Formula.sat (before v st).toHost x → (dynRegion p n cov prog l q pre).pred x := by
+    intro st v hlast hv' hvR
+    rw [dynRegion_cases hcf hlast hv']
+    split_ifs
+    · refine ⟨?_, fun x hx => hx⟩
+      show (before v st).toHost.fv ⊆ range Rv
+      intro x hx
+      unfold before at hx
+      split_ifs at hx <;>
+        simp [IForm.toHost, ITerm.toHost, Formula.fv, Term.fv] at hx <;>
+        (rw [hx, hvR]; exact ⟨v.2, rfl⟩)
+    · exact ⟨trivial, fun _ _ => trivial⟩
   have hε : 0 < epsR p := (timeOK_at (htime hs) hl).1
-  -- the region
   have hR : ∀ y, Formula.sat (AGr p n cX cov reg l q) y → (pre = true → Formula.sat (guardL p n l) y) →
       Formula.sat (regionF p n cX l q pre) y := fun y hA hg => AG_regionF hs hl hq pre y hA.1 hg
   have hRsat : ∀ y, Formula.sat (regionF p n cX l q pre) y →
       RegionSat (vars p) n cX (mLof p l) (mRof p q) (rowOf p l) pre y :=
     fun y hy => regionSat_of_regionF hs hl pre y hy
+  have hpruneD := fun e he hp σ ω (hA : Formula.sat (AGr p n cX cov reg l q) σ) hω =>
+    AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω
   rcases certOK_shape hok with ⟨st, hstg⟩ | ⟨sth, st, hstg, huph, hup⟩
   · -- one stage, in either direction
     obtain ⟨hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
+    have hlast : c.stages.getLast? = some st := by rw [hstg]; rfl
     cases hup : st.up
     · -- downward
       obtain ⟨v, hv', hrate, hline, hstart⟩ := progressVerd_one_down hv st hstg hup
       rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate hline hstart
       have hvR := resolve_Rv (p := p) hfree hv'
-      refine repoProgress_one_down (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+      refine repoProgress_one_down_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
         (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
         (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
         (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp hboxD'
-        (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
-        v.2 (st.theta : ℝ) ?_ (st.rate : ℝ) hrpos ?_ ?_
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
+        (dynRegion p n cov prog l q pre).pred
+        (hboxB (hregion st v hlast hv' hvR).1)
+        hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos ?_ ?_
       · intro y hy hθ
         exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro x hx
+        exact (hregion st v hlast hv' hvR).2 x ((sat_before_down v st hup x).mpr (by rw [hvR]; exact hx))
       · intro y hy hg hθ
         exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
       · intro y hy hlt
@@ -268,15 +383,18 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
       obtain ⟨v, hv', hrate, hline, hstart⟩ := progressVerd_one hv st hstg hup
       rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate hline hstart
       have hvR := resolve_Rv (p := p) hfree hv'
-      refine repoProgress_one (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+      refine repoProgress_one_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
         (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
         (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
         (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp hboxD'
-        (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
-        v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos ?_
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
+        (dynRegion p n cov prog l q pre).pred
+        (hboxB (hregion st v hlast hv' hvR).1)
+        hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ ?_ (st.rate : ℝ) hrpos ?_
       · intro y hy hθ
         exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro x hx
+        exact (hregion st v hlast hv' hvR).2 x ((sat_before_up v st hup x).mpr (by rw [hvR]; exact hx))
       · intro y hy hg hθ
         exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
       · intro y hy hlt
@@ -284,21 +402,25 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
   · -- two stages, both upward
     obtain ⟨hrhpos, -, hfreeh⟩ := certOK_stage hok (st := sth) (by rw [hstg]; simp)
     obtain ⟨hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
+    have hlast : c.stages.getLast? = some st := by rw [hstg]; rfl
     obtain ⟨w, v, hw', hv', hrate_h, hkeep_h, hrate, hline, hstart⟩ :=
       progressVerd_two hv sth st hstg huph hup
     rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate_h hkeep_h hrate hline hstart
     have hvR := resolve_Rv (p := p) hfree hv'
     have hwR := resolve_Rv (p := p) hfreeh hw'
-    refine repoProgress_two (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+    refine repoProgress_two_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
       (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
       (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
       (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp hboxD'
-      (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
-      v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos w.2 (sth.theta : ℝ) (sth.rate : ℝ) hrhpos
-      ?_ ?_ ?_
+      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
+      (dynRegion p n cov prog l q pre).pred
+      (hboxB (hregion st v hlast hv' hvR).1)
+      hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ ?_ (st.rate : ℝ) hrpos w.2
+      (sth.theta : ℝ) (sth.rate : ℝ) hrhpos ?_ ?_ ?_
     · intro y hy hθ
       exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+    · intro x hx
+      exact (hregion st v hlast hv' hvR).2 x ((sat_before_up v st hup x).mpr (by rw [hvR]; exact hx))
     · intro y hy hg hθ
       exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
     · intro y hy hlt

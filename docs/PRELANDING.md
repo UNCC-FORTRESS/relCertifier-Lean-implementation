@@ -24,8 +24,12 @@ With the opt-in key the right-only flow certificate is checked only BEFORE the l
 * **Certificate.** Per invariant component, one of the routes A (`dom ∧ ġ > 0`), B
   (`dom ∧ g = 0 ∧ ġ ≥ 0`), C (`dom ∧ g ≥ 0 ∧ ġ > 0`) is UNSAT over the reposition domain
   (both evolves, both modes' kept atoms, the proven strata, the left guard pre-joint) conjoined
-  with the pre-landing region, the left frozen, stretch 1. A strict component takes route A
-  only. The whole-domain certificate (route A on the whole domain) implies this one.
+  with the half-open pre-landing region, the left frozen, stretch 1. A STRICT component (`< 0`)
+  takes route A over the CLOSED pre-landing region `x ≤ θ` instead: along the half-open region
+  the limit at the stop point gives only `≤ 0`, while route A over the closure keeps `< 0` up to
+  and including the stop point (route B on the half-open region would even pass vacuously for a
+  strict component that reaches `0` exactly at the landing, its boundary lying outside the
+  region). The whole-domain certificate (route A on the whole domain) implies this one.
 * **Witness.** The right run of the progress argument (full cycles of `m_R`, then a landing
   cycle) stops at its FIRST entry into the target and ends that control cycle early (a cycle of
   any duration in `[0, ε_R]` is legal: the plant is `{x' = f & dom ∧ t ≤ ε}`, `t := 0` per
@@ -44,7 +48,7 @@ key:
   so no node is lost).
 * Progress runs first. `checkProgress` takes an `accept` callback: a found stage list is
   returned only if the pre-landing pack holds on the region before its last stage
-  (`checkDynRepoPL`); otherwise the next candidate threshold is tried. Without the key the
+  (`checkDynRepo` with the region); otherwise the next candidate threshold is tried. Without the key the
   callback accepts, so the search is the old one.
 * The node is recorded in its own list (`prelandLog`, emitted under `RELCERT_PRELANDING_OUT` as
   `Preland.PrelandEmitE`: `(mL, mR, pre, order)` per node). It is NEVER written as the cover's
@@ -68,13 +72,15 @@ Paper Theorem 3 (`lem:composition`), Definitions Segments and Strategy, `RepoPro
    `x < θ`; at it `x = θ` (the intermediate value theorem on `[0, t*]` and minimality).
 2. **The invariant before and at the stop point.** On every proper prefix `[0, s]`, `s < t*`,
    the run is in the region, so the pre-landing pack keeps the rows and the kept atoms
-   (`couple_box_dynPL`, the closed-domain DI with routes A/B/C, lifted through the checked
-   cuts). The row and atom terms are `≤ 0` terms, continuous along the run, so they are `≤ 0`
-   at `t*` too (`AG_boxPLH`, `le_zero_of_Ico`). The barriers of the pruned exits and the
-   envelope are whole-domain facts (unchanged). A strict component (`< 0`) passes only route A
-   in the tool, where `g` is nonincreasing on `[0, t*)` and so `g(t*) ≤ g(0) < 0`; the Lean
-   chain of this branch is the non-strict one (the strict chain `StrictKeyed` keeps the
-   whole-domain pack).
+   (`couple_box_dyn` on the region, the closed-domain DI with routes A/B/C, lifted through the
+   checked cuts; a strict component's closed-region route A covers the half-open region too).
+   The `≤ 0` row and atom terms are continuous along the run, so they are `≤ 0` at `t*` too
+   (`AG_boxR`, `le_zero_of_Ico`). A strict component at `t*` (`AGS_boxR`): the whole run
+   `[0, t*]`, its end included, lies in the closed region (`x < θ` before `t*` and the region's
+   closure property at `t*`) narrowed by the domain, the kept atoms and the earlier strata (all
+   `≤ 0` along the run by the first step), so its route A keeps it `< 0` at the end
+   (`flow_cert_sound_lt`). The barriers of the pruned exits and the envelope are whole-domain
+   facts (unchanged).
 3. **Landing.** At `t*` the right ends its cycle early (a legal duration) and switches along
    an exit enabled on the line (land query 1); a start already past the threshold lands at
    once (land query 2). Cycles before the landing cycle have `x < θ` on their whole interval,
@@ -95,33 +101,41 @@ hit (the witness is the first entry); a strict component through routes B/C (rou
 old-path consumer reading `dynPre`/`dynPost` as a whole-domain certificate (the pre-landing
 node has its own record; the emitted flags are off).
 
-## Lean (no `sorry`, no new axiom)
+## Lean (no `sorry`, no new axiom): one chain, parameterized by the region
 
-The whole-domain chain and its 51 instances are untouched: every new piece is additive.
+The right-only pack and the right-only box premise take the REGION on which invariance is
+required. The whole domain is the default and the old behaviour; the pre-landing region is the
+key. There is no parallel pre-landing chain: the existing definitions and theorems are
+generalized in place, and the old names keep their whole-domain meaning (as the default region,
+or as thin wrappers where the statement changed).
 
-| file | content |
+| file | change |
 |---|---|
-| `Trusted/PrelandEmit.lean` (new) | `PrelandNodeE`, `PrelandEmitE`, `find`, the emitter |
+| `Trusted/PrelandEmit.lean` (new) | `PrelandNodeE`, `PrelandEmitE`, `find`, the emitter: the record carries the region kind (a listed node is on the pre-landing region) |
 | `Trusted/Parse.lean`, `KeyAudit.lean`, `EmitIR.lean` | `PProblem.prelanding : Bool := false`, the key, printed only when true |
-| `Trusted/OracleAPI.lean` | `checkDynRepoPL`; `checkProgress`'s `accept`; `coverMode`: progress first under the key, `plMap`, `effRows`, the merged context; `prelandLog`; the guard; `RELCERT_PRELANDING_OUT` |
-| `Proofs/Encoding/ProgressPL.lean` (new) | `first_hit`, `first_hit_down`; section `NodeB` with the pre-landing premise `hboxB` (the anchor is kept along a right-only run that stays in a region `Bf` before its last instant): `merged_runB`, `keep_preservedB`, `phaseB`, `phase_downB`; section `CloseB`: `repoProgress_oneB`, `repoProgress_twoB`, `repoProgress_one_downB` |
-| `Proofs/Encoding/ReplayDynPL.lean` (new) | `VerdDynCorePL`, `modalVerdDynPLX` (the pack as `checkDynRepoPL` sends it), `segPresAll_dynPL`, `couple_box_dynPL` |
-| `VerdictsV2/ModalDynPL.lean` (new) | `modalVerdDynPLXQueries` (the rebuild, one group of three routes per component), `modalVerdDynPLX_of_queries` (the pin) |
-| `Proofs/Encoding/Emitted/Prelanding.lean` (new) | `withPL`, `plOK`, `DynVerdPL` (the pack at the region before the certificate's last stage, read via `certFor`), `VerdictsPL`, `le_zero_of_Ico`, `merge_continuousOn`, `AG_boxPLH` (the half-open extension), `hrepoProg_ofPL`, `coverHyps_ofPL`, `hcov_ofPL`, `theorem3_window_of_records_pl` (the claim over the EMITTED cover), `dynGroupsPL`, `bridgeGroupsPL`, `verdictsPL_of_groups` |
-| `InstancesV2/WellFormed/EngineCoolingPrelanding.lean` (new) | Assumption 1 of the demo's right model, Z3-free |
-| `InstancesV2/Bridge/EngineCoolingPrelanding.lean` (generated) | the demo's Theorem 3 |
+| `Trusted/ProgressEmit.lean` | `beforeCl` (the closure `x ≤ θ` of `before`) |
+| `Trusted/OracleAPI.lean` | ONE `checkDynRepo`, with an optional region `(before, beforeCl)` and the row's strict flags (default: the whole domain, route A, exactly the old queries); `checkProgress`'s `accept`; `coverMode`: progress first under the key, `plMap`, `effRows`; `prelandLog`; the guard; `RELCERT_PRELANDING_OUT` |
+| `Proofs/Encoding/ReplayDyn.lean` | `DynRegion` (`whole` / `pre Bo Bc mask` with the monotonicity and closure facts), `DynRegion.dom/pred/fvR/covers`; `VerdDynCore`, `modalVerdDynX` take the region (default `whole`: the old pack); `segPresAll_dyn`, `couple_box_dyn` generalized (region implicit, read off the pack) |
+| `Proofs/Encoding/StrictCouple.lean` | `segPresAllS_dyn`, `couple_box_dynS` generalized (strict components need `covers`: closed-region route A) |
+| `VerdictsV2/ModalDynX.lean` | `modalVerdDynXQueriesPre` (the region's groups) and its pin `modalVerdDynX_of_queriesPre`; `modalVerdDynXGroups` dispatches on the region (`none`: the old `modalVerdDynXQueries`, unchanged) |
+| `Proofs/Encoding/Progress.lean` | the node section's premise generalized to a region `Bf` (`hboxB`): `first_hit`(`_down`), `merged_run_reg`, `keep_preserved_reg`, `phase_reg`, `phase_down_reg`, `repoProgress_one_reg`/`_two_reg`/`_one_down_reg`; `hboxB_of_hboxD`; `merged_run`, `keep_preserved`, `phase`, `phase_down`, `repoProgress_one`/`_two`/`_one_down` are thin wrappers (`Bf = ⊤`, statements unchanged) |
+| `Proofs/Encoding/Emitted/Anchor.lean` | `hostFlags`, `maskOf` (moved from `StrictAnchor`), `le_zero_of_Ico`, `merge_continuousOn`; `DynVerd` takes the region (default `whole`); `dynVerd_core` generalized; `AG_boxR` (the region box premise; `AG_boxD` kept for the whole domain) |
+| `Proofs/Encoding/Emitted/Progress.lean` | `nodeStage`, `dynMask`, `dynRegionI`, `regionOfStage`, `dynRegion` (the node's region: whole without the key); `hrepoProg_of` generalized (its pack on the node's region; one shape analysis through the `_reg` closers) |
+| `Proofs/Encoding/Emitted/StrictAnchor.lean` | `AGS_boxR` (strict components at the stop point), `dynRegion_covers`; `hrepoProg_ofS` generalized |
+| `Proofs/Encoding/Emitted/Keyed.lean`, `StrictKeyed.lean`, `Run.lean`, `StrictRun.lean` | `DynAll` reads the node's region (`Verdicts.dyn`, `VerdictsS.dyn`); `dynGroups` sends the node's region's groups; `dynVerd_of_groups` generalized |
+| `Proofs/Encoding/Emitted/Data.lean` | `withPL` (the merged rows), `plOK` (the data gate) |
+| `Proofs/Encoding/Emitted/Window.lean`, `StrictKeyed.lean` | `theorem3_window_of_records_pl`, `theorem3_window_strict_of_records_pl`: the records' theorems on `withPL cov pl` behind `plOK`, stated over the emitted cover (thin wrappers) |
+| `InstancesV2/WellFormed/{EngineCoolingPrelanding,HoldRepositionStrict}.lean` (new) | Assumption 1 of the demos' right models, Z3-free |
+| `InstancesV2/Bridge/{EngineCoolingPrelanding,HoldRepositionStrict}.lean` (generated) | the demos' Theorem 3 |
 
-`RepoProgress`, `theorem3_of_coverX`, `CoverHyps`, the suite's `Verdicts`/`bridgeGroups` and
-every existing instance keep their statements. Pieces of `Keyed.lean`/`Window.lean`/`Run.lean`
-that read the `Verdicts` structure (`cov_of_entry`, `coverHyps_of`, `hcov_of`,
-`theorem3_window_of_records`, `verdicts_of_groups`) are restated for `VerdictsPL` (about 250
-of the 631 lines of `Emitted/Prelanding.lean`, chosen over editing the chain that 51 instances
-rest on). `ProgressPL.lean` (652 lines) mirrors `Progress.lean`'s `merged_run`,
-`keep_preserved`, `phase`, `phase_down` and the three closers with the first-hit landing and the
-`Bf` premise; the whole-domain versions stay as they were. This is a deviation in form from the
-scope (which planned in-place edits of `Progress.lean`, `ReplayDyn`, `StrictCouple`, `ModalDynX`,
-`Emitted/{Anchor,StrictAnchor,Progress,Run,Keyed,StrictKeyed}` and `RunV2`): the additive
-route leaves every existing statement, file and count untouched. New Lean lines: about 1760.
+Without the key every benchmark's node region is `whole` (`nodeStage = none`), so `DynVerd`,
+`dynGroups` and the bridge groups are the old ones: the 51 instances build unchanged and the
+runners' outputs are identical (below). Names pinned in `docs/` keep their names: `phase`,
+`phase_down`, `repoProgress_one`/`_two`/`_one_down`, `hits_line` (unchanged), `couple_box_dyn`,
+`modalVerdDynX`, `modalVerdDynXQueries` (unchanged), `dynVerd_core`, `hrepoProg_of`; for the
+last two and `couple_box_dyn` the whole-domain case is the old statement. The pre-landing files
+of the first version (`ProgressPL.lean`, `ReplayDynPL.lean`, `VerdictsV2/ModalDynPL.lean`,
+`Emitted/Prelanding.lean`) are deleted.
 
 ## The demo: NAHS 2025 engine cooling
 
@@ -158,17 +172,33 @@ choice, cuts, and the pre-landing record `InstancesV2/BenchPrelanding/`) and the
 `covers_ok`, `rows_same`, `pad_ok` decided in the kernel on the merged cover; Assumption 1 from
 the demo's own lemma lifted to dimension 4; `prelanding_on`, `uses_prelanding` decided.
 `engine_cooling_prelanding_bridge_run` is Theorem 3 (window form) over the EMITTED cover from a
-green run of `bridgeGroupsPL`. `lake env lean scripts/prelanding_demo_verdicts.lean`:
-`4 pre-landing groups`, `18/18 groups, ALL DISCHARGED`. `lake env lean
-scripts/prelanding_kernel_checks.lean`: the instance theorems at `[propext, Classical.choice,
-Quot.sound, RelCertifier.z3_unsat_sound]`, `first_hit` and `repoProgress_twoB` at the three
-standard axioms, and two kernel negatives: the record with the key off fails `plOK`, and the
-emitted cover without the pre-landing nodes fails `coversOK`.
+green run of `bridgeGroups` (`theorem3_window_of_records_pl`). `lake env lean
+scripts/prelanding_demo_verdicts.lean`: `4 reposition groups`, `18/18 groups, ALL DISCHARGED`.
+
+## The strict-row demo
+
+`benchmarks/prelanding_demo/hold_reposition_strict` (NOT in suite_v2), synthetic: the left holds
+(`y' = 0`); the right rises in `Up` (`y' = 1`, guard `y <= 0`) until it can switch to `Hold`
+(`y' = 0`, guard `y >= 0`). Row `y_L < y_R + 5 and y_R <= 0`: the strict component falls while
+the right rises (route A on the closed region `y_R <= 0`), the non-strict one breaks only past
+the landing (route B on the half-open region `y_R < 0`). CERTIFIED with the key; DECLINED
+without it and under `RELCERT_NO_REPO`. Its bridge instance
+`InstancesV2/Bridge/HoldRepositionStrict.lean` runs the STRICT chain
+(`theorem3_window_strict_of_records_pl`, `windowClaimS`, `VerdictsS`, `bridgeGroupsS`), with the
+row's mask `[true, false]` and `noStrictRows = false` decided in the kernel; `15/15 groups, ALL
+DISCHARGED`.
+
+`lake env lean scripts/prelanding_kernel_checks.lean`: both instances' theorems at
+`[propext, Classical.choice, Quot.sound, RelCertifier.z3_unsat_sound]`, `AG_boxR` and `AGS_boxR`
+likewise, `first_hit` and `repoProgress_two_reg` at the three standard axioms; kernel facts: the
+strict demo's node is on the pre-landing region with its strict component marked for the closed
+region, and with the key off its region is the whole domain; kernel negatives: each record with
+the key off fails `plOK`, each emitted cover without its pre-landing nodes fails `coversOK`.
 
 ## Tests
 
 `scripts/prelanding_tests.py` (variant files in a temporary directory, `RELCERT_IMPLIED_CUT=1`),
-101/101 as expected (2026-10-30):
+105/105 as expected (2026-10-30, after the in-place refactor):
 
 | case | verdict |
 |---|---|
@@ -179,6 +209,8 @@ emitted cover without the pre-landing nodes fails `coversOK`.
 | adversarial fails-after: a frozen left against a right that climbs in `Up` (guard `y <= 0`) and holds in `Hold` (guard `y >= 0`), row `y_R <= 0`: the row breaks only past the landing threshold | CERTIFIED with the key, DECLINED without |
 | adversarial fails-before: the same with the threshold `1` and the row `y_R <= 0.5`: the row breaks before the landing (the claim is false) | DECLINED |
 | adversarial strict-target: fails-after with the `Hold` guard opened to `y > 0` | DECLINED |
+| strict demo `hold_reposition_strict` | CERTIFIED; DECLINED without the key and under `RELCERT_NO_REPO` |
+| adversarial strict-equality: the synthetic file with the strict row `y_R < 0`, which reaches `0` exactly at the landing `y_R = 0` | DECLINED (on the half-open region route B would pass vacuously) |
 | the 75 `refute_mutants` and 3 `negative` files with the key | 78/78 DECLINED |
 
 ## Regression (key off, no input changed)
@@ -187,21 +219,22 @@ The `4b154c3` binary against this branch's, both with `RELCERT_IMPLIED_CUT=1`, o
 suite_v2 files, the 2 choice exhibits, the stutter demo and the 2 strict demos (55 files):
 the `--emit-cover` output with its progress and choice leaves, and the verdict lines (time
 stripped) under the control run, `RELCERT_SYNC`, `RELCERT_NO_CHOICE`, `RELCERT_NO_PRUNE`,
-`RELCERT_NO_REPO`, `RELCERT_NO_CUT`, `RELCERT_NO_PAIR_STRETCH`: 440 comparisons, 0 differences.
+`RELCERT_NO_REPO`, `RELCERT_NO_CUT`, `RELCERT_NO_PAIR_STRETCH`: 440 comparisons, 0 differences
+(re-measured after the in-place refactor and the strict closed region, 2026-10-30).
 `--check-quick-v2` output (times stripped) identical: 50 certified, modal 1185/1185, handoff
 2831/2831, non-connection 38/38, pruned 19/19, reposition 70/70, strict gate 176/176 (78
-invariant, 98 exit), `SUITE_V2 QUICK CHECKS PASSED`. Lean, rebuilt (`lake build`: 9287 jobs, exit 0, no `sorry`; the five
-executables): `relcert-bridge-verdicts` 7375/7375, `relcert-progress-verdicts` 162/162,
-`relcert-refute-verdicts` 227/227, `relcert-test` ALL PASS (50 IR literals), each output
-identical (times stripped) to the runners built before the branch; `WellFormedBattery` 77 axiom
-lines (75 at the three standard axioms, the 2 `CutLiftX` replay lines with `z3_unsat_sound`),
-`AxiomCheck` 9, no `sorryAx`; `check_one_domain.py` PASS (48 + 2 kind (iii)); the three
-negatives DECLINED (`errors=0`); `lit_hypercert_vehicle_s8` 5/5 BLOCKING, DECLINED under strict;
-`scripts/stutter_tests.py` 109/109; stutter demo 54/54 groups, `stutter_kernel_checks.lean` 6
-axiom lines, no error. (`scripts/gen_stutter_demo.py` regenerates the stutter leaves
-byte-identically but writes `stutter_on`/`uses_stutter` twice into its instance, since
-`gen_bridge.py` now emits them for a keyed file too; a pre-existing generator issue, not
-touched here; the committed instance was restored.)
+invariant, 98 exit), `SUITE_V2 QUICK CHECKS PASSED`. Lean, after the refactor (`lake build` exit
+0, 9283 jobs, no `sorry`; the five executables): `relcert-bridge-verdicts` 7375/7375,
+`relcert-progress-verdicts` 162/162, `relcert-refute-verdicts` 227/227, `relcert-test` ALL PASS
+(50 IR literals), each output identical (times stripped) to the runners built before the
+branch; the 51 suite and exhibit instances build unchanged; `WellFormedBattery` 77 axiom lines
+(75 at the three standard axioms, the 2 `CutLiftX` replay lines with `z3_unsat_sound`),
+`AxiomCheck` 9, no `sorryAx`; `check_one_domain.py` PASS (48 + 2 kind (iii)); the three negatives
+DECLINED (`errors=0`); `lit_hypercert_vehicle_s8` 5/5 BLOCKING, DECLINED under strict;
+`scripts/stutter_tests.py` 109/109; `scripts/gen_stutter_demo.py` regenerates the stutter demo's
+leaves and instance byte-identically (it no longer writes `stutter_on`/`uses_stutter` a second
+time: `gen_bridge.py` emits them for a keyed file, the demo script drops that copy); the stutter
+instance builds, 54/54 groups, `stutter_kernel_checks.lean` 6 axiom lines, no error.
 
 **Global key (ablation preview, not a suite change).** Every suite_v2 file with
 `prelanding = true` added: 50/50 CERTIFIED; 38 files have pre-landing nodes (963 node records
@@ -265,9 +298,6 @@ and C for the right-only kind; with the key the tool and Lean use all three.
 
 * The strict-landing extension for an open target (the source's `temp > 100`): not built; the
   demo closes the genuine Cool guard (disclosed above).
-* The strict chain (`StrictKeyed`, strict rows): keeps the whole-domain pack; a keyed benchmark
-  with strict rows certifies in the tool (route A on strict components) without a bridge
-  instance.
 * Not merged into `benchmark-fixes`; the engine benchmark is not installed in suite_v2.
 * The global setting (the key on for every file) is an ablation for later: the 2026-10-30 census
   counts 1187 nodes in 43 suite files that fail today's whole-domain check.

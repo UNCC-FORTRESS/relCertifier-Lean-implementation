@@ -48,38 +48,23 @@ Letters (the paper's legend), every one measured, never read off a header:
   I mode fact        RELCERT_NO_CUT=1 DECLINES (matrix no_cut_verdict)
   X committed subset RELCERT_NO_CHOICE=1 DECLINES
 
-USED and NEEDED (owner's decision, 2026-10-30, batch 11). Table 1 lists the mechanisms a
-benchmark's certificate USES and marks those it also NEEDS. NEEDED is the rule above, unchanged
-(the `letters` field and the `numletter<L>` macros keep it, for continuity): for R, P, I, X and
-the positive stretch of S, the file DECLINES with the mechanism switched off; M and B have no
-switch-off and are credited by the cover shape (M: owner's decision, the shape rule; B: the
-branching of the replayed derivation), so for them used = needed; D adds the uniform-row test.
-USED is read off the certificate the tool found, through the matrix's replay of the verified
-checker on the emitted cover (`scripts/suite_v2_matrix.py`), on a CERTIFIED file only:
-  S  some left mode's cover runs at a stretch other than 1, stretch 0 included (matrix M1)
-  M  the cover shape (matrix M2: budget >= 2 and a joint step on the replayed path)
-  R  a right-only segment on the replayed path
-  B  a joint step on the path with >= 2 distinct non-self retained successors (matrix M3)
-  P  an edge is pruned out of a right mode on a replayed path, into a LIVE mode (one some cover
-     visits on its path or admits as a start); an edge into a mode no cover ever visits or admits
-     (a sink such as a safe or disengage mode) is dead structure for the certificate and does not
-     count
-  D  the rows differ per mode and the --handoff queries are non-vacuous and all unsat (matrix M5)
-  I  a checked cut is kept on a mode of the path (a left mode, or a right mode on a replayed
-     path) and it is load-bearing for the certificate found: RELCERT_NO_CUT=1 declines, or it
-     certifies with a structurally different cover (`cover_signature`: the pruned edges, and per
-     left mode the stretch, budget, admissible starts and the flags of the right modes on its
-     replayed path; the search is deterministic, so a pairing the found certificate uses did not
-     pass without the cuts); a cut kept on a cover whose signature is unchanged without it is
-     vacuous (the matrix's `M6: vacuous` annotation; strata orders, which list cut atoms, and
-     flags of pairings no path uses are ignored)
-  X  the cover commits to a successor subset (the emitted choice record is non-empty)
-Screens. A use counts only on the replayed derivation path (dead structure off every path never
-counts) and, for P, only into a live mode (above). Start-only structure (a pairing reachable
-only from an arbitrary start) is screened by review for every NEEDED letter (docs/review-rubric.md,
-the start-only test); a letter that is used but not needed is listed per file in letters.md
-(column `used, not needed`) for that inspection. Every needed letter must be used; a violation is
-printed as `NEEDED-NOT-USED` and stops the run.
+USED and NEEDED (owner's decision, 2026-10-30, replacing the batch-11 screens). Table 1 marks a
+mechanism USED (open circle) or NEEDED (filled circle); two plain notions, no further screens.
+USED: the mechanism appears in the certificate the tool produced (the emitted cover and
+certificate records, as replayed by `scripts/suite_v2_matrix.py`), on a CERTIFIED file:
+  S  some pairing's stretch is not 1 (stretch 0 included)
+  M  a multi-step cover (matrix M2: budget >= 2 and a joint step on the replayed path)
+  R  a right-only node in some cover
+  B  a joint step with >= 2 distinct non-self retained successors (matrix M3)
+  P  a pruned edge (a non-connection certificate in the cover), any pruned edge
+  D  mode-dependent rows: the invariant's rows differ per left mode
+  I  a checked cut (mode-fact atom) kept in the certificate, on any mode
+  X  a committed successor subset (the emitted choice record is non-empty)
+NEEDED: the ablation rule above: with the mechanism switched off the tool DECLINES (S: SYNC and the
+lambda = 1 file; R: RELCERT_NO_REPO; P: RELCERT_NO_PRUNE; I: RELCERT_NO_CUT; X: RELCERT_NO_CHOICE;
+D: the uniform-row test). M and B have no switch-off and are read off the cover shape, so for them
+needed = used. Every needed letter must be used; a violation is printed as `NEEDED-NOT-USED` and
+stops the run.
 """
 import argparse, json, os, re, shutil, subprocess, sys, tempfile
 
@@ -273,26 +258,20 @@ def cover_signature(text, rec):
     return sig
 
 
-def used_letters(r, prob, cert, cover_same_nocut):
+def used_letters(r, cert):
     """The mechanisms the certificate found USES (module docstring), from the matrix record."""
     covs = r["covers"]
-    on_path = {m for c in covs for m in c.get("modes_on_path", [])}
-    live = on_path | {m for c in covs for m in c.get("admissible", [])}
     cells = r["cells"]
-    cut_on_path = False
-    for line in r.get("cut_lines", []):
-        m = re.match(r"\[cut\] ([LR])\.(\w+): (\d+) conjunct", line)
-        if m and int(m.group(3)) > 0 and (m.group(1) == "L" or m.group(2) in on_path):
-            cut_on_path = True
+    cut_kept = any(int(m.group(1)) > 0 for line in r.get("cut_lines", [])
+                   for m in [re.match(r"\[cut\] [LR]\.\w+: (\d+) conjunct", line)] if m)
     return {
         "S": cert and any(positive_stretch_ne1(c) or stutter_pairs(c) for c in covs),
         "M": cells["M2"].startswith("yes"),
         "R": cert and any(c.get("right_only") for c in covs),
         "B": cells["M3"].startswith("yes"),
-        "P": cert and any(a in on_path and b in live for a, b in r.get("pruned", [])),
-        "D": cells["M5"].startswith("yes"),
-        "I": cert and cut_on_path and (r["no_cut_verdict"] == "DECLINED" or
-                                      (r["no_cut_verdict"] == "CERTIFIED" and not cover_same_nocut)),
+        "P": cert and bool(r.get("pruned")),
+        "D": cert and "rows differ" in cells["M5"],
+        "I": cert and cut_kept,
         "X": cert and r.get("choice_entries", 0) > 0,
     }
 
@@ -455,13 +434,7 @@ def main():
             if stut:
                 diag["S_nostutter_verdict"] = nostut
                 diag["S_lam1key_verdict"] = lam1key
-            same_nocut = True
-            if cert and r["no_cut_verdict"] == "CERTIFIED":
-                c0 = cover_signature(emit_cover_text(a.relcert, path, a.timeout), r)
-                c1 = cover_signature(emit_cover_text(a.relcert, path, a.timeout, {"RELCERT_NO_CUT": "1"}), r)
-                same_nocut = c0 is not None and c0 == c1
-            U = used_letters(r, prob, cert, same_nocut)
-            diag["I_nocut_same_cover"] = same_nocut
+            U = used_letters(r, cert)
             bad = [k for k in LETTERS if L[k] and not U[k]]
             if bad:
                 print(f"NEEDED-NOT-USED {name}: {' '.join(bad)}", flush=True)
@@ -497,10 +470,12 @@ def main():
         f.write("\n".join(table) + "\n\n")
         f.write("Totals (needed, the `letters` field and `\\numletter<L>`): " + ", ".join(f"{k} {tot[k]}" for k in LETTERS) + "\n\n")
         f.write("Totals (used, `\\numletter<L>used`): " + ", ".join(f"{k} {totu[k]}" for k in LETTERS) + "\n\n")
-        f.write("Used and needed (2026-10-30, batch 11): see the docstring of scripts/suite_v2_letters.py. Needed = the "
-                "rule below (the file declines with the mechanism off; M and B by the cover shape). Used = the mechanism "
-                "appears in the replayed derivation of the certificate found (P only into a live mode; I only when the cut "
-                "is load-bearing for that certificate: NO_CUT declines or finds a different cover).\n\n")
+        f.write("Used and needed (2026-10-30): see the docstring of scripts/suite_v2_letters.py. Needed = the "
+                "ablation rule (with the mechanism switched off the tool declines; M and B by the cover shape, so needed = used). "
+                "Used = the mechanism appears in the certificate the tool produced (S a stretch other than 1, 0 included; M a "
+                "multi-step cover; R a right-only node; B a joint step with >= 2 retained successors; P any pruned edge; D rows "
+                "that differ per left mode; I a checked cut kept in the certificate; X a committed successor subset). No other "
+                "screens (owner's decision 2026-10-30, replacing the batch-11 screens).\n\n")
         f.write("D rule (2026-10-27): the stated requirement differs per mode, so the claim needs mode-dependent rows: "
                 "matrix M5 and every uniform row set from the file's own rows that keeps every stated requirement declines; "
                 "a uniform row marked (drops a stated row) may certify without removing D. "

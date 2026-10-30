@@ -3,18 +3,22 @@
 #   scripts/paper_numbers.sh OUTDIR
 # Records the commit, Z3 version, OS and flags; emits every cover twice and requires them
 # byte-identical; runs every configuration; runs the mechanism matrix; writes OUTDIR/numbers.tex.
-# Letter macros (2026-10-30, batch 11; scripts/suite_v2_letters.py, docstring "USED and NEEDED"):
+# Letter macros (2026-10-30; scripts/suite_v2_letters.py, docstring "USED and NEEDED"):
 #   \numletter<L>      files whose certificate NEEDS mechanism <L> (the rule kept for continuity:
 #                      the file declines with <L> switched off; M and B by the cover shape)
-#   \numletter<L>used  files whose certificate USES <L> (the replayed derivation of the cover found)
+#   \numletter<L>used  files whose certificate USES <L> (it appears in the emitted certificate)
 #   <L> in S M R B P D I X; needed <= used for every letter.
 # Table snippets (same script): OUTDIR/table1.tex (Table 1, by group, one column per letter,
 # \mechNeeded / \mechUsed / blank, needed and used totals rows) and OUTDIR/table_per_benchmark.tex
 # (the appendix table); the paper defines \mechNeeded and \mechUsed.
+# LETTERS_ONLY=1 scripts/paper_numbers.sh OUTDIR re-runs only the letters step and numbers.tex.
 set -u
 OUT=${1:?usage: paper_numbers.sh OUTDIR}
 mkdir -p $OUT/covers1 $OUT/covers2
 cd "$(dirname $0)/.."
+# tree state before any output is written; the outputs under OUTDIR are excluded (this run rewrites
+# them, and the tracked build.log alone made every earlier MANIFEST read DIRTY)
+STATE=$(git diff --quiet -- . ":(exclude)$OUT" && echo clean || echo DIRTY)
 lake build relcert > $OUT/build.log 2>&1 || { echo "build failed (see build.log)"; exit 1; }
 B=./.lake/build/bin/relcert
 S=(benchmarks/suite_v2/*/input.txt)
@@ -25,8 +29,13 @@ unset RELCERT_NO_PRUNE RELCERT_NO_CUT RELCERT_NO_IMPLIED_CUT RELCERT_NO_LINEAR_C
       RELCERT_LAMBDA_SCAN RELCERT_OPREGION RELCERT_TIME_BUDGET_MS RELCERT_MAX_QUERIES \
       RELCERT_NO_REPO RELCERT_NO_PROGRESS RELCERT_SINGLE_STEP
 
+# LETTERS_ONLY=1 re-runs steps 3b and 4 only, on the runs and matrix already in OUTDIR (their
+# MANIFEST lines kept; one line is appended recording the commit of the letters re-run).
+if [[ -n ${LETTERS_ONLY:-} ]]; then
+  echo "letters re-run (steps 3b and 4 only): commit $(git rev-parse HEAD) $STATE date $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $OUT/MANIFEST.txt
+else
 {
-  echo "commit $(git rev-parse HEAD) $(git diff --quiet && echo clean || echo DIRTY)"
+  echo "commit $(git rev-parse HEAD) $STATE"
   echo "z3 $(z3 -version)"
   echo "os $(uname -srm)"
   echo "date $(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -65,6 +74,7 @@ run exhibits_sync_on RELCERT_SYNC=1
 
 # 3. mechanism matrix (its own counter-runs)
 python3 scripts/suite_v2_matrix.py --json $OUT/matrix.json --md $OUT/matrix.md > $OUT/matrix.log 2>&1
+fi  # LETTERS_ONLY
 
 # 3b. Table 1 letters per benchmark (counter-runs above + lambda = 1 and uniform-row variant
 #     files), the per-benchmark rows of the appendix table (suite_results.json)

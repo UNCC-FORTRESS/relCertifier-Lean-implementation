@@ -9,7 +9,7 @@
 #   \numletter<L>used  files whose certificate USES <L> (the replayed derivation of the cover found)
 #   <L> in S M R B P D I X; needed <= used for every letter.
 # Table snippets (same script): OUTDIR/table1.tex (Table 1, by group, one column per letter,
-# \mechNeeded / \mechUsed / blank, a needed/used totals row) and OUTDIR/table_per_benchmark.tex
+# \mechNeeded / \mechUsed / blank, needed and used totals rows) and OUTDIR/table_per_benchmark.tex
 # (the appendix table); the paper defines \mechNeeded and \mechUsed.
 set -u
 OUT=${1:?usage: paper_numbers.sh OUTDIR}

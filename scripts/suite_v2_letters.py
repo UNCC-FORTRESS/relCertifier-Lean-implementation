@@ -91,25 +91,27 @@ from inv_smt import atoms_of, show  # noqa: E402
 
 LETTERS = ["S", "M", "R", "B", "P", "D", "I", "X"]
 
-# Table 1 groups (2026-10-30): the suite by APPLICATION AREA, in this order. Every suite_v2 benchmark
+# Table 1 groups (2026-10-30): the suite by APPLICATION AREA, in this order (short labels so the
+# table fits one column: Automotive = automotive and rail, Process = process and thermal, Energy =
+# power and energy, Water tank = the running example and its two-speed variant). Every suite_v2 benchmark
 # is listed under exactly one area; a benchmark listed nowhere (or twice) stops the script, so a new
 # benchmark cannot silently fall out of the table. The wind turbine (turbine_startup_gearratio) is
 # under power and energy; the turbofan ground start (engine_start_highidle) under aerospace.
 AREAS = [
-    ("Automotive and rail", ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
+    ("Automotive", ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
                              "platoon_linkloss", "platoon_profiles", "train_ato_odometry"]),
     ("Rovers", ["rover_terrain_2to4", "rover_terrain_4to6", "rover_ladder_2to3", "rover_ladder_3to6",
                 "rover_ladder_6to8", "rover_ladder_8to12"]),
     ("Aerospace", ["quad_light_lag", "quad_light_profiles", "sat_detumble_phases", "sat_detumble_weak",
                    "sat3w_detumble_phases", "flaps_slow_approach", "engine_start_highidle"]),
-    ("Process and thermal", ["reactor_feed_wireless", "extruder_pe100_manualstart", "boiler_purge_vfd",
+    ("Process", ["reactor_feed_wireless", "extruder_pe100_manualstart", "boiler_purge_vfd",
                              "autoclave_liquid_steambank", "tank_dos_3to1", "molding_pack_checkring",
                              "bottling_fill_strainer", "furnace_program_timebase"]),
-    ("Power and energy", ["h2_refuel_ambientbias", "hydro_rejection_gatecal", "turbine_startup_gearratio"]),
+    ("Energy", ["h2_refuel_ambientbias", "hydro_rejection_gatecal", "turbine_startup_gearratio"]),
     ("Medical", ["ventilator_vc_cuffleak", "syringe_relay_prearm"]),
     ("Infrastructure", ["rampmeter_poll_2to1", "canal_gate_notches", "elevator_start_discbrake",
                         "gantry_speed_zones", "antenna_track_kvretune"]),
-    ("Water tank (running ex.)", ["watertank", "watertank_twospeed"]),
+    ("Water tank", ["watertank", "watertank_twospeed"]),
     ("Literature", ["lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo", "lit_csf25_salt_tank_hold",
                     "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot",
                     "lit_gpt10_boost_converter", "lit_lz21_vehicle_position", "lit_nahs25_engine_cooling",
@@ -337,9 +339,9 @@ def write_tables(out, rows):
         return f"{x['dimL']}" if x["dimL"] == x["dimR"] else f"{x['dimL']}/{x['dimR']}"
     groups = group_order(rows)
     lines = [TEX_HDR, "% Table 1: the suite by group; a group's cell is the strongest level among its members",
-             "% (needed > used > none); the last row: needed/used counts per letter over the suite.",
+             "% (needed > used > none); the last two rows: needed and used counts per letter over the suite.",
              "\\begin{tabular}{@{}l c c c c c " + " ".join("c" for _ in LETTERS) + "@{}}", "\\toprule",
-             "Benchmark group & \\# & Sync & Dim & Modes & Dyn/Inv & " + " & ".join(LETTERS) + " \\\\", "\\midrule"]
+             "Group & \\# & Sync & Dim & Modes & Dyn/Inv & " + " & ".join(LETTERS) + " \\\\", "\\midrule"]
     for g in groups:
         xs = [x for x in rows if x["group"] == g]
         dims = [x["dimL"] for x in xs] + [x["dimR"] for x in xs]
@@ -353,9 +355,11 @@ def write_tables(out, rows):
         nsync = sum(1 for x in xs if x["sync"] == "CERTIFIED")
         lines.append(f"{g} & {len(xs)} & {nsync} & {rng(dims)} & {modes} & {dy}/{iv} & " + " & ".join(cells) + " \\\\")
     lines.append("\\midrule")
-    tots = " & ".join(f"{sum(1 for x in rows if x['needed'][k])}/{sum(1 for x in rows if x['used'][k])}" for k in LETTERS)
+    totn = " & ".join(f"{sum(1 for x in rows if x['needed'][k])}" for k in LETTERS)
+    totu = " & ".join(f"{sum(1 for x in rows if x['used'][k])}" for k in LETTERS)
     nsync = sum(1 for x in rows if x["sync"] == "CERTIFIED")
-    lines.append(f"Total (needed/used) & {len(rows)} & {nsync} & & & & {tots} \\\\")
+    lines.append(f"Total needed & {len(rows)} & {nsync} & & & & {totn} \\\\")
+    lines.append(f"Total used & & & & & & {totu} \\\\")
     lines += ["\\bottomrule", "\\end{tabular}", ""]
     lines.append("% Group mapping (benchmark -> application area, AREAS in scripts/suite_v2_letters.py):")
     for g in groups:

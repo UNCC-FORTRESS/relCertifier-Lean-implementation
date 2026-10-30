@@ -11,7 +11,9 @@
 # Section 4.1 (the lattice [R^n]_eta and the abstraction T_tau,eta(Sigma): q -p-> q' iff
 # ||x(tau_s, q, p) - q'|| <= eta), Theorem 4.1 (approximate bisimulation with precision eps, relation
 # V(x, q) <= alpha(eps), condition eta <= min(gamma^-1((1 - e^(-kappa tau_s)) alpha(eps)), ...)) and
-# Definition 3.2. Converter state x = [il, vc], x' = A_p x + b, p in {1, 2}:
+# Definition 3.2 (three conditions: (1) the output distance, (2) every transition of T_tau(Sigma)
+# matched by T_tau,eta(Sigma) with the same label, (3) the converse; the proof of Theorem 4.1 writes
+# out (2) and gives (3) "in a similar way"). Converter state x = [il, vc], x' = A_p x + b, p in {1, 2}:
 # A1 = [[-rl/xl, 0], [0, -1/(xc (r0 + rc))]], A2 = [[-(rl + r0 rc/(r0 + rc))/xl, -(r0/(r0 + rc))/xl],
 # [(r0/(r0 + rc))/xc, -1/(xc (r0 + rc))]], b = [vs/xl, 0]; xc = 70, xl = 3, rc = 0.005, rl = 0.05,
 # r0 = 1, vs = 1 (p.u.). Rescaled state [il, 5 vc] "for a better numerical conditioning"; common
@@ -33,8 +35,8 @@
 # tau_s.
 #
 # CLAIM (every left mode): (e_il, e_z) M (e_il, e_z)^T <= 6.76 = 2.6^2, e = x_L - x_R: the source's
-# relation V(x, q) <= alpha(eps) of Theorem 4.1 at eps = 2.6, read in the direction of the second
-# condition of Definition 3.2 (every transition of the abstraction is matched by a transition of the
+# relation V(x, q) <= alpha(eps) of Theorem 4.1 at eps = 2.6, read in the direction of condition (3)
+# of Definition 3.2 (every transition of the abstraction is matched by a transition of the
 # converter, staying in the relation; the converter takes the abstraction's switch position by the
 # cover's existential choice, so "the same label p" is how the witness answers, not part of the
 # certified statement, as rows cannot name the right mode). With lambda_min(M) = 0.99996,
@@ -71,9 +73,23 @@
 #   neither the cell nor the source's ball (tight 2.49 there). The certificate is a differential
 #   invariant whose derivative is linear in the drift, so it holds for every drift signal in the
 #   24-gon, not only constant ones.
-# (2) Only the second condition of Definition 3.2 is stated; the first (every converter run matched by
-#   the abstraction) is met by the abstraction taking zero drift in the stand-in (a copy), so it carries
-#   no content here.
+# (2) Only condition (3) of Definition 3.2 is stated. Condition (2) (every converter transition
+#   matched by an abstraction transition with the same label) was tested on 2026-10-29 in two
+#   readings, neither installable. (a) Off-lattice witness: the right = the converter plus a constant
+#   drift per window from the 24-gon of circumradius 0.035473 (every window displacement within eta),
+#   48 modes, the same row: CERTIFIED at 2.6 (about 47 s), and at 2.6 every landing passes, as the
+#   source's argument needs (every-landing tight 2.548: 2.55 certifies, 2.54 declines); the
+#   existential tight value is 2.16 (2.15 declines), below the source's bound because the witness picks
+#   its most favourable off-lattice landing; M = I certifies too (tight 2.13). Its right is not on the
+#   lattice, so the statement does not imply condition (2), and zero drift makes it a copy (precision
+#   1e-4). (b) Lattice-exact witness: right modes (p, d), d a lattice displacement (spacing 0.025),
+#   flow x' = d/tau_s (lands on q + d), guard the source's condition ||x(tau_s, q, p) - q - d|| <= eta
+#   (as the Voronoi square inside it), a ghost label s' = +-1 on both sides (86 right modes over
+#   I' + ellipse(2.6)). With one evolve domain every flow certificate fails (DECLINED): the guard
+#   holds only at the window start, the certificate needs the offset throughout the window. The
+#   per-mode window band that rescues it is a non-uniform right domain (outside the one-domain
+#   rule, rejected by the handoff check); with it the covers close at 2.8 and not at 2.6 (tight in
+#   (2.7, 2.8]; the band costs about 0.3 over 2.37), and M = I closes too.
 # (3) Coefficients as 12-digit decimals: written as quotients of the printed parameters, the segment
 #   queries of this route come back inconclusive from Z3 (measured: ERROR on the first route).
 # (4) No evolve domain (the constant atom 0.0 <= 1.0 on every mode of both sides): the source works on

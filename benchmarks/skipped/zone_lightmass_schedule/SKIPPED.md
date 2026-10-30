@@ -18,3 +18,6 @@ letter, 20) instead of I (17).
 The input is kept unchanged in this directory for reference; its Assumption 1 proof
 (`RelCertifier/InstancesV2/WellFormed/ZoneLightmassSchedule.lean`), pack rows and generated layers are
 in git history (last at the commit before this removal).
+
+Stutter (2026-10-30, `docs/OVERNIGHT2-2026-10-30.md`, phase 3): tried `stutter = true` (stretch 0, the
+witness waits): with the key the verdict and the tight 0.49 are unchanged and the domain artifact stays (0..30 or 5..33 at 0.5 DECLINE with the key too); at 0.49 every stretch-0 pairing fails; the claim is a re-timed trace, not a time-abstract one. Stays skipped.

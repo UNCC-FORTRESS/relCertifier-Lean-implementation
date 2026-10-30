@@ -12,3 +12,6 @@ repair it) the benchmark leaves the suite (50 -> 49); its copy-witness content i
 
 The file is kept here unchanged (no Lean integration). The Assumption 1 negative exhibit
 `benchmarks/negative_wellformed/lit_hypercert_vehicle_s8` is self-contained and stays.
+
+Stutter (2026-10-30, `docs/OVERNIGHT2-2026-10-30.md`, phase 3): tried `stutter = true` (stretch 0, the
+witness waits): with the key every stretch-0 pairing fails (the offset row breaks when the partner is frozen; the literal bounded reading fails at Am4 because v_L moves) and every verdict is unchanged; the source is synchronous HyperLTL (a lock-step game: the existential player selects the next state of the counter-trace), so a waiting partner would be an asynchronous opacity notion, not the source's. Stays skipped.

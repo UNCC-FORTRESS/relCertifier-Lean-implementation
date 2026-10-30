@@ -39,3 +39,6 @@ left with it). Its letters were D I; D is carried by the refill `antenna_track_k
 the reserve, round-1 reserve score 4) and, since the same audit, by `turbine_startup_gearratio`
 (mode-dependent rows at the overspeed trip); the suite's I count drops from 18 to 17 (reported,
 not silent: no reserve candidate with I scored above 3).
+
+Stutter (2026-10-30, `docs/OVERNIGHT2-2026-10-30.md`, phase 3): tried `stutter = true` (stretch 0, the
+witness waits): with the key the file's verdict and tight values are unchanged (u-band 0.41) and no stretch-0 pairing passes (the rows tie the two clocks); at the physical floor u >= 0 the right model fails Assumption 1 (NORMAL UNKNOWN, FIRE BLOCKING) with or without the key, which stutter cannot repair. Stays skipped.

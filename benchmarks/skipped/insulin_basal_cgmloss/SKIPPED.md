@@ -13,3 +13,6 @@ requirement holds up to 40 s polling and fails at 50 s). Letters are unchanged b
 The input is kept unchanged in this directory for reference; its Assumption 1 proof
 (`RelCertifier/InstancesV2/WellFormed/InsulinBasalCgmloss.lean`), pack rows and generated layers are
 in git history (last at the commit before this removal).
+
+Stutter (2026-10-30, `docs/OVERNIGHT2-2026-10-30.md`, phase 3): tried `stutter = true` (stretch 0, the
+witness waits): with the key the verdict and the tight values (G 25.0, X 0.40) are unchanged and no stretch-0 pairing passes; two patients are compared at equal times, so a waiting reference has no meaning here. Stays skipped.

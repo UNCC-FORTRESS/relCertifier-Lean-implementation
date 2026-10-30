@@ -16,3 +16,6 @@ the source's precision.
 The input is kept unchanged in this directory for reference; its Assumption 1 proof
 (`RelCertifier/InstancesV2/WellFormed/LitDrlCarStop.lean`) and generated layers are in git history
 (last at the commit before this removal).
+
+Stutter (2026-10-30, `docs/OVERNIGHT2-2026-10-30.md`, phase 3): tried `stutter = true` (stretch 0, the
+witness waits): the file and its 23 variants (finer right period, E as a claim conjunct, no guard, ...) give the same verdicts with and without the key and no stretch-0 pairing passes; the dRL refinement is final-state inclusion at the identity relation (a shared clock, equal durations), so a frozen witness breaks it; the real gap stays Goal 3 (a bounded-time fact). Stays skipped.

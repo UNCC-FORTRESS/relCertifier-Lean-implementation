@@ -37,3 +37,6 @@ overall-4 candidate with a letter, `molding_pack_checkring` (D), was not taken: 
 DECLINES (measured 2026-10-29), so its claim stands on a set-point domain. The suite's M and P
 counts drop by one each (reported, not silent: the only reserve candidate with M or P scored above
 3 is `quad_light_airframe_20`, whose claim stands on a domain bound and fails the widening test).
+
+Stutter (2026-10-30, `docs/OVERNIGHT2-2026-10-30.md`, phase 3): tried `stutter = true` (stretch 0, the
+witness waits): with the key the verdict and the tight 0.24 are unchanged (0.23 declines), no stretch-0 pairing passes, and the cause test (left FFR switched off) still certifies at 0.24; frequency support is a same-time claim, so a waiting grid is not a reference. Stays skipped.

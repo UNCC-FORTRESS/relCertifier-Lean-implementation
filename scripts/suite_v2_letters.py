@@ -326,7 +326,7 @@ def write_tables(out, rows):
     lines = [TEX_HDR, "% Table 1: the suite by group; a group's cell is the strongest level among its members",
              "% (needed > used > none); the last two rows: needed and used counts per letter over the suite.",
              "\\begin{tabular}{@{}l c c c c c " + " ".join("c" for _ in LETTERS) + "@{}}", "\\toprule",
-             "Group & \\# & Sync & Dim & Modes & Dyn/Inv & " + " & ".join(LETTERS) + " \\\\", "\\midrule"]
+             "Area & \\# & Sync & Dim & Modes & Dyn/Inv & " + " & ".join(LETTERS) + " \\\\", "\\midrule"]
     for g in groups:
         xs = [x for x in rows if x["group"] == g]
         dims = [x["dimL"] for x in xs] + [x["dimR"] for x in xs]
@@ -352,13 +352,13 @@ def write_tables(out, rows):
     open(f"{out}/table1.tex", "w").write("\n".join(lines) + "\n")
     pl = [TEX_HDR, "% Appendix: the benchmarks individually, ordered by application area (area printed at its first row).",
           "\\begin{tabular}{@{}l l c c c " + " ".join("c" for _ in LETTERS) + " r@{}}", "\\toprule",
-          "Benchmark & Group & Dim & Modes & Inv & " + " & ".join(LETTERS) + " & Time (s) \\\\", "\\midrule"]
+          "Benchmark & Area & Dim & Modes & Inv & " + " & ".join(LETTERS) + " & Time (s) \\\\", "\\midrule"]
     for g in groups:
         first = True
         for x in sorted((x for x in rows if x["group"] == g), key=lambda x: x["name"]):
             cells = " & ".join(level(x, k) for k in LETTERS)
             pl.append(f"{tex_name(x['name'])} & {g if first else ''} & {dimstr(x)} & {x['modesL']}/{x['modesR']} & "
-                      f"{inv[x['inv']]} & {cells} & {x['ms']/1000:.1f} \\\\")
+                      f"{inv[x['inv']]} & {cells} & {x['ms']/1000:.2f} \\\\")
             first = False
     pl += ["\\bottomrule", "\\end{tabular}", ""]
     open(f"{out}/table_per_benchmark.tex", "w").write("\n".join(pl) + "\n")

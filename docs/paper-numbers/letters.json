@@ -11,7 +11,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M",
-   "ms": 103,
+   "ms": 93,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -33,6 +33,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "ACC under sensor spoofing / retune",
+   "mech_used": "S M",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -42,7 +64,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -56,7 +79,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "M B I X",
-   "ms": 130,
+   "ms": 106,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -79,6 +102,28 @@
     "I": true,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": true
+   },
+   "group": "ACC under sensor spoofing / retune",
+   "mech_used": "M B I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -88,7 +133,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -102,7 +148,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M",
-   "ms": 57,
+   "ms": 47,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -124,6 +170,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "ACC under sensor spoofing / retune",
+   "mech_used": "S M",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -133,7 +201,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -147,7 +216,7 @@
    "inv_shape": "conjunctive+linear",
    "dyn": "linear",
    "mech": "S M D I",
-   "ms": 579,
+   "ms": 504,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -170,6 +239,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "group": "ACC under sensor spoofing / retune",
+   "mech_used": "S M D I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -185,7 +276,8 @@
     },
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -199,7 +291,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 927,
+   "ms": 802,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -223,6 +315,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "group": "Ground-station antenna (servo retune)",
+   "mech_used": "D",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -238,12 +352,13 @@
     },
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
    "name": "autoclave_liquid_steambank",
-   "family": "other",
+   "family": "Steam sterilizer liquids cycle",
    "dimL": 3,
    "dimR": 3,
    "modesL": 4,
@@ -252,7 +367,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S R D",
-   "ms": 1421,
+   "ms": 1215,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -277,6 +392,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "group": "Steam sterilizer liquids cycle",
+   "mech_used": "S R D",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -292,12 +429,13 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
    "name": "boiler_purge_vfd",
-   "family": "other",
+   "family": "Steam boiler cold start (purge retrofit)",
    "dimL": 3,
    "dimR": 3,
    "modesL": 2,
@@ -306,7 +444,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D",
-   "ms": 204,
+   "ms": 169,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -329,6 +467,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "group": "Steam boiler cold start (purge retrofit)",
+   "mech_used": "R D",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -344,7 +504,8 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -358,7 +519,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S I",
-   "ms": 551,
+   "ms": 461,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -381,6 +542,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Bottle filler (clogged product strainer)",
+   "mech_used": "S I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -390,12 +573,13 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
    "name": "canal_gate_notches",
-   "family": "other",
+   "family": "Irrigation canal gate notches",
    "dimL": 1,
    "dimR": 1,
    "modesL": 3,
@@ -404,7 +588,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 359,
+   "ms": 263,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -428,6 +612,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Irrigation canal gate notches",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -437,7 +643,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -451,7 +658,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D",
-   "ms": 1070,
+   "ms": 871,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -476,6 +683,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "group": "Elevator trip",
+   "mech_used": "R D I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -491,7 +720,8 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": false
    }
   },
   {
@@ -505,7 +735,7 @@
    "inv_shape": "conjunctive+linear",
    "dyn": "linear",
    "mech": "R D I",
-   "ms": 787,
+   "ms": 688,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -532,6 +762,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "group": "Turbofan ground start",
+   "mech_used": "R D I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -549,7 +801,79 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
+   }
+  },
+  {
+   "name": "extruder_pe100_manualstart",
+   "family": "Extruder start-up (manual speed steps)",
+   "dimL": 2,
+   "dimR": 2,
+   "modesL": 4,
+   "modesR": 4,
+   "inv": "linear",
+   "inv_shape": "conjunctive",
+   "dyn": "linear",
+   "mech": "M B P I",
+   "ms": 727,
+   "verdict": "CERTIFIED",
+   "sync": "CERTIFIED",
+   "nochoice": "CERTIFIED",
+   "noprune": "DECLINED",
+   "norepo": "CERTIFIED",
+   "nocut": "DECLINED",
+   "noimplied": "CERTIFIED",
+   "nolinear": "CERTIFIED",
+   "lambdas": {
+    "N1": "1",
+    "N2": "1",
+    "N3": "1",
+    "N4": "1"
+   },
+   "letters": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": true,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": true,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": true,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Extruder start-up (manual speed steps)",
+   "mech_used": "M B P I",
+   "diagnostics": {
+    "S_lam1": false,
+    "lam1_verdict": "-",
+    "R_cover": false,
+    "D_rows": false,
+    "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
+    "P_noprune_declines": true,
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -563,7 +887,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "S",
-   "ms": 271,
+   "ms": 220,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -586,6 +910,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Airliner flap extension (one hydraulic system lost)",
+   "mech_used": "S",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -595,54 +941,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
-   }
-  },
-  {
-   "name": "fuelcell_chp_dos",
-   "family": "Fuel-cell CHP current levels",
-   "dimL": 2,
-   "dimR": 2,
-   "modesL": 3,
-   "modesR": 3,
-   "inv": "linear",
-   "inv_shape": "conjunctive",
-   "dyn": "linear",
-   "mech": "M B P I X",
-   "ms": 485,
-   "verdict": "CERTIFIED",
-   "sync": "CERTIFIED",
-   "nochoice": "DECLINED",
-   "noprune": "DECLINED",
-   "norepo": "CERTIFIED",
-   "nocut": "DECLINED",
-   "noimplied": "CERTIFIED",
-   "nolinear": "CERTIFIED",
-   "lambdas": {
-    "LOW": "1",
-    "MED": "1",
-    "HIGH": "1"
-   },
-   "letters": {
-    "S": false,
-    "M": true,
-    "R": false,
-    "B": true,
-    "P": true,
-    "D": false,
-    "I": true,
-    "X": true
-   },
-   "diagnostics": {
-    "S_lam1": false,
-    "lam1_verdict": "-",
-    "R_cover": false,
-    "D_rows": false,
-    "uniform_rows": {},
-    "uniform_keeps_all": {},
-    "D_strict": false,
-    "P_noprune_declines": true,
-    "single_step": "DECLINED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -656,7 +956,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S I",
-   "ms": 1209,
+   "ms": 1016,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -680,6 +980,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Heat-treatment furnace program",
+   "mech_used": "S I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -689,7 +1011,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -703,7 +1026,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M",
-   "ms": 1334,
+   "ms": 1129,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -727,6 +1050,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Gantry speed zones (multi-cycle matching)",
+   "mech_used": "S M",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -736,7 +1081,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -750,7 +1096,7 @@
    "inv_shape": "linear",
    "dyn": "linear",
    "mech": "R D I",
-   "ms": 867,
+   "ms": 709,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -778,6 +1124,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "group": "Hydrogen refuelling (sensor bias)",
+   "mech_used": "R D I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -793,7 +1161,8 @@
     },
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -807,7 +1176,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 341,
+   "ms": 288,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -830,6 +1199,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "group": "Hydro unit load rejection",
+   "mech_used": "D",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -845,7 +1236,8 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -859,7 +1251,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 3864,
+   "ms": 3174,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -879,6 +1271,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Literature",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -888,7 +1302,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -902,7 +1317,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 1780,
+   "ms": 1625,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -929,6 +1344,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Literature",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -938,7 +1375,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -952,7 +1390,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S D I",
-   "ms": 221,
+   "ms": 192,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -975,6 +1413,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "group": "Literature",
+   "mech_used": "S D I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -992,7 +1452,8 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1006,7 +1467,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 3036,
+   "ms": 2577,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1033,6 +1494,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Literature",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1042,7 +1525,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1056,7 +1540,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 2497,
+   "ms": 2188,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1076,6 +1560,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Literature",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1085,7 +1591,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1099,7 +1606,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "linear",
    "mech": "X",
-   "ms": 58024,
+   "ms": 53203,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1126,6 +1633,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Literature",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1135,7 +1664,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1149,7 +1679,7 @@
    "inv_shape": "quadratic",
    "dyn": "linear",
    "mech": "X",
-   "ms": 65511,
+   "ms": 60230,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1218,6 +1748,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Literature",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1227,7 +1779,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1241,7 +1794,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 371,
+   "ms": 310,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1265,6 +1818,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Literature",
+   "mech_used": "X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1274,7 +1849,77 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
+   }
+  },
+  {
+   "name": "lit_nahs25_engine_cooling",
+   "family": "Literature",
+   "dimL": 1,
+   "dimR": 1,
+   "modesL": 2,
+   "modesR": 2,
+   "inv": "linear",
+   "inv_shape": "conjunctive",
+   "dyn": "linear",
+   "mech": "R",
+   "ms": 123,
+   "verdict": "CERTIFIED",
+   "sync": "DECLINED",
+   "nochoice": "CERTIFIED",
+   "noprune": "CERTIFIED",
+   "norepo": "DECLINED",
+   "nocut": "CERTIFIED",
+   "noimplied": "CERTIFIED",
+   "nolinear": "CERTIFIED",
+   "lambdas": {
+    "Cool": "1",
+    "Heat": "1"
+   },
+   "letters": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Literature",
+   "mech_used": "R",
+   "diagnostics": {
+    "S_lam1": false,
+    "lam1_verdict": "-",
+    "R_cover": true,
+    "D_rows": false,
+    "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1288,7 +1933,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 131,
+   "ms": 109,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1311,6 +1956,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Literature",
+   "mech_used": "S",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1322,7 +1989,8 @@
     "P_noprune_declines": false,
     "single_step": "CERTIFIED",
     "S_nostutter_verdict": "DECLINED",
-    "S_lam1key_verdict": "-"
+    "S_lam1key_verdict": "-",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1336,7 +2004,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 342,
+   "ms": 294,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1359,6 +2027,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "group": "Injection molding pack and hold",
+   "mech_used": "D",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1374,7 +2064,8 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1388,7 +2079,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "M",
-   "ms": 209,
+   "ms": 191,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1411,6 +2102,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Platoon follower (CACC: link loss, latency, profiles)",
+   "mech_used": "M",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1420,7 +2133,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1434,7 +2148,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M",
-   "ms": 123,
+   "ms": 109,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1456,6 +2170,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Platoon follower (CACC: link loss, latency, profiles)",
+   "mech_used": "S M",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -1465,7 +2201,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1479,7 +2216,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M",
-   "ms": 66,
+   "ms": 60,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1501,6 +2238,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Quadrotor climb, lighter airframe",
+   "mech_used": "S M",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -1510,7 +2269,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1524,7 +2284,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B X",
-   "ms": 11116,
+   "ms": 10024,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "DECLINED",
@@ -1548,6 +2308,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Quadrotor climb, lighter airframe",
+   "mech_used": "S M B X",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -1557,7 +2339,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1571,7 +2354,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "M B",
-   "ms": 2441,
+   "ms": 1995,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1598,6 +2381,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": true,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Freeway ramp metering (polled detectors)",
+   "mech_used": "M B P",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1607,7 +2412,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1621,7 +2427,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "M B P",
-   "ms": 722,
+   "ms": 667,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1646,6 +2452,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": true,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": true,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Exothermic reactor feed interlock",
+   "mech_used": "M B P",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1655,7 +2483,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1669,7 +2498,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "",
-   "ms": 235,
+   "ms": 210,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1693,6 +2522,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Rover ladder",
+   "mech_used": "",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1702,7 +2553,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1716,7 +2568,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "",
-   "ms": 788,
+   "ms": 688,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1740,6 +2592,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Rover ladder",
+   "mech_used": "",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1749,7 +2623,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1763,7 +2638,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "polynomial",
    "mech": "S M I",
-   "ms": 17194,
+   "ms": 15290,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1787,6 +2662,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Rover ladder",
+   "mech_used": "S M I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -1796,7 +2693,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1810,7 +2708,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "polynomial",
    "mech": "S M I",
-   "ms": 35425,
+   "ms": 31245,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1834,6 +2732,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Rover ladder",
+   "mech_used": "S M I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -1843,7 +2763,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1857,7 +2778,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "I",
-   "ms": 533,
+   "ms": 475,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1881,6 +2802,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Terrain chain",
+   "mech_used": "I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1890,7 +2833,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1904,7 +2848,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "I",
-   "ms": 1132,
+   "ms": 998,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1928,44 +2872,7 @@
     "I": true,
     "X": false
    },
-   "diagnostics": {
-    "S_lam1": false,
-    "lam1_verdict": "-",
-    "R_cover": false,
-    "D_rows": false,
-    "uniform_rows": {},
-    "uniform_keeps_all": {},
-    "D_strict": false,
-    "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
-   }
-  },
-  {
-   "name": "rover_terrain_6to12",
-   "family": "Terrain chain",
-   "dimL": 12,
-   "dimR": 12,
-   "modesL": 3,
-   "modesR": 3,
-   "inv": "linear",
-   "inv_shape": "conjunctive",
-   "dyn": "polynomial",
-   "mech": "I",
-   "ms": 1915,
-   "verdict": "CERTIFIED",
-   "sync": "CERTIFIED",
-   "nochoice": "CERTIFIED",
-   "noprune": "CERTIFIED",
-   "norepo": "CERTIFIED",
-   "nocut": "DECLINED",
-   "noimplied": "CERTIFIED",
-   "nolinear": "CERTIFIED",
-   "lambdas": {
-    "MUD": "1",
-    "GRAVEL": "1",
-    "PAVED": "1"
-   },
-   "letters": {
+   "needed": {
     "S": false,
     "M": false,
     "R": false,
@@ -1975,6 +2882,18 @@
     "I": true,
     "X": false
    },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Terrain chain",
+   "mech_used": "I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -1984,7 +2903,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -1998,7 +2918,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "M I X",
-   "ms": 21297,
+   "ms": 20170,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -2021,6 +2941,28 @@
     "I": true,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": true
+   },
+   "group": "Rigid-body detumbling (polynomial)",
+   "mech_used": "M I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -2030,7 +2972,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -2044,7 +2987,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "M I X",
-   "ms": 7532,
+   "ms": 7116,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -2067,6 +3010,28 @@
     "I": true,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": true
+   },
+   "group": "Rigid-body detumbling (polynomial)",
+   "mech_used": "M I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -2076,7 +3041,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -2090,7 +3056,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "S M B X",
-   "ms": 4235,
+   "ms": 3969,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "DECLINED",
@@ -2112,6 +3078,28 @@
     "I": false,
     "X": true
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": true
+   },
+   "group": "Rigid-body detumbling (polynomial)",
+   "mech_used": "S M B X",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -2121,7 +3109,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -2135,7 +3124,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D",
-   "ms": 1277,
+   "ms": 1083,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2162,6 +3151,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "group": "Syringe-pump relay",
+   "mech_used": "R D I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -2177,7 +3188,8 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": false
    }
   },
   {
@@ -2191,7 +3203,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "M I",
-   "ms": 1010,
+   "ms": 864,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2216,6 +3228,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": true,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Tank under sampling DoS",
+   "mech_used": "M I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -2225,7 +3259,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -2239,7 +3274,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B",
-   "ms": 2517,
+   "ms": 2141,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2263,6 +3298,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "group": "Train speed control (ATO)",
+   "mech_used": "S M B",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -2272,7 +3329,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -2286,7 +3344,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D I X",
-   "ms": 1041,
+   "ms": 1002,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "DECLINED",
@@ -2312,6 +3370,28 @@
     "I": true,
     "X": true
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": true
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": true
+   },
+   "group": "Wind turbine start-up",
+   "mech_used": "R D I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -2329,7 +3409,8 @@
     },
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -2343,7 +3424,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D I",
-   "ms": 235,
+   "ms": 218,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2366,6 +3447,28 @@
     "I": true,
     "X": false
    },
+   "needed": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "used": {
+    "S": false,
+    "M": false,
+    "R": false,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": true,
+    "X": false
+   },
+   "group": "Volume-controlled ventilation",
+   "mech_used": "D I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -2383,7 +3486,8 @@
     },
     "D_strict": true,
     "P_noprune_declines": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "I_nocut_same_cover": true
    }
   },
   {
@@ -2397,7 +3501,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B",
-   "ms": 2136,
+   "ms": 1996,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2421,6 +3525,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Watertank",
+   "mech_used": "S M B I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -2430,7 +3556,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": false
    }
   },
   {
@@ -2444,7 +3571,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B",
-   "ms": 1941,
+   "ms": 1811,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2468,6 +3595,28 @@
     "I": false,
     "X": false
    },
+   "needed": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": false,
+    "X": false
+   },
+   "used": {
+    "S": true,
+    "M": true,
+    "R": false,
+    "B": true,
+    "P": false,
+    "D": false,
+    "I": true,
+    "X": false
+   },
+   "group": "Watertank",
+   "mech_used": "S M B I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
@@ -2477,18 +3626,39 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "I_nocut_same_cover": false
    }
   }
  ],
  "totals": {
   "S": 19,
   "M": 21,
-  "R": 7,
+  "R": 8,
   "B": 9,
   "P": 2,
   "D": 13,
-  "I": 18,
-  "X": 15
+  "I": 17,
+  "X": 14
+ },
+ "totals_needed": {
+  "S": 19,
+  "M": 21,
+  "R": 8,
+  "B": 9,
+  "P": 2,
+  "D": 13,
+  "I": 17,
+  "X": 14
+ },
+ "totals_used": {
+  "S": 19,
+  "M": 21,
+  "R": 8,
+  "B": 9,
+  "P": 3,
+  "D": 13,
+  "I": 21,
+  "X": 14
  }
 }

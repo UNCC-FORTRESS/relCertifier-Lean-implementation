@@ -67,9 +67,12 @@ checker on the emitted cover (`scripts/suite_v2_matrix.py`), on a CERTIFIED file
   D  the rows differ per mode and the --handoff queries are non-vacuous and all unsat (matrix M5)
   I  a checked cut is kept on a mode of the path (a left mode, or a right mode on a replayed
      path) and it is load-bearing for the certificate found: RELCERT_NO_CUT=1 declines, or it
-     certifies with a different emitted cover (the search is deterministic, so the cover found
-     with the cuts did not pass without them); a cut kept on a cover that certifies unchanged
-     without it is vacuous (the matrix's `M6: vacuous` annotation)
+     certifies with a structurally different cover (`cover_signature`: the pruned edges, and per
+     left mode the stretch, budget, admissible starts and the flags of the right modes on its
+     replayed path; the search is deterministic, so a pairing the found certificate uses did not
+     pass without the cuts); a cut kept on a cover whose signature is unchanged without it is
+     vacuous (the matrix's `M6: vacuous` annotation; strata orders, which list cut atoms, and
+     flags of pairings no path uses are ignored)
   X  the cover commits to a successor subset (the emitted choice record is non-empty)
 Screens. A use counts only on the replayed derivation path (dead structure off every path never
 counts) and, for P, only into a live mode (above). Start-only structure (a pairing reachable
@@ -83,7 +86,7 @@ import argparse, json, os, re, shutil, subprocess, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, HERE)
-from suite_v2_matrix import parse_input, run, verdict_of, FAMILIES  # noqa: E402
+from suite_v2_matrix import parse_input, run, verdict_of, FAMILIES, parse_cover  # noqa: E402
 from inv_smt import atoms_of, show  # noqa: E402
 
 LETTERS = ["S", "M", "R", "B", "P", "D", "I", "X"]
@@ -208,6 +211,25 @@ def emit_cover_text(relcert, path, timeout, extra=None):
     env.update(extra or {})
     rc, out, _, _ = run([relcert, "--emit-cover", path, "x"], env, timeout)
     return out if rc == 0 and "def x" in out else None
+
+
+def cover_signature(text, rec):
+    """The structural part of an emitted cover that a derivation consumes: the pruned edges, and per
+    left mode its stretch, budget, per-pairing stretches, admissible starts and the flags of the
+    right modes on its replayed path (from the control record `rec`). The strata orders (which
+    list cut atoms) and the flags of pairings no path uses are left out."""
+    pc = parse_cover(text) if text else None
+    if pc is None:
+        return None
+    pruned, covers = pc
+    onp = {c["mL"]: set(c.get("modes_on_path", [])) for c in rec["covers"]}
+    sig = [tuple(sorted(map(tuple, pruned)))]
+    for c in covers:
+        on = onp.get(c["mL"], set())
+        sig.append((c["mL"], str(c["lam"]), c["budget"], tuple(sorted((k, str(v)) for k, v in c["lam_pairs"].items())),
+                    tuple(c["admissible"]),
+                    tuple(sorted((f["name"], f["jointOK"], f["dynPre"], f["dynPost"]) for f in c["flags"] if f["name"] in on))))
+    return sig
 
 
 def used_letters(r, prob, cert, cover_same_nocut):
@@ -397,8 +419,8 @@ def main():
                 diag["S_lam1key_verdict"] = lam1key
             same_nocut = True
             if cert and r["no_cut_verdict"] == "CERTIFIED":
-                c0 = emit_cover_text(a.relcert, path, a.timeout)
-                c1 = emit_cover_text(a.relcert, path, a.timeout, {"RELCERT_NO_CUT": "1"})
+                c0 = cover_signature(emit_cover_text(a.relcert, path, a.timeout), r)
+                c1 = cover_signature(emit_cover_text(a.relcert, path, a.timeout, {"RELCERT_NO_CUT": "1"}), r)
                 same_nocut = c0 is not None and c0 == c1
             U = used_letters(r, prob, cert, same_nocut)
             diag["I_nocut_same_cover"] = same_nocut

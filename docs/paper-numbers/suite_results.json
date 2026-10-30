@@ -9,7 +9,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 103
+  "mech_used": "S M",
+  "ms": 93
  },
  {
   "name": "acc_spoof_limp",
@@ -21,7 +22,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M B I X",
-  "ms": 130
+  "mech_used": "M B I X",
+  "ms": 106
  },
  {
   "name": "acc_tune_lag",
@@ -33,7 +35,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 57
+  "mech_used": "S M",
+  "ms": 47
  },
  {
   "name": "acc_tune_limp",
@@ -45,7 +48,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M D I",
-  "ms": 579
+  "mech_used": "S M D I",
+  "ms": 504
  },
  {
   "name": "antenna_track_kvretune",
@@ -57,11 +61,12 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "D",
-  "ms": 927
+  "mech_used": "D",
+  "ms": 802
  },
  {
   "name": "autoclave_liquid_steambank",
-  "family": "other",
+  "family": "Steam sterilizer liquids cycle",
   "dimL": 3,
   "dimR": 3,
   "modesL": 4,
@@ -69,11 +74,12 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S R D",
-  "ms": 1421
+  "mech_used": "S R D",
+  "ms": 1215
  },
  {
   "name": "boiler_purge_vfd",
-  "family": "other",
+  "family": "Steam boiler cold start (purge retrofit)",
   "dimL": 3,
   "dimR": 3,
   "modesL": 2,
@@ -81,7 +87,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D",
-  "ms": 204
+  "mech_used": "R D",
+  "ms": 169
  },
  {
   "name": "bottling_fill_strainer",
@@ -93,11 +100,12 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S I",
-  "ms": 551
+  "mech_used": "S I",
+  "ms": 461
  },
  {
   "name": "canal_gate_notches",
-  "family": "other",
+  "family": "Irrigation canal gate notches",
   "dimL": 1,
   "dimR": 1,
   "modesL": 3,
@@ -105,7 +113,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 359
+  "mech_used": "X",
+  "ms": 263
  },
  {
   "name": "elevator_start_discbrake",
@@ -117,7 +126,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D",
-  "ms": 1070
+  "mech_used": "R D I",
+  "ms": 871
  },
  {
   "name": "engine_start_highidle",
@@ -129,7 +139,21 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D I",
-  "ms": 787
+  "mech_used": "R D I",
+  "ms": 688
+ },
+ {
+  "name": "extruder_pe100_manualstart",
+  "family": "Extruder start-up (manual speed steps)",
+  "dimL": 2,
+  "dimR": 2,
+  "modesL": 4,
+  "modesR": 4,
+  "inv": "linear",
+  "dyn": "linear",
+  "mech": "M B P I",
+  "mech_used": "M B P I",
+  "ms": 727
  },
  {
   "name": "flaps_slow_approach",
@@ -141,19 +165,8 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "S",
-  "ms": 271
- },
- {
-  "name": "fuelcell_chp_dos",
-  "family": "Fuel-cell CHP current levels",
-  "dimL": 2,
-  "dimR": 2,
-  "modesL": 3,
-  "modesR": 3,
-  "inv": "linear",
-  "dyn": "linear",
-  "mech": "M B P I X",
-  "ms": 485
+  "mech_used": "S",
+  "ms": 220
  },
  {
   "name": "furnace_program_timebase",
@@ -165,7 +178,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S I",
-  "ms": 1209
+  "mech_used": "S I",
+  "ms": 1016
  },
  {
   "name": "gantry_speed_zones",
@@ -177,7 +191,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 1334
+  "mech_used": "S M",
+  "ms": 1129
  },
  {
   "name": "h2_refuel_ambientbias",
@@ -189,7 +204,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D I",
-  "ms": 867
+  "mech_used": "R D I",
+  "ms": 709
  },
  {
   "name": "hydro_rejection_gatecal",
@@ -201,7 +217,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "D",
-  "ms": 341
+  "mech_used": "D",
+  "ms": 288
  },
  {
   "name": "lit_csf21_vehicle_bus",
@@ -213,7 +230,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 3864
+  "mech_used": "X",
+  "ms": 3174
  },
  {
   "name": "lit_csf21_vehicle_thermo",
@@ -225,7 +243,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 1780
+  "mech_used": "X",
+  "ms": 1625
  },
  {
   "name": "lit_csf25_salt_tank_hold",
@@ -237,7 +256,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S D I",
-  "ms": 221
+  "mech_used": "S D I",
+  "ms": 192
  },
  {
   "name": "lit_drl_lane_control",
@@ -249,7 +269,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 3036
+  "mech_used": "X",
+  "ms": 2577
  },
  {
   "name": "lit_freedm_meter",
@@ -261,7 +282,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 2497
+  "mech_used": "X",
+  "ms": 2188
  },
  {
   "name": "lit_girard08_robot",
@@ -273,7 +295,8 @@
   "inv": "quadratic",
   "dyn": "linear",
   "mech": "X",
-  "ms": 58024
+  "mech_used": "X",
+  "ms": 53203
  },
  {
   "name": "lit_gpt10_boost_converter",
@@ -285,7 +308,8 @@
   "inv": "quadratic",
   "dyn": "linear",
   "mech": "X",
-  "ms": 65511
+  "mech_used": "X",
+  "ms": 60230
  },
  {
   "name": "lit_lz21_vehicle_position",
@@ -297,7 +321,21 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 371
+  "mech_used": "X",
+  "ms": 310
+ },
+ {
+  "name": "lit_nahs25_engine_cooling",
+  "family": "Literature",
+  "dimL": 1,
+  "dimR": 1,
+  "modesL": 2,
+  "modesR": 2,
+  "inv": "linear",
+  "dyn": "linear",
+  "mech": "R",
+  "mech_used": "R",
+  "ms": 123
  },
  {
   "name": "lit_nahs25_salt_tank",
@@ -309,7 +347,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S",
-  "ms": 131
+  "mech_used": "S",
+  "ms": 109
  },
  {
   "name": "molding_pack_checkring",
@@ -321,7 +360,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "D",
-  "ms": 342
+  "mech_used": "D",
+  "ms": 294
  },
  {
   "name": "platoon_linkloss",
@@ -333,7 +373,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M",
-  "ms": 209
+  "mech_used": "M",
+  "ms": 191
  },
  {
   "name": "platoon_profiles",
@@ -345,7 +386,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 123
+  "mech_used": "S M",
+  "ms": 109
  },
  {
   "name": "quad_light_lag",
@@ -357,7 +399,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 66
+  "mech_used": "S M",
+  "ms": 60
  },
  {
   "name": "quad_light_profiles",
@@ -369,7 +412,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B X",
-  "ms": 11116
+  "mech_used": "S M B X",
+  "ms": 10024
  },
  {
   "name": "rampmeter_poll_2to1",
@@ -381,7 +425,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M B",
-  "ms": 2441
+  "mech_used": "M B P",
+  "ms": 1995
  },
  {
   "name": "reactor_feed_wireless",
@@ -393,7 +438,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M B P",
-  "ms": 722
+  "mech_used": "M B P",
+  "ms": 667
  },
  {
   "name": "rover_ladder_2to3",
@@ -405,7 +451,8 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "",
-  "ms": 235
+  "mech_used": "",
+  "ms": 210
  },
  {
   "name": "rover_ladder_3to6",
@@ -417,7 +464,8 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "",
-  "ms": 788
+  "mech_used": "",
+  "ms": 688
  },
  {
   "name": "rover_ladder_6to8",
@@ -429,7 +477,8 @@
   "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "S M I",
-  "ms": 17194
+  "mech_used": "S M I",
+  "ms": 15290
  },
  {
   "name": "rover_ladder_8to12",
@@ -441,7 +490,8 @@
   "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "S M I",
-  "ms": 35425
+  "mech_used": "S M I",
+  "ms": 31245
  },
  {
   "name": "rover_terrain_2to4",
@@ -453,7 +503,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "I",
-  "ms": 533
+  "mech_used": "I",
+  "ms": 475
  },
  {
   "name": "rover_terrain_4to6",
@@ -465,19 +516,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "I",
-  "ms": 1132
- },
- {
-  "name": "rover_terrain_6to12",
-  "family": "Terrain chain",
-  "dimL": 12,
-  "dimR": 12,
-  "modesL": 3,
-  "modesR": 3,
-  "inv": "linear",
-  "dyn": "polynomial",
-  "mech": "I",
-  "ms": 1915
+  "mech_used": "I",
+  "ms": 998
  },
  {
   "name": "sat3w_detumble_phases",
@@ -489,7 +529,8 @@
   "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "M I X",
-  "ms": 21297
+  "mech_used": "M I X",
+  "ms": 20170
  },
  {
   "name": "sat_detumble_phases",
@@ -501,7 +542,8 @@
   "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "M I X",
-  "ms": 7532
+  "mech_used": "M I X",
+  "ms": 7116
  },
  {
   "name": "sat_detumble_weak",
@@ -513,7 +555,8 @@
   "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "S M B X",
-  "ms": 4235
+  "mech_used": "S M B X",
+  "ms": 3969
  },
  {
   "name": "syringe_relay_prearm",
@@ -525,7 +568,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D",
-  "ms": 1277
+  "mech_used": "R D I",
+  "ms": 1083
  },
  {
   "name": "tank_dos_3to1",
@@ -537,7 +581,8 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "M I",
-  "ms": 1010
+  "mech_used": "M I",
+  "ms": 864
  },
  {
   "name": "train_ato_odometry",
@@ -549,7 +594,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B",
-  "ms": 2517
+  "mech_used": "S M B",
+  "ms": 2141
  },
  {
   "name": "turbine_startup_gearratio",
@@ -561,7 +607,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D I X",
-  "ms": 1041
+  "mech_used": "R D I X",
+  "ms": 1002
  },
  {
   "name": "ventilator_vc_cuffleak",
@@ -573,7 +620,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "D I",
-  "ms": 235
+  "mech_used": "D I",
+  "ms": 218
  },
  {
   "name": "watertank",
@@ -585,7 +633,8 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B",
-  "ms": 2136
+  "mech_used": "S M B I",
+  "ms": 1996
  },
  {
   "name": "watertank_twospeed",
@@ -597,6 +646,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B",
-  "ms": 1941
+  "mech_used": "S M B I",
+  "ms": 1811
  }
 ]

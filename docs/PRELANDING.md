@@ -298,6 +298,11 @@ and C for the right-only kind; with the key the tool and Lean use all three.
 
 * The strict-landing extension for an open target (the source's `temp > 100`): not built; the
   demo closes the genuine Cool guard (disclosed above).
-* Not merged into `benchmark-fixes`; the engine benchmark is not installed in suite_v2.
+* Merged into `benchmark-fixes` on 2026-10-30 (batch 11, `docs/BATCH11-2026-10-30.md`); the engine
+  benchmark is installed in suite_v2 as `lit_nahs25_engine_cooling` (the demo stays as is). The suite
+  generators handle the key: `gen_v2_data.py` writes `BenchPrelanding/<b>.lean` and the aggregator
+  `BenchPrelanding.lean` (`prelandTableV2`), `gen_bridge.py` emits the pre-landing instance
+  (`theorem3_window_of_records_pl`), and `relcert-bridge-verdicts` builds the groups on the merged
+  cover (`coverV2M`).
 * The global setting (the key on for every file) is an ablation for later: the 2026-10-30 census
   counts 1187 nodes in 43 suite files that fail today's whole-domain check.

@@ -37,6 +37,13 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Batch 11, 2026-10-30: the pre-landing key in the suite, a P carrier, used and needed letters
+
+`docs/BATCH11-2026-10-30.md`:
+* Merged `origin/prelanding` (the opt-in `prelanding = true`, `docs/PRELANDING.md`).
+* In: `lit_nahs25_engine_cooling` (NAHS 2025 engine cooling, the source's forward distance 0.3, tight; letter R through the pre-landing right-only certificate; the genuine Cool guard closed to `temp >= 100`, disclosed) for `fuelcell_chp_dos` (to `skipped/`); `extruder_pe100_manualstart` (M B P I, tight 18.61) for `rover_terrain_6to12` (to the reserve, valid, displaced for letter balance).
+* Letters: Table 1 lists the mechanisms the certificate USES and marks those it NEEDS (rule below, `scripts/suite_v2_letters.py`). Needed S 19 M 21 R 8 B 9 P 2 D 13 I 17 X 14; used S 19 M 21 R 8 B 9 P 3 D 13 I 21 X 14. Literature files 10.
+
 ## Batch 10, 2026-10-30: letter rules, restored letters, two replacements
 
 `docs/BATCH10-2026-10-30.md`, review `docs/BENCHMARK-REVIEW-2026-10-30-r10.md`:
@@ -901,12 +908,23 @@ Stretch 0 (stutter, opted in with `[problem] stutter = true`, `docs/STUTTER.md`)
 of stretching and is credited under S (2026-10-30; the separate letter W of 2026-10-29 is folded
 into S): a cover has a stretch-0 pairing and the file without the key declines. One suite_v2 file
 sets the key (`lit_nahs25_salt_tank`).
-The pre-landing demo (`benchmarks/prelanding_demo/engine_cooling_prelanding`, NOT in suite_v2,
-`docs/PRELANDING.md`, 2026-10-30): the NAHS 2025 engine cooling system at the source's distance
-0.3 with the opt-in key `[problem] prelanding = true` and the genuine Cool guard closed to
-`temp >= 100` (disclosed); letters R (`RELCERT_NO_REPO=1` declines). Beside it
+The pre-landing key (`[problem] prelanding = true`, `docs/PRELANDING.md`, 2026-10-30): a right-only
+segment's flow certificate only before the landing. One suite_v2 file sets it since batch 11
+(`lit_nahs25_engine_cooling`, the NAHS 2025 engine cooling system at the source's distance 0.3, the
+genuine Cool guard closed to `temp >= 100`, disclosed; letter R, `RELCERT_NO_REPO=1` declines); the
+same file under its demo name stays in `benchmarks/prelanding_demo/engine_cooling_prelanding`, beside
 `hold_reposition_strict`, a synthetic strict-row demo of the same key (the strict component on the
 closed pre-landing region).
+Used and needed (2026-10-30, batch 11, owner's decision): Table 1 lists the mechanisms a certificate
+USES and marks those it also NEEDS. Needed is the rule above (the file declines with the mechanism
+switched off; M and B by the cover shape); used is read off the replayed derivation of the cover
+found (S a stretch other than 1, stretch 0 included; M and B the cover shape; R a right-only segment
+on the path; P an edge pruned out of a path mode into a live mode; D non-vacuous unsat handoffs of
+differing rows; I a cut kept on the path that is load-bearing for that certificate: `NO_CUT`
+declines or finds a different cover; X a committed-choice record). Both flags per file in
+`docs/paper-numbers/letters.md` / `letters.json`, rules in the docstring of
+`scripts/suite_v2_letters.py`, Table 1 and appendix snippets in `docs/paper-numbers/table1.tex` and
+`table_per_benchmark.tex`.
 
 ## The benchmarks
 

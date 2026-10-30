@@ -833,6 +833,11 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- `RELCERT_NO_REPO=1`: no right-only reposition nodes of the all-successors kind (the
   -- chosen-exits form of the choice cover is the hop, which needs no reposition node).
   let noRepo := (← IO.getEnv "RELCERT_NO_REPO").isSome
+  -- MEASUREMENT `RELCERT_SINGLE_STEP=1` (information only, 2026-10-30): single-step covers
+  -- only, one right control step per left window: a cover whose segment budget B exceeds 1 is
+  -- not accepted (the common pass, the per-pairing fallback and the choice cover alike). It only
+  -- removes covers, so it can turn CERTIFIED into DECLINED, never the reverse.
+  let singleStep := (← IO.getEnv "RELCERT_SINGLE_STEP").isSome
   let repoDynPreOK  := fun (nm : String) => !sync && !noRepo && progOK nm true &&
     ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
   let repoDynPostOK := fun (nm : String) => !sync && !noRepo && progOK nm false &&
@@ -879,7 +884,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     let startCovers := fun (mR : PMode) =>
       (seg mR.name == Seg.pass || repoOK mR.name) &&
         decideCovered cgReal fuel ⟨idxOf mR.name, bBudget, SrcSetting.preJ⟩
-    if !admMods.isEmpty && admMods.all startCovers then
+    if !admMods.isEmpty && !(singleStep && bBudget > 1) && admMods.all startCovers then
       some ({ mL := mL.name, lamQ := lamQ, bBudget := bBudget, flags := flagRows,
               admissible := admMods.map (·.name), strata := strataMap } : LeftCoverE)
     else none
@@ -1025,6 +1030,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     for (lam, deltaL, segMap, strataMap) in choiceCands do
       let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
       let bBudget := min (epsL / deltaL).ceil.toNat 256
+      if singleStep && bBudget > 1 then continue
       let memo ← IO.mkRef ({} : Std.HashMap (String × Nat × Bool × Bool) Bool)
       let log ← IO.mkRef ([] : List String)
       let clog ← IO.mkRef ([] : List Choice.ChoiceEntryE)

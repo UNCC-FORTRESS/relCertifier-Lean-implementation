@@ -18,27 +18,31 @@ def turbine_startup_gearratio_cutsV2 : EvolStrengthening :=
       ("SPINUP", [((.cmp ">=" (.var "w") (.num "2.1")), CutRoute.shape)]),
       ("RAMP", [((.cmp ">=" (.var "w") (.num "5.25")), CutRoute.shape)]),
       ("GEN", [((.cmp ">=" (.var "w") (.num "7.245")), CutRoute.shape)]),
-      ("STOP", [])
+      ("REG", [((.cmp ">=" (.var "w") (.num "12.57795")), CutRoute.shape)]),
+      ("GUST", [((.cmp ">=" (.var "w") (.num "12.57795")), CutRoute.diStrict)])
     ]
     R := [
-      ("SPINUP", [((.cmp ">=" (.var "w") (.num "2.0")), CutRoute.shape)]),
-      ("RAMP", [((.cmp ">=" (.var "w") (.num "5.0")), CutRoute.shape)]),
+      ("SPINUP", [((.cmp ">=" (.var "w") (.num "2")), CutRoute.shape)]),
+      ("RAMP", [((.cmp ">=" (.var "w") (.num "5")), CutRoute.shape)]),
       ("GEN", [((.cmp ">=" (.var "w") (.num "6.9")), CutRoute.shape)]),
-      ("STOP", [])
+      ("REG", [((.cmp ">=" (.var "w") (.num "11.979")), CutRoute.shape)]),
+      ("GUST", [((.cmp ">=" (.var "w") (.num "11.979")), CutRoute.diStrict)])
     ] }
 
 def turbine_startup_gearratio_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("SPINUP", [⟨(.cmp ">=" (.var "w") (.num "2.1")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "9")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("RAMP", [⟨(.cmp ">=" (.var "w") (.num "5.25")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "7.875")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("GEN", [⟨(.cmp ">=" (.var "w") (.num "7.245")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("STOP", [⟨(.cmp "<=" (.var "w") (.num "2.1")), CutKind.closure, CutEntry.weakening, CutRouteX.diStrict, []⟩])
+      ("GEN", [⟨(.cmp ">=" (.var "w") (.num "7.245")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "12.705")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("REG", [⟨(.cmp ">=" (.var "w") (.num "12.57795")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("GUST", [⟨(.cmp ">=" (.var "w") (.num "12.57795")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
-      ("SPINUP", [⟨(.cmp ">=" (.var "w") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "9")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("RAMP", [⟨(.cmp ">=" (.var "w") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "7.5")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("GEN", [⟨(.cmp ">=" (.var "w") (.num "6.9")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("STOP", [⟨(.cmp "<=" (.var "w") (.num "2.0")), CutKind.closure, CutEntry.weakening, CutRouteX.diStrict, []⟩])
+      ("SPINUP", [⟨(.cmp ">=" (.var "w") (.num "2")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "9")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("RAMP", [⟨(.cmp ">=" (.var "w") (.num "5")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "7.5")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("GEN", [⟨(.cmp ">=" (.var "w") (.num "6.9")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "12.1")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("REG", [⟨(.cmp ">=" (.var "w") (.num "11.979")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("GUST", [⟨(.cmp ">=" (.var "w") (.num "11.979")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

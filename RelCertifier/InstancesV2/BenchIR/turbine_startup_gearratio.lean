@@ -17,65 +17,98 @@ def turbine_startup_gearratio_IRv2 : PProblem :=
     lambdaMin := "1.0"
     lambdaMax := "1.0"
     L := {
-      stateVars := ["w"]
+      stateVars := ["w", "G", "t"]
       epsilon := "1.0"
       modes := [
         {
           name := "SPINUP"
-          odes := [("w", (.bin "*" (.num "0.03") (.bin "-" (.num "9") (.var "w"))))]
+          odes := [("w", (.bin "*" (.num "0.03") (.bin "-" (.num "9") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
           guard := (.and (.cmp ">=" (.var "w") (.num "2.1")) (.cmp "<" (.var "w") (.num "5.25")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755")))
-          next := ["SPINUP", "RAMP", "STOP"] },
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["SPINUP", "RAMP"] },
         {
           name := "RAMP"
-          odes := [("w", (.bin "*" (.num "0.0380952") (.bin "-" (.num "7.875") (.var "w"))))]
+          odes := [("w", (.bin "*" (.num "0.0380952") (.bin "-" (.num "7.875") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
           guard := (.and (.cmp ">=" (.var "w") (.num "5.25")) (.cmp "<" (.var "w") (.num "7.245")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755")))
-          next := ["RAMP", "GEN", "STOP"] },
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["RAMP", "GEN"] },
         {
           name := "GEN"
-          odes := [("w", (.bin "*" (.num "0.047619") (.bin "-" (.num "12.705") (.var "w"))))]
-          guard := (.cmp ">=" (.var "w") (.num "7.245"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755")))
-          next := ["GEN"] },
+          odes := [("w", (.bin "*" (.num "0.047619") (.bin "-" (.num "12.705") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
+          guard := (.and (.cmp ">=" (.var "w") (.num "7.245")) (.cmp "<" (.var "w") (.num "12.57795")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["GEN", "REG"] },
         {
-          name := "STOP"
-          odes := [("w", (.bin "*" (.neg (.num "0.1")) (.var "w")))]
-          guard := (.cmp "<" (.var "w") (.num "2.1"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755")))
-          next := ["STOP"] } ] }
+          name := "REG"
+          odes := [("w", (.bin "*" (.num "1.25") (.bin "-" (.num "12.705") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
+          guard := (.cmp ">=" (.var "w") (.num "12.57795"))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["REG", "GUST"] },
+        {
+          name := "GUST"
+          odes := [("w", (.bin "+" (.bin "*" (.num "1.25") (.bin "-" (.num "12.705") (.var "w"))) (.bin "*" (.num "0.24") (.var "G")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "1.0"))]
+          guard := (.cmp ">=" (.var "w") (.num "12.57795"))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.9755"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["GUST", "REG"] } ] }
     R := {
-      stateVars := ["w"]
+      stateVars := ["w", "G", "t"]
       epsilon := "1.0"
       modes := [
         {
           name := "SPINUP"
-          odes := [("w", (.bin "*" (.num "0.03") (.bin "-" (.num "9") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "2.0")) (.cmp "<" (.var "w") (.num "5.0")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31")))
-          next := ["SPINUP", "RAMP", "STOP"] },
+          odes := [("w", (.bin "*" (.num "0.03") (.bin "-" (.num "9") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
+          guard := (.and (.cmp ">=" (.var "w") (.num "2")) (.cmp "<" (.var "w") (.num "5")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["SPINUP", "RAMP"] },
         {
           name := "RAMP"
-          odes := [("w", (.bin "*" (.num "0.04") (.bin "-" (.num "7.5") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "5.0")) (.cmp "<" (.var "w") (.num "6.9")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31")))
-          next := ["RAMP", "GEN", "STOP"] },
+          odes := [("w", (.bin "*" (.num "0.04") (.bin "-" (.num "7.5") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
+          guard := (.and (.cmp ">=" (.var "w") (.num "5")) (.cmp "<" (.var "w") (.num "6.9")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["RAMP", "GEN"] },
         {
           name := "GEN"
-          odes := [("w", (.bin "*" (.num "0.05") (.bin "-" (.num "12.1") (.var "w"))))]
-          guard := (.cmp ">=" (.var "w") (.num "6.9"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31")))
-          next := ["GEN"] },
+          odes := [("w", (.bin "*" (.num "0.05") (.bin "-" (.num "12.1") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
+          guard := (.and (.cmp ">=" (.var "w") (.num "6.9")) (.cmp "<" (.var "w") (.num "11.979")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["GEN", "REG"] },
         {
-          name := "STOP"
-          odes := [("w", (.bin "*" (.neg (.num "0.1")) (.var "w")))]
-          guard := (.cmp "<" (.var "w") (.num "2.0"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31")))
-          next := ["STOP"] } ] }
+          name := "REG"
+          odes := [("w", (.bin "*" (.num "1.3125") (.bin "-" (.num "12.1") (.var "w")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "0.0"))]
+          guard := (.cmp ">=" (.var "w") (.num "11.979"))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["REG", "GUST"] },
+        {
+          name := "GUST"
+          odes := [("w", (.bin "+" (.bin "*" (.num "1.3125") (.bin "-" (.num "12.1") (.var "w"))) (.bin "*" (.num "0.24") (.var "G")))),
+            ("G", (.num "0.0")),
+            ("t", (.num "1.0"))]
+          guard := (.cmp ">=" (.var "w") (.num "11.979"))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31"))) (.cmp ">=" (.var "G") (.num "0.0"))) (.cmp "<=" (.var "G") (.num "5.03"))) (.cmp ">=" (.var "t") (.num "0.0")))
+          next := ["GUST", "REG"] } ] }
     invariants := [
-      ("SPINUP", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705")))),
-      ("RAMP", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705")))),
-      ("GEN", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705")))),
-      ("STOP", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705"))))] }
+      ("SPINUP", (.and (.and (.and (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_G") (.var "R_G"))) (.cmp "<=" (.var "R_G") (.var "L_G"))) (.cmp "<=" (.var "L_t") (.var "R_t"))) (.cmp "<=" (.var "R_t") (.var "L_t")))),
+      ("RAMP", (.and (.and (.and (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_G") (.var "R_G"))) (.cmp "<=" (.var "R_G") (.var "L_G"))) (.cmp "<=" (.var "L_t") (.var "R_t"))) (.cmp "<=" (.var "R_t") (.var "L_t")))),
+      ("GEN", (.and (.and (.and (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_G") (.var "R_G"))) (.cmp "<=" (.var "R_G") (.var "L_G"))) (.cmp "<=" (.var "L_t") (.var "R_t"))) (.cmp "<=" (.var "R_t") (.var "L_t")))),
+      ("REG", (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_w") (.bin "+" (.bin "*" (.num "1.05") (.var "R_w")) (.num "0.0605"))) (.cmp "<=" (.var "L_G") (.var "R_G"))) (.cmp "<=" (.var "R_G") (.var "L_G"))) (.cmp "<=" (.var "L_t") (.var "R_t"))) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp ">=" (.var "R_w") (.num "11.979")))),
+      ("GUST", (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_w") (.bin "+" (.bin "*" (.num "1.05") (.var "R_w")) (.num "0.0605"))) (.cmp "<=" (.var "L_G") (.var "R_G"))) (.cmp "<=" (.var "R_G") (.var "L_G"))) (.cmp "<=" (.var "L_t") (.var "R_t"))) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp ">=" (.var "R_w") (.num "11.979"))))] }
 
 end RelCertifier.Parse

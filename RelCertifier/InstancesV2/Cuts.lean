@@ -4,6 +4,8 @@ import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
+import RelCertifier.InstancesV2.Cuts.autoclave_liquid_steambank
+import RelCertifier.InstancesV2.Cuts.boiler_purge_vfd
 import RelCertifier.InstancesV2.Cuts.bottling_fill_strainer
 import RelCertifier.InstancesV2.Cuts.canal_gate_notches
 import RelCertifier.InstancesV2.Cuts.elevator_start_discbrake
@@ -24,7 +26,6 @@ import RelCertifier.InstancesV2.Cuts.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.Cuts.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.Cuts.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.Cuts.molding_pack_checkring
-import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
@@ -35,7 +36,6 @@ import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
 import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
-import RelCertifier.InstancesV2.Cuts.rover_patrol_lag
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
@@ -58,6 +58,8 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("acc_tune_lag", acc_tune_lag_cutsV2, acc_tune_lag_cutsV2X),
   ("acc_tune_limp", acc_tune_limp_cutsV2, acc_tune_limp_cutsV2X),
   ("antenna_track_kvretune", antenna_track_kvretune_cutsV2, antenna_track_kvretune_cutsV2X),
+  ("autoclave_liquid_steambank", autoclave_liquid_steambank_cutsV2, autoclave_liquid_steambank_cutsV2X),
+  ("boiler_purge_vfd", boiler_purge_vfd_cutsV2, boiler_purge_vfd_cutsV2X),
   ("bottling_fill_strainer", bottling_fill_strainer_cutsV2, bottling_fill_strainer_cutsV2X),
   ("canal_gate_notches", canal_gate_notches_cutsV2, canal_gate_notches_cutsV2X),
   ("elevator_start_discbrake", elevator_start_discbrake_cutsV2, elevator_start_discbrake_cutsV2X),
@@ -78,7 +80,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_cutsV2, lit_lz21_vehicle_position_cutsV2X),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_cutsV2, lit_nahs25_salt_tank_cutsV2X),
   ("molding_pack_checkring", molding_pack_checkring_cutsV2, molding_pack_checkring_cutsV2X),
-  ("platoon_latency", platoon_latency_cutsV2, platoon_latency_cutsV2X),
   ("platoon_linkloss", platoon_linkloss_cutsV2, platoon_linkloss_cutsV2X),
   ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
@@ -89,7 +90,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
   ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
   ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
-  ("rover_patrol_lag", rover_patrol_lag_cutsV2, rover_patrol_lag_cutsV2X),
   ("rover_terrain_2to4", rover_terrain_2to4_cutsV2, rover_terrain_2to4_cutsV2X),
   ("rover_terrain_4to6", rover_terrain_4to6_cutsV2, rover_terrain_4to6_cutsV2X),
   ("rover_terrain_6to12", rover_terrain_6to12_cutsV2, rover_terrain_6to12_cutsV2X),

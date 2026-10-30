@@ -10,8 +10,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "S",
-   "ms": 159,
+   "mech": "S M",
+   "ms": 103,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -25,9 +25,8 @@
    },
    "letters": {
     "S": true,
-    "M": false,
+    "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -42,7 +41,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -51,15 +51,15 @@
    "dimL": 1,
    "dimR": 1,
    "modesL": 2,
-   "modesR": 4,
+   "modesR": 3,
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "M B I",
-   "ms": 151,
+   "mech": "M B I X",
+   "ms": 130,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
-   "nochoice": "CERTIFIED",
+   "nochoice": "DECLINED",
    "noprune": "CERTIFIED",
    "norepo": "CERTIFIED",
    "nocut": "DECLINED",
@@ -73,12 +73,11 @@
     "S": false,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": false,
     "D": false,
     "I": true,
-    "X": false
+    "X": true
    },
    "diagnostics": {
     "S_lam1": false,
@@ -88,7 +87,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -101,8 +101,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "S",
-   "ms": 47,
+   "mech": "S M",
+   "ms": 57,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -116,9 +116,8 @@
    },
    "letters": {
     "S": true,
-    "M": false,
+    "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -133,7 +132,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -146,8 +146,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive+linear",
    "dyn": "linear",
-   "mech": "S D I",
-   "ms": 499,
+   "mech": "S M D I",
+   "ms": 579,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -162,9 +162,8 @@
    },
    "letters": {
     "S": true,
-    "M": false,
+    "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -185,7 +184,8 @@
      "LIMP": false
     },
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -199,7 +199,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 794,
+   "ms": 927,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -217,7 +217,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -238,7 +237,114 @@
      "STOW/STOWED": false
     },
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
+   }
+  },
+  {
+   "name": "autoclave_liquid_steambank",
+   "family": "other",
+   "dimL": 3,
+   "dimR": 3,
+   "modesL": 4,
+   "modesR": 4,
+   "inv": "linear",
+   "inv_shape": "conjunctive",
+   "dyn": "linear",
+   "mech": "S R D",
+   "ms": 1421,
+   "verdict": "CERTIFIED",
+   "sync": "DECLINED",
+   "nochoice": "CERTIFIED",
+   "noprune": "CERTIFIED",
+   "norepo": "DECLINED",
+   "nocut": "CERTIFIED",
+   "noimplied": "CERTIFIED",
+   "nolinear": "CERTIFIED",
+   "lambdas": {
+    "HEAT": "3/4",
+    "EQUIL": "1",
+    "EXPOSE": "1",
+    "EXHAUST": "1"
+   },
+   "letters": {
+    "S": true,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "diagnostics": {
+    "S_lam1": true,
+    "lam1_verdict": "DECLINED",
+    "R_cover": true,
+    "D_rows": true,
+    "uniform_rows": {
+     "HEAT/EQUIL": "DECLINED",
+     "EXPOSE/EXHAUST": "DECLINED"
+    },
+    "uniform_keeps_all": {
+     "HEAT/EQUIL": true,
+     "EXPOSE/EXHAUST": false
+    },
+    "D_strict": true,
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
+   }
+  },
+  {
+   "name": "boiler_purge_vfd",
+   "family": "other",
+   "dimL": 3,
+   "dimR": 3,
+   "modesL": 2,
+   "modesR": 2,
+   "inv": "linear",
+   "inv_shape": "conjunctive",
+   "dyn": "linear",
+   "mech": "R D",
+   "ms": 204,
+   "verdict": "CERTIFIED",
+   "sync": "DECLINED",
+   "nochoice": "CERTIFIED",
+   "noprune": "CERTIFIED",
+   "norepo": "DECLINED",
+   "nocut": "CERTIFIED",
+   "noimplied": "CERTIFIED",
+   "nolinear": "CERTIFIED",
+   "lambdas": {
+    "PURGE": "1",
+    "FIRE": "1"
+   },
+   "letters": {
+    "S": false,
+    "M": false,
+    "R": true,
+    "B": false,
+    "P": false,
+    "D": true,
+    "I": false,
+    "X": false
+   },
+   "diagnostics": {
+    "S_lam1": false,
+    "lam1_verdict": "-",
+    "R_cover": true,
+    "D_rows": true,
+    "uniform_rows": {
+     "PURGE": "DECLINED",
+     "FIRE": "DECLINED"
+    },
+    "uniform_keeps_all": {
+     "PURGE": true,
+     "FIRE": false
+    },
+    "D_strict": true,
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -252,7 +358,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S I",
-   "ms": 453,
+   "ms": 551,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -269,7 +375,6 @@
     "S": true,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -284,7 +389,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -298,7 +404,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 259,
+   "ms": 359,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -316,7 +422,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -331,7 +436,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -345,7 +451,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D",
-   "ms": 864,
+   "ms": 1070,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -364,7 +470,6 @@
     "S": false,
     "M": false,
     "R": true,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -385,7 +490,8 @@
      "UP/APP/STOP": false
     },
     "D_strict": true,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -399,7 +505,7 @@
    "inv_shape": "conjunctive+linear",
    "dyn": "linear",
    "mech": "R D I",
-   "ms": 682,
+   "ms": 787,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -420,7 +526,6 @@
     "S": false,
     "M": false,
     "R": true,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -443,7 +548,8 @@
      "SELF/IDLE": false
     },
     "D_strict": true,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -457,7 +563,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "S",
-   "ms": 219,
+   "ms": 271,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -474,7 +580,6 @@
     "S": true,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -489,7 +594,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -503,7 +609,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "M B P I X",
-   "ms": 455,
+   "ms": 485,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -521,7 +627,6 @@
     "S": false,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": true,
     "D": false,
@@ -536,7 +641,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": true
+    "P_noprune_declines": true,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -550,7 +656,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S I",
-   "ms": 1056,
+   "ms": 1209,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -568,7 +674,6 @@
     "S": true,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -583,7 +688,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -596,8 +702,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "S",
-   "ms": 1144,
+   "mech": "S M",
+   "ms": 1334,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -613,9 +719,8 @@
    },
    "letters": {
     "S": true,
-    "M": false,
+    "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -630,7 +735,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -638,18 +744,18 @@
    "family": "Hydrogen refuelling (sensor bias)",
    "dimL": 1,
    "dimR": 1,
-   "modesL": 5,
+   "modesL": 7,
    "modesR": 5,
    "inv": "linear",
-   "inv_shape": "conjunctive+linear",
+   "inv_shape": "linear",
    "dyn": "linear",
-   "mech": "D I",
-   "ms": 523,
+   "mech": "R D I",
+   "ms": 867,
    "verdict": "CERTIFIED",
-   "sync": "CERTIFIED",
+   "sync": "DECLINED",
    "nochoice": "CERTIFIED",
    "noprune": "CERTIFIED",
-   "norepo": "CERTIFIED",
+   "norepo": "DECLINED",
    "nocut": "DECLINED",
    "noimplied": "DECLINED",
    "nolinear": "CERTIFIED",
@@ -657,14 +763,15 @@
     "STAGE1": "1",
     "STAGE2": "1",
     "STAGE3": "1",
+    "STAGE3DRAWN": "1",
+    "TOPOFFEARLY": "1",
     "TOPOFF": "1",
     "COMPLETE": "1"
    },
    "letters": {
     "S": false,
     "M": false,
-    "R": false,
-    "W": false,
+    "R": true,
     "B": false,
     "P": false,
     "D": true,
@@ -674,20 +781,19 @@
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": true,
     "uniform_rows": {
-     "STAGE1/STAGE2/STAGE3": "DECLINED",
-     "TOPOFF/COMPLETE": "CERTIFIED",
-     "conj": "DECLINED"
+     "STAGE1/STAGE2/STAGE3/STAGE3DRAWN": "DECLINED",
+     "TOPOFF/TOPOFFEARLY/COMPLETE": "CERTIFIED"
     },
     "uniform_keeps_all": {
-     "STAGE1/STAGE2/STAGE3": false,
-     "TOPOFF/COMPLETE": false,
-     "conj": true
+     "STAGE1/STAGE2/STAGE3/STAGE3DRAWN": true,
+     "TOPOFF/TOPOFFEARLY/COMPLETE": false
     },
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -701,7 +807,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 285,
+   "ms": 341,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -718,7 +824,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -739,7 +844,8 @@
      "REJECT": false
     },
     "D_strict": true,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -753,7 +859,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 3165,
+   "ms": 3864,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -767,7 +873,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -782,7 +887,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -796,7 +902,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 1615,
+   "ms": 1780,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -817,7 +923,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -832,7 +937,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -846,7 +952,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S D I",
-   "ms": 181,
+   "ms": 221,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -863,7 +969,6 @@
     "S": true,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -886,7 +991,8 @@
      "conj": true
     },
     "D_strict": true,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -900,7 +1006,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 2551,
+   "ms": 3036,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -921,7 +1027,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -936,7 +1041,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -950,7 +1056,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 2176,
+   "ms": 2497,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -964,7 +1070,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -979,7 +1084,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -993,7 +1099,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "linear",
    "mech": "X",
-   "ms": 52767,
+   "ms": 58024,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1014,7 +1120,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1029,7 +1134,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1043,7 +1149,7 @@
    "inv_shape": "quadratic",
    "dyn": "linear",
    "mech": "X",
-   "ms": 60113,
+   "ms": 65511,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1106,7 +1212,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1121,7 +1226,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1135,7 +1241,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 309,
+   "ms": 371,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1153,7 +1259,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1168,7 +1273,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1181,8 +1287,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "W",
-   "ms": 109,
+   "mech": "S",
+   "ms": 131,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1196,10 +1302,9 @@
     "Off": "1"
    },
    "letters": {
-    "S": false,
+    "S": true,
     "M": false,
     "R": false,
-    "W": true,
     "B": false,
     "P": false,
     "D": false,
@@ -1215,7 +1320,8 @@
     "uniform_keeps_all": {},
     "D_strict": false,
     "P_noprune_declines": false,
-    "W_nostutter_verdict": "DECLINED",
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "DECLINED",
     "S_lam1key_verdict": "-"
    }
   },
@@ -1230,7 +1336,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 290,
+   "ms": 342,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1247,7 +1353,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -1268,53 +1373,8 @@
      "COOL": false
     },
     "D_strict": true,
-    "P_noprune_declines": false
-   }
-  },
-  {
-   "name": "platoon_latency",
-   "family": "Platoon follower (CACC: link loss, latency, profiles)",
-   "dimL": 3,
-   "dimR": 3,
-   "modesL": 2,
-   "modesR": 1,
-   "inv": "linear",
-   "inv_shape": "conjunctive",
-   "dyn": "linear",
-   "mech": "",
-   "ms": 344,
-   "verdict": "CERTIFIED",
-   "sync": "CERTIFIED",
-   "nochoice": "CERTIFIED",
-   "noprune": "CERTIFIED",
-   "norepo": "CERTIFIED",
-   "nocut": "CERTIFIED",
-   "noimplied": "CERTIFIED",
-   "nolinear": "CERTIFIED",
-   "lambdas": {
-    "CACC_UP": "1",
-    "CACC_DN": "1"
-   },
-   "letters": {
-    "S": false,
-    "M": false,
-    "R": false,
-    "W": false,
-    "B": false,
-    "P": false,
-    "D": false,
-    "I": false,
-    "X": false
-   },
-   "diagnostics": {
-    "S_lam1": false,
-    "lam1_verdict": "-",
-    "R_cover": false,
-    "D_rows": false,
-    "uniform_rows": {},
-    "uniform_keeps_all": {},
-    "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1327,8 +1387,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "",
-   "ms": 191,
+   "mech": "M",
+   "ms": 209,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1343,9 +1403,8 @@
    },
    "letters": {
     "S": false,
-    "M": false,
+    "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1360,7 +1419,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1373,8 +1433,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "S",
-   "ms": 110,
+   "mech": "S M",
+   "ms": 123,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1388,9 +1448,8 @@
    },
    "letters": {
     "S": true,
-    "M": false,
+    "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1405,7 +1464,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1418,8 +1478,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "S",
-   "ms": 59,
+   "mech": "S M",
+   "ms": 66,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1433,9 +1493,8 @@
    },
    "letters": {
     "S": true,
-    "M": false,
+    "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1450,7 +1509,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1464,7 +1524,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B X",
-   "ms": 9949,
+   "ms": 11116,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "DECLINED",
@@ -1482,7 +1542,6 @@
     "S": true,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": false,
     "D": false,
@@ -1497,7 +1556,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1511,7 +1571,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "M B",
-   "ms": 1994,
+   "ms": 2441,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1532,7 +1592,6 @@
     "S": false,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": false,
     "D": false,
@@ -1547,7 +1606,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1561,7 +1621,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "M B P",
-   "ms": 662,
+   "ms": 722,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1580,7 +1640,6 @@
     "S": false,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": true,
     "D": false,
@@ -1595,7 +1654,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": true
+    "P_noprune_declines": true,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1609,7 +1669,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "",
-   "ms": 207,
+   "ms": 235,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1627,7 +1687,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1642,7 +1701,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1656,7 +1716,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "",
-   "ms": 692,
+   "ms": 788,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1674,7 +1734,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1689,7 +1748,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1703,7 +1763,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "polynomial",
    "mech": "S M I",
-   "ms": 14926,
+   "ms": 17194,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1721,7 +1781,6 @@
     "S": true,
     "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1736,7 +1795,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1750,7 +1810,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "polynomial",
    "mech": "S M I",
-   "ms": 31141,
+   "ms": 35425,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1768,7 +1828,6 @@
     "S": true,
     "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1783,55 +1842,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
-   }
-  },
-  {
-   "name": "rover_patrol_lag",
-   "family": "Rover patrol (zones)",
-   "dimL": 3,
-   "dimR": 3,
-   "modesL": 4,
-   "modesR": 4,
-   "inv": "linear",
-   "inv_shape": "conjunctive",
-   "dyn": "linear",
-   "mech": "S M R B",
-   "ms": 1140,
-   "verdict": "CERTIFIED",
-   "sync": "DECLINED",
-   "nochoice": "CERTIFIED",
-   "noprune": "CERTIFIED",
-   "norepo": "DECLINED",
-   "nocut": "CERTIFIED",
-   "noimplied": "CERTIFIED",
-   "nolinear": "CERTIFIED",
-   "lambdas": {
-    "SLOW": "1",
-    "MEDIUM_ECO": "1",
-    "MEDIUM_BRISK": "1",
-    "FAST": "11/8"
-   },
-   "letters": {
-    "S": true,
-    "M": true,
-    "R": true,
-    "W": false,
-    "B": true,
-    "P": false,
-    "D": false,
-    "I": false,
-    "X": false
-   },
-   "diagnostics": {
-    "S_lam1": true,
-    "lam1_verdict": "DECLINED",
-    "R_cover": true,
-    "D_rows": false,
-    "uniform_rows": {},
-    "uniform_keeps_all": {},
-    "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -1845,7 +1857,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "I",
-   "ms": 470,
+   "ms": 533,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1863,7 +1875,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1878,7 +1889,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1892,7 +1904,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "I",
-   "ms": 985,
+   "ms": 1132,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1910,7 +1922,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1925,7 +1936,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1939,7 +1951,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "I",
-   "ms": 1687,
+   "ms": 1915,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1957,7 +1969,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -1972,7 +1983,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -1986,7 +1998,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "M I X",
-   "ms": 20161,
+   "ms": 21297,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -2003,7 +2015,6 @@
     "S": false,
     "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -2018,7 +2029,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -2032,7 +2044,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "M I X",
-   "ms": 7113,
+   "ms": 7532,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -2049,7 +2061,6 @@
     "S": false,
     "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -2064,7 +2075,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -2078,7 +2090,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "S M B X",
-   "ms": 3971,
+   "ms": 4235,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "DECLINED",
@@ -2094,7 +2106,6 @@
     "S": true,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": false,
     "D": false,
@@ -2109,7 +2120,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -2123,7 +2135,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D",
-   "ms": 1080,
+   "ms": 1277,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2144,7 +2156,6 @@
     "S": false,
     "M": false,
     "R": true,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -2165,7 +2176,8 @@
      "RUN2/END": false
     },
     "D_strict": true,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -2179,7 +2191,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "M I",
-   "ms": 853,
+   "ms": 1010,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2198,7 +2210,6 @@
     "S": false,
     "M": true,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": false,
@@ -2213,7 +2224,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -2227,7 +2239,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B",
-   "ms": 2138,
+   "ms": 2517,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2245,7 +2257,6 @@
     "S": true,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": false,
     "D": false,
@@ -2260,25 +2271,26 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
    "name": "turbine_startup_gearratio",
    "family": "Wind turbine start-up",
-   "dimL": 1,
-   "dimR": 1,
-   "modesL": 4,
-   "modesR": 4,
+   "dimL": 3,
+   "dimR": 3,
+   "modesL": 5,
+   "modesR": 5,
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "R P I",
-   "ms": 393,
+   "mech": "R D I X",
+   "ms": 1041,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
-   "nochoice": "CERTIFIED",
-   "noprune": "DECLINED",
+   "nochoice": "DECLINED",
+   "noprune": "CERTIFIED",
    "norepo": "DECLINED",
    "nocut": "DECLINED",
    "noimplied": "DECLINED",
@@ -2287,28 +2299,37 @@
     "SPINUP": "1",
     "RAMP": "1",
     "GEN": "1",
-    "STOP": "1"
+    "REG": "1",
+    "GUST": "1"
    },
    "letters": {
     "S": false,
     "M": false,
     "R": true,
-    "W": false,
     "B": false,
-    "P": true,
-    "D": false,
+    "P": false,
+    "D": true,
     "I": true,
-    "X": false
+    "X": true
    },
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
     "R_cover": true,
-    "D_rows": false,
-    "uniform_rows": {},
-    "uniform_keeps_all": {},
+    "D_rows": true,
+    "uniform_rows": {
+     "SPINUP/RAMP/GEN": "DECLINED",
+     "REG/GUST": "CERTIFIED",
+     "conj": "DECLINED"
+    },
+    "uniform_keeps_all": {
+     "SPINUP/RAMP/GEN": false,
+     "REG/GUST": false,
+     "conj": true
+    },
     "D_strict": false,
-    "P_noprune_declines": true
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -2322,7 +2343,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D I",
-   "ms": 215,
+   "ms": 235,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2339,7 +2360,6 @@
     "S": false,
     "M": false,
     "R": false,
-    "W": false,
     "B": false,
     "P": false,
     "D": true,
@@ -2362,7 +2382,8 @@
      "conj": true
     },
     "D_strict": true,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "CERTIFIED"
    }
   },
   {
@@ -2376,7 +2397,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B",
-   "ms": 1964,
+   "ms": 2136,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2394,7 +2415,6 @@
     "S": true,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": false,
     "D": false,
@@ -2409,7 +2429,8 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   },
   {
@@ -2423,7 +2444,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S M B",
-   "ms": 1787,
+   "ms": 1941,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2441,7 +2462,6 @@
     "S": true,
     "M": true,
     "R": false,
-    "W": false,
     "B": true,
     "P": false,
     "D": false,
@@ -2456,19 +2476,19 @@
     "uniform_rows": {},
     "uniform_keeps_all": {},
     "D_strict": false,
-    "P_noprune_declines": false
+    "P_noprune_declines": false,
+    "single_step": "DECLINED"
    }
   }
  ],
  "totals": {
-  "S": 18,
-  "M": 15,
-  "R": 5,
-  "W": 1,
-  "B": 10,
-  "P": 3,
-  "D": 10,
+  "S": 19,
+  "M": 21,
+  "R": 7,
+  "B": 9,
+  "P": 2,
+  "D": 13,
   "I": 18,
-  "X": 13
+  "X": 15
  }
 }

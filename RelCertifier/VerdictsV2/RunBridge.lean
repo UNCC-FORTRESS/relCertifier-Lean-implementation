@@ -81,8 +81,9 @@ def bridgeDimV2 (b : String) : ℕ :=
 2026-10-29; 7433 after it, of which 2450 are `lit_gpt10_boost_converter`'s 48 abstraction modes; 7437
 since literature round 3: `lit_csf25_salt_tank_hold`'s stale-reading rows, four atoms per mode; 7375
 since review round 6 of 2026-10-30: `charger_fast_tapers` out, `molding_pack_checkring` in, the changed
-benchmarks re-emitted). -/
-def expectedBridgeGroupsV2 : Nat := 7375
+benchmarks re-emitted; 7570 since batch 10 of 2026-10-30: `boiler_purge_vfd` and
+`autoclave_liquid_steambank` in for `platoon_latency` and `rover_patrol_lag`, four models changed). -/
+def expectedBridgeGroupsV2 : Nat := 7570
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

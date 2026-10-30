@@ -8,13 +8,13 @@
   file without the key can accept a stretch-0 pairing. A green run prints only the six axiom lines. -/
 import RelCertifier.InstancesV2.Bridge.SaltTankStutter
 import RelCertifier.InstancesV2.Bridge.LitNahs25SaltTank
-import RelCertifier.InstancesV2.Bridge.RoverPatrolLag
+import RelCertifier.InstancesV2.Bridge.RoverLadder6to8
 import RelCertifier.InstancesV2.Bridge.Watertank
 import RelCertifier.InstancesV2.Bridge.TurbineStartupGearratio
 #print axioms RelCertifier.Bridge.SaltTankStutter.salt_tank_stutter_bridge
 #print axioms RelCertifier.Bridge.SaltTankStutter.salt_tank_stutter_bridge_run
 #print axioms RelCertifier.Bridge.LitNahs25SaltTank.lit_nahs25_salt_tank_bridge
-#print axioms RelCertifier.Bridge.RoverPatrolLag.rover_patrol_lag_bridge
+#print axioms RelCertifier.Bridge.RoverLadder6to8.rover_ladder_6to8_bridge
 #print axioms RelCertifier.Bridge.Watertank.watertank_bridge
 #print axioms RelCertifier.Bridge.TurbineStartupGearratio.turbine_startup_gearratio_bridge
 -- kernel negative: the demo's cover with the key off must fail the structural gate

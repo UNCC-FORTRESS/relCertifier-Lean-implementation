@@ -18,6 +18,8 @@ def h2_refuel_ambientbias_cutsV2 : EvolStrengthening :=
       ("STAGE1", []),
       ("STAGE2", [((.cmp ">=" (.var "p") (.num "18.0")), CutRoute.shape)]),
       ("STAGE3", [((.cmp ">=" (.var "p") (.num "38.0")), CutRoute.shape)]),
+      ("STAGE3DRAWN", [((.cmp ">=" (.var "p") (.num "38.0")), CutRoute.shape)]),
+      ("TOPOFFEARLY", [((.cmp ">=" (.var "p") (.num "55.5")), CutRoute.shape)]),
       ("TOPOFF", [((.cmp ">=" (.var "p") (.num "58.0")), CutRoute.shape)]),
       ("COMPLETE", [((.cmp ">=" (.var "p") (.num "72.4")), CutRoute.frozen)])
     ]
@@ -34,6 +36,8 @@ def h2_refuel_ambientbias_cutsV2X : EvolStrengtheningX :=
       ("STAGE1", [⟨(.cmp "<=" (.var "p") (.num "20")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("STAGE2", [⟨(.cmp ">=" (.var "p") (.num "18.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "p") (.num "40")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("STAGE3", [⟨(.cmp ">=" (.var "p") (.num "38.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "p") (.num "60")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("STAGE3DRAWN", [⟨(.cmp ">=" (.var "p") (.num "38.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "p") (.num "57.5")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("TOPOFFEARLY", [⟨(.cmp ">=" (.var "p") (.num "55.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "p") (.num "72.9")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("TOPOFF", [⟨(.cmp ">=" (.var "p") (.num "58.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "p") (.num "72.9")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("COMPLETE", [⟨(.cmp ">=" (.var "p") (.num "72.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩])
     ]

@@ -16,9 +16,17 @@ def turbine_startup_gearratio_coverV2_progress : RelCertifier.Progress.ProgressE
     ⟨"GEN", "SPINUP", false, [⟨"w", (5 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["RAMP"]⟩,
     ⟨"GEN", "RAMP", true, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 1⟩], ["GEN"]⟩,
     ⟨"GEN", "RAMP", false, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 1⟩], ["GEN"]⟩,
-    ⟨"STOP", "SPINUP", true, [⟨"w", (5 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["RAMP"]⟩,
-    ⟨"STOP", "SPINUP", false, [⟨"w", (5 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["RAMP"]⟩,
-    ⟨"STOP", "RAMP", true, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 64⟩], ["GEN"]⟩,
-    ⟨"STOP", "RAMP", false, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 64⟩], ["GEN"]⟩]⟩
+    ⟨"REG", "SPINUP", true, [⟨"w", (5 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["RAMP"]⟩,
+    ⟨"REG", "SPINUP", false, [⟨"w", (5 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["RAMP"]⟩,
+    ⟨"REG", "RAMP", true, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 1⟩], ["GEN"]⟩,
+    ⟨"REG", "RAMP", false, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 1⟩], ["GEN"]⟩,
+    ⟨"REG", "GEN", true, [⟨"w", (11979 : ℚ) / 1000, true, (1 : ℚ) / 1⟩], ["REG"]⟩,
+    ⟨"REG", "GEN", false, [⟨"w", (11979 : ℚ) / 1000, true, (1 : ℚ) / 1⟩], ["REG"]⟩,
+    ⟨"GUST", "SPINUP", true, [⟨"w", (5 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["RAMP"]⟩,
+    ⟨"GUST", "SPINUP", false, [⟨"w", (5 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["RAMP"]⟩,
+    ⟨"GUST", "RAMP", true, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 1⟩], ["GEN"]⟩,
+    ⟨"GUST", "RAMP", false, [⟨"w", (69 : ℚ) / 10, true, (1 : ℚ) / 1⟩], ["GEN"]⟩,
+    ⟨"GUST", "GEN", true, [⟨"w", (11979 : ℚ) / 1000, true, (1 : ℚ) / 1⟩], ["REG"]⟩,
+    ⟨"GUST", "GEN", false, [⟨"w", (11979 : ℚ) / 1000, true, (1 : ℚ) / 1⟩], ["REG"]⟩]⟩
 
 end RelCertifier.Progress

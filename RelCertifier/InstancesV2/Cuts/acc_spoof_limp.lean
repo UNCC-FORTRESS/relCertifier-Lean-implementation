@@ -16,25 +16,23 @@ open RelCertifier.Parse
 def acc_spoof_limp_cutsV2 : EvolStrengthening :=
   { L := [
       ("CRUISE", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.diStrict)]),
-      ("LIMP", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "28.6")), CutRoute.shape)])
+      ("LIMP", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape)])
     ]
     R := [
       ("NORMAL", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "40.0")), CutRoute.shape)]),
       ("ECO", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "40.0")), CutRoute.shape)]),
-      ("SPORT", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "40.0")), CutRoute.shape)]),
-      ("DISENGAGE", [])
+      ("SPORT", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "40.0")), CutRoute.shape)])
     ] }
 
 def acc_spoof_limp_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("CRUISE", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.closure, CutEntry.weakening, CutRouteX.diStrict, []⟩]),
-      ("LIMP", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "28.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("LIMP", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
     ]
     R := [
       ("NORMAL", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
       ("ECO", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("SPORT", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("DISENGAGE", [⟨(.cmp "<=" (.var "v") (.num "20.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
+      ("SPORT", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

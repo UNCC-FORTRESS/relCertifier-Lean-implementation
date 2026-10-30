@@ -4,6 +4,8 @@ import RelCertifier.InstancesV2.BenchProgress.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
 import RelCertifier.InstancesV2.BenchProgress.antenna_track_kvretune
+import RelCertifier.InstancesV2.BenchProgress.autoclave_liquid_steambank
+import RelCertifier.InstancesV2.BenchProgress.boiler_purge_vfd
 import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
@@ -22,7 +24,6 @@ import RelCertifier.InstancesV2.BenchProgress.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchProgress.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchProgress.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchProgress.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchProgress.platoon_latency
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
@@ -33,7 +34,6 @@ import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
-import RelCertifier.InstancesV2.BenchProgress.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to12
@@ -57,6 +57,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_tune_lag", acc_tune_lag_coverV2_progress),
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
    ("antenna_track_kvretune", antenna_track_kvretune_coverV2_progress),
+   ("autoclave_liquid_steambank", autoclave_liquid_steambank_coverV2_progress),
+   ("boiler_purge_vfd", boiler_purge_vfd_coverV2_progress),
    ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
    ("canal_gate_notches", canal_gate_notches_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
@@ -75,7 +77,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_progress),
    ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_progress),
    ("molding_pack_checkring", molding_pack_checkring_coverV2_progress),
-   ("platoon_latency", platoon_latency_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
    ("platoon_profiles", platoon_profiles_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
@@ -86,7 +87,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
    ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
-   ("rover_patrol_lag", rover_patrol_lag_coverV2_progress),
    ("rover_terrain_2to4", rover_terrain_2to4_coverV2_progress),
    ("rover_terrain_4to6", rover_terrain_4to6_coverV2_progress),
    ("rover_terrain_6to12", rover_terrain_6to12_coverV2_progress),

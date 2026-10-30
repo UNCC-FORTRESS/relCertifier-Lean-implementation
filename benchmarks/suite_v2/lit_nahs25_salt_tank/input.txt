@@ -2,7 +2,7 @@
 # only salt levels the genuine tank also reaches: the forward simulation distance 0 of measuring
 # robustness of cyber-physical systems under sensor attacks (the source's Def. 8 value).
 # scenario: sensor-attack
-# mechanisms: W (the genuine tank waits, stretch 0, while the attacked Off holds its level; the
+# mechanisms: S (stretch 0: the genuine tank waits, while the attacked Off holds its level; the
 #   file without `stutter = true` DECLINES at the band 0)
 #
 # SOURCE. Xiang, Lanotte, Tini, Chong, Merro, "Measuring robustness in cyber-physical systems
@@ -85,7 +85,7 @@
 # proportional pumps toward three set points, 3 attacked and 5 reference modes); different attack
 # (a bounded reading error anywhere in [-3, 3] at every sample, nondeterministic, vs a constant
 # 3 dm offset together with a tampered pump); different mechanisms (watertank S M B with
-# stretch 2; here the stutter W at stretch 0). Shared: one tank, a sensor attack of magnitude 3,
+# stretch 2; here S by the stutter, stretch 0). Shared: one tank, a sensor attack of magnitude 3,
 # the forward-distance scenario of this source. benchmarks/stutter_demo/salt_tank_stutter is
 # this file under another name (the demo of docs/STUTTER.md).
 #

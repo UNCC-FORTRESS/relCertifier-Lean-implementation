@@ -129,16 +129,16 @@ rebuild after the change took about 11 min wall on 12 cores (two passes, 7m51s a
 
 ## Letters
 
-Stutter has its own mechanism letter **W** (the witness waits), the dual of **R** (right-only
-segments, in which the left waits). `scripts/suite_v2_letters.py` credits W when some cover has
-a stretch-0 pairing (`lamN = 0`) and the file without `stutter = true` DECLINES (at the same
-values: a file that certifies only with a looser value without the key declines at its own).
-S stays the positive-stretch letter: a stretch-0 pairing alone does not credit S (S needs a
-pairing at a positive stretch other than 1; covers without stutter pairings keep the old S rule
-exactly). The matrix (`suite_v2_matrix.py`) is unchanged; its M1 cell counts positive stretches
-only. Measured on the demo (matrix and letters run over `benchmarks/stutter_demo`):
-`salt_tank_stutter: W`, `TOTALS S=0 … W=1`. On this branch no suite_v2 file set the key, so every
-suite letter was unchanged; `letters.json` gained the key `W` (false everywhere) and the total
-`W 0`. Since the merge into `benchmark-fixes` (2026-10-29, `docs/OVERNIGHT-2026-10-29.md`,
-"Stutter merge") the suite file `lit_nahs25_salt_tank` sets the key at the band 0 (the demo's
-model under its suite name): its letters I -> W.
+Stretch 0 is a special case of stretching, so it is credited under **S** (2026-10-30, owner's
+decision; the separate letter W of 2026-10-29, "the witness waits", is folded into S).
+`scripts/suite_v2_letters.py` credits S for a stutter pairing when some cover has a stretch-0
+pairing (`lamN = 0`) and the file without `stutter = true` DECLINES (at the same values: a file
+that certifies only with a looser value without the key declines at its own). The positive-stretch
+part of S is unchanged: `RELCERT_SYNC=1` declines and some pairing runs at a positive stretch other
+than 1; when the cover also has a stutter pairing, the lambda = 1 variant *with the key kept* must
+decline too (SYNC drops the stretch-0 candidate, so a SYNC decline alone may be the stutter's).
+The matrix cell M1 (`suite_v2_matrix.py`) counts stretch-0 pairings as well, and
+`\numsyncstretch` counts SYNC declines of files that use any stretch other than 1, stretch 0
+included (the separate `\numsyncstutter` is gone). Measured on the demo (matrix and letters run
+over `benchmarks/stutter_demo`): `salt_tank_stutter: S`. The suite file `lit_nahs25_salt_tank`
+(since 2026-10-29, the source's band 0 with the key) carries S (it carried W before the fold).

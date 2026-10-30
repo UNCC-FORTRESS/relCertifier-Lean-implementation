@@ -1,6 +1,6 @@
 # Stutter (stretch 0): independent soundness double check, 2026-10-30
 
-Subject: the opt-in stretch 0 (`[problem] stutter = true`, letter W, `docs/STUTTER.md`), commits
+Subject: the opt-in stretch 0 (`[problem] stutter = true`, letter W, since 2026-10-30 folded into S, `docs/STUTTER.md`), commits
 16a8349 (tool and Lean backing) and bba18b3 (demo, tests, letter W), merged into `benchmark-fixes` in
 f4050e0; `lit_nahs25_salt_tank` set the key in dbeadfc. Two fresh reviewers who did not write the
 add-on read the diff (one with the emphasis on the Lean chain and the paper's semantics, one on the

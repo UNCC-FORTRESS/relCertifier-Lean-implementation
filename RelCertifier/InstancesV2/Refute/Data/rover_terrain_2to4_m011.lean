@@ -82,14 +82,14 @@ def rover_terrain_2to4_m011_IRm : PProblem :=
           evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.05"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
           next := ["PAVED"] } ] }
     invariants := [
-      ("MUD", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_v") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_w") (.var "R_v")))),
-      ("GRAVEL", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_v") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_w") (.var "R_v")))),
-      ("PAVED", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_v") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_w") (.var "R_v"))))] }
+      ("MUD", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_v") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_w") (.bin "+" (.bin "*" (.num "0.93") (.var "R_v")) (.num "0.05"))))),
+      ("GRAVEL", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_v") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_w") (.bin "+" (.bin "*" (.num "0.93") (.var "R_v")) (.num "0.05"))))),
+      ("PAVED", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_v") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_w") (.bin "+" (.bin "*" (.num "0.93") (.var "R_v")) (.num "0.05")))))] }
 
 /-- The finder's witness (kind B). -/
 def rover_terrain_2to4_m011_wit : RefWitE :=
   { kind := "B", u := 0, m := 0, q0 := 0, k := 2,
     wL := [(1/20 : ℚ), (1/50 : ℚ), (37/500 : ℚ), (1/50 : ℚ)],
-    wR := [(37/500 : ℚ), (1/50 : ℚ), (1/20 : ℚ), (0 : ℚ)] }
+    wR := [(1/20 : ℚ), (1/50 : ℚ), (1/20 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

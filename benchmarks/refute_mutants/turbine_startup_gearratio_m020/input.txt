@@ -1,0 +1,214 @@
+# turbine_startup_gearratio: in the same wind gust, a wind turbine whose controller reads the rotor
+# speed through a stale gearbox ratio never turns faster than 1.05 times a correctly configured
+# reference plus 0.0605 rpm, and exactly within 1.05 times it during the start-up.
+# scenario: degraded-controller (configuration error after a gearbox exchange), under an IEC
+#   61400-1 extreme operating gust
+# mechanisms: R D I X (right-only repositioning, RELCERT_NO_REPO=1 declines; mode-dependent rows,
+#   uniform rows decline; checked cuts, RELCERT_NO_CUT=1 declines; existential choice of the
+#   reference's gust onset and end, RELCERT_NO_CHOICE=1 declines; matrix codes M5 M6 M6+).
+#   D is caused by the gear error (absent at g = 1.00); R, I and X are not (present at g = 1.00).
+#
+# Redesign (batch 10, 2026-10-30; review r7 RETHINK: the overspeed requirement was met by a unary
+# ceiling at the deployed's asymptote, letters independent of the cause, g-sweep stale). The model
+# now has a gust: rotor states above rated are reached by ordinary runs (start-up, then a gust),
+# the claim is purely relational (no unary ceiling on the deployed), D is genuine and caused by
+# the gear error, and every number below is measured on this model. The STOP mode and its dead
+# edges (SPINUP/RAMP -> STOP, pruned, never enabled at rated wind) are gone, and with them P.
+#
+# System. Rotor speed w (rpm), gust amplitude G (m/s, frozen), gust clock t (s), time in s.
+# NREL 5-MW reference turbine (Jonkman et al., NREL/TP-500-38060, 2009): rated rotor speed
+# 12.1 rpm, cut-in 6.9 rpm (670 rpm generator), gearbox 97:1, rated generator torque
+# 43,093.55 N m (4,180 kN m on the rotor shaft), drivetrain inertia on the rotor shaft
+# J = 38,759,227 + 97^2 x 534.116 = 43,784,724 kg m^2, region 2 1/2 from 99 % of rated generator
+# speed (1161.963 rpm, rotor 11.979 rpm), pitch loop designed for w_n = 0.6 rad/s, zeta = 0.6 to 0.7.
+# The controller re-decides its phase every 1 s:
+#   SPINUP  2.0 <= w < 5.0   start-up pitch, generator off, free spin toward 9 rpm:
+#                            w' = 0.03 (9 - w)      (aerodynamic balance, physics)
+#   RAMP    5.0 <= w < 6.9   pitch loop toward the synchronization speed: w' = 0.04 (7.5 - w)
+#   GEN     6.9 <= w < 11.979  generator on, region 2 torque control: w' = 0.05 (12.1 - w)
+#   REG     w >= 11.979      region 2 1/2 and 3, speed regulated to rated: w' = 1.3125 (12.1 - w)
+#   GUST    w >= 11.979      REG during a gust: w' = 1.3125 (12.1 - w) + 0.24 G,  t' = 1
+# G and t are frozen in every other phase. Edges: SPINUP -> RAMP -> GEN -> REG; REG <-> GUST (a
+# gust may start or end at any control step in region 2 1/2 or 3). Every edge is taken by a
+# simulated run from the start-up thresholds (w = 2.0 / 2.1 rpm, the first sampled state above
+# standstill; tmp/new-r10/b-turbine/sim.py); nothing is pruned.
+# Gust (IEC 61400-1 ed. 3, extreme operating gust, power production DLC 1.6): at V_hub = 11.4 m/s,
+# hub 90 m, D = 126 m, class I B (V_e1 = 56 m/s, I_ref = 0.14, the class usually assumed for the
+# NREL 5-MW): sigma_1 = 1.981 m/s, Lambda_1 = 42 m (hub above 60 m), eq. (17)
+# V_gust = min(1.35 (56 - 11.4), 3.3 sigma_1 / (1 + 0.1 D / Lambda_1)) = 6.537 / 1.3 = 5.03 m/s
+# (batch 10 review: the first draft had D / Lambda_1 inverted and used 6.33). The EOG swings
+# 1.008 V_gust from its dip to its peak within 10.5 s; the model uses a
+# step of amplitude G <= 5.03 m/s held for as long as the run chooses (an envelope), and gusts may
+# recur with the same amplitude. Gust torque: dQ/dV = 3 Q_r / V_r at fixed speed and pitch near
+# the optimal tip-speed ratio (P ~ V^3 C_p, dC_p/dlambda = 0), 3 x 4,180 kN m / 11.4 m/s = 1.10 MN m
+# per m/s, over J: 0.0251 rad/s^2 = 0.24 rpm/s per m/s. Regulation: the PI pitch loop as a
+# first-order surrogate whose plateau under a step disturbance equals the PI loop's peak,
+# k = w_n exp(zeta arccos(zeta) / sqrt(1 - zeta^2)) = 1.308 /s at zeta = 0.7, taken as
+# 1.3125 = 1.25 x 1.05 (rounded so that the deployed's gain is exactly 1.25). The reference's
+# design-gust plateau is 12.1 + 0.24 x 5.03 / 1.3125 = 13.0198 rpm (107.6 % of rated), below the
+# overspeed trip.
+#
+# Right (reference): the correct gearbox ratio (the numbers above).
+# Left (deployed): the replacement gearbox has ratio 92.4:1 but the controller still divides the
+# generator speed by 97, so it reads the rotor speed 5 % low (97 / 92.4 = 1.05). One cause: every
+# speed the controller acts on is 1.05 times higher in true rotor speed (thresholds 2.1, 5.25,
+# 7.245, 12.57795 rpm, targets 7.875 and 12.705 rpm), and each loop, acting on the measured error,
+# has its gain divided by 1.05 in true-speed coordinates: w' = k (target - w / 1.05) =
+# (k / 1.05) (1.05 target - w): RAMP 0.0380952, GEN 0.047619, REG and GUST 1.25. The free spin of
+# SPINUP and the gust torque 0.24 G are physics and unchanged. In the design gust the deployed
+# reaches 1.05 x 13.0198 = 13.6708 rpm true (113.0 % of rated) while it reads 13.0198 rpm: it
+# exceeds the 110 % limit without tripping.
+#
+# Property (mode-dependent; relational, up to the reference's re-timing; the same gust:
+# G_L = G_R and t_L = t_R in every row).
+#   SPINUP, RAMP, GEN: w_L <= 1.05 w_R. Requirement: during the start-up the stale ratio only
+#     rescales the set points; the deployed's profile stays within the rescaled reference's.
+#   REG, GUST: w_L <= 1.05 w_R + 0.0605 and w_R >= 11.979. Requirement: in any gust up to the
+#     design EOG the deployed's overspeed is that of the reference in the same gust, rescaled by
+#     the gear error, plus at most 0.0605 rpm (0.5 % of rated): the recovery lag of a pitch loop
+#     1/1.05 as stiff (on the face w_L = 1.05 w_R + d, d/dt (1.05 w_R + d - w_L) =
+#     0.065625 (12.1 - w_R) + 1.25 d in REG, negative above rated for d = 0). This transfers the
+#     reference's gust-load analysis to the deployed. The conjunct w_R >= 11.979 says the
+#     reference is in its own region 2 1/2 or 3 too (a reachable fact; the GEN -> REG handoff
+#     gives it); without it the file DECLINES.
+#   Tight: 0.0605 certifies, 0.0604 declines. Analytic: on the face the bound needs
+#     w_R <= 12.1 + 20 d / 1.05, and the face meets the deployed's trip w_L = 13.9755 at
+#     w_R = 13.31 - d / 1.05, so d = 1.21 x 0.05 = 0.0605 rpm. The factor is tight: 1.049 declines.
+#     The tight value is set by the deployed's trip (a physical bound, W20 below), not by the
+#     gust plateaus: the gap between the run-level value below and 0.0605 comes from admitted
+#     reference states between the gust plateau and the trip (in the first draft, at G <= 6.33,
+#     a cover-only test with the reachable gust ceilings as row conjuncts passed from 0.058). Run level: the largest lockstep w_L - 1.05 w_R over
+#     a grid of runs from rest (3 starts, gust onsets 137 to 217 s, durations 1 to 30 s,
+#     G in {0.5, 2, 4.68, 5.03}, with and without a second gust) is 0.0173 rpm, after a 30 s design
+#     gust: the exact relation is broken by real runs, the bound is not.
+#   Couplings: without G_L = G_R the file DECLINES; without t_L = t_R it CERTIFIES but is weaker
+#     (the reference may choose its own gust timing: with the reference ceiling the exact rows
+#     then pass the cover, the reference hiding the deployed's lag by gusting longer).
+#   Mode dependence (D): the uniform exact row declines, also with the reference ceiling (above);
+#     the uniform w_L <= 1.05 w_R + d (no floor) declines at d = 0.0605 and 0.2; the uniform
+#     REG/GUST row (with the floor) certifies but drops the start-up requirement (its floor
+#     restricts the start-up rows to a reference already in region 2 1/2). --handoff 10/10 unsat.
+# Cause test (re-measured on this model; thresholds and targets times g, gains divided by g, the
+# deployed's trip 13.31 g): tight d = 0.0000 at g = 1.00 (uniform exact certifies, D absent,
+# letters R I X), 0.0121 at 1.01 (0.0120 declines), 0.0243 at 1.02 (0.0242 declines), 0.0605 at
+# 1.05 (0.0604), 0.1211 at 1.10 (0.1210), 0.2420 at 1.20 (0.2419): d = 1.21 (g - 1) rpm, the 1e-4
+# excess at 1.02 and 1.10 being the 7-digit rounding of the gains.
+#
+# Where the letters come from (measured 2026-10-30).
+#   R: from a deployed SPINUP window the reference may already be in RAMP (it is, from rest:
+#     simulated, the reference enters RAMP at 19 s, the deployed at 21 s); the deployed free-spins
+#     toward 9 rpm while the reference is held toward 7.5, the joint segment fails, and the
+#     reference runs alone into GEN (left frozen). RELCERT_NO_REPO=1 and RELCERT_SYNC=1 DECLINE.
+#     With the SPINUP starts restricted to those reachable from rest (w_L <= 0.985 w_R + 0.136,
+#     a flow line through (2.1, 2.0)) RELCERT_NO_REPO=1 still DECLINES; with the SPINUP row
+#     restricted to w_L <= w_R + 0.2 (runs from rest keep w_L - w_R <= 0.1; batch 10 review check)
+#     the file CERTIFIES and RELCERT_NO_REPO=1 still DECLINES. Present at g = 1.00.
+#   X: at a gust onset the reference, still in REG, must enter the same gust (hop REG -> GUST in
+#     the GUST cover), and at a gust end it must leave it (hop GUST -> REG in the REG cover); the
+#     joint segments fail there (matrix flags '---'), since the gust clocks would diverge. Both
+#     occur at every gust of every run. RELCERT_NO_CHOICE=1 DECLINES.
+#   D: above. I: the implied contraction atoms w <= 9 (SPINUP), w <= 7.875 / 7.5 (RAMP),
+#     w <= 12.705 / 12.1 (GEN) are load-bearing: RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and a
+#     run without RELCERT_IMPLIED_CUT DECLINE.
+#
+# Domains (one physical domain, true rotor-speed coordinates on both sides). From rest to the
+# overspeed trip, ONE trip setting, 110 % of rated = 13.31 rpm on the controller's rotor-speed
+# READING (a typical setting; the NREL 5-MW controller has none, IEC 61400-1 requires an overspeed
+# protection function): the reference trips at w = 13.31, the deployed, reading w / 1.05, at
+# w = 13.9755. The gust amplitude is bounded by the design EOG, G <= 5.03 m/s; t >= 0.
+# Domain conversion (kind iii): left 13.9755 = 1.05 x 13.31 (the same overspeed trip setting, 13.31 rpm on the rotor-speed reading; the deployed reads 1/1.05 of the true speed), right 13.31 = 13.31 x 1.
+# W20 (scripts/domain_widening.py): the deployed's trip 13.9755 is load-bearing (widened to 20.96:
+# DECLINED; it sets the tight 0.0605 above); the reference's trip, the gust bound and the lower
+# bounds are not. Every flow stays in its domain (GUST's plateau 13.0198 < 13.31).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, 2026-10-30): CERTIFIED (about 1.1 s); CERTIFIED
+# under RELCERT_NO_PRUNE=1 (nothing pruned), RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1,
+# RELCERT_OPREGION=1 and RELCERT_NO_PROGRESS=1; DECLINED under RELCERT_SYNC=1, RELCERT_NO_REPO=1,
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_CHOICE=1 and without RELCERT_IMPLIED_CUT.
+# Cover: lambda 1, budget 1 in every left mode; SPINUP_L: RAMP_R repoDyn -> GEN; hops GUST -> REG
+# in the SPINUP, RAMP, GEN and REG covers, REG -> GUST in the GUST cover. relcert --wellformed:
+# SPINUP ok (exit->RAMP), RAMP ok (exit->GEN), GEN ok (exit->REG), REG ok (invariant), GUST ok
+# (invariant), 0 UNKNOWN. relcert --handoff: 10/10. The Assumption 1 proof
+# (WellFormed/TurbineStartupGearratio.lean) must be redone for this right model (affine, three
+# state variables).
+[problem]
+name = turbine_startup_gearratio
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 60.0
+
+[Lsys]
+state_vars = [w, G, t]
+epsilon = 1.0
+
+[Lsys.mode.SPINUP]
+ode = w' = smt2:(* 0.03 (- 9 w)); G' = 0.0; t' = 0.0;
+guard = w >= 2.1 and w < 5.25
+evolve = w >= 0.0 and w <= 13.9755 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [SPINUP, RAMP]
+
+[Lsys.mode.RAMP]
+ode = w' = smt2:(* 0.0380952 (- 7.875 w)); G' = 0.0; t' = 0.0;
+guard = w >= 5.25 and w < 7.245
+evolve = w >= 0.0 and w <= 13.9755 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [RAMP, GEN]
+
+[Lsys.mode.GEN]
+ode = w' = smt2:(* 0.047619 (- 12.705 w)); G' = 0.0; t' = 0.0;
+guard = w >= 7.245 and w < 12.57795
+evolve = w >= 0.0 and w <= 13.9755 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [GEN, REG]
+
+[Lsys.mode.REG]
+ode = w' = smt2:(* 1.25 (- 12.705 w)); G' = 0.0; t' = 0.0;
+guard = w >= 12.57795
+evolve = w >= 0.0 and w <= 13.9755 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [REG, GUST]
+
+[Lsys.mode.GUST]
+ode = w' = smt2:(+ (* 1.25 (- 12.705 w)) (* 0.24 G)); G' = 0.0; t' = 1.0;
+guard = w >= 12.57795
+evolve = w >= 0.0 and w <= 13.9755 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [GUST, REG]
+
+[Rsys]
+state_vars = [w, G, t]
+epsilon = 1.0
+
+[Rsys.mode.SPINUP]
+ode = w' = smt2:(* 0.03 (- 9 w)); G' = 0.0; t' = 0.0;
+guard = w >= 2 and w < 5
+evolve = w >= 0.0 and w <= 13.31 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [SPINUP, RAMP]
+
+[Rsys.mode.RAMP]
+ode = w' = smt2:(* 0.04 (- 7.5 w)); G' = 0.0; t' = 0.0;
+guard = w >= 5 and w < 6.9
+evolve = w >= 0.0 and w <= 13.31 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [RAMP, GEN]
+
+[Rsys.mode.GEN]
+ode = w' = smt2:(* 0.05 (- 12.1 w)); G' = 0.0; t' = 0.0;
+guard = w >= 6.9 and w < 11.979
+evolve = w >= 0.0 and w <= 13.31 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [GEN, REG]
+
+[Rsys.mode.REG]
+ode = w' = smt2:(* 1.3125 (- 12.1 w)); G' = 0.0; t' = 0.0;
+guard = w >= 11.979
+evolve = w >= 0.0 and w <= 13.31 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [REG, GUST]
+
+[Rsys.mode.GUST]
+ode = w' = smt2:(+ (* 1.3125 (- 12.1 w)) (* 0.24 G)); G' = 0.0; t' = 1.0;
+guard = w >= 11.979
+evolve = w >= 0.0 and w <= 13.31 and G >= 0.0 and G <= 5.03 and t >= 0.0
+next = [GUST, REG]
+
+[relational_invariant]
+SPINUP = smt2:(and (<= L_w (* 1.05 R_w)) (<= L_G R_G) (<= R_G L_G) (<= L_t R_t) (<= R_t L_t))
+RAMP = smt2:(and (<= L_w (* 1.05 R_w)) (<= L_G R_G) (<= R_G L_G) (<= L_t R_t) (<= R_t L_t))
+GEN = smt2:(and (<= L_w (* 1.05 R_w)) (<= L_G R_G) (<= R_G L_G) (<= L_t R_t) (<= R_t L_t))
+REG = smt2:(and (>= L_w (+ (* 1.05 R_w) 0.0605)) (<= L_G R_G) (<= R_G L_G) (<= L_t R_t) (<= R_t L_t) (>= R_w 11.979))
+GUST = smt2:(and (>= L_w (+ (* 1.05 R_w) 0.0605)) (<= L_G R_G) (<= R_G L_G) (<= L_t R_t) (<= R_t L_t) (>= R_w 11.979))

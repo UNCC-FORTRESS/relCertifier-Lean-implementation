@@ -29,7 +29,7 @@ def acc_spoof_limp_IRv2 : PProblem :=
         {
           name := "LIMP"
           odes := [("v", (.bin "*" (.num "0.3") (.bin "-" (.num "22.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "28.6")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["LIMP"] } ] }
     R := {
@@ -41,25 +41,19 @@ def acc_spoof_limp_IRv2 : PProblem :=
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "30.0") (.var "v"))))]
           guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          next := ["NORMAL", "ECO", "SPORT", "DISENGAGE"] },
+          next := ["NORMAL", "ECO", "SPORT"] },
         {
           name := "ECO"
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "27.0") (.var "v"))))]
           guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          next := ["ECO", "NORMAL", "DISENGAGE"] },
+          next := ["ECO", "NORMAL"] },
         {
           name := "SPORT"
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "33.0") (.var "v"))))]
           guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          next := ["SPORT", "NORMAL", "DISENGAGE"] },
-        {
-          name := "DISENGAGE"
-          odes := [("v", (.bin "*" (.num "-0.1") (.var "v")))]
-          guard := (.cmp "<" (.var "v") (.num "20.0"))
-          evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          next := ["DISENGAGE"] } ] }
+          next := ["SPORT", "NORMAL"] } ] }
     invariants := [
       ("CRUISE", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.bin "*" (.num "0.7") (.var "R_v")) (.bin "+" (.var "L_v") (.num "4.0"))))),
       ("LIMP", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.bin "*" (.num "0.7") (.var "R_v")) (.bin "+" (.var "L_v") (.num "4.0")))))] }

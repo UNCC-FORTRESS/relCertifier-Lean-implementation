@@ -2,103 +2,121 @@
 # with driver-selectable set speeds; the spoofed car must never be faster than the reference and
 # never slower than the following traffic can absorb.
 # scenario: sensor-attack
-# mechanisms: M B I (multi-step covers; branching joint steps; checked cuts, RELCERT_NO_CUT=1
-#   declines; matrix codes M2 M3 M6)
-# LIMP entry ceiling (2026-10-30): 36 -> 28.6 m/s, the speeds the debounced latch can reach (see
-#   Guards); the LIMP cover then needs no committed driver choice, letters M B I X -> M B I.
+# mechanisms: M B I X (multi-step covers; branching joint steps; checked cuts, RELCERT_NO_CUT=1
+#   declines; committed reference choice, RELCERT_NO_CHOICE=1 declines; matrix codes M2 M3 M6)
+# Model change (2026-10-30, r10): the plausibility monitor's immediate rationality latch at the
+#   attack onset is in the model (LIMP enterable at every engaged speed, no longer only up to the
+#   28.6 m/s a debounced latch reaches), and the unreachable DISENGAGE mode is removed; letters
+#   M B I -> M B I X.
 #
 # System. Speed v (m/s), time s; one car, speed loop of gain 0.5 /s (speed-loop form, no lag).
 #   Left (deployed, attacked): the fused speed signal is spoofed to read 25 % high (1.25 v), so
-#     CRUISE v' = 0.5 (30 - 1.25 v) = 0.625 (24 - v): the car settles at 24 m/s. Its plausibility
-#     monitor compares the fused speed with the wheel-speed sensor; when it flags the mismatch the
-#     controller LATCHES a limp-home mode until the next ignition cycle: LIMP v' = 0.3 (22 - v)
-#     (the loop reads the unspoofed wheel speed, set speed 22 m/s = 80 km/h, soft gain 0.3 /s).
-#     The monitor latches only after a 2 s debounce window of mismatch; there is no way back.
+#     CRUISE v' = 0.5 (30 - 1.25 v) = 0.625 (24 - v): the car settles at 24 m/s, and the spoof
+#     raises the loop's effective gain from 0.5 to 0.625 /s. A plausibility monitor compares the
+#     fused speed with the wheel-speed sensors; when it flags, the controller LATCHES a limp-home
+#     mode until the next ignition cycle: LIMP v' = 0.3 (22 - v) (the loop reads the unspoofed
+#     wheel speed, set speed 22 m/s = 80 km/h, soft gain 0.3 /s). No way back.
+#   The monitor has two fault classes (sensor rationality checks, ISO 26262-5:2018 Annex D):
+#     (a) rationality (gradient) check, immediate: at the attack onset the fused speed steps from
+#         v to 1.25 v, at least 5 m/s within one 10 ms sample (500 m/s^2, far beyond any vehicle
+#         acceleration), so the check latches at once, AT THE ONSET SPEED;
+#     (b) debounced mismatch check: a 2 s window of mismatch (a spoof ramped in below the gradient
+#         threshold); after 2 s of spoofed CRUISE from any speed <= 40 the car is at most at
+#         24 + 16 e^-1.25 = 28.58 m/s, so class (b) latches only below 28.6 m/s;
+#     and it may miss the spoof (CRUISE self-loop). The model lets LIMP be entered at every
+#     engaged speed (guard 20 <= v < 40, CRUISE's own) at any decision: this contains both
+#     classes and is a sound over-approximation of the deployed's latch times (the claim is
+#     universal over left runs).
+#   Why onsets above 34.5 m/s are ordinary: the attack can start at any speed the car drives, and
+#     an ACC car runs above its set speed after a driver override (ISO 15622:2018: the driver may
+#     accelerate past the set speed with the accelerator; on release the ACC brings the car back),
+#     e.g. at the end of an overtake at 130 km/h (36.1 m/s, the German motorway advisory speed).
+#     The reference is the same car with the same driver, so at the onset both run at the same
+#     speed (v_L = v_R) in CRUISE / NORMAL (or ECO, SPORT).
 #   Right (reference): the unspoofed controller; the driver selects ECO 27, NORMAL 30 or SPORT
-#     33 m/s at any time (gain 0.5 /s; NORMAL <-> ECO / SPORT), and below the 20 m/s ACC floor
-#     every mode hands back to the driver: DISENGAGE v' = -0.1 v (a coast-down of engine-braking
-#     order, 2 m/s^2 at the floor), latched. The field is pruned on every edge (below), so the
-#     verdict never depends on it.
-# One cause: the spoof (the limp-home latch is the deployed's own response to it).
-# Control intervals: 2 s on the left, the plausibility monitor's debounce window (the deployed's
-# only mode decision, the latch, is taken at most every 2 s); 1 s on the right, the reference's
-# mode logic (set-speed selection, ACC floor). With equal 1 s intervals the file still certifies
-# but keeps only I (budget 1, no multi-step or branching cover).
-# Where the letters come from (final audit, 2026-10-27). M and B come from the 2 s debounce period of
-# the deployed's plausibility monitor (the second difference between the sides, stated above), not
-# from the spoof: with equal 1 s periods only I remains. I persists without the spoof (the left
-# reading the true speed, still latching LIMP; the reference still able to DISENGAGE: RELCERT_NO_CUT=1
-# still DECLINES). So no letter of this file comes from the spoof itself; the spoof shapes the
-# bounds (row 1's 5 m/s margin, row 2's intercept) and, through the debounce, the LIMP entry
-# ceiling (below), which keeps the LIMP cover free of a committed driver choice (no X).
+#     33 m/s at any time (gain 0.5 /s; NORMAL <-> ECO / SPORT). Every mode is engaged at the
+#     20 m/s ACC floor and each loop pulls toward a set speed above it, so v >= 20 is forward
+#     invariant; an ACC floor hand-back (the former DISENGAGE, v < 20) is never enabled from a
+#     reachable state and is not modelled (with it the verdicts and letters are unchanged, its
+#     three edges pruned, RELCERT_NO_PRUNE=1 certifies).
+# Three differences between the sides, each measured: (1) the spoof with its latch response,
+#   (2) the decision intervals (2 s left, 1 s right), (3) the driver's set-speed selection, a
+#   right-only choice (the reference is the family of driver profiles; the claim asks for one).
+# Control intervals: 2 s on the left, the debounce window of class (b): the deployed decides at
+#   the end of each window at the latest; the class (a) latch comes earlier, which sampled
+#   switching (a switch at any time within the interval) admits. 1 s on the right, the
+#   reference's set-speed logic.
 #
-# Guards. CRUISE and the reference's three set-speed modes engage at the ACC floor 20 m/s (CRUISE
-# 20 <= v < 40, the set-speed modes 20 <= v <= 40); LIMP is entered between 20 and 28.6 m/s, the
-# speeds a debounced latch can reach: the latch needs 2 s of spoofed CRUISE, and from any onset
-# speed in the domain (<= 40) CRUISE is then at most 24 + 16 e^-1.25 = 28.58 m/s (LIMP then only
-# moves toward 22). The ceiling is not load-bearing for the verdict (with LIMP admitted up to
-# 40 m/s the file certifies), but it decides whether the cover needs a committed driver choice:
-# against every driver selection (RELCERT_NO_CHOICE=1) the file certifies with a LIMP ceiling up to
-# 34.50 m/s (34.51 declines), the speed above which ECO (0.5 (27 - v)) decelerates faster than the
-# limp map (0.3 (22 - v)); the reachable entries stay 5.9 m/s below that crossover, so no choice
-# is needed (measured 2026-10-30). DISENGAGE v < 20. The right guards partition the domain [0, 40] (no coverage gap). Physical domain
-# 0 <= v <= 40 m/s on both sides (the vehicle's speed range on this road class); every mode is
-# forward invariant on it; every left mode has a satisfiable start (v_L = v_R).
+# Where the letters come from (measured 2026-10-30, letters_one.sh).
+#   M, B: from difference (2). With equal 1 s periods the letters are I X. The 2 s left period is
+#     the supervisor's decision interval (the class (b) debounce window), a design value of this
+#     file, not a plant difference; the spoof itself shows in I and X.
+#   I: from the spoof. The engagement floor v >= 20 of every engaged mode, kept by its flow, is a
+#     checked cut; without cuts (RELCERT_NO_CUT=1) row 1 fails in CRUISE against ECO (at
+#     v_L = v_R the spoofed loop, gain 0.625, accelerates harder than ECO's below 12 m/s) and the
+#     file DECLINES. Without the spoof (left v' = 0.5 (30 - v), no mismatch so no LIMP) the
+#     letters are M B X: I is lost.
+#   X: from the onset latch at high speed. Above 34.5 m/s ECO (0.5 (27 - v)) decelerates faster
+#     than LIMP (0.3 (22 - v)), so a reference in ECO at the latch (an ordinary pairing: an onset
+#     while the reference driver has ECO selected above 34.5 m/s) undercuts the limp car unless the
+#     certificate commits it to NORMAL. Concrete run (the driver's selection is the reference's
+#     existential choice; the run shows the pairing is reached, not that it is forced) from the ordinary start CRUISE / NORMAL, v_L = v_R = v0, class (a)
+#     latch after 10 ms, the driver selecting ECO at once: min (v_R - v_L) = -0.007 m/s (v0 = 36,
+#     at t = 0.36 s), -0.175 (v0 = 38, t = 0.69 s), -0.408 (v0 = 40, t = 0.94 s); keeping NORMAL
+#     it stays >= +0.045. The LIMP cover therefore commits the reference: from ECO it hops into
+#     NORMAL (choice cover, budget 2). LIMP entry capped at 34.50 m/s: RELCERT_NO_CHOICE=1
+#     CERTIFIES; at 34.51 it DECLINES; at the debounced reach 28.6 it certifies (the r6 file,
+#     letters M B I).
+#     Without the spoof the file also needs a choice, for another reason (the unspoofed car runs
+#     the NORMAL loop and the reference must stay in NORMAL to match it).
+#
+# Guards. CRUISE, LIMP and the three set-speed modes are engaged at the ACC floor: CRUISE and
+# LIMP 20 <= v < 40, the set-speed modes 20 <= v <= 40. Physical domain 0 <= v <= 40 m/s on both
+# sides (the vehicle's speed range on this road class); every mode is forward invariant on it;
+# every left mode has a satisfiable start (v_L = v_R). Every declared edge is enabled from every
+# engaged state (no dead edge).
 #
 # Property (the same two rows in both left modes; the requirements do not depend on the mode).
 #   Row 1, overspeed: v_L <= v_R, a spoofed speed sensor must never make the car faster than the
-#     unspoofed reference. Constant 0 is forced: v_L <= v_R + 0.01 DECLINES (the reference could
-#     then start disengaged below the floor); the row certifies down to v_L <= v_R - 5.00
-#     (-5.01 declines; measured 2026-10-30 at the 28.6 m/s LIMP ceiling): the spoof keeps the car
-#     at least 5 m/s slower along the cover.
+#     unspoofed reference. Constant 0 is the requirement (the onset starts at v_L = v_R); the
+#     rows stay inductive down to v_L <= v_R - 1.33 (-1.34 declines), so it is not a tightness
+#     claim (it was -5.00 when LIMP could only be entered below 28.6 m/s); the -1.33 is set by the
+#     40 m/s domain top (with v <= 45 on every mode the file still CERTIFIES, measured 2026-10-30).
 #   Row 2, traffic flow: the closing speed v_R - v_L at which the following traffic (driving at
 #     the reference's speed v_R) closes on the spoofed car must stay absorbable: a follower at the
-#     2 s time gap (gap 2 v_R) with the AASHTO stopping-sight-distance design values,
-#     perception-reaction time 2.5 s and deceleration 3.4 m/s^2, sheds a closing speed dv that
-#     appears at once without contact iff 2.5 dv + dv^2 / 6.8 <= 2 v_R, i.e.
+#     2 s time gap (gap 2 v_R) with the AASHTO stopping-sight-distance design values (AASHTO,
+#     A Policy on Geometric Design of Highways and Streets, 7th ed., 2018, Ch. 3, stopping sight
+#     distance), perception-reaction time 2.5 s and deceleration 3.4 m/s^2, sheds a closing
+#     speed dv that appears at once without contact iff 2.5 dv + dv^2 / 6.8 <= 2 v_R, i.e.
 #     dv <= -8.5 + sqrt(72.25 + 13.6 v_R): 10.05 m/s at 20 m/s, 16.32 m/s at 40 m/s. The bound is
 #     concave in v_R, so its chord lies below it; the row takes the linear bound
 #     dv <= 4 + 0.3 v_R (10 at 20 m/s, 16 at 40 m/s, below the chord), i.e. 0.7 v_R <= v_L + 4.
+#     Reading: the reference is existential (the certificate picks the driver profile, a choice
+#     cover), so row 2 holds against SOME legitimate driver profile at every step, not against
+#     every follower speed (the universal reading declines at every intercept).
 #     The spoofed car slows gradually, so a step is the worst case.
-#     Tightest (bisection to 0.01, the intercept 4; measured 2026-10-30 at the 28.6 m/s LIMP
-#     ceiling): against every driver selection (RELCERT_NO_CHOICE=1) both modes together certify
-#     down to 1.90 (1.89 declines): the closing speed stays below 0.3 v_R + 1.9 m/s against every
-#     selection, a margin of 2.1 m/s on the requirement. A tighter intercept needs the cover to
-#     commit the driver: with the existential choice the row certifies down to -0.20 (-0.21
-#     declines).
-# Rows identical in both modes, so the file is not mode-keyed (--handoff 3/3, vacuous). Not
-# implied by the domains. With a speed-independent closing bound (the 20 m/s value,
-# v_R <= v_L + 10) the limp car at 22 m/s against SPORT traffic at 33 m/s closes at 11 m/s and
-# the cover must commit the reference away from SPORT; the speed-dependent row above is the
-# requirement and needs no commitment.
+#     Tightest (bisection to 0.01 on the intercept 4, measured 2026-10-30): the row certifies
+#     down to -0.20 (-0.21 declines): the closing speed stays below 0.3 v_R - 0.2 m/s (5.8 m/s at
+#     20, 11.8 m/s at 40), a margin of 4.2 m/s on the requirement. Against every driver selection
+#     (RELCERT_NO_CHOICE=1) it declines at every intercept tried (4, 2, 1.9, 0) and at every
+#     row-1 constant tried (0 to +1): the X need is not a resolution effect.
+# Cause test (no spoof: left v' = 0.5 (30 - v), no mismatch, no latch): v_L = v_R EXACTLY
+#   certifies (closing speed 0); with the spoof the tightest closing-speed bound is
+#   0.3 v_R - 0.2 m/s (above).
+# Rows identical in both modes, so the file is not mode-keyed (--handoff vacuous). Not implied
+# by the domains.
 #
-# Pruning. Every reference mode declares DISENGAGE below the 20 m/s floor; each set-speed loop
-# accelerates at the floor and is entered above it, so NORMAL, ECO, SPORT -> DISENGAGE are pruned
-# by non-connection certificates; v_L >= 20 and v_L <= v_R exclude DISENGAGE as a start. Pruning
-# is redundant here: RELCERT_NO_PRUNE=1 certifies (the joint steps then also cover DISENGAGE);
-# NO_PRUNE+NO_CHOICE declines: pruning and the choice are alternative ways to discharge the
-# DISENGAGE successors, and neither alone is needed (no P, no X).
-# Branching (B). In both windows the joint step from NORMAL retains ECO and SPORT (branch 2).
-# No choice (no X). Both left modes are covered by the all-successors rule (budget 2, no hop);
-# RELCERT_NO_CHOICE=1 certifies.
-# Mode facts (I). The engagement floor v >= 20 of every engaged mode, kept by its flow, is a
-# checked cut: without cuts (RELCERT_NO_CUT=1) row 1 fails in CRUISE against ECO (at v_L = v_R
-# the spoofed loop accelerates harder than ECO's below 12 m/s) and in LIMP against DISENGAGE, and
-# the file DECLINES.
-#
-# Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Both covers were at lambda 1 and the
-# traffic-flow requirement is a real-time one (the follower closes in real time), so the unused
-# range [1, 6] is gone; verdicts and letters unchanged.
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30 at the 28.6 m/s LIMP ceiling):
-# CERTIFIED (0.25 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_REPO=1,
-# RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, NO_IMPLIED_CUT, NO_LINEAR_CUT, RELCERT_OPREGION=1 (every
-# admitted start in some right guard) and RELCERT_WELLFORMED_STRICT=1; DECLINED under
-# NO_PRUNE+NO_CHOICE and RELCERT_NO_CUT=1.
-# Covers: CRUISE and LIMP at lambda = 1, budget 2, admissible starts NORMAL, ECO, SPORT, no hop;
-# pruned NORMAL, ECO, SPORT -> DISENGAGE. relcert --wellformed: all four right modes ok
-# (invariant). The right model shares acc_tune_limp's ACC floor and DISENGAGE field (-0.1 v); its
-# Assumption 1 proof (WellFormed/AccSpoofLimp.lean) states that field. The 2026-10-30 ceiling
-# edit is in the left model only. Units m/s, s.
+# Branching (B). In both covers the joint step from NORMAL retains ECO and SPORT (branch 2).
+# Pruning: none (no edge is pruned; no P).
+# Stretch pinned: lambda_max 1 (the traffic-flow requirement is a real-time one: the follower
+# closes in real time); both covers are at lambda 1.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30): CERTIFIED (0.2 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_REPO=1, NO_IMPLIED_CUT,
+# NO_LINEAR_CUT, NO_PAIR_STRETCH, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED
+# under RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE and RELCERT_NO_CUT=1.
+# Covers: CRUISE at lambda = 1, budget 2, admissible starts NORMAL, ECO, SPORT, no hop; LIMP at
+# lambda = 1, budget 2, choice cover (hop ECO into NORMAL). relcert --wellformed: all three right
+# modes ok (invariant). Units m/s, s.
 [problem]
 name = acc_spoof_limp
 max_depth = 8
@@ -115,7 +133,7 @@ evolve = v >= 0.0 and v <= 40.0
 next = [CRUISE, LIMP]
 [Lsys.mode.LIMP]
 ode = v' = smt2:(* 0.3 (- 22.0 v));
-guard = v >= 20.0 and v <= 28.6
+guard = v >= 20.0 and v < 40.0
 evolve = v >= 0.0 and v <= 40.0
 next = [LIMP]
 [Rsys]
@@ -125,22 +143,17 @@ epsilon = 1.0
 ode = v' = smt2:(* 0.5 (- 30.0 v));
 guard = v >= 20.0 and v <= 40.0
 evolve = v >= 0.0 and v <= 40.0
-next = [NORMAL, ECO, SPORT, DISENGAGE]
+next = [NORMAL, ECO, SPORT]
 [Rsys.mode.ECO]
 ode = v' = smt2:(* 0.5 (- 27.0 v));
 guard = v >= 20.0 and v <= 40.0
 evolve = v >= 0.0 and v <= 40.0
-next = [ECO, NORMAL, DISENGAGE]
+next = [ECO, NORMAL]
 [Rsys.mode.SPORT]
 ode = v' = smt2:(* 0.5 (- 33.0 v));
 guard = v >= 20.0 and v <= 40.0
 evolve = v >= 0.0 and v <= 40.0
-next = [SPORT, NORMAL, DISENGAGE]
-[Rsys.mode.DISENGAGE]
-ode = v' = smt2:(* -0.1 v);
-guard = v < 20.0
-evolve = v >= 0.0 and v <= 40.0
-next = [DISENGAGE]
+next = [SPORT, NORMAL]
 [relational_invariant]
 CRUISE = smt2:(and (<= L_v R_v) (<= (* 0.7 R_v) (+ L_v 4.0)))
 LIMP   = smt2:(and (<= L_v R_v) (<= (* 0.7 R_v) (+ L_v 4.0)))

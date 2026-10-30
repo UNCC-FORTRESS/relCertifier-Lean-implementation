@@ -4,6 +4,8 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
 import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
+import RelCertifier.InstancesV2.BenchCovers.autoclave_liquid_steambank
+import RelCertifier.InstancesV2.BenchCovers.boiler_purge_vfd
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
@@ -24,7 +26,6 @@ import RelCertifier.InstancesV2.BenchCovers.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchCovers.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchCovers.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
@@ -35,7 +36,6 @@ import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
-import RelCertifier.InstancesV2.BenchCovers.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
@@ -58,6 +58,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
+  ("autoclave_liquid_steambank", autoclave_liquid_steambank_coverV2),
+  ("boiler_purge_vfd", boiler_purge_vfd_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
   ("canal_gate_notches", canal_gate_notches_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
@@ -78,7 +80,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2),
   ("molding_pack_checkring", molding_pack_checkring_coverV2),
-  ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
   ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
@@ -89,7 +90,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
-  ("rover_patrol_lag", rover_patrol_lag_coverV2),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2),

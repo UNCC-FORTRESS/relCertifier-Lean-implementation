@@ -19,7 +19,7 @@ domain).
 * (ii), every level: every level declares every level, and the four guards cover the domain
   (`T < 25`, `[25, 35)`, `[35, 45]`, `T > 45`), so the end state of any run (in the domain) is
   in one of them.
-Z3-free; modelled on `FuelcellChpDos.lean` (at dimension 2, no padding coordinate).
+Z3-free; modelled on `FuelcellChpDos.lean` (in git history since 2026-10-30; at dimension 2, no padding coordinate).
 -/
 
 import RelCertifier.Trusted.Parse

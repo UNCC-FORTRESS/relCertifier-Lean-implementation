@@ -12,24 +12,26 @@ OUTDIR/letters.md and OUTDIR/suite_results.json (the per-benchmark rows of the p
 appendix table: name, family, dimensions, modes, invariant kind, letters, time).
 
 Letters (the paper's legend), every one measured, never read off a header:
-  S stretching       RELCERT_SYNC=1 DECLINES and some left mode's cover has lambda != 1
-                     (a positive stretch: a stutter pairing, lambda = 0, does not count, see W)
+  S stretching       the certificate needs a stretch other than 1, a positive one or 0 (stutter:
+                     the right waits while the left runs a joint segment; the opt-in key
+                     `stutter = true`, docs/STUTTER.md; 2026-10-30 the former letter W is folded
+                     into S, as lambda = 0 is a special case of stretching). Credited when
+                     (positive) RELCERT_SYNC=1 DECLINES and some left mode's cover has a positive
+                     lambda != 1; for a file whose cover also has a stutter pairing the file at
+                     lambda_min = lambda_max = 1 WITH the key kept must DECLINE too (RELCERT_SYNC
+                     drops the stretch-0 candidate, so its decline alone may be the stutter's), or
+                     (stutter) some cover has a stretch-0 pairing and the file without the key
+                     DECLINES (at the same values).
                      (diagnostic S_lam1: the file with lambda_min = lambda_max = 1 and no
                      stutter, right-only segments still allowed, DECLINES)
-                     For a file whose cover has a stutter pairing, S also needs the file at
-                     lambda_min = lambda_max = 1 WITH the key kept to DECLINE (RELCERT_SYNC drops
-                     the stretch-0 candidate, so its decline alone may be W's; 2026-10-30)
   M multi-step cover some left mode's budget >= 2 and its replayed derivation takes a joint
-                     step (matrix M2), and the right changes mode on the replayed path of such a
-                     cover (at least two right modes on the path; 2026-10-30: when the witness stays
-                     in one right mode the cycle boundaries are invisible, a multi-step cover is one
-                     continuous right run cut at epsilon_R, and the right's period changes no run;
-                     matrix M2 still reports the cover shape)
+                     step (matrix M2, the cover shape; 2026-10-30 owner's decision: the shape rule
+                     is the official M, the refinement that also required a right mode change on
+                     the replayed path is reverted). Information only, not a letter: the file
+                     under RELCERT_SINGLE_STEP=1 (every cover capped at budget 1, one right control
+                     step per left window) is reported in letters.json (diagnostic single_step)
   R right-only       some cover's replayed derivation has a right-only segment AND
                      RELCERT_NO_REPO=1 DECLINES (diagnostic R_cover: on the path at all)
-  W witness waits    some cover has a stutter pairing (lambda = 0: the right waits while the left
-                     runs a joint segment; the opt-in key `stutter = true`, docs/STUTTER.md) AND
-                     the file without the key DECLINES (the dual of R, in which the left waits)
   B branching        a joint step on the path has >= 2 distinct non-self retained successors
                      (matrix M3)
   P pruning          an edge is pruned AND RELCERT_NO_PRUNE=1 DECLINES (matrix M4)
@@ -54,7 +56,7 @@ sys.path.insert(0, HERE)
 from suite_v2_matrix import parse_input, run, verdict_of  # noqa: E402
 from inv_smt import atoms_of, show  # noqa: E402
 
-LETTERS = ["S", "M", "R", "W", "B", "P", "D", "I", "X"]
+LETTERS = ["S", "M", "R", "B", "P", "D", "I", "X"]
 LINE_RE = re.compile(r"^([A-Za-z0-9_]+): (CERTIFIED|DECLINED|ERROR)(?: \[.*\])? \((\d+)ms\)")
 
 
@@ -107,7 +109,7 @@ def stutter_pairs(c):
 def positive_stretch_ne1(c):
     """Some pairing of the cover runs at a positive stretch other than 1: a listed pairing
     stretch outside {0, 1}, or the window's stretch (when not 1) carried by a pairing that is
-    not listed. A cover without stutter pairings keeps the pre-W rule exactly."""
+    not listed. A cover without stutter pairings keeps the pre-stutter rule exactly."""
     if not stutter_pairs(c):
         return c.get("lam_float", 1.0) != 1.0 or bool(c.get("lam_pairs"))
     listed = c.get("lam_pairs", {})
@@ -183,10 +185,12 @@ def main():
     for k in ("RELCERT_NO_PRUNE", "RELCERT_NO_CUT", "RELCERT_NO_IMPLIED_CUT", "RELCERT_NO_LINEAR_CUT",
               "RELCERT_NO_CHOICE", "RELCERT_SYNC", "RELCERT_NO_REPO", "RELCERT_NO_PAIR_STRETCH",
               "RELCERT_DEBUG", "RELCERT_LAMBDA_SCAN", "RELCERT_OPREGION", "RELCERT_TIME_BUDGET_MS",
-              "RELCERT_MAX_QUERIES"):
+              "RELCERT_MAX_QUERIES", "RELCERT_SINGLE_STEP"):
         os.environ.pop(k, None)
     ctl = verdicts(f"{a.out}/control.txt")
     runs = {k: verdicts(f"{a.out}/{k}.txt") for k in ("sync", "nochoice", "noprune", "norepo")}
+    # information only (not a letter): the single-step ablation, when its run exists
+    single = verdicts(f"{a.out}/singlestep.txt") if os.path.exists(f"{a.out}/singlestep.txt") else {}
     recs = json.load(open(f"{a.out}/matrix.json"))["records"]
     recs = list(recs.values()) if isinstance(recs, dict) else recs
     byname = {r["name"]: r for r in recs}
@@ -225,12 +229,10 @@ def main():
                     uni["conj"] = run_variant(a.relcert, variant_uniform(text, conj_row(distinct)), tmp, f"{name}_uniconj", a.timeout)
                     keeps["conj"] = True
             L = {
-                "S": cert and v["sync"] == "DECLINED" and lam_ne1 and (not stut or lam1key == "DECLINED"),
-                "M": cells["M2"].startswith("yes") and any(
-                    c.get("budget", 1) >= 2 and c.get("joint_steps", 0) > 0
-                    and len(c.get("modes_on_path", [])) >= 2 for c in r["covers"]),
+                "S": cert and ((v["sync"] == "DECLINED" and lam_ne1 and (not stut or lam1key == "DECLINED"))
+                               or (stut and nostut == "DECLINED")),
+                "M": cells["M2"].startswith("yes"),
                 "R": cert and ro and v["norepo"] == "DECLINED",
-                "W": cert and stut and nostut == "DECLINED",
                 "B": cells["M3"].startswith("yes"),
                 "P": cells["M4"].startswith("yes"),
                 "D": cells["M5"].startswith("yes") and any(keeps.values())
@@ -244,9 +246,10 @@ def main():
                 "uniform_keeps_all": keeps,
                 "D_strict": cells["M5"].startswith("yes") and bool(own) and all(uni[k] == "DECLINED" for k in own),
                 "P_noprune_declines": v["noprune"] == "DECLINED",
+                "single_step": single.get(name, ("-", 0))[0],
             }
             if stut:
-                diag["W_nostutter_verdict"] = nostut
+                diag["S_nostutter_verdict"] = nostut
                 diag["S_lam1key_verdict"] = lam1key
             letters = " ".join(k for k in LETTERS if L[k])
             rec = {"name": name, "family": r["family"], "dimL": r["dimL"], "dimR": r["dimR"],
@@ -261,7 +264,7 @@ def main():
             dl = [k for k, x in (("S_lam1", diag["S_lam1"]), ("R_cover", ro), ("D_rows", diag["D_rows"]),
                                  ("D_strict", diag["D_strict"])) if x]
             unis = ", ".join(f"{k}:{x}" + ("" if keeps[k] else " (drops a stated row)") for k, x in uni.items())
-            table.append(f"| `{name}` | {r['family']} | {r['dimL']}/{r['dimR']} | {r['modesL']}/{r['modesR']} | {rec['inv']} | {letters or '--'} | {ctl[name][1]/1000:.1f} | {v['sync']} | {lam1} | {v['norepo']} | {unis or '-'} | {' '.join(dl) or '-'} |")
+            table.append(f"| `{name}` | {r['family']} | {r['dimL']}/{r['dimR']} | {r['modesL']}/{r['modesR']} | {rec['inv']} | {letters or '--'} | {ctl[name][1]/1000:.1f} | {v['sync']} | {lam1} | {v['norepo']} | {diag['single_step']} | {unis or '-'} | {' '.join(dl) or '-'} |")
             print(f"{name}: {letters or '--'} (lam1={lam1}, norepo={v['norepo']}, uniform={uni}, keeps_all={keeps})", flush=True)
     tot = {k: sum(1 for x in rows if x["letters"][k]) for k in LETTERS}
     nstrict = sum(1 for x in rows if x["diagnostics"]["D_strict"])
@@ -269,8 +272,8 @@ def main():
     json.dump([{k: x[k] for k in ("name", "family", "dimL", "dimR", "modesL", "modesR", "inv", "dyn", "mech", "ms")} for x in rows],
               open(f"{a.out}/suite_results.json", "w"), indent=1)
     with open(f"{a.out}/letters.md", "w") as f:
-        f.write("| benchmark | family | dim L/R | modes L/R | inv | letters | time (s) | SYNC | lambda=1 file | NO_REPO | uniform rows | diagnostics |\n")
-        f.write("|---|---|---|---|---|---|---|---|---|---|---|---|\n")
+        f.write("| benchmark | family | dim L/R | modes L/R | inv | letters | time (s) | SYNC | lambda=1 file | NO_REPO | SINGLE_STEP (info) | uniform rows | diagnostics |\n")
+        f.write("|---|---|---|---|---|---|---|---|---|---|---|---|---|\n")
         f.write("\n".join(table) + "\n\n")
         f.write("Totals: " + ", ".join(f"{k} {tot[k]}" for k in LETTERS) + "\n\n")
         f.write("D rule (2026-10-27): the stated requirement differs per mode, so the claim needs mode-dependent rows: "

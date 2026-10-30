@@ -1,0 +1,177 @@
+# autoclave_liquid_steambank: a liquids cycle (121 degC, 15 min) of a laboratory steam sterilizer whose
+# electric steam generator runs on three of its four heating elements, against the same cycle as validated
+# with all four; up to the re-timing of the heat-up, the deployed cycle is the validated cycle: same chamber
+# temperature, deployed load never colder and at most 10 K warmer during heat-up, same holding time.
+# scenario: degraded-actuator (heating element burnt out in the steam generator)
+# mechanisms: S R D (time stretch 3/4 in HEAT, RELCERT_SYNC=1 declines; right-only catch-up: the validated
+#   load reaches the exposure temperature alone while the deployed holding time waits, RELCERT_NO_REPO=1
+#   declines; mode-dependent rows, the heat-up rows on every phase decline; matrix codes M1 M5 and a
+#   right-only step on the replayed path)
+#
+# System (both sides). Chamber temperature c and load temperature T in degC, holding-time counter t in
+# min, the cycle controller re-deciding every 0.1 min (6 s; epsilon 0.1 on both sides). One liquids cycle:
+#   HEAT     c < 122           heat-up: the chamber rises at the steam generator's rate, c' = r
+#   EQUIL    122 <= c <= 124,  plateau, holding time not yet counting: the pressure controller holds the
+#            T < 121           chamber (c' = 0) while the load probe rises toward it
+#   EXPOSE   122 <= c <= 124,  holding time: counted while the load probe is at or above 121 degC, t' = 1
+#            T >= 121
+#   EXHAUST  t >= 15           slow (liquids) exhaust toward atmospheric pressure, c' = 0.1 (100 - c)
+# In every phase the load follows the chamber as a first-order heat-penetration lag, T' = 0.1 (c - T)
+# (time constant 10 min); HEAT, EQUIL and EXPOSE carry t < 15 (holding time not yet complete).
+# Successors HEAT -> [HEAT, EQUIL, EXPOSE], EQUIL -> [EQUIL, EXPOSE], EXPOSE -> [EXPOSE, EXHAUST],
+# EXHAUST -> [EXHAUST]. HEAT -> EXPOSE serves a cycle started with a load already within 1 K of the
+# plateau (a restarted hot load); successor completeness (relcert --wellformed) needs it for such
+# starts, it is live from them, and no letter depends on it (the letters are S R D with and without it).
+# Sources. Cycle: 121 degC with a 15 min holding time, sterilization temperature band 0 to +3 K, i.e.
+#   121 to 124 degC (EN 285:2015, ISO 17665-2); the controller heats to its 122 degC set point inside the
+#   band and counts the holding time from the load probe (load-controlled liquids cycle). Load: 1 L
+#   bottles of aqueous media; the STERIS liquid-cycle table (reproduced in UBC Zoology, Autoclave Good
+#   Practice Guide, 2021, Table 2) gives 45 min at 121 degC for 1000 mL, heat-up to 121 degC included,
+#   i.e. about 30 min of heat penetration; a first-order time constant of 10 min reproduces that (from a
+#   lag of 25 K at the plateau, 10 ln 25 = 32 min to reach 121 degC). Validated heat-up rate r_R = 4 K/min
+#   (room temperature to 122 degC in 25.5 min; illustrative for a bench-top chamber, not a datasheet value).
+#   Domain: 20 degC (room) to 138 degC, the saturation temperature at the chamber's safety-valve setting
+#   (2.4 bar g = 3.4 bar abs).
+# Right (validated): the cycle as validated, four heating elements, r_R = 4 K/min.
+# Left (deployed): one of the four equal heating elements has burnt out; the generator delivers 3/4 of
+#   the steam and the steam-limited heat-up runs at r_L = 3/4 x 4 = 3 K/min. The plateau and the exhaust
+#   need far less than the generator's capacity, so they are the validated ones; the load and its
+#   thermal lag are physics and unchanged. The generator's output ratio is the only difference.
+#
+# Property (rows by phase; relational, up to the re-timing of the heat-up).
+#   HEAT, EQUIL: c_L = c_R, t_L = t_R, T_R <= T_L <= T_R + 10, and the strengthening rows
+#     c_R - T_R <= 40, T_R <= c_R (the validated load lags its chamber by at most the first-order lag of
+#     a 4 K/min ramp, 4 / 0.1 = 40 K, and never leads it; both hold from a cold start c = T and are kept
+#     by the validated flow; without either the file DECLINES).
+#   EXPOSE, EXHAUST: c_L = c_R, t_L = t_R.
+# Reading: during heat-up the deployed cycle passes through the validated chamber temperatures (re-timed by
+# 3/4) with its load never colder and at most 10 K warmer than the validated load at the same chamber
+# temperature (the slower heat-up lets the load lag less); from the plateau on, the deployed holding time
+# is matched by a validated holding time of the same length at the same chamber temperature, and the
+# exhaust is the validated one. The requirement differs by phase: heat-up is qualified by its
+# heat-penetration profile (load against chamber), the plateau by the holding time at sterilization
+# temperature (EN 285 holding time; each side's EXPOSE guard puts its load at or above 121 degC, so the
+# sterility side of the load comparison is the guard there). Not implied by the domains (they bound the
+# load gap only by 118 K).
+#
+# Why the stretch (S), and why it is the claim's. Heat-up duration is not a validated parameter of a
+# sterilization cycle (the plateau, its band and its holding time are), so the heat-up is compared at
+# equal chamber temperature, i.e. re-timed by the generator's output ratio: lambda = 3/4 makes the chamber
+# rows exact (c_L' = 3 = 3/4 x c_R'). lambda_min = 3/4 is that ratio (a grid end point; lambda_min = 0.7,
+# whose grid misses 3/4, DECLINES), lambda_max = 1 (the deployed never has more steam). The load rows are
+# not exact: on equal chambers the gap D = T_L - T_R obeys D' = -0.1 D + (1 - lambda) 0.1 (c_R - T_R), so
+# D >= 0 (T_R <= c_R) and D <= (1 - lambda) x 40 = 10. Tight: upper 10 (9.99 DECLINES), lower 0 (the
+# validated load at most -0.01 K warmer DECLINES); envelope window at the 10 K tolerance: exactly 40 (39.9
+# and 40.1 DECLINE; 50 needs 12.5: 12.5 certifies, 12.49 declines). Simulated cold start (c = T = 20 on
+# both sides, exact flows per 0.1 min): largest gap at equal chamber temperature 7.88 K. RELCERT_SYNC=1
+# DECLINES (at lambda 1 the slower chamber falls behind without bound). Plateau and exhaust run at lambda 1.
+#
+# Why right-only catch-up (R), from real runs. The deployed load enters the plateau warmer (cold start:
+# 93.3 against 85.4 degC at c = 122.3), so it reaches 121 degC first: 31.05 against 33.46 min after the
+# plateau starts (simulated as above, the validated leaving HEAT at the deployed's chamber temperature as
+# c_L = c_R requires), i.e. the deployed holding time starts 2.4 min (24 windows) before the validated one.
+# In that deployed EXPOSE window the validated cycle is still in EQUIL; a joint segment fails at every
+# stretch (the deployed counter t_L runs, the validated t_R does not; RELCERT_NO_REPO=1 with lambda_max = 2
+# DECLINES, and the stutter key does not help: stretch 0 with NO_REPO DECLINES), so the validated load
+# heats alone with the deployed frozen (c, t unchanged on both sides, so the plateau rows hold exactly)
+# until its probe reaches 121 degC, and the two holding times then run together. RELCERT_NO_REPO=1 DECLINES.
+# Why mode-dependent rows (D). The heat-up rows on every phase DECLINE (letters rule: the uniform row set
+# that keeps every stated requirement), and so do the plateau rows with any load row added (T_L <= T_R + 10
+# alone, T_R <= T_L alone, both, or T_R <= T_L + 1): during the catch-up the validated load moves while
+# the deployed waits, and a load row would have to be kept by that motion over the whole domain (the
+# right-only certificate is whole-domain). Disclosed: whether the two-sided load rows also hold through the
+# catch-up (they would, up to the validated probe's overshoot of at most 0.014 K per 0.1 min window) is
+# not what this file claims; it states the plateau requirement as the holding time. Plainly: the plateau
+# load row is dropped because the tool's right-only certificate cannot keep it, not because EN 285 states
+# a separate plateau requirement; D therefore records the heat-up profile vs holding-time split as
+# certified here, partly a tool need (batch 10 review, LOW).
+# How the claim depends on the cause (tightest upper load tolerance against the generator's output ratio
+# rho, lambda_min = rho, other rows unchanged): rho = 1 (no burnt element): 0 (exact); 7/8: 5.00 (4.99
+# declines); 3/4 (this file): 10.00; 1/2 (two elements out): 20.00 (19.99 declines). Law: (1 - rho) x 40.
+# At rho = 1 the exact uniform claim (c, t and T equal in every phase) CERTIFIES, also under
+# RELCERT_SYNC=1 and RELCERT_NO_REPO=1: no stretch, no catch-up and no phase-dependent rows; with the
+# file's own plateau rows (no load row) at rho = 1, NO_REPO declines (the admitted start with the validated
+# still in EQUIL), so the uniform exact claim is the cause test for R and D. At rho = 3/4 the uniform claim
+# DECLINES. So S, R and D come from the burnt element.
+#
+# Domains (one physical domain, the same text on every mode of both sides): c, T in [20, 138] degC (room
+# temperature to the saturation temperature at the safety-valve setting), t >= 0 (a counter). Not
+# load-bearing (scripts/domain_widening.py: every bound widened, CERTIFIED; t >= 0 one-sided, skipped).
+# Every left mode has a satisfiable start (equal states in its guard with T <= c).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30 on branch benchmark-fixes, binary at
+# 4b154c3): CERTIFIED (about 1.5 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1; DECLINED under RELCERT_SYNC=1 and
+# RELCERT_NO_REPO=1. Cover: HEAT_L at lambda 3/4 with HEAT; EQUIL_L at lambda 1 with EQUIL; EXPOSE_L
+# admissible [EQUIL, EXPOSE], EQUIL by a right-only step into EXPOSE, then lambda 1; EXHAUST_L lambda 1
+# with EXHAUST. Nothing pruned, no choice used, no branching. --handoff 8/8 unsat. relcert --wellformed:
+# HEAT ok (exit->EQUIL,EXPOSE), EQUIL ok (exit->EXPOSE), EXPOSE ok (exit->EXHAUST), EXHAUST ok
+# (invariant), 0 UNKNOWN, 0 BLOCKING. Letters (tmp/new-r10/letters_one.sh): S R D.
+[problem]
+name = autoclave_liquid_steambank
+max_depth = 8
+lambda_min = 0.75
+lambda_max = 1.0
+bound_T = 600.0
+
+[Lsys]
+state_vars = [c, T, t]
+epsilon = 0.1
+
+[Lsys.mode.HEAT]
+ode = c' = 3.0; T' = smt2:(* 0.1 (- c T)); t' = 0.0;
+guard = c < 122.0 and t < 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [HEAT, EQUIL, EXPOSE]
+
+[Lsys.mode.EQUIL]
+ode = c' = 0.0; T' = smt2:(* 0.1 (- c T)); t' = 0.0;
+guard = c >= 122.0 and c <= 124.0 and T < 121.0 and t < 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [EQUIL, EXPOSE]
+
+[Lsys.mode.EXPOSE]
+ode = c' = 0.0; T' = smt2:(* 0.1 (- c T)); t' = 1.0;
+guard = c >= 122.0 and c <= 124.0 and T >= 121.0 and t < 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [EXPOSE, EXHAUST]
+
+[Lsys.mode.EXHAUST]
+ode = c' = smt2:(* 0.1 (- 100.0 c)); T' = smt2:(* 0.1 (- c T)); t' = 0.0;
+guard = t >= 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [EXHAUST]
+
+[Rsys]
+state_vars = [c, T, t]
+epsilon = 0.1
+
+[Rsys.mode.HEAT]
+ode = c' = 4.0; T' = smt2:(* 0.1 (- c T)); t' = 0.0;
+guard = c < 122.0 and t < 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [HEAT, EQUIL, EXPOSE]
+
+[Rsys.mode.EQUIL]
+ode = c' = 0.0; T' = smt2:(* 0.1 (- c T)); t' = 0.0;
+guard = c >= 122.0 and c <= 124.0 and T < 121.0 and t < 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [EQUIL, EXPOSE]
+
+[Rsys.mode.EXPOSE]
+ode = c' = 0.0; T' = smt2:(* 0.1 (- c T)); t' = 1.0;
+guard = c >= 122.0 and c <= 124.0 and T >= 121.0 and t < 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [EXPOSE, EXHAUST]
+
+[Rsys.mode.EXHAUST]
+ode = c' = smt2:(* 0.1 (- 100.0 c)); T' = smt2:(* 0.1 (- c T)); t' = 0.0;
+guard = t >= 15.0 and c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+evolve = c >= 20.0 and c <= 138.0 and T >= 20.0 and T <= 138.0 and t >= 0.0
+next = [EXHAUST]
+
+[relational_invariant]
+HEAT = c[l] <= c[r] and c[r] <= c[l] and t[l] <= t[r] and t[r] <= t[l] and T[l] <= T[r] + 10.0 and T[r] <= T[l] + 0.0 and c[r] - T[r] <= 40.0 and T[r] <= c[r]
+EQUIL = c[l] <= c[r] and c[r] <= c[l] and t[l] <= t[r] and t[r] <= t[l] and T[l] <= T[r] + 10.0 and T[r] <= T[l] + 0.0 and c[r] - T[r] <= 40.0 and T[r] <= c[r]
+EXPOSE = c[l] <= c[r] and c[r] <= c[l] and t[l] <= t[r] and t[r] <= t[l]
+EXHAUST = c[l] <= c[r] and c[r] <= c[l] and t[l] <= t[r] and t[r] <= t[l]

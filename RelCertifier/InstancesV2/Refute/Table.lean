@@ -57,6 +57,8 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m032
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m035
+import RelCertifier.InstancesV2.Refute.Data.turbine_startup_gearratio_m020
+import RelCertifier.InstancesV2.Refute.Data.turbine_startup_gearratio_m024
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m016
@@ -64,14 +66,6 @@ import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m028
 import RelCertifier.InstancesV2.Refute.Data.lit_girard08_robot_m016
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m032
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m035
-import RelCertifier.InstancesV2.Refute.Data.h2_refuel_ambientbias_m003
-import RelCertifier.InstancesV2.Refute.Data.h2_refuel_ambientbias_m007
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m032
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m035
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m039
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m040
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m041
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m042
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m016
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m017
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m018
@@ -86,12 +80,15 @@ import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m032
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
 import RelCertifier.InstancesV2.Refute.Data.lit_csf25_salt_tank_hold_m031
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m016
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m017
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m018
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m026
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
-import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
+import RelCertifier.InstancesV2.Cuts.boiler_purge_vfd
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
-import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
@@ -104,6 +101,7 @@ import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
+import RelCertifier.InstancesV2.Cuts.turbine_startup_gearratio
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.Checker.EvolStrengtheningX
 
@@ -172,6 +170,8 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
   ⟨"platoon_linkloss_m032", 3 + 1, platoon_linkloss_m032_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m032_wit⟩,
   ⟨"platoon_linkloss_m035", 3 + 1, platoon_linkloss_m035_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m035_wit⟩,
+  ⟨"turbine_startup_gearratio_m020", 3 + 1, turbine_startup_gearratio_m020_IRm, turbine_startup_gearratio_cutsV2X, turbine_startup_gearratio_m020_wit⟩,
+  ⟨"turbine_startup_gearratio_m024", 3 + 1, turbine_startup_gearratio_m024_IRm, turbine_startup_gearratio_cutsV2X, turbine_startup_gearratio_m024_wit⟩,
   ⟨"hydro_rejection_gatecal_m024", 3 + 1, hydro_rejection_gatecal_m024_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m024_wit⟩,
   ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
   ⟨"ventilator_vc_cuffleak_m016", 3 + 1, ventilator_vc_cuffleak_m016_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m016_wit⟩,
@@ -179,14 +179,6 @@ def refuteTable : List RefRec := [
   ⟨"lit_girard08_robot_m016", 6 + 1, lit_girard08_robot_m016_IRm, lit_girard08_robot_cutsV2X, lit_girard08_robot_m016_wit⟩,
   ⟨"platoon_profiles_m032", 3 + 1, platoon_profiles_m032_IRm, platoon_profiles_cutsV2X, platoon_profiles_m032_wit⟩,
   ⟨"platoon_profiles_m035", 3 + 1, platoon_profiles_m035_IRm, platoon_profiles_cutsV2X, platoon_profiles_m035_wit⟩,
-  ⟨"h2_refuel_ambientbias_m003", 3 + 1, h2_refuel_ambientbias_m003_IRm, h2_refuel_ambientbias_cutsV2X, h2_refuel_ambientbias_m003_wit⟩,
-  ⟨"h2_refuel_ambientbias_m007", 3 + 1, h2_refuel_ambientbias_m007_IRm, h2_refuel_ambientbias_cutsV2X, h2_refuel_ambientbias_m007_wit⟩,
-  ⟨"platoon_latency_m032", 3 + 1, platoon_latency_m032_IRm, platoon_latency_cutsV2X, platoon_latency_m032_wit⟩,
-  ⟨"platoon_latency_m035", 3 + 1, platoon_latency_m035_IRm, platoon_latency_cutsV2X, platoon_latency_m035_wit⟩,
-  ⟨"platoon_latency_m039", 3 + 1, platoon_latency_m039_IRm, platoon_latency_cutsV2X, platoon_latency_m039_wit⟩,
-  ⟨"platoon_latency_m040", 3 + 1, platoon_latency_m040_IRm, platoon_latency_cutsV2X, platoon_latency_m040_wit⟩,
-  ⟨"platoon_latency_m041", 3 + 1, platoon_latency_m041_IRm, platoon_latency_cutsV2X, platoon_latency_m041_wit⟩,
-  ⟨"platoon_latency_m042", 3 + 1, platoon_latency_m042_IRm, platoon_latency_cutsV2X, platoon_latency_m042_wit⟩,
   ⟨"antenna_track_kvretune_m016", 3 + 1, antenna_track_kvretune_m016_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m016_wit⟩,
   ⟨"antenna_track_kvretune_m017", 3 + 1, antenna_track_kvretune_m017_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m017_wit⟩,
   ⟨"antenna_track_kvretune_m018", 3 + 1, antenna_track_kvretune_m018_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m018_wit⟩,
@@ -200,9 +192,13 @@ def refuteTable : List RefRec := [
   ⟨"antenna_track_kvretune_m032", 3 + 1, antenna_track_kvretune_m032_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m032_wit⟩,
   ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
   ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩,
-  ⟨"lit_csf25_salt_tank_hold_m031", 3 + 1, lit_csf25_salt_tank_hold_m031_IRm, lit_csf25_salt_tank_hold_cutsV2X, lit_csf25_salt_tank_hold_m031_wit⟩ ]
+  ⟨"lit_csf25_salt_tank_hold_m031", 3 + 1, lit_csf25_salt_tank_hold_m031_IRm, lit_csf25_salt_tank_hold_cutsV2X, lit_csf25_salt_tank_hold_m031_wit⟩,
+  ⟨"boiler_purge_vfd_m016", 3 + 1, boiler_purge_vfd_m016_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m016_wit⟩,
+  ⟨"boiler_purge_vfd_m017", 3 + 1, boiler_purge_vfd_m017_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m017_wit⟩,
+  ⟨"boiler_purge_vfd_m018", 3 + 1, boiler_purge_vfd_m018_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m018_wit⟩,
+  ⟨"boiler_purge_vfd_m026", 3 + 1, boiler_purge_vfd_m026_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m026_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 227
+def expectedRefuteGroups : Nat := 229
 
 end RelCertifier.Refute

@@ -1,0 +1,184 @@
+# pack_coldcharge_broadcast: a notebook's 3S2P smart battery charging in an unheated cabin, whose
+# gauge selects the charge current from the cell temperature by the TI bq40z50-R2 temperature
+# ranges (charging suspended below 0 degC), after the deployed gauge firmware was set to broadcast
+# ChargingCurrent() every 60 s, against the validated 30 s. The same gauge law on both sides.
+# scenario: degraded-sensor
+# mechanisms: M B P (multi-cycle matching: one deployed broadcast against two design broadcasts;
+#   branching from STATE-DEPENDENT successors, the gauge's range map is a deterministic partition;
+#   non-connection pruning of four edges into LIVE ranges, one of them the Under Temp charge
+#   suspension, RELCERT_NO_PRUNE=1 declines; matrix codes M2 M3 M4)
+#
+# System (both sides). Pack temperature T and cabin air temperature p in degC, time in min. Lumped
+# pack: T' = (p + h_k - T) / 20, with h_k the steady rise of the charge current of range k. Thermal
+# constants: six NCR18650B cells (Panasonic datasheet: 48.5 g, charge 0 to 45 degC, discharge -20 to
+# 60 degC) plus housing, C about 360 J/K, pack-to-air resistance 3.3 K/W, time constant C R = 20 min;
+# pack resistance 0.14 ohm at 10 degC (three series pairs of about 75 mOhm cells and 30 mOhm of
+# protection FETs, sense resistor and fuse), so h = 0.46 I^2 K/A^2, held constant (affine model).
+# Gauge law (TI bq40z50-R2 Technical Reference Manual, SLUUBK0B, Sec. 4.2 and 4.4; default range
+# limits T1 = 0, T2 = 12, T5 = 20, T6 = 25 degC): Under Temp (UT, T < 0): ChargingCurrent() = 0,
+# charging suspended (h = 0, the protection mode); Low Temp (LT, [0, 12)): 2750 mA (h = 3.5 K);
+# Standard Temp Low (STL, [12, 20]): 3890 mA (h = 7 K); Recommended Temp (RT, (20, 25)): 4770 mA
+# (h = 10.5 K). The currents are this pack's data-flash settings (TRM defaults, medium voltage range:
+# 352, 4004, 4488 mA; the LT setting is raised to 0.41 C, inside the cells' 0.5 C standard charge
+# over 0 to 45 degC). The 1 degC range hysteresis is omitted (a static map). The range is a function
+# of the reading, so every range may follow every range (next = all four on both sides; relcert
+# --wellformed: UT ok (exit->LT), LT ok (exit->UT,STL), STL ok (exit->LT,RT), RT ok (exit->STL)).
+# The warmer ranges (STH from 25 degC, HT, OT) are never entered: the warmest equilibrium is
+# 14 + 10.5 = 24.5 < 25; no mode is defined at T >= 25, so no start lies there.
+# Right (validated design, epsilon 0.5 min): the smart charger applies the ChargingCurrent()
+#   broadcast every 30 s.
+# Left (deployed, epsilon 1 min): the same gauge and charger; the gauge broadcasts every 60 s (the
+#   TRM, Sec. 4.11: "every 10 s to 60 s"), so each current is held for up to 60 s. The broadcast
+#   period is the only difference. lambda_min = lambda_max = 1: the two packs are compared at equal
+#   times, one deployed broadcast matched by two design broadcasts.
+#
+# Property (every left mode): |T_L - T_R| <= 7, p_L = p_R. Requirement (conformance to the validated
+# temperature profile): at every instant the deployed pack is within the heat of two current ranges
+# (2 x 3.5 K = 7 K) of a validated run from the same state. Why a temperature band: at low
+# temperature the anode charge-transfer kinetics limit the safe charge current (lithium plating); its
+# activation energy is about 50 to 70 kJ/mol (Jow et al., J. Electrochem. Soc. 165 (2018) A361), a
+# factor 2.2 to 2.5 per 10 K near 0 degC, so a 7 K band keeps the deployed kinetics within a factor
+# 1.7 to 1.9 (below 2) of the validated run's at the same instant, and the validated plating margin
+# carries over. Tightest 7.00 (6.99 declines) = two current ranges, the stated value; certified window
+# [7.00, 8.00] (from 8.01 the admissible starts of an STL window span two ranges, the STL band is
+# 8 K wide; 8.01 to 10.49 DECLINE, 10.50 = three ranges certifies). Not implied by the domains (they
+# allow 80 K).
+#
+# Why branching (B), from the state. The gauge is deterministic: which range follows LT depends on
+# where the pack goes, and that depends on the cabin air: LT settles at p + 3.5, below 0 (successor
+# UT) for p < -3.5 and above 12 (STL) for p > 8.5; STL settles at p + 7, below 12 (LT) for p < 5 and
+# above 20 (RT) for p > 13. In each deployed window the design takes one joint step (budget 2) from
+# the range it starts in, and both neighbours are retained successors. No choice is involved
+# (RELCERT_NO_CHOICE=1 CERTIFIES with the same cover).
+# Why pruning is needed (P), from edges into live ranges. Pruned: STL -> UT and RT -> UT (STL and RT
+# settle at least at -5 + 7 = 2 and -5 + 10.5 = 5.5 > 0: at T = 0 their flow is positive for every
+# p, so neither ever suspends the charge), UT -> RT and LT -> RT (UT and LT settle at most at 14 and
+# 14 + 3.5 = 17.5 < 20: at T = 20 their flow is negative). The targets are live ranges, not sinks:
+# the Under Temp suspension is reached from LT for p < -3.5 (right alone, p = -5, T0 = 5: LT settles
+# at -1.5 and the design suspends at t = 29.5 min, T = -0.01), and RT from STL for p > 13 (p = 14,
+# T0 = 15: RT at t = 36 min); the UT guard T < 0 and the RT guard 20 < T < 25 are satisfiable
+# inside every source range's domain. Each pruned edge is load-bearing on its own: with the other
+# three removed from the right's next lists, RELCERT_NO_PRUNE=1 still DECLINES (four files, one per
+# kept edge), and it CERTIFIES with all four removed. RT -> UT and UT -> RT are needed from MATCHED
+# windows (both packs in RT, or both suspended in UT: the design's successors then include the far
+# range, 10.5 K away), and runs from equal starts enter both: UT from LT (p = -5, T0 = 5: 570 of 600
+# deployed windows are UT/UT), RT from STL (p = 14, T0 = 15: 564 of 600 RT/RT). Without the pruning
+# the choice cannot drop the far range: no checked cut bounds T at the segment end (every range's
+# settling point moves with p). RELCERT_NO_PRUNE=1 DECLINES (it needs 10.50 = three ranges; 10.49
+# declines); RELCERT_NO_PRUNE=1 with RELCERT_SINGLE_STEP=1 DECLINES too.
+# Window (measured, the cabin range): the pruning of STL -> UT holds for p_lo > -7 (-6.9 CERTIFIES,
+# -7 DECLINES); the suspension is live only for p_lo < -3.5 (at -3.4 LT -> UT is pruned too and UT
+# becomes start-only; the file then still CERTIFIES with P, which would be an artifact); LT -> RT is
+# pruned for p_hi < 16.5 (16.5 DECLINES); RT is live for p_hi > 13 and stays below T6 = 25 for
+# p_hi < 14.5 (at 14.5 --wellformed reports RT UNKNOWN). The stated [-5, 14] is inside all of them.
+# Multi-cycle matching (M): budget 2 in every left mode, one joint step.
+# How the claim depends on the cause (measured, tightest tolerance by bisection): broadcast 30 s
+# (no cause): the exact claim (constant 0) CERTIFIES (nothing pruned is needed: RELCERT_NO_PRUNE=1
+# CERTIFIES); 60 s (this file): 7.00; 90 s and 120 s (outside the TRM's 10 to 60 s): 10.50 (10.49
+# declines), above the 7 K requirement (the design may be three ranges away). Simulated worst gap
+# |T_L - T_R| from equal starts (p on a 0.5 K grid in [-5, 14], T0 on a 1 K grid in [-5, 24], 600
+# min): 0.22 K at 60 s, 0.33 K at 90 s, 0.43 K at 120 s: the certificate is an inductive envelope
+# over unbounded segment durations, which grows with the number of design broadcasts per deployed
+# broadcast as the reachable ranges do. With the TRM's default currents (h = 0.06, 7.41, 9.31 K) the
+# tightest value is 10 and no pruning is needed (RELCERT_NO_PRUNE=1 CERTIFIES at 10).
+#
+# Not modeled, stated: the charge termination (CV phase and taper; the claim covers the
+# constant-current phase), the temperature dependence of the cell resistance, and the cabin's own
+# heating. The thermal constants and the 30 s design period are design values of this file; the
+# range limits, the zero current in Under Temp and the 10 to 60 s broadcast interval are the TRM's.
+# Letter windows. M: budget 2 at every broadcast period in (30, 60] s; B: branching 2 at LT and STL
+# for every cabin range that contains the switch points; P: the window above; tolerance window
+# [7.00, 8.00], the stated 7 at its lower edge.
+#
+# Template note: this is the positive-association schedule of reactor_feed_wireless (the selected
+# range drives the selecting variable the same way, so far ranges are unreachable), here with a
+# protection mode (the Under Temp suspension, zero current) as a live range of the ladder.
+#
+# Domains. T in [-20, 60] degC: the cells' discharge (operating) temperature limits; p in [-5, 14]
+# degC, constant over the event: the cold-season range of the unheated cabin, a design range of this
+# file, stated also in every guard (like the coolant range of reactor_feed_wireless). The right
+# guards partition T in [-20, 25) (no coverage gap reachable: every flow stays below 24.5); the left
+# guards partition it; every left mode has a satisfiable start (equal states). Widening (scripts/
+# domain_widening.py): this file CERTIFIES with every evolve bound widened (load-bearing: none), but
+# only because the cabin range also sits in the guards; with the range in the domain only (guards on
+# T alone) the file CERTIFIES (NO_PRUNE DECLINES) and the right's p_lo and p_hi are load-bearing
+# (all widened DECLINES): the pruning and the live targets need the cabin range of the window above.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30, branch binary at 4b154c3):
+# CERTIFIED (0.8 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, RELCERT_NO_REPO=1,
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and RELCERT_SINGLE_STEP=1;
+# DECLINED under RELCERT_NO_PRUNE=1 (and with RELCERT_SINGLE_STEP=1). Cover: every left mode at
+# lambda 1, budget 2; UT_L admissible [UT, LT]; LT_L [UT, LT, STL]; STL_L [LT, STL, RT]; RT_L
+# [STL, RT]. Pruned UT->RT, LT->RT, STL->UT, RT->UT. Rows identical (--handoff vacuous, 16/16).
+# relcert --wellformed: 4 ok (exit), 0 UNKNOWN, 0 BLOCKING. One domain: PASS. Letters measured by
+# scripts/suite_v2_letters.py (tmp/new-r10/letters_one.sh): M B P (matrix M2 M3 M4).
+#
+[problem]
+name = pack_coldcharge_broadcast
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 120.0
+
+[Lsys]
+state_vars = [T, p]
+epsilon = 1.0
+
+[Lsys.mode.UT]
+ode = T' = smt2:(* 0.05 (- p T)); p' = 0.0;
+guard = T < 0.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[Lsys.mode.LT]
+ode = T' = smt2:(* 0.05 (- (+ p 3.5) T)); p' = 0.0;
+guard = T >= 0.0 and T < 12.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[Lsys.mode.STL]
+ode = T' = smt2:(* 0.05 (- (+ p 7.0) T)); p' = 0.0;
+guard = T >= 12.0 and T <= 20.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[Lsys.mode.RT]
+ode = T' = smt2:(* 0.05 (- (+ p 10.5) T)); p' = 0.0;
+guard = T > 20.0 and T < 25.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[Rsys]
+state_vars = [T, p]
+epsilon = 0.5
+
+[Rsys.mode.UT]
+ode = T' = smt2:(* 0.05 (- p T)); p' = 0.0;
+guard = T < 0.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[Rsys.mode.LT]
+ode = T' = smt2:(* 0.05 (- (+ p 3.5) T)); p' = 0.0;
+guard = T >= 0.0 and T < 12.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[Rsys.mode.STL]
+ode = T' = smt2:(* 0.05 (- (+ p 7.0) T)); p' = 0.0;
+guard = T >= 12.0 and T <= 20.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[Rsys.mode.RT]
+ode = T' = smt2:(* 0.05 (- (+ p 10.5) T)); p' = 0.0;
+guard = T > 20.0 and T < 25.0 and T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+evolve = T >= -20.0 and T <= 60.0 and p >= -5.0 and p <= 14.0
+next = [UT, LT, STL, RT]
+
+[relational_invariant]
+UT = T[l] <= T[r] + 7.0 and T[r] <= T[l] + 7.0 and p[l] <= p[r] and p[r] <= p[l]
+LT = T[l] <= T[r] + 7.0 and T[r] <= T[l] + 7.0 and p[l] <= p[r] and p[r] <= p[l]
+STL = T[l] <= T[r] + 7.0 and T[r] <= T[l] + 7.0 and p[l] <= p[r] and p[r] <= p[l]
+RT = T[l] <= T[r] + 7.0 and T[r] <= T[l] + 7.0 and p[l] <= p[r] and p[r] <= p[l]

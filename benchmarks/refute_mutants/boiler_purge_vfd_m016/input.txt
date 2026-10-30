@@ -1,0 +1,125 @@
+# boiler_purge_vfd: a steam boiler cold start after a burner-management retrofit (VFD forced-draft
+# fan with a faster pre-ignition purge, new drum pressure transmitter), against the qualified start.
+# scenario: refinement (retrofit: shorter purge, transmitter zero offset)
+# mechanisms: R D (right-only repositioning: the reference finishes its longer purge alone,
+#   RELCERT_NO_REPO=1 declines; mode-dependent rows, uniform rows decline; matrix code M5)
+#
+# System. Multiple-burner industrial steam boiler, cold start with the main steam stop valve closed.
+# State: purge credit v in volume changes of the boiler enclosure, drum pressure p in bar g, and the
+# pressure transmitter's zero offset e in bar (frozen, e' = 0). The burner-management system (BMS)
+# decides every 1 s. NFPA 85 (Boiler and Combustion Systems Hazards Code), multiple burner boilers:
+# the pre-ignition purge runs at not less than 25 % of full-load mass airflow for not less than
+# 5 minutes or five volume changes, whichever is longer. Both sides purge to 5 volume changes:
+#   PURGE  v < 5   fans only, no fuel:   v' = q,  p' = 0
+#   FIRE   v >= 5  burners lit, master pressure controller (closed loop, time constant 30 min, set
+#                  point 10 bar g, acting on the transmitter reading p + e): p' = (10 - e - p)/1800
+# No fuel enters before the purge is complete, so p is constant in PURGE (exact at a cold start:
+# p = 0 bar g, water at ambient; on a restart with the stop valve closed the standby pressure decay
+# over the purge is neglected).
+#
+# Right (reference, the qualified start): purge at 25 % airflow, one volume change per 100 s
+# (q = 0.01 /s, 5 volume changes in 500 s, above the 5 min minimum); its transmitter is zeroed (e
+# does not enter its dynamics; the reference's e is unused). Left (deployed, retrofitted): a VFD on
+# the forced-draft fan purges at 40 % airflow (q = 0.016 /s, 5 volume changes in 312.5 s, again
+# above 5 min), and the new drum pressure transmitter sits 2.0 m below the drum tap on a
+# condensate-filled impulse leg whose elevation zero was not applied: it reads high by the leg's
+# hydrostatic head, e = rho g h = 1000 * 9.81 * 2.0 Pa = 0.1962 bar when the leg is full, 0 when it is
+# empty; the model freezes e over a run (the claim's argument holds for any e_L in the range); the
+# rows admit every 0 <= e_L <= 0.1962. Two
+# effects of one retrofit: the fan shortens the purge (cause of R), the transmitter offset lowers
+# the controlled pressure (cause of the tolerance).
+#
+# Property (mode-dependent). The deployed start refines the qualified start, aligned at light-off:
+#   PURGE: p_L = p_R, v_R <= v_L, 0.625 v_L <= v_R (and 0 <= e_L <= 0.1962 in every row).
+#     Requirement: before light-off the retrofit is thermally identical to the qualified start (no
+#     fuel before purge completion) and its purge credit is never behind; 0.625 = 0.01/0.016 records
+#     that the two purges started together (from matched starts v_L = v_R = v0 >= 0 the reference's
+#     credit is at least 0.625 of the deployed's).
+#   FIRE: p_L <= p_R and p_R <= p_L + e_L, and 0.625 v_L <= v_R.
+#     Requirement: after light-off the retrofit never runs above the qualified pressure profile and
+#     falls short of it by at most its own transmitter offset e_L (per run; with the leg full,
+#     e_L = 0.1962 bar, the fleet-level bound). Tight on both sides: p_R <= p_L + e_L - 0.001 DECLINES
+#     and p_L <= p_R - 0.0001 (a margin below the profile) DECLINES; the fleet form
+#     p_R <= p_L + 0.1962 also certifies (0.1961 declines) and is implied by the per-run form and the
+#     offset range (batch 10 review: the per-run form is the stronger claim, measured 2026-10-30).
+#   The comparison after light-off is in real time (lambda pinned at 1): the start-up pressure
+#   ramp and the hold times are real-time quantities; the only re-timing is the reference finishing
+#   its longer purge alone (R).
+# Cause test. Zeroed transmitter (e_L bound 0): the FIRE band is 0 (p_L = p_R exactly after
+# alignment). Same fan (q_L = 0.01, the ratio atom 0.625 -> 1): CERTIFIED also under RELCERT_SYNC=1
+# and RELCERT_NO_REPO=1 (no reposition needed), the fleet band still tight at 0.1962 (0.1961
+# DECLINES). Simulated (exact flows per 1 s period, matched cold start v = 0, p = 0, e_L = 0.1962):
+# the retrofit lights off at 313 s, the reference at 500 s; in real time the retrofit runs up to
+# 0.97 bar above the reference (p_L <= p_R fails), aligned at light-off 0 <= p_R - p_L <= 0.19620.
+#
+# Why right-only repositioning (R). From a matched start the deployed reaches 5 volume changes first
+# and hands off PURGE_L -> FIRE_L while the reference is still purging (at the deployed's light-off,
+# 313 s, the reference has v_R = 3.13). In the pairing (FIRE_L, PURGE_R) the joint segment fails for
+# every stretch: the deployed's pressure rises while the reference's is held (no fuel), so p_L <= p_R
+# breaks. The reference therefore purges alone (left frozen) until v_R >= 5 and lights off; then
+# both fire in lock step. RELCERT_NO_REPO=1 DECLINES and RELCERT_SYNC=1 DECLINES (at every band up
+# to 10 bar; it certifies only from 12 bar, wider than the operating range). Genuineness: the pairing
+# is produced by the handoff from ordinary matched starts, not only admitted: with the PURGE row
+# tightened to the matched-from-zero relation v_R = 0.625 v_L the file CERTIFIES and NO_REPO still
+# DECLINES; without the ratio atom likewise (CERTIFIED, NO_REPO DECLINES); with lambda_max = 3
+# (free stretch) CERTIFIED and NO_REPO still DECLINES. Nothing is pruned (RELCERT_NO_PRUNE=1 and
+# RELCERT_NO_CHOICE=1 CERTIFY); no checked cut is needed (RELCERT_NO_CUT=1 CERTIFIES).
+# Mode dependence (D): the PURGE requirement p_L = p_R placed on FIRE declines (after light-off the
+# offset separates the pressures); the uniform conjunction of the two rows DECLINES. Handoff PURGE ->
+# FIRE only relaxes (--handoff 3/3 unsat).
+#
+# Domains. v >= 0 (the credit only counts up), -1 <= p <= 16 bar g on both sides: absolute vacuum
+# (about -1.01 bar g) and the boiler's maximum allowable working pressure of 16 bar g (the safety
+# valve setting, a design limit above the 10 bar g operating point). Not load-bearing: every bound
+# widened by half its range CERTIFIES (scripts/domain_widening.py); one evolve domain on every mode
+# of both sides. The right guards partition the state space (v < 5, v >= 5); every edge is enabled
+# (PURGE -> FIRE by the purge credit, FIRE absorbing).
+# Verdicts (RELCERT_IMPLIED_CUT=1, measured 2026-10-30): CERTIFIED (0.25 s); CERTIFIED under
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1, RELCERT_OPREGION=1, RELCERT_NO_PROGRESS=1;
+# DECLINED under RELCERT_SYNC=1 and RELCERT_NO_REPO=1.
+# Cover: lambda 1, budget 1 in both left modes; admissible PURGE_L [PURGE], FIRE_L [PURGE, FIRE]
+# (PURGE right-only, landing in FIRE). relcert --wellformed: PURGE ok (exit->FIRE), FIRE ok
+# (invariant).
+[problem]
+name = boiler_purge_vfd
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 20000.0
+
+[Lsys]
+state_vars = [v, p, e]
+epsilon = 1.0
+
+[Lsys.mode.PURGE]
+ode = v' = 0.016; p' = 0.0; e' = 0.0;
+guard = v < 5.0
+evolve = v >= 0.0 and p >= -1.0 and p <= 16.0
+next = [PURGE, FIRE]
+
+[Lsys.mode.FIRE]
+ode = v' = 0.0; p' = smt2:(* 0.000555555556 (- (- 10.0 e) p)); e' = 0.0;
+guard = v >= 5.0
+evolve = v >= 0.0 and p >= -1.0 and p <= 16.0
+next = [FIRE]
+
+[Rsys]
+state_vars = [v, p, e]
+epsilon = 1.0
+
+[Rsys.mode.PURGE]
+ode = v' = 0.01; p' = 0.0; e' = 0.0;
+guard = v < 5.0
+evolve = v >= 0.0 and p >= -1.0 and p <= 16.0
+next = [PURGE, FIRE]
+
+[Rsys.mode.FIRE]
+ode = v' = 0.0; p' = smt2:(* 0.000555555556 (- 10.0 p)); e' = 0.0;
+guard = v >= 5.0
+evolve = v >= 0.0 and p >= -1.0 and p <= 16.0
+next = [FIRE]
+
+[relational_invariant]
+PURGE = smt2:(and (<= L_p R_p) (<= R_p L_p) (<= R_v L_v) (<= (* 0.625 L_v) R_v) (>= 0.0 L_e) (<= L_e 0.1962))
+FIRE = smt2:(and (<= L_p (+ R_p 0.0)) (<= R_p (+ L_p L_e)) (<= (* 0.625 L_v) R_v) (>= 0.0 L_e) (<= L_e 0.1962))

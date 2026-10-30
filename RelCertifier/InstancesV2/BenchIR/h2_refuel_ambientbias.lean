@@ -31,13 +31,25 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "40") (.var "p"))))]
           guard := (.and (.cmp ">=" (.var "p") (.num "18.0")) (.cmp "<" (.var "p") (.num "38.0")))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["STAGE2", "STAGE3"] },
+          next := ["STAGE2", "STAGE3", "STAGE3DRAWN"] },
         {
           name := "STAGE3"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "60") (.var "p"))))]
           guard := (.and (.cmp ">=" (.var "p") (.num "38.0")) (.cmp "<" (.var "p") (.num "58.0")))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
           next := ["STAGE3", "TOPOFF"] },
+        {
+          name := "STAGE3DRAWN"
+          odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "57.5") (.var "p"))))]
+          guard := (.and (.cmp ">=" (.var "p") (.num "38.0")) (.cmp "<" (.var "p") (.num "55.5")))
+          evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
+          next := ["STAGE3DRAWN", "TOPOFFEARLY"] },
+        {
+          name := "TOPOFFEARLY"
+          odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "72.9") (.var "p"))))]
+          guard := (.and (.cmp ">=" (.var "p") (.num "55.5")) (.cmp "<" (.var "p") (.num "72.4")))
+          evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
+          next := ["TOPOFFEARLY", "COMPLETE"] },
         {
           name := "TOPOFF"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "72.9") (.var "p"))))]
@@ -85,10 +97,12 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
           next := ["COMPLETE"] } ] }
     invariants := [
-      ("STAGE1", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "0.00")))),
-      ("STAGE2", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "0.00")))),
-      ("STAGE3", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "0.00")))),
-      ("TOPOFF", (.and (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))) (.cmp ">=" (.var "R_p") (.num "58.0")))),
-      ("COMPLETE", (.and (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))) (.cmp ">=" (.var "R_p") (.num "58.0"))))] }
+      ("STAGE1", (.cmp "<=" (.var "L_p") (.var "R_p"))),
+      ("STAGE2", (.cmp "<=" (.var "L_p") (.var "R_p"))),
+      ("STAGE3", (.cmp "<=" (.var "L_p") (.var "R_p"))),
+      ("STAGE3DRAWN", (.cmp "<=" (.var "L_p") (.var "R_p"))),
+      ("TOPOFF", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9")))),
+      ("TOPOFFEARLY", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9")))),
+      ("COMPLETE", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))))] }
 
 end RelCertifier.Parse

@@ -35,7 +35,7 @@ it finds: which right modes the cover path visits, whether a right-only repositi
 step is on it, and the largest number of distinct non-self retained successors at a
 joint step (branching). The mechanism columns are then DERIVED:
 
-  M1  some left mode's cover has lambda != 1 (and whether that pairing's dynamics are
+  M1  some left mode's cover has lambda != 1, stretch 0 included (and whether that pairing's dynamics are
       polynomial of degree >= 2: a product of state variables, or a square)
   M2  some left mode's budget >= 2 and its derivation takes a joint step (several
       right segments); "RO" if a right-only reposition step is on the path
@@ -738,7 +738,8 @@ def analyze(name, path, relcert, timeout, z3time=False):
     # ---- derived mechanism cells
     cells = {}
     cert = v == "CERTIFIED"
-    lams = [c for c in rec["covers"] if c["lam_float"] != 1.0]
+    # stretch 0 (a stutter pairing) counts: lambda = 0 is a special case of stretching (2026-10-30)
+    lams = [c for c in rec["covers"] if c["lam_float"] != 1.0 or "0" in c.get("lam_pairs", {}).values()]
     if cert and lams:
         nl = rec["nonlinear_L"] or rec["nonlinear_R"]
         cells["M1"] = "yes: " + ", ".join(f"{c['mL']} λ={c['lam']}" + (f" (per pairing: {c['lam_pairs']})" if c.get("lam_pairs") else "") for c in lams) + (" (polynomial dynamics)" if nl else " (affine dynamics)")

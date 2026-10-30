@@ -6,6 +6,8 @@ import RelCertifier.InstancesV2.BenchChoice.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 import RelCertifier.InstancesV2.BenchChoice.antenna_track_kvretune
+import RelCertifier.InstancesV2.BenchChoice.autoclave_liquid_steambank
+import RelCertifier.InstancesV2.BenchChoice.boiler_purge_vfd
 import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
 import RelCertifier.InstancesV2.BenchChoice.elevator_start_discbrake
@@ -26,7 +28,6 @@ import RelCertifier.InstancesV2.BenchChoice.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchChoice.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchChoice.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchChoice.platoon_latency
 import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
@@ -37,7 +38,6 @@ import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
-import RelCertifier.InstancesV2.BenchChoice.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
@@ -60,6 +60,8 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_tune_lag", acc_tune_lag_coverV2_choice),
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2_choice),
+  ("autoclave_liquid_steambank", autoclave_liquid_steambank_coverV2_choice),
+  ("boiler_purge_vfd", boiler_purge_vfd_coverV2_choice),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2_choice),
   ("canal_gate_notches", canal_gate_notches_coverV2_choice),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2_choice),
@@ -80,7 +82,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_choice),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_choice),
   ("molding_pack_checkring", molding_pack_checkring_coverV2_choice),
-  ("platoon_latency", platoon_latency_coverV2_choice),
   ("platoon_linkloss", platoon_linkloss_coverV2_choice),
   ("platoon_profiles", platoon_profiles_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
@@ -91,7 +92,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2_choice),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2_choice),
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
-  ("rover_patrol_lag", rover_patrol_lag_coverV2_choice),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),

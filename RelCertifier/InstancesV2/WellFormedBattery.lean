@@ -74,7 +74,6 @@ import RelCertifier.InstancesV2.WellFormed.AccSpoofLimp
 import RelCertifier.InstancesV2.WellFormed.AccTuneLag
 import RelCertifier.InstancesV2.WellFormed.AccTuneLimp
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
-import RelCertifier.InstancesV2.WellFormed.RoverPatrolLag
 import RelCertifier.InstancesV2.WellFormed.GantrySpeedZones
 import RelCertifier.InstancesV2.WellFormed.RoverLadder2to3
 import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
@@ -97,7 +96,6 @@ import RelCertifier.InstancesV2.WellFormed.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.WatertankTwospeed
 import RelCertifier.InstancesV2.WellFormed.FlapsSlowApproach
 import RelCertifier.InstancesV2.WellFormed.H2RefuelAmbientbias
-import RelCertifier.InstancesV2.WellFormed.FuelcellChpDos
 import RelCertifier.InstancesV2.WellFormed.ElevatorStartDiscbrake
 import RelCertifier.InstancesV2.WellFormed.FurnaceProgramTimebase
 import RelCertifier.InstancesV2.WellFormed.ReactorFeedWireless
@@ -108,17 +106,19 @@ import RelCertifier.InstancesV2.WellFormed.TankDos3to1
 import RelCertifier.InstancesV2.WellFormed.AntennaTrackKvretune
 import RelCertifier.InstancesV2.WellFormed.CanalGateNotches
 import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
-import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
+import RelCertifier.InstancesV2.WellFormed.BoilerPurgeVfd
+import RelCertifier.InstancesV2.WellFormed.AutoclaveLiquidSteambank
+import RelCertifier.InstancesV2.WellFormed.FuelcellChpDos
 
 namespace RelCertifier
 namespace WellFormedBattery
 
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
-  ["platoon_linkloss", "platoon_profiles", "platoon_latency",
+  ["platoon_linkloss", "platoon_profiles", "boiler_purge_vfd",
    "molding_pack_checkring", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
-   "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
+   "quad_light_lag", "autoclave_liquid_steambank", "gantry_speed_zones",
    "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
@@ -202,17 +202,17 @@ def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
-   "bottling_fill_strainer", "canal_gate_notches",
+   "autoclave_liquid_steambank", "boiler_purge_vfd", "bottling_fill_strainer", "canal_gate_notches",
    "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
    "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones",
    "h2_refuel_ambientbias", "hydro_rejection_gatecal", "lit_csf21_vehicle_bus",
    "lit_csf21_vehicle_thermo", "lit_csf25_salt_tank_hold", "lit_drl_lane_control",
    "lit_freedm_meter", "lit_girard08_robot", "lit_gpt10_boost_converter",
    "lit_lz21_vehicle_position", "lit_nahs25_salt_tank", "molding_pack_checkring",
-   "platoon_latency", "platoon_linkloss",
+   "platoon_linkloss",
    "platoon_profiles", "quad_light_lag", "quad_light_profiles", "rampmeter_poll_2to1",
    "reactor_feed_wireless", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
-   "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6",
+   "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_4to6",
    "rover_terrain_6to12", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
    "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry", "turbine_startup_gearratio",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
@@ -250,7 +250,6 @@ end WellFormedBattery
 #print axioms V2AccTuneLag.acc_tune_lag_wellFormedR
 #print axioms V2AccTuneLimp.acc_tune_limp_wellFormedR
 #print axioms V2QuadLightLag.quad_light_lag_wellFormedR
-#print axioms V2RoverPatrolLagGuarded.rover_patrol_lag_wellFormedR
 #print axioms V2GantrySpeedZones.gantry_speed_zones_wellFormedR
 #print axioms RoverLadder2to3Guarded.rover_ladder_2to3_wellFormedR
 #print axioms RoverLadder3to6Guarded.rover_ladder_3to6_wellFormedR
@@ -269,7 +268,6 @@ end WellFormedBattery
 #print axioms V2RampmeterPoll2to1.rampmeter_poll_2to1_wellFormedR
 #print axioms V2TurbineStartupGearratio.turbine_startup_gearratio_wellFormedR
 #print axioms V2H2RefuelAmbientbias.h2_refuel_ambientbias_wellFormedR
-#print axioms V2FuelcellChpDos.fuelcell_chp_dos_wellFormedR
 #print axioms V2ElevatorStartDiscbrake.elevator_start_discbrake_wellFormedR
 #print axioms V2FurnaceProgramTimebase.furnace_program_timebase_wellFormedR
 #print axioms V2ReactorFeedWireless.reactor_feed_wireless_wellFormedR
@@ -279,7 +277,9 @@ end WellFormedBattery
 #print axioms V2TankDos3to1.tank_dos_3to1_wellFormedR
 #print axioms V2AntennaTrackKvretune.antenna_track_kvretune_wellFormedR
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
-#print axioms V2PlatoonLatency.platoon_latency_wellFormedR
+#print axioms V2BoilerPurgeVfd.boiler_purge_vfd_wellFormedR
+#print axioms V2AutoclaveLiquidSteambank.autoclave_liquid_steambank_wellFormedR
+#print axioms V2FuelcellChpDos.fuelcell_chp_dos_wellFormedR
 #print axioms V2MoldingPackCheckring.molding_pack_checkring_wellFormedR
 #print axioms V2CanalGateNotches.canal_gate_notches_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band

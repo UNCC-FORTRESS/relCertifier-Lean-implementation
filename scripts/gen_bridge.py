@@ -34,8 +34,9 @@ CHOICE = {
 
 KEYED = {"acc_tune_limp", "antenna_track_kvretune", "elevator_start_discbrake",
          "engine_start_highidle", "h2_refuel_ambientbias", "hydro_rejection_gatecal",
-         "platoon_latency", "platoon_linkloss", "platoon_profiles", "syringe_relay_prearm", "molding_pack_checkring",
-         "ventilator_vc_cuffleak", "lit_csf25_salt_tank_hold"}
+         "platoon_linkloss", "platoon_profiles", "syringe_relay_prearm", "molding_pack_checkring",
+         "ventilator_vc_cuffleak", "lit_csf25_salt_tank_hold",
+         "turbine_startup_gearratio", "boiler_purge_vfd", "autoclave_liquid_steambank"}
 
 
 def all_benches():

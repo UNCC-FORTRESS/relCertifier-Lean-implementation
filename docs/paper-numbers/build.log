@@ -1,4 +1,4 @@
-⚠ [1/471] Replayed RelCertifier.Trusted.Parse
+⚠ [1/495] Replayed RelCertifier.Trusted.Parse
 warning: RelCertifier/Trusted/Parse.lean:35:45: `String.dropRight` has been deprecated: Use `String.dropEnd` instead
 
 Note: The updated constant has a different type:
@@ -10,16 +10,16 @@ warning: RelCertifier/Trusted/Parse.lean:93:36: `String.data` has been deprecate
 warning: RelCertifier/Trusted/Parse.lean:94:27: `String.data` has been deprecated: Use `String.toList` instead
 warning: RelCertifier/Trusted/Parse.lean:94:58: `String.data` has been deprecated: Use `String.toList` instead
 warning: RelCertifier/Trusted/Parse.lean:363:26: `String.data` has been deprecated: Use `String.toList` instead
-⚠ [134/471] Replayed RelCertifier.Core.QFrac
+⚠ [134/495] Replayed RelCertifier.Core.QFrac
 warning: RelCertifier/Core/QFrac.lean:77:53: `String.data` has been deprecated: Use `String.toList` instead
-⚠ [8560/8850] Replayed RelCertifier.Trusted.Z3
+⚠ [8560/8650] Replayed RelCertifier.Trusted.Z3
 warning: RelCertifier/Trusted/Z3.lean:87:17: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:
   String → String.Slice
 instead of
   String → String
-⚠ [8565/8850] Replayed RelCertifier.Trusted.KeyAudit
+⚠ [8565/8650] Replayed RelCertifier.Trusted.KeyAudit
 warning: RelCertifier/Trusted/KeyAudit.lean:46:17: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:

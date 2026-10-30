@@ -86,10 +86,49 @@ import argparse, json, os, re, shutil, subprocess, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, HERE)
-from suite_v2_matrix import parse_input, run, verdict_of, FAMILIES, parse_cover  # noqa: E402
+from suite_v2_matrix import parse_input, run, verdict_of, parse_cover  # noqa: E402
 from inv_smt import atoms_of, show  # noqa: E402
 
 LETTERS = ["S", "M", "R", "B", "P", "D", "I", "X"]
+
+# Table 1 groups (2026-10-30): the suite by APPLICATION AREA, in this order. Every suite_v2 benchmark
+# is listed under exactly one area; a benchmark listed nowhere (or twice) stops the script, so a new
+# benchmark cannot silently fall out of the table. The wind turbine (turbine_startup_gearratio) is
+# under power and energy; the turbofan ground start (engine_start_highidle) under aerospace.
+AREAS = [
+    ("Automotive and rail", ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
+                             "platoon_linkloss", "platoon_profiles", "train_ato_odometry"]),
+    ("Rovers", ["rover_terrain_2to4", "rover_terrain_4to6", "rover_ladder_2to3", "rover_ladder_3to6",
+                "rover_ladder_6to8", "rover_ladder_8to12"]),
+    ("Aerospace", ["quad_light_lag", "quad_light_profiles", "sat_detumble_phases", "sat_detumble_weak",
+                   "sat3w_detumble_phases", "flaps_slow_approach", "engine_start_highidle"]),
+    ("Process and thermal", ["reactor_feed_wireless", "extruder_pe100_manualstart", "boiler_purge_vfd",
+                             "autoclave_liquid_steambank", "tank_dos_3to1", "molding_pack_checkring",
+                             "bottling_fill_strainer", "furnace_program_timebase"]),
+    ("Power and energy", ["h2_refuel_ambientbias", "hydro_rejection_gatecal", "turbine_startup_gearratio"]),
+    ("Medical", ["ventilator_vc_cuffleak", "syringe_relay_prearm"]),
+    ("Infrastructure", ["rampmeter_poll_2to1", "canal_gate_notches", "elevator_start_discbrake",
+                        "gantry_speed_zones", "antenna_track_kvretune"]),
+    ("Water tank (running ex.)", ["watertank", "watertank_twospeed"]),
+    ("Literature", ["lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo", "lit_csf25_salt_tank_hold",
+                    "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot",
+                    "lit_gpt10_boost_converter", "lit_lz21_vehicle_position", "lit_nahs25_engine_cooling",
+                    "lit_nahs25_salt_tank"]),
+]
+AREA_OF = {}
+for _area, _names in AREAS:
+    for _n in _names:
+        if _n in AREA_OF:
+            sys.exit(f"AREAS: {_n} listed twice ({AREA_OF[_n]}, {_area})")
+        AREA_OF[_n] = _area
+
+
+def area_of(name):
+    if name not in AREA_OF:
+        sys.exit(f"AREAS: benchmark {name} has no application area; add it to AREAS")
+    return AREA_OF[name]
+
+
 LINE_RE = re.compile(r"^([A-Za-z0-9_]+): (CERTIFIED|DECLINED|ERROR)(?: \[.*\])? \((\d+)ms\)")
 
 
@@ -280,14 +319,9 @@ def rng(vals):
 
 
 def group_order(rows):
-    """Groups (the matrix's benchmark families, `suite_v2_matrix.FAMILIES`, in that order; a
-    family not listed last)."""
-    order = []
-    for _, fam in FAMILIES:
-        if fam not in order:
-            order.append(fam)
-    gs = sorted({x["group"] for x in rows}, key=lambda g: (order.index(g) if g in order else len(order), g))
-    return gs
+    """Groups: the application areas of AREAS, in that order (only areas with a row)."""
+    present = {x["group"] for x in rows}
+    return [a for a, _ in AREAS if a in present]
 
 
 def level(x, k):
@@ -323,11 +357,11 @@ def write_tables(out, rows):
     nsync = sum(1 for x in rows if x["sync"] == "CERTIFIED")
     lines.append(f"Total (needed/used) & {len(rows)} & {nsync} & & & & {tots} \\\\")
     lines += ["\\bottomrule", "\\end{tabular}", ""]
-    lines.append("% Group mapping (benchmark -> group, from the name-prefix families of scripts/suite_v2_matrix.py):")
+    lines.append("% Group mapping (benchmark -> application area, AREAS in scripts/suite_v2_letters.py):")
     for g in groups:
         lines.append(f"%   {g}: " + ", ".join(x["name"] for x in rows if x["group"] == g))
     open(f"{out}/table1.tex", "w").write("\n".join(lines) + "\n")
-    pl = [TEX_HDR, "% Appendix: the benchmarks individually (group printed at its first row).",
+    pl = [TEX_HDR, "% Appendix: the benchmarks individually, ordered by application area (area printed at its first row).",
           "\\begin{tabular}{@{}l l c c c " + " ".join("c" for _ in LETTERS) + " r@{}}", "\\toprule",
           "Benchmark & Group & Dim & Modes & Inv & " + " & ".join(LETTERS) + " & Time (s) \\\\", "\\midrule"]
     for g in groups:
@@ -438,7 +472,7 @@ def main():
                    "sync": v["sync"], "nochoice": v["nochoice"], "noprune": v["noprune"], "norepo": v["norepo"],
                    "nocut": r["no_cut_verdict"], "noimplied": r["no_implied_verdict"], "nolinear": r["no_linear_verdict"],
                    "lambdas": {c["mL"]: c["lam"] for c in r["covers"]},
-                   "letters": L, "needed": L, "used": U, "group": r["family"],
+                   "letters": L, "needed": L, "used": U, "group": area_of(name),
                    "mech_used": " ".join(k for k in LETTERS if U[k]), "diagnostics": diag}
             rows.append(rec)
             dl = [k for k, x in (("S_lam1", diag["S_lam1"]), ("R_cover", ro), ("D_rows", diag["D_rows"]),

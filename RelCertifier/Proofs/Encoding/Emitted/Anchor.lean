@@ -107,7 +107,7 @@ theorem rowsOK_at (h : rowsOK p n = true) {l : ℕ} (hl : l < nL p) : 0 < compsL
 theorem timeOK_at (h : timeOK p cov = true) {l : ℕ} (hl : l < nL p) :
     0 < epsR p ∧ 0 < epsL p ∧ 0 < ((coverOf p cov l).lamQ : ℝ) ∧
     epsL p * ((coverOf p cov l).lamQ : ℝ) ≤ (B p cov l : ℝ) * epsR p ∧
-    ∀ q < nR p, 0 < lam p cov l q ∧ lam p cov l q ≤ ((coverOf p cov l).lamQ : ℝ) := by
+    ∀ q < nR p, 0 ≤ lam p cov l q ∧ lam p cov l q ≤ ((coverOf p cov l).lamQ : ℝ) := by
   simp only [timeOK, Bool.and_eq_true, List.all_eq_true, List.mem_range, decide_eq_true_eq] at h
   obtain ⟨⟨heR, heL⟩, hall⟩ := h
   obtain ⟨⟨hlamQ, hbud⟩, hq⟩ := hall l hl
@@ -117,11 +117,11 @@ theorem timeOK_at (h : timeOK p cov = true) {l : ℕ} (hl : l < nL p) :
     have := hbud
     rw [ge_iff_le] at this
     exact_mod_cast this
-  · obtain ⟨⟨hN, hD⟩, hle⟩ := hq q hq'
+  · obtain ⟨-, hle⟩ := hq q hq'
     refine ⟨?_, by unfold lam; exact_mod_cast hle⟩
     unfold lam lamQ
-    have : (0 : ℚ) < ((strataOf p cov l q).lamN : ℚ) / ((strataOf p cov l q).lamD : ℚ) :=
-      div_pos (by exact_mod_cast hN) (by exact_mod_cast hD)
+    have : (0 : ℚ) ≤ ((strataOf p cov l q).lamN : ℚ) / ((strataOf p cov l q).lamD : ℚ) :=
+      div_nonneg (Nat.cast_nonneg _) (Nat.cast_nonneg _)
     exact_mod_cast this
 
 theorem permOK_joint (h : permOK p n cov = true) {l q : ℕ} (hl : l < nL p) (hq : q < nR p)
@@ -211,7 +211,9 @@ theorem hiffL {l : ℕ} (hl : l < nL p) : AtomsIff (cL p n cX l) :=
 theorem hiffR {q : ℕ} (hq : q < nR p) : AtomsIff (cR p n cX q) :=
   atomsIff_of_WF (atomsWF_R (hcuts hs) hq)
 
-theorem lam_pos {l q : ℕ} (hl : l < nL p) (hq : q < nR p) : 0 < lam p cov l q :=
+/-- A pairing's stretch is nonnegative (`0` is the stutter segment, admitted by `timeOK` only
+under `stutter = true`). -/
+theorem lam_nonneg {l q : ℕ} (hl : l < nL p) (hq : q < nR p) : 0 ≤ lam p cov l q :=
   ((timeOK_at (htime hs) hl).2.2.2.2 q hq).1
 
 /-- The left atoms of window `l` stay along any joint flow at any stretch, inside the
@@ -222,10 +224,10 @@ theorem stayL_env {l : ℕ} (hl : l < nL p) (hst : StayAll p n cX) (fR' : Fin n 
   atomsStayC_L (vars p) (mLof p l) _ (atomsWF_L (hcuts hs) hl) (hst.1 l hl) fR' lam' (env p n)
     (fun z hz => by rw [hostEvolve_L (hu hs) hl]; exact hz.1)
 
-/-- The right atoms of mode `q` stay along any joint flow of its field at a positive stretch,
+/-- The right atoms of mode `q` stay along any joint flow of its field at any stretch `≥ 0`,
 inside a domain within the envelope. -/
 theorem stayR_dom {q : ℕ} (hq : q < nR p) (hst : StayAll p n cX) (fL' : Fin n → Term (Var n))
-    (c : ℝ) (hc : 0 < c) (dom : Formula (Var n)) (hdom : ∀ z, Formula.sat dom z → Formula.sat (domR p n) z) :
+    (c : ℝ) (hc : 0 ≤ c) (dom : Formula (Var n)) (hdom : ∀ z, Formula.sat dom z → Formula.sat (domR p n) z) :
     AtomsStayC (cR p n cX q) (jointSys fL' (fR p n q) (Term.const c)) dom :=
   atomsStayC_R (vars p) (mRof p q) _ (atomsWF_R (hcuts hs) hq) (hst.2 q hq) fL' c hc dom
     (fun z hz => by rw [hostEvolve_R (hu hs) hq]; exact hdom z hz)
@@ -284,7 +286,7 @@ theorem barriers_entry (hnc : NonConnAll p n cX cov) {q : ℕ} (hq : q < nR p) (
 /-- The barriers are kept along any flow of `q`'s field inside the envelope that starts in
 `q`'s atoms. -/
 theorem barriers_keep (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {q : ℕ} (hq : q < nR p)
-    (fL' : Fin n → Term (Var n)) (c : ℝ) (hc : 0 < c) :
+    (fL' : Fin n → Term (Var n)) (c : ℝ) (hc : 0 ≤ c) :
     ∀ σ ω, CutSat (cR p n cX q) σ → (∀ b ∈ barriers p n cov q, Term.eval b σ ≤ 0) →
       Program.sem (Program.ode (jointSys fL' (fR p n q) (Term.const c)) (env p n)) σ ω →
       ∀ b ∈ barriers p n cov q, Term.eval b ω ≤ 0 := by
@@ -423,9 +425,9 @@ theorem AG_box (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} 
   refine ⟨(sat_FM_append _ _ _ ω).mpr ⟨?_, ?_⟩, sem_ode_ends_in_domain hω⟩
   · exact couple_box_cutX (g p n l) (gs p n l) _ (cL p n cX l) (cR p n cX q) (fL p n l) (fR p n q)
       (lam p cov l q) (domL p n) (domR p n) hsub1 hsub2 (hiffL hs hl) (hiffR hs hq)
-      (stayL_env hs hl hst _ _) (stayR_dom hs hq hst _ _ (lam_pos hs hl hq) _ (fun z hz => hz.2))
+      (stayL_env hs hl hst _ _) (stayR_dom hs hq hst _ _ (lam_nonneg hs hl hq) _ (fun z hz => hz.2))
       (jointVerd_core hs hl hq hv) σ ω hFA hω
-  · exact barriers_keep hs hnc hst hq (fL p n l) _ (lam_pos hs hl hq) σ ω hcRσ hbar hω
+  · exact barriers_keep hs hnc hst hq (fL p n l) _ (lam_nonneg hs hl hq) σ ω hcRσ hbar hω
 
 /-- A frozen-left segment keeps the anchor (pre-joint: under the left guard). -/
 theorem AG_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
@@ -446,13 +448,13 @@ theorem AG_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ}
       (domL p n) (domR p n) (guardL p n l) hsub1 hsub2 (hiffL hs hl) (hiffR hs hq)
       (cutPairsX_fv_L (atomsWF_L (hcuts hs) hl)) (guardL_fv (hnames hs) l) ?_
       (dynVerd_core hs hl hq pre hv) σ ω hFA hgσ hω
-    refine stayR_dom hs hq hst (fun _ => Term.const 0) 1 one_pos _ ?_
+    refine stayR_dom hs hq hst (fun _ => Term.const 0) 1 zero_le_one _ ?_
     intro z hz
     unfold dynBase at hz
     cases pre with
     | true => exact hz.1.2
     | false => exact hz.2
-  · exact barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 one_pos σ ω hcRσ hbar hω
+  · exact barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 zero_le_one σ ω hcRσ hbar hω
 
 /-- A pruned exit is never enabled after a joint segment from the anchor. -/
 theorem AG_prune (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
@@ -467,7 +469,7 @@ theorem AG_prune (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ
   have hcRσ : CutSat (cR p n cX q) σ := by
     obtain ⟨-, hat⟩ := (sat_FM_append _ _ _ σ).mp hFA
     exact ((atomTerms_iff (hiffL hs hl) (hiffR hs hq) σ).mp hat).2
-  have hkeep := barriers_keep hs hnc hst hq (fL p n l) _ (lam_pos hs hl hq) σ ω hcRσ hbar hω
+  have hkeep := barriers_keep hs hnc hst hq (fL p n l) _ (lam_nonneg hs hl hq) σ ω hcRσ hbar hω
   rw [grOf_guards q e he]
   exact not_guard_of_barrier hs hnc hq ht ω (hkeep _ (List.mem_map.mpr ⟨e.tgt, ht, rfl⟩))
 
@@ -484,7 +486,7 @@ theorem AG_pruneD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : �
   have hcRσ : CutSat (cR p n cX q) σ := by
     obtain ⟨-, hat⟩ := (sat_FM_append _ _ _ σ).mp hFA
     exact ((atomTerms_iff (hiffL hs hl) (hiffR hs hq) σ).mp hat).2
-  have hkeep := barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 one_pos σ ω hcRσ hbar hω
+  have hkeep := barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 zero_le_one σ ω hcRσ hbar hω
   rw [grOf_guards q e he]
   exact not_guard_of_barrier hs hnc hq ht ω (hkeep _ (List.mem_map.mpr ⟨e.tgt, ht, rfl⟩))
 

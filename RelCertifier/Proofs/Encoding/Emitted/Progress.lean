@@ -235,7 +235,7 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR p n q) (Term.const 1))
         (Formula.and (domL p n) (domR p n))) σ ω → Formula.sat (AGr p n cX cov reg l q) ω :=
     fun σ ω hA hg hω => ⟨AG_boxD hs hnc hst hl hq pre hflag' (hdyn l hl q hq pre hflag') σ ω hA.1 hg hω,
-      reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm rfl rfl 1 one_pos hω hA.2⟩
+      reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm rfl rfl 1 zero_le_one hω hA.2⟩
   have hε : 0 < epsR p := (timeOK_at (htime hs) hl).1
   -- the region
   have hR : ∀ y, Formula.sat (AGr p n cX cov reg l q) y → (pre = true → Formula.sat (guardL p n l) y) →

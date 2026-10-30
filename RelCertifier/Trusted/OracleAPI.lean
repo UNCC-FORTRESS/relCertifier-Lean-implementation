@@ -904,8 +904,10 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       repoEnd := fun nm pre => IForm.and (leftFacts pre) (rightFacts nm)
       startReg := fun nm pre => IForm.and (IForm.and (leftFacts pre) (rightFacts nm))
         ((modeOf nm).map (fun m => lowR m.guard) |>.getD IForm.tt) } : ChoiceCtx n)
-  for lam in (if sync then [(1 : ℚ)] else lambdaCandidates lmin lmax epsL epsR) do
-    let deltaL := if lam == 0 then epsR else epsR / lam
+  for lam in (if sync then [(1 : ℚ)] else lambdaCandidates lmin lmax epsL epsR p.stutter) do
+    -- `winLam`: the window stretch (`lamQ`); `lam` itself is every pairing's stretch here, `0`
+    -- only for the stutter candidate (`windowOf`, `docs/STUTTER.md`)
+    let (winLam, deltaL) := windowOf lam epsL epsR
     if deltaL ≤ 0 then continue
     -- precompute per-right-mode segment status at this λ
     let mut segMap : List (String × Seg) := []
@@ -967,7 +969,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- usable iff it is a node; the initial source setting is **preJ** (no joint yet). Empty
     -- `admMods` ⟹ do NOT certify (a possibly-buggy all-drop cannot vacuously certify).
     if scan then scanGrid := scanGrid ++ [lam]
-    match gate seg strataMap lam deltaL with
+    match gate seg strataMap winLam deltaL with
     | some lc =>
         if scan then
           if scanCover.isNone then scanCover := some lc
@@ -994,7 +996,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     let lams := firstPass.map (·.2.1)
     let lamMax := lams.foldl max (lams.headD 1)
     let allEq := lams.all (· == lamMax)
-    let deltaL := epsR / lamMax
+    let (winMax, deltaL) := windowOf lamMax epsL epsR
     if !allEq && deltaL > 0 then
       let seg := fun q => if firstPass.any (·.1 == q) then Seg.pass
         else if everIncon.contains q then Seg.incon else Seg.fail
@@ -1009,7 +1011,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       if (← IO.getEnv "RELCERT_DEBUG").isSome then
         IO.eprintln (s!"  [{mL.name}_L pair-stretch δ=εR/{lamMax}] " ++
           String.intercalate " " (firstPass.map (fun t => s!"{t.1}@λ={t.2.1}")))
-      match gate seg strataMap lamMax deltaL with
+      match gate seg strataMap winMax deltaL with
       | some lc => return (.cov, some lc)
       | none => pure ()
   -- existential mode choice (docs/CHOICE-SOUNDNESS.md; mechanized as `theorem3_of_coverX`,
@@ -1040,7 +1042,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
           { name := m.name, jointOK := seg m.name == Seg.pass,
             dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
         let lc : LeftCoverE :=
-          { mL := mL.name, lamQ := lam, bBudget := bBudget, flags := flagRows,
+          { mL := mL.name, lamQ := (windowOf lam epsL epsR).1, bBudget := bBudget, flags := flagRows,
             admissible := admMods.map (·.name), strata := strataMap }
         return (.cov, some lc)
   return ((if sawIncon then .incon else .nocov), none)
@@ -1179,6 +1181,12 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   else if covers.length != p.L.modes.length then
     return (.error s!"internal: {covers.length} cover(s) for {p.L.modes.length} left \
 mode(s) — a mode was certified without recording one", none)
+  -- GUARD (`docs/STUTTER.md`): a stretch-0 pairing (the stutter segment) is backed only for a
+  -- problem that opts in with `stutter = true` (`Emitted.timeOK` admits `lamN = 0` exactly
+  -- then); a window stretch is always positive. Defence in depth: `lambdaCandidates` never
+  -- offers `0` without the key. Strictly conservative (CERTIFIED to ERROR, never the reverse).
+  else if covers.any (fun lc => lc.lamQ ≤ 0 || (!p.stutter && lc.strata.any (·.lamN == 0))) then
+    return (.error "internal: a stretch-0 pairing (or window) without `stutter = true`", none)
   else return (.certified, some { name := p.name, pruned := prunedPairs, covers := covers })
 
 /-- Core cover (verdict only). -/

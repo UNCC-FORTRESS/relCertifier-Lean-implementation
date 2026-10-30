@@ -111,11 +111,12 @@ theorem right_sol_left {fR : Fin n → Term (Var n)} {domR : Formula (Var n)}
   obtain ⟨j, hj⟩ := rightBlock_bound_sub fR (Term.const 1) _ hb
   exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
 
-/-- **One synchronized stretch at stretch `λ`.** The anchor `A` of a joint node, a box
+/-- **One synchronized stretch at stretch `λ ≥ 0`.** The anchor `A` of a joint node, a box
 invariant of the pair's joint flow, at the merged state at left time `a` (right `ρ`) holds at
-left time `b` with the right at the end of a run of duration `λ (b − a)`. -/
+left time `b` with the right at the end of a run of duration `λ (b − a)` (`0` at the stutter
+stretch `λ = 0`: the right waits). -/
 theorem joint_stretch {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var n)}
-    (tg : Var n) (lam : ℝ) (hlam : 0 < lam)
+    (tg : Var n) (lam : ℝ) (hlam : 0 ≤ lam)
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hfR : ∀ i, (fR i).fv ⊆ range Rv)
     (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
     {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
@@ -136,6 +137,22 @@ theorem joint_stretch {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var
   have h2 : ΦR 0 = ρ := hR.hΦ0
   simp only [h0, h1, h2] at hj
   exact hbox _ _ hA hj
+
+/-- **The left time of a right switch.** A right switch after right duration `τ ≤ λ (r − a)` at
+stretch `λ ≥ 0` happens at a left time `b ∈ [a, r]` with `λ (b − a) = τ`: `b = a + τ/λ` when
+`λ > 0`; at the stutter stretch `λ = 0` the bound forces `τ = 0` and `b = a`. -/
+theorem stretch_split {lam a r τ : ℝ} (hlam : 0 ≤ lam) (har : a ≤ r) (hτ0 : 0 ≤ τ)
+    (hτT : τ ≤ lam * (r - a)) : ∃ b, a ≤ b ∧ b ≤ r ∧ lam * (b - a) = τ := by
+  rcases hlam.lt_or_eq with hpos | h0
+  · refine ⟨a + τ / lam, ?_, ?_, ?_⟩
+    · have := div_nonneg hτ0 hpos.le; linarith
+    · have : τ / lam ≤ r - a := by rw [div_le_iff₀ hpos]; linarith
+      linarith
+    · field_simp; ring
+  · subst h0
+    refine ⟨a, le_rfl, har, ?_⟩
+    simp only [zero_mul] at hτT
+    linarith
 
 /-! ## The choreography the instance supplies -/
 
@@ -170,7 +187,7 @@ variable (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n)) (fR : ℕ → Fin
   (hgR : GuardsRight G)
   (hfL : ∀ i, (fL i).fv ⊆ range Lv)
   (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
-  (lam : ℝ) (hlam : 0 < lam)
+  (lam : ℝ) (hlam : 0 ≤ lam)
   (J : ℕ → Prop) (hfR : ∀ q, J q → ∀ i, (fR q i).fv ⊆ range Rv) (rank : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
   (hmode : ∀ q, J q → G.modeAt q = some (M q))
   (hsys : ∀ q, J q → (M q).sys = rightBlock (fR q) (Term.const 1))
@@ -205,7 +222,7 @@ theorem replay_piece (Pre E : ℕ → State (Var n) → Prop) (hmove : HMove G M
   induction k using Nat.strong_induction_on with
   | _ k ih =>
     intro q hq hk a ha har ρ hPre hA
-    have hT : 0 ≤ lam * (r - a) := mul_nonneg hlam.le (by linarith)
+    have hT : 0 ≤ lam * (r - a) := mul_nonneg hlam (by linarith)
     rcases hmove q hq ρ hPre (lam * (r - a)) hT with
       ⟨Φ, hΦ, e, he, hleg, hE⟩ | ⟨τ, hτ0, hτT, Φ, hΦ, e, he, hleg, hJe, hrk, hPe⟩
     · -- the right runs to the piece's end, then the final switch
@@ -219,15 +236,7 @@ theorem replay_piece (Pre E : ℕ → State (Var n) → Prop) (hmove : HMove G M
       refine hstep (rrespP_stop ⟨hE, ?_, fun i => right_sol_left hΦ' i⟩)
       exact hhand q hq e he _ hAend ((switchLegal_merge hgR he ω₀ (ΦL r)).mpr hleg)
     · -- a switch inside the piece into a higher joint node
-      set b : ℝ := a + τ / lam with hbdef
-      have hτl : 0 ≤ τ / lam := div_nonneg hτ0 hlam.le
-      have hab : a ≤ b := by linarith
-      have hbr : b ≤ r := by
-        have : τ / lam ≤ r - a := by
-          rw [div_le_iff₀ hlam]; linarith
-        linarith
-      have hdur : lam * (b - a) = τ := by
-        rw [hbdef]; field_simp; ring
+      obtain ⟨b, hab, hbr, hdur⟩ := stretch_split hlam har hτ0 hτT
       have hΦ' : ODESol (rightBlock (fR q) (Term.const 1)) domR ρ (lam * (b - a)) Φ := by
         rw [hdur, ← hsys q hq, ← hdomM q hq]; exact hΦ
       have hAb := joint_stretch tg lam hlam hfL (hfR q hq) hdomL hdomR hL ω₀ (A q) (hbox q hq)
@@ -394,7 +403,7 @@ theorem replay_gresp (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n))
     (domL gL : Formula (Var n)) (b : Fin n)
     (hgR : GuardsRight G) (hfL : ∀ i, (fL i).fv ⊆ range Lv)
     (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv) (hgL : gL.fv ⊆ range Lv)
-    (lam : ℝ) (hlam : 0 < lam)
+    (lam : ℝ) (hlam : 0 ≤ lam)
     (J D : ℕ → Prop) (hfR : ∀ q, J q ∨ D q → ∀ i, (fR q i).fv ⊆ range Rv) (rank rankD : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
     (hmode : ∀ q, J q ∨ D q → G.modeAt q = some (M q))
     (hsys : ∀ q, J q ∨ D q → (M q).sys = rightBlock (fR q) (Term.const 1))

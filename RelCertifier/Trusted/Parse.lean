@@ -72,6 +72,9 @@ structure PProblem where
   L          : PSystem
   R          : PSystem
   invariants : List (String × PForm)
+  /-- `[problem] stutter = true` (opt-in, default off): the stretch candidates end with `λ = 0`,
+  the joint segment in which the right waits while the left runs (`docs/STUTTER.md`). -/
+  stutter    : Bool := false
   deriving Repr, Inhabited, DecidableEq
 
 /-! ## Lexing -/
@@ -429,6 +432,16 @@ def validateSystem (sysName : String) (sys : PSystem) : Except String Unit := do
     for c in nums do
       if !numOk c then throw s!"[{sec}]: malformed numeral '{c}'"
 
+/-- The optional `[problem] stutter = true|false` (absent = `false`); any other value is
+rejected. -/
+def stutterKey (prob : List (String × String)) : Except String Bool :=
+  match secGet prob "stutter" with
+  | none => .ok false
+  | some v =>
+    if tr v == "true" then .ok true
+    else if tr v == "false" then .ok false
+    else .error s!"[problem]: malformed stutter '{v}' (true or false)"
+
 /-- Assemble the full problem from sections, strictly. -/
 def assembleE (secs : List (String × List (String × String))) : Except String PProblem := do
   let find (n : String) := (secs.find? (fun p => p.1 == n)).map Prod.snd
@@ -449,6 +462,7 @@ def assembleE (secs : List (String × List (String × String))) : Except String 
   let lambdaMax ← secNeed "problem" prob "lambda_max"
   if !numOk lambdaMin then throw s!"[problem]: malformed lambda_min '{lambdaMin}'"
   if !numOk lambdaMax then throw s!"[problem]: malformed lambda_max '{lambdaMax}'"
+  let stutter ← stutterKey prob
   let lVars ← secNeed "Lsys" lsys "state_vars"
   let rVars ← secNeed "Rsys" rsys "state_vars"
   let lEps ← secNeed "Lsys" lsys "epsilon"
@@ -485,7 +499,7 @@ def assembleE (secs : List (String × List (String × String))) : Except String 
     for c in formNums f do
       if !numOk c then throw s!"[relational_invariant] {k}: malformed numeral '{c}'"
   return { name := name, lambdaMin := lambdaMin, lambdaMax := lambdaMax,
-           L := L, R := R, invariants := invs }
+           L := L, R := R, invariants := invs, stutter := stutter }
 
 /-- Strict entry point: a parse failure carries its reason. -/
 def parseProblemE (text : String) : Except String PProblem := do

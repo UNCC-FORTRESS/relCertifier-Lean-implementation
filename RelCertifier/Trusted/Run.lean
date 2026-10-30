@@ -180,13 +180,25 @@ def routeQueries {n : ℕ} (domain : IForm n) (g gdot : ITerm n) : List (IForm n
 
 /-- λ candidates: `εR/εL` (the largest λ at which one right segment spans the left
 residence) and the 21-point grid `λmin + i·(λmax − λmin)/20`, kept inside
-`[λmin, λmax]`, duplicates removed. -/
-def lambdaCandidates (lmin lmax epsL epsR : ℚ) : List ℚ :=
+`[λmin, λmax]`, duplicates removed. The stretch `0` (the stutter segment: the right waits while
+the left runs, `docs/STUTTER.md`) is never taken from the grid; with `stutter` (the problem's
+opt-in key `stutter = true`) it is appended as the LAST candidate, so a file that closes at
+some `λ > 0` keeps that cover. -/
+def lambdaCandidates (lmin lmax epsL epsR : ℚ) (stutter : Bool := false) : List ℚ :=
   let cover := if epsL == 0 then lmax else epsR / epsL
   let step := (lmax - lmin) / 20
   -- DENSE deterministic grid (20 steps) to test whether declines are a lambda-search limit.
-  (cover :: (List.range 21).map (fun i => lmin + (i : ℚ) * step)).filterMap
+  let grid := (cover :: (List.range 21).map (fun i => lmin + (i : ℚ) * step)).filterMap
     (fun l => if lmin ≤ l ∧ l ≤ lmax then some l else none) |>.eraseDups
+  let pos := grid.filter (· != 0)
+  if stutter then pos ++ [0] else pos
+
+/-- The window stretch of a candidate `λ` and its left span `δ`: `(λ, εR/λ)` for `λ > 0`; for
+the stutter stretch `λ = 0` the window is `εR/εL` with span `δ = εL` (one segment covers the
+left residence, budget `1`), so the window stretch stays positive and only the pairing's own
+stretch is `0`. A nonpositive span means the candidate is skipped. -/
+def windowOf (lam epsL epsR : ℚ) : ℚ × ℚ :=
+  if lam == 0 then (if epsL == 0 then (0, 0) else (epsR / epsL, epsL)) else (lam, epsR / lam)
 
 /-- Declared right successors of `qR` (mode names). -/
 def succOf (p : PProblem) (qR : String) : List String :=

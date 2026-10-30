@@ -182,11 +182,12 @@ theorem joint_of_sols {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var
       obtain ⟨j, rfl⟩ := hdomR hv
       exact mergeLR_R ω₀ _ _ j
 
-/-- **The joint run of two solutions, the right stretched by `λ > 0`.** A clocked left solution
+/-- **The joint run of two solutions, the right stretched by `λ ≥ 0`.** A clocked left solution
 of duration `r` and a right solution of duration `λ r` make a run of the joint system with the
-right field stretched by `λ` (the right read at time `λ t`). -/
+right field stretched by `λ` (the right read at time `λ t`). At the stutter stretch `λ = 0` the
+right solution has duration `0` and the right waits at its start. -/
 theorem joint_of_sols_lam {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var n)}
-    (tg : Var n) (lam : ℝ) (hlam : 0 < lam)
+    (tg : Var n) (lam : ℝ) (hlam : 0 ≤ lam)
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hfR : ∀ i, (fR i).fv ⊆ range Rv)
     (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
     {x y : State (Var n)} {r : ℝ} {ΦL ΦR : ℝ → State (Var n)}
@@ -195,7 +196,7 @@ theorem joint_of_sols_lam {fL fR : Fin n → Term (Var n)} {domL domR : Formula 
     Program.sem (Program.ode (jointSys fL fR (Term.const lam)) (Formula.and domL domR))
       (mergeLR ω₀ (ΦL 0) (ΦR 0)) (mergeLR ω₀ (ΦL r) (ΦR (lam * r))) := by
   have hmaps : Set.MapsTo (fun u : ℝ => lam * u) (Icc 0 r) (Icc 0 (lam * r)) :=
-    fun u hu => ⟨mul_nonneg hlam.le hu.1, mul_le_mul_of_nonneg_left hu.2 hlam.le⟩
+    fun u hu => ⟨mul_nonneg hlam hu.1, mul_le_mul_of_nonneg_left hu.2 hlam⟩
   refine ⟨r, fun t => mergeLR ω₀ (ΦL t) (ΦR (lam * t)), hL.hr, by simp, rfl, ?_, ?_, ?_⟩
   · intro t ht p hp
     rw [jointSys_split] at hp

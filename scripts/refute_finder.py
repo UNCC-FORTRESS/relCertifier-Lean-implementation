@@ -555,8 +555,11 @@ def main():
         for r in results:
             new.setdefault(r["bench"], []).append(r)
         merged, placed = [], set()
+        insuite = {d for d in os.listdir(a.suite) if os.path.isdir(os.path.join(a.suite, d))}
         for l in open(a.out):
             r = json.loads(l)
+            if r["bench"] not in insuite:
+                continue  # a benchmark that left the suite: its records go with it
             if r["bench"] in new:
                 if r["bench"] not in placed:
                     merged += new[r["bench"]]

@@ -78,11 +78,14 @@
 # speeds at which the aircraft may fly in these configurations: VLS CONF 2 = 1.23 VS1G = 130 kt (the
 # lowest selectable speed, the floor the autothrust and the flight controls keep; VLS of CONF 1+F is
 # higher) and VFE CONF 2 = 200 kt (the flap placard, the structural limit above which CONF 2 must not
-# be selected; A320 family). Both are limits of the aircraft, not of the closed loop: the domain
-# audit of 2026-10-29 replaced the earlier [F, S] = [150, 185], the autothrust's target and the
-# selection speed (a band the closed loop never leaves, and one the rows stood on: widened by 5 % it
-# declined), by the placard range. Not load-bearing now: every bound widened by 20 % of its range
-# CERTIFIES. Forward invariant: V' = -k (V - F) points toward F from both ends. Right guards
+# be selected; A320 family). Both are limits of the aircraft, not of the closed loop (they replaced
+# the band [F, S] on 2026-10-29, see Requirement). The placard range is load-bearing and sets the
+# tight values: 25 = (VFE - F) / 2 and 10 = (F - VLS) / 2. Every mode's guard repeats V >= 130 and
+# V <= 200 (a configuration is selected only inside its placard range), so widening one of the two
+# does not move the tight values: V widened to [116, 214] (20 % of the range) in the evolve lines
+# only CERTIFIES, in the guard lines only CERTIFIES, and in both DECLINES at 25 / 10 and certifies
+# at 32.00 / 17.00 (31.99 and 16.99 decline) = (214 - F) / 2 and (F - 116) / 2, the same formulas
+# (measured 2026-10-30). Forward invariant: V' = -k (V - F) points toward F from both ends. Right guards
 # partition f (no coverage gap); every left mode has a satisfiable start (equal states).
 #
 # Stretch-grid dependence. The flap rows are exact only at lambda = the deployed-to-reference flap-rate

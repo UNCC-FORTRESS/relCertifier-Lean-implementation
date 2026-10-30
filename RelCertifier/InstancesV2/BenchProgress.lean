@@ -6,7 +6,6 @@ import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
 import RelCertifier.InstancesV2.BenchProgress.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
-import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
 import RelCertifier.InstancesV2.BenchProgress.flaps_slow_approach
@@ -22,6 +21,7 @@ import RelCertifier.InstancesV2.BenchProgress.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchProgress.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchProgress.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchProgress.lit_nahs25_salt_tank
+import RelCertifier.InstancesV2.BenchProgress.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchProgress.platoon_latency
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
@@ -59,7 +59,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("antenna_track_kvretune", antenna_track_kvretune_coverV2_progress),
    ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
    ("canal_gate_notches", canal_gate_notches_coverV2_progress),
-   ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
    ("flaps_slow_approach", flaps_slow_approach_coverV2_progress),
@@ -75,6 +74,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2_progress),
    ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_progress),
    ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_progress),
+   ("molding_pack_checkring", molding_pack_checkring_coverV2_progress),
    ("platoon_latency", platoon_latency_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
    ("platoon_profiles", platoon_profiles_coverV2_progress),

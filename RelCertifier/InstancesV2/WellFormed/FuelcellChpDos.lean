@@ -11,14 +11,17 @@ read from the file.
 The right model is the stack maker's operating protocol: the stack temperature `T`
 (coordinate 0) relaxes toward the level's rise above the heating return `Tin` (coordinate 1,
 constant), `T' = k ((Tin + r) − T)`, `k = 0.00833333` (time constant 120 s), `r = 12, 17, 22`
-(`LOW`, `MED`, `HIGH`), every level inside `40 ≤ T ≤ 100`, `40 ≤ Tin ≤ 56`; coordinate 2 is the
-padding of the mode-choice records (field 0, frozen). Guards: `LOW` `T < 60`, `MED`
-`50 < T < 80`, `HIGH` `T > 70` (each with the domain).
+(`LOW`, `MED`, `HIGH`), every level inside the physical domain `0 ≤ T ≤ 100`, `0 ≤ Tin ≤ 100`;
+coordinate 2 is the padding of the mode-choice records (field 0, frozen). Guards: `LOW`
+`T < 60`, `MED` `50 < T < 80`, `HIGH` `T > 70`, each with the design range `40 ≤ Tin ≤ 56` and
+the domain.
 * Existence (i), every level: the explicit exponential `(Tin₀ + r) + (T₀ − Tin₀ − r) e^{−k t}`
-  with `Tin` held (`trajRs_sol`), between `T₀` and `Tin₀ + r ∈ [52, 78]`, inside the domain.
-* (ii), every level: every level declares every level, and the three guards cover the domain
-  (`T < 60`, `[60, 80)`, `T ≥ 80`), so the end state of any run (in the domain) is in one of
-  them.
+  with `Tin` held (`trajRs_sol`), between `T₀` and `Tin₀ + r`. The design range is taken from the
+  GUARD, not the domain: `Tin₀ ∈ [40, 56]` puts `Tin₀ + r ∈ [52, 78] ⊆ [0, 100]`, so the run stays
+  inside `0 ≤ T ≤ 100` (in particular `T ≥ 0` under `LOW` and `T ≤ 100` under `HIGH`).
+* (ii), every level: `Tin` is constant along every flow (`Tin' = 0`), so the end state keeps the
+  start guard's `Tin ∈ [40, 56]`; every level declares every level, and the three guards cover
+  `0 ≤ T ≤ 100` (`T < 60`, `[60, 80)`, `T ≥ 80`), so the end state of any run is in one of them.
 Z3-free; modelled on `CompressorStationRecycle.lean` and `BmsChillerUndercharge.lean`.
 -/
 
@@ -47,6 +50,12 @@ theorem hp_0_0 : Run.parseRat "0.0" = some (0 : ℚ) := by
   norm_num [Run.parseRat, h]
 theorem hp_0_00833333 : Run.parseRat "0.00833333" = some ((833333:ℚ)/100000000) := by
   have h : parseQ "0.00833333" = some (⟨833333, 100000000⟩ : QF) := by decide
+  norm_num [Run.parseRat, h]
+theorem hp_0 : Run.parseRat "0" = some (0 : ℚ) := by
+  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
+  norm_num [Run.parseRat, h]
+theorem hp_100 : Run.parseRat "100" = some (100 : ℚ) := by
+  have h : parseQ "100" = some (⟨100, 1⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
 theorem hp_100_0 : Run.parseRat "100.0" = some (100 : ℚ) := by
   have h : parseQ "100.0" = some (⟨1000, 10⟩ : QF) := by decide
@@ -96,26 +105,26 @@ noncomputable def rR (q : ℕ) : ℝ := if q = 0 then 12 else if q = 1 then 17 e
 theorem fR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
     Term.eval (fR q 0) x = kR * ((x (Rv 1) + rR q) - x (Rv 0)) := by
   interval_cases q <;>
-    simp [fR, hostDyn, mR, fuelcell_chp_dos_IRv2, vs, Run.dynOf, Run.lowerE, hp_0_0, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0,
+    simp [fR, hostDyn, mR, fuelcell_chp_dos_IRv2, vs, Run.dynOf, Run.lowerE, hp_0_0, hp_0, hp_100, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv, kR, rR] <;> ring
 
 theorem fR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) : Term.eval (fR q 1) x = 0 := by
   interval_cases q <;>
-    simp [fR, hostDyn, mR, fuelcell_chp_dos_IRv2, vs, Run.dynOf, Run.lowerE, hp_0_0, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0,
+    simp [fR, hostDyn, mR, fuelcell_chp_dos_IRv2, vs, Run.dynOf, Run.lowerE, hp_0_0, hp_0, hp_100, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp]
 
 /-- The padding coordinate 2 (not in `vs`): its right field lowers to 0. -/
 theorem fR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) : Term.eval (fR q 2) x = 0 := by
   interval_cases q <;>
-    simp [fR, hostDyn, mR, fuelcell_chp_dos_IRv2, vs, Run.dynOf, Run.lowerE, hp_0_0, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0,
+    simp [fR, hostDyn, mR, fuelcell_chp_dos_IRv2, vs, Run.dynOf, Run.lowerE, hp_0_0, hp_0, hp_100, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval]
 
 theorem sat_domR (x : State (Var 3)) :
     Formula.sat domR x ↔
-      (40 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 100 ∧ 40 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 56) := by
+      (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 100 ∧ 0 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 100) := by
   simp only [domR, hostEvolve, mR, fuelcell_chp_dos_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp_0_0, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, Run.resolveVar, List.findIdx?_cons,
+  simp [Run.lowerF, Run.lowerE, hp_0_0, hp_0, hp_100, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
@@ -152,23 +161,25 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) 
 
 theorem sat_guard0 (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR 0)) ν ↔
-      (ν (Rv 0) < 60 ∧ 40 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 100 ∧ 40 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 56) := by
-  simp [hostGuard, mR, fuelcell_chp_dos_IRv2, Run.lowerF, Run.lowerE, hp_0_0, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, vs,
+      (ν (Rv 0) < 60 ∧ 40 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 56 ∧
+        0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 100 ∧ 0 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 100) := by
+  simp [hostGuard, mR, fuelcell_chp_dos_IRv2, Run.lowerF, Run.lowerE, hp_0_0, hp_0, hp_100, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guard1 (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR 1)) ν ↔
-      (50 < ν (Rv 0) ∧ ν (Rv 0) < 80 ∧ 40 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 100 ∧ 40 ≤ ν (Rv 1) ∧
-        ν (Rv 1) ≤ 56) := by
-  simp [hostGuard, mR, fuelcell_chp_dos_IRv2, Run.lowerF, Run.lowerE, hp_0_0, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, vs,
+      (50 < ν (Rv 0) ∧ ν (Rv 0) < 80 ∧ 40 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 56 ∧
+        0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 100 ∧ 0 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 100) := by
+  simp [hostGuard, mR, fuelcell_chp_dos_IRv2, Run.lowerF, Run.lowerE, hp_0_0, hp_0, hp_100, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guard2 (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR 2)) ν ↔
-      (70 < ν (Rv 0) ∧ 40 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 100 ∧ 40 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 56) := by
-  simp [hostGuard, mR, fuelcell_chp_dos_IRv2, Run.lowerF, Run.lowerE, hp_0_0, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, vs,
+      (70 < ν (Rv 0) ∧ 40 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 56 ∧
+        0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 100 ∧ 0 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 100) := by
+  simp [hostGuard, mR, fuelcell_chp_dos_IRv2, Run.lowerF, Run.lowerE, hp_0_0, hp_0, hp_100, hp_0_00833333, hp_100_0, hp_12, hp_17, hp_22, hp_40_0, hp_40, hp_50_0, hp_56, hp_60_0, hp_70_0, hp_80_0, hp_10_0, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
 
@@ -177,6 +188,14 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 
 /-- The lowered right guards. -/
 noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (mR q)
+
+/-- Every right guard carries the design range of the return temperature. -/
+theorem guard_Tin (q : ℕ) (hq : q < 3) (ν : State (Var 3)) (hg : Formula.sat (guardR q) ν) :
+    40 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 56 := by
+  interval_cases q
+  · obtain ⟨_, h1, h2, _⟩ := (sat_guard0 ν).mp hg; exact ⟨h1, h2⟩
+  · obtain ⟨_, _, h1, h2, _⟩ := (sat_guard1 ν).mp hg; exact ⟨h1, h2⟩
+  · obtain ⟨_, h1, h2, _⟩ := (sat_guard2 ν).mp hg; exact ⟨h1, h2⟩
 
 /-- `ε_r` of the file. -/
 theorem epsR_eq : epsR fuelcell_chp_dos_IRv2 = 10 := by
@@ -220,9 +239,13 @@ theorem phi_der (q : ℕ) (hq : q < 3) (x : State (Var 3)) (i : Fin 3) (t : ℝ)
       rw [fR2_eval q hq, phi_two]
       exact hasDerivAt_const _ _
 
+/-- The run of level `q` from a state with `Tin₀` in the design range (from the guard): it
+stays between `T₀` and `Tin₀ + r ∈ [52, 78]`, inside `0 ≤ T ≤ 100`. -/
 theorem exists_run (q : ℕ) (hq : q < 3) (x : State (Var 3)) (hd : Formula.sat domR x)
+    (hTin : 40 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 56)
     (ε : ℝ) (hε : 0 ≤ ε) : ∃ Φ, ODESol (rightBlock (fR q) (Term.const 1)) domR x ε Φ := by
   obtain ⟨a0, a1, b0, b1⟩ := (sat_domR x).mp hd
+  obtain ⟨c0, c1⟩ := hTin
   have hr : 12 ≤ rR q ∧ rR q ≤ 22 := by unfold rR; split_ifs <;> norm_num
   have hk : 0 ≤ kR := by unfold kR; norm_num
   refine ⟨_, trajRs_sol x (phi q x) ε hε (phi_init q x) (fun i t _ _ => phi_der q hq x i t)
@@ -237,18 +260,24 @@ theorem fuelcell_chp_dos_wellFormedR :
   rw [epsR_eq]
   intro q hq m hm x hg hd _
   obtain ⟨hq3, rfl⟩ := Gr_modeAt_inv hm
-  refine ⟨exists_run q hq3 x hd 10 (by norm_num), ?_⟩
-  -- the three guards cover the domain; every level declares every level
+  have hTin := guard_Tin q hq3 x hg
+  refine ⟨exists_run q hq3 x hd hTin 10 (by norm_num), ?_⟩
+  -- `Tin` is held, so the end state keeps the guard's design range; the three guards cover
+  -- `0 ≤ T ≤ 100`; every level declares every level
   intro t Φ _ H
   obtain ⟨e0, e1, e2, e3⟩ := (sat_domR _).mp H.end_dom
+  have hc := H.const (rightBlock_mem' (fR q) (Term.const 1) 1) (fun s _ => by
+    rw [eval_unit_mul, fR1_eval q hq3])
+  have f0 : 40 ≤ Φ t (Rv 1) := by rw [hc]; exact hTin.1
+  have f1 : Φ t (Rv 1) ≤ 56 := by rw [hc]; exact hTin.2
   by_cases h60 : Φ t (Rv 0) < 60
   · exact ⟨edgeW q 0, edge_mem q 0 (by interval_cases q <;> decide),
-      (sat_guard0 _).mpr ⟨h60, e0, e1, e2, e3⟩⟩
+      (sat_guard0 _).mpr ⟨h60, f0, f1, e0, e1, e2, e3⟩⟩
   · by_cases h80 : Φ t (Rv 0) < 80
     · exact ⟨edgeW q 1, edge_mem q 1 (by interval_cases q <;> decide),
-        (sat_guard1 _).mpr ⟨by linarith, h80, e0, e1, e2, e3⟩⟩
+        (sat_guard1 _).mpr ⟨by linarith, h80, f0, f1, e0, e1, e2, e3⟩⟩
     · exact ⟨edgeW q 2, edge_mem q 2 (by interval_cases q <;> decide),
-        (sat_guard2 _).mpr ⟨by linarith, e0, e1, e2, e3⟩⟩
+        (sat_guard2 _).mpr ⟨by linarith, f0, f1, e0, e1, e2, e3⟩⟩
 
 end V2FuelcellChpDos
 end RelCertifier

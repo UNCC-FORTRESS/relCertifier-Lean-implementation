@@ -3,19 +3,20 @@
 # profile; the SPORT follower's gap and closing rate stay within a stated tolerance of the NORMAL
 # follower's re-timed by the natural-frequency ratio 6/5.
 # scenario: controller-refinement
-# mechanisms: S M (time stretch lambda = 6/5, the natural-frequency ratio of the two profiles,
-#   RELCERT_SYNC=1 declines, matrix code M1; multi-cycle matching, budget ceil(1.2 x 0.1 / 0.1) = 2
-#   design cycles per deployed window, matrix code M2). Both come from the profile. Round-4 fix
-#   (2026-10-29): (1) the AEB fallback mode is removed from both sides: it was reachable only as a
-#   start (the operating range is forward invariant under both profiles), so its D letter was the
-#   rows differing on a mode no SPORT run enters (with AEB_L removed the file certified with S M);
-#   no physical trigger keeps an AEB pairing (see "Why no AEB"). (2) The SPORT damping gain is
-#   0.85 /s instead of the exact bandwidth-scaling value 0.9 /s: with 0.9 the SPORT loop was the
-#   NORMAL loop run 6/5 times faster, the rows were an exact re-timing identity and any slack
-#   certified (no tolerance content); with 0.85 the exact rows DECLINE and the claim is a tolerance
-#   bisected to 0.01. Letters S M D -> S M. History: batch I9 (2026-10-27) brought the file back
-#   from benchmarks/reserve/ as the time-scaled design; platoon_latency (same right model) is in the
-#   suite as well.
+# mechanisms: S (time stretch lambda = 6/5, the natural-frequency ratio of the two profiles,
+#   RELCERT_SYNC=1 declines, matrix code M1). The stretch comes from the profile. The cover matches
+#   ceil(1.2 x 0.1 / 0.1) = 2 design cycles per deployed window (matrix code M2), but M is not
+#   credited: the design has one mode, so its cycle boundaries are invisible and the two cycles are
+#   one continuous design run cut at epsilon_R (letter rule M, 2026-10-30). Round 4 (2026-10-29):
+#   (1) the AEB fallback mode is removed from both sides: it was reachable only as a start (the
+#   operating range is forward invariant under both profiles), so its D letter was the rows
+#   differing on a mode no SPORT run enters; no physical trigger keeps an AEB pairing (see "Why no
+#   AEB"). (2) The SPORT damping gain is 0.85 /s instead of the exact bandwidth-scaling value
+#   0.9 /s: with 0.9 the SPORT loop was the NORMAL loop run 6/5 times faster, the rows were an exact
+#   re-timing identity and any slack certified (no tolerance content); with 0.85 the exact rows
+#   DECLINE and the claim is a tolerance (3.34 m, the tool's bound on the 0.01 grid; see Property).
+#   History: batch I9 (2026-10-27) brought the file back from benchmarks/reserve/ as the
+#   time-scaled design; platoon_latency (same right model) is in the suite as well.
 #
 # Shared platoon model (the same CACC, operating range and domain as platoon_latency and
 # platoon_linkloss). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
@@ -58,13 +59,22 @@
 #   |Delta g| <= 3.34. Requirement (spacing tolerance of the SPORT tuning): at every re-timed
 #     instant the SPORT follower's gap is within 3.34 m of the NORMAL follower's, so the design's
 #     spacing behaviour carries over to SPORT with every event 6/5 times sooner, up to 3.34 m.
-#     Cause: the static allowance W / kp = 0.6 / 0.18 = 3.33 m of the damping mismatch at the rated
-#     closing rate. Tight: 3.34 certifies, 3.33 declines.
-#   |P_0.45| <= 1.50 (derived, W / 0.4, the slow form's static bound; 1.49 declines) and
-#     |P_0.4| <= 1.14 (derived; 1.13 declines): below W / 0.45 = 1.33 because on the face
-#     P_0.4 = b the deployed's own rated closing rate |r_L| <= 10 caps the design's re-timed one,
-#     0.05 (10 + 0.4 x 3.34 - b) <= 0.45 b, b >= 1.134. Each constant is tight with the other two
-#     at their stated values (a coordinate-wise fixpoint of the bisection).
+#   |P_0.45| <= 1.50 and |P_0.4| <= 1.14 (derived rows). P_0.45 = P_0.4 + 0.05 Delta g, so the
+#     P_0.45 row is implied by the other two (|P_0.45| <= 1.14 + 0.05 x 3.34 = 1.307): as a set the
+#     relation is the same with 1.31 or 1.50 there. The row is a proof step, not a claim: the
+#     tool proves the rows as a cut chain (each from the domain and the rows proved before it,
+#     not jointly), P_0.45 first from |r_R| <= 10 alone (its static bound W / 0.4 = 1.50; 1.49
+#     declines), then Delta g from it (Delta g' = P_0.45 - 0.45 Delta g, so 1.50 / 0.45 = 3.33 =
+#     W / kp; 3.34 certifies, 3.33 declines), then P_0.4 from both and the deployed's rated
+#     closing rate |r_L| <= 10, which caps the design's re-timed one on the face P_0.4 = b:
+#     0.05 (10 + 0.4 x 3.34 - b) <= 0.45 b, b >= 1.134 (1.13 declines). Measured 2026-10-30:
+#     the same rows with 1.31 in the P_0.45 row, or without it, DECLINE; without it the chain
+#     starts at P_0.4 (W / 0.45 = 1.34) and gives |Delta g| <= 3.36 (3.34 declines).
+#     Tight in the claim's semantics (not reached by the tool): with the cap on every face the
+#     pair |Delta g| <= c, |P_0.4| <= b is inductive iff 1 + 0.04 c <= b <= 0.4 c, i.e. from
+#     c = 2.78, b = 1.112 (Z3 face check, 2026-10-30; on the 0.01 grid 2.80 with 1.12, and 2.79
+#     with 1.12 has a related state leaving through the Delta g face). So 3.34 is the tool's
+#     route value, about 20 % above the dynamics' 2.78; the stated claim is true, not tight.
 #   Related starts: equal physical states (g_L = g_R, r_L = r_R = r) are related for
 #     |r| <= 1.14 / 0.2 = 5.7 m/s (Delta rho = -0.2 r), not only at r = 0 as with exact rows.
 #   g_L >= 5 and g_L + 2 r_L >= 5: collision freedom of the deployed (gap at least d0 = 5 m) and
@@ -110,7 +120,8 @@
 # above). Cover: SPORT_L at lambda 6/5, budget 2, admissible [CACC], joint steps retaining CACC
 # only (no branching); nothing pruned. --handoff 1/1 passed (vacuous: one mode). relcert
 # --wellformed: CACC ok (invariant), 0 UNKNOWN, 0 BLOCKING. One-domain check passes. Letters
-# (scripts/suite_v2_letters.py through letters.sh): S M D before the round-4 fix, S M after.
+# (scripts/suite_v2_letters.py through letters.sh): S M D before the round-4 fix, S M after it, S
+# under the 2026-10-30 rule M (one design mode).
 #
 [problem]
 name = platoon_profiles

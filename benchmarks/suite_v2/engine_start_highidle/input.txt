@@ -18,9 +18,9 @@
 #   SELF        50 <= N2 < 60                   starter cut out, to idle:            0.15 (idle - N2)
 #   IDLE        N2 >= 60                        idle governor:                       0.5 (idle - N2)
 #   ABORT       N2 < 25, t >= 30                start aborted (starter, fuel off):   N2' = 0
-# ABORT is reached by ordinary starts (revised 2026-10-29 after review round 4, which found that the
-# earlier single-supply model reached ABORT only from STARTER starts whose timer was already near
-# 30 s, since a rated start from t = 0 reaches 25 % by 16.1 s). On low supply the start is slow: from
+# ABORT is reached by ordinary starts (review round 4, 2026-10-29: the low-supply phase was added;
+# with rated supply alone ABORT is reached only from starts whose timer is already near 30 s, since
+# a rated start from t = 0 reaches 25 % by 16.1 s). On low supply the start is slow: from
 # rest (N2 = 5 %, t = 0) N2 is 24.48 % at t = 30 and the sequencer aborts (a hung start); a start
 # from t = 0 lights off within the time-out only from N2 above about 15.5 % (an engine already
 # turning). The rated-supply start from rest lights off at 16.1 s.
@@ -46,7 +46,8 @@
 #   SELF, IDLE: N2_L <= N2_R + 4. Requirement: above starter cut-out the deployed may exceed the
 #     reference start profile by at most the 4 % idle increment. Tightest 4.00 (3.99 declines in
 #     SELF and in IDLE).
-# Both relations hold up to the reference's re-timing (it may run ahead alone, see R).
+# Both relations hold up to the reference's re-timing (it may run ahead alone, see R); the 4 % bound
+# is a profile comparison (in lock step the gap reaches 5.5 %, see the stretch note).
 # Mode dependence is load-bearing (D): uniform N2_L <= N2_R + 4 declines, also with the timer and
 # supply rows added (the reachable low-supply abort; it declines with only the STARTER_LOW row
 # relaxed to +4), and the uniform starter row declines (the idle increment, physical: equilibria 66
@@ -76,12 +77,17 @@
 # 30 s, a state in no right guard: such a pair has no reference run and is not a case of the claim);
 # every left mode has a satisfiable start (N2_R = N2_L, t_R = t_L, p_R = p_L).
 #
-# Stretch pinned (2026-10-27): lambda_max 1; every cover is at lambda 1 and the requirement is a
-# real-time one.
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on the installed model):
+# Stretch pinned (2026-10-27): lambda_max 1; every cover is at lambda 1. The requirement is a
+# profile comparison, not a real-time one: the 4 % bound is against a reference that may run ahead
+# alone (R). In lock step (both sequencers deciding every 1 s, no re-timing) a normal rated start
+# from (N2, t, p) = (5, 0, 50) on both sides reaches N2_L - N2_R = 5.51 % at t = 51 s (from equal
+# SELF starts at 50 %: 5.55 %), while the deployed is in IDLE (gain 0.5) and the reference still in
+# SELF (gain 0.15) (simulated 2026-10-30, exact flows per 1 s period); RELCERT_SYNC=1 DECLINES.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29):
 # CERTIFIED (0.8 to 1.1 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
 # RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1,
-# RELCERT_WELLFORMED_STRICT=1, RELCERT_OPREGION=1 (every admitted start in some right guard but in ABORT_L, above);
+# RELCERT_WELLFORMED_STRICT=1, RELCERT_OPREGION=1 (every admitted start in some right guard but in
+# ABORT_L, above);
 # DECLINED under RELCERT_SYNC=1, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and
 # without RELCERT_IMPLIED_CUT.
 # Cover: lambda 1, budget 1 in every left mode; admissible STARTER_L [STARTER, LIGHTOFF, SELF, IDLE],

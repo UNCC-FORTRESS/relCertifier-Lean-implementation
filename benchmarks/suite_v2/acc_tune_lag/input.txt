@@ -1,9 +1,11 @@
 # acc_tune_lag: the retuned cruise loop against the stock loop, both with the same powertrain lag and
 # the same control period.
 # scenario: degraded-controller
-# mechanisms: S M (time stretch lambda = 2 needed, RELCERT_SYNC=1 declines; multi-step cover: at
-#   lambda = 2 each left window is matched by two right cycles; matrix codes M1 M2). Both letters
-#   come from the retune: the stretch is the ratio of the two dominant time constants.
+# mechanisms: S (time stretch lambda = 2 needed, RELCERT_SYNC=1 declines; matrix code M1). The
+#   stretch comes from the retune: it is the ratio of the two dominant time constants. The cover
+#   is multi-step (each left window matched by two right cycles, matrix code M2), but M is not
+#   credited: the right has one mode, so its cycle boundaries are invisible and the two cycles are
+#   one continuous right run cut at epsilon_R (letter rule M, 2026-10-30).
 #
 # System. Speed v (m/s) and realised acceleration a (m/s^2) of one car whose cruise loop commands
 # a_cmd = k (30 - v) toward the set speed 30 m/s; the powertrain realises the command through a

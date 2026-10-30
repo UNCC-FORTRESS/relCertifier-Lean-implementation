@@ -72,6 +72,7 @@ def packsV2 : List PackV2 :=
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 1⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 2⟩,
     -- platoon_linkloss (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"platoon_linkloss", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 0, 0⟩,
@@ -100,12 +101,12 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 2⟩,
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 3⟩,
     -- rover_terrain_2to4 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 67, 50, 1, 1⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 67, 50, 1, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 27, 10, 2, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 0, 1⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 0, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 1, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 4, 0, 1], 1, 1, 2, 2⟩,
     -- rover_terrain_4to6 (cover replay)
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 0, 0⟩,
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 0, 1⟩,
@@ -196,15 +197,15 @@ def packsV2 : List PackV2 :=
     ⟨"train_ato_odometry", 2, 0, [0, 1], 7, 8, 2, 1⟩,
     ⟨"train_ato_odometry", 2, 0, [0, 1], 39, 40, 2, 2⟩,
     -- turbine_startup_gearratio (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"turbine_startup_gearratio", 3, 0, [0], 1, 1, 0, 0⟩,
-    ⟨"turbine_startup_gearratio", 3, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"turbine_startup_gearratio", 3, 1, [0], 1, 1, 1, 1⟩,
-    ⟨"turbine_startup_gearratio", 3, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"turbine_startup_gearratio", 3, 2, [0], 1, 1, 2, 2⟩,
-    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 0⟩,
-    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 1⟩,
-    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 2⟩,
-    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 3⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [1, 0], 1, 1, 2, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 3, 0⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 3, 1⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 3, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], 1, 1, 3, 3⟩,
     -- elevator_start_discbrake (mode-keyed rows; UP_L's right-only LIFT node is below)
     ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
     ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 2⟩,
@@ -226,9 +227,9 @@ def packsV2 : List PackV2 :=
     ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 3, 4, 5, 6], 1, 1, 3, 3⟩,
     ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], 1, 1, 4, 2⟩,
     ⟨"syringe_relay_prearm", 4, 5, [0, 1, 2, 3, 4], 1, 1, 5, 3⟩,
-    -- ventilator_vc_cuffleak (mode-keyed rows; cover replay at λ = 1)
-    ⟨"ventilator_vc_cuffleak", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
-    ⟨"ventilator_vc_cuffleak", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- ventilator_vc_cuffleak (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"ventilator_vc_cuffleak", 3, 0, [0, 1, 2, 4, 5, 3], 1, 1, 0, 0⟩,
+    ⟨"ventilator_vc_cuffleak", 3, 1, [0, 1, 2, 4, 5, 3], 1, 1, 1, 1⟩,
     -- furnace_program_timebase (cover replay at λ = 4/5)
     ⟨"furnace_program_timebase", 2, 0, [0, 1, 4, 5, 2, 3], 4, 5, 0, 0⟩,
     ⟨"furnace_program_timebase", 2, 0, [0, 1, 2, 3, 4, 5], 4, 5, 0, 2⟩,
@@ -255,21 +256,6 @@ def packsV2 : List PackV2 :=
     -- bottling_fill_strainer (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 17, 20, 0, 0⟩,
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    -- charger_fast_tapers (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 0⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 1⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 2⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 3⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 4⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], 5, 4, 1, 1⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], 5, 4, 1, 4⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 1⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 2⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 3⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 4⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 2⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 3⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 4⟩,
     -- since 2026-10-28; the joint pairings of each window's admissible starts, the right-only
     -- nodes are below)
     -- flaps_slow_approach (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
@@ -290,10 +276,10 @@ def packsV2 : List PackV2 :=
     ⟨"h2_refuel_ambientbias", 3, 2, [0], 1, 1, 2, 2⟩,
     ⟨"h2_refuel_ambientbias", 3, 2, [0], 1, 1, 2, 3⟩,
     ⟨"h2_refuel_ambientbias", 3, 2, [0], 1, 1, 2, 4⟩,
-    ⟨"h2_refuel_ambientbias", 3, 3, [0], 1, 1, 3, 3⟩,
-    ⟨"h2_refuel_ambientbias", 3, 3, [0], 1, 1, 3, 4⟩,
-    ⟨"h2_refuel_ambientbias", 3, 4, [0], 1, 1, 4, 3⟩,
-    ⟨"h2_refuel_ambientbias", 3, 4, [0], 1, 1, 4, 4⟩,
+    ⟨"h2_refuel_ambientbias", 3, 3, [0, 1], 1, 1, 3, 3⟩,
+    ⟨"h2_refuel_ambientbias", 3, 3, [0, 1], 1, 1, 3, 4⟩,
+    ⟨"h2_refuel_ambientbias", 3, 4, [0, 1], 1, 1, 4, 3⟩,
+    ⟨"h2_refuel_ambientbias", 3, 4, [0, 1], 1, 1, 4, 4⟩,
     -- reactor_feed_wireless (batch I11, from the reserve; cover replay at λ = 1, budget 2; the
     -- four pruned edges into the live levels F1 and F4): each left level against the joint levels
     -- of its cover
@@ -353,10 +339,13 @@ def packsV2 : List PackV2 :=
     -- lit_csf25_salt_tank_hold (rows derived from the emitted cover, 2026-10-29 round 3: the stale-reading
     -- hold, one held window per decision, four keyed rows each)
     ⟨"lit_csf25_salt_tank_hold", 3, 0, [0, 2, 3, 1], 1, 3, 0, 0⟩,
-    ⟨"lit_csf25_salt_tank_hold", 3, 1, [0, 1, 2, 3], 1, 3, 1, 1⟩ ]
+    ⟨"lit_csf25_salt_tank_hold", 3, 1, [0, 1, 2, 3], 1, 3, 1, 1⟩,
+    -- molding_pack_checkring (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"molding_pack_checkring", 3, 0, [0, 1, 2, 4, 6, 3, 5], 1, 1, 0, 0⟩,
+    ⟨"molding_pack_checkring", 3, 1, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1162
+def expectedModalV2 : Nat := 1185
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -440,11 +429,8 @@ def dynPacksV2 : List DynPackV2 :=
     -- engine_start_highidle: right-only reposition nodes of the emitted cover (2026-10-29)
     ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩,
     ⟨"engine_start_highidle", 3, 4, [0], true, 4, 3⟩,
-    -- h2_refuel_ambientbias: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"h2_refuel_ambientbias", 3, 3, [0], true, 3, 2⟩,
     -- turbine_startup_gearratio: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"turbine_startup_gearratio", 3, 0, [0], true, 0, 1⟩,
-    ⟨"turbine_startup_gearratio", 3, 2, [0], true, 2, 1⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1], true, 0, 1⟩,
     -- elevator_start_discbrake: right-only reposition nodes
     ⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0⟩,
     -- syringe_relay_prearm: right-only reposition nodes
@@ -455,14 +441,10 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 1⟩,
     ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 2⟩,
     ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 4, 6, 3, 5], true, 3, 2⟩,
-    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩,
-    -- charger_fast_tapers: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 0⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 2⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩ ]
+    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 74
+def expectedDynV2 : Nat := 70
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -509,7 +491,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 the literature migration of 2026-10-29, 2827 since: the 48 abstraction modes of
 `lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2256
 transitions, all vacuous as its rows are identical). -/
-def expectedHandoffV2 : Nat := 2827
+def expectedHandoffV2 : Nat := 2831
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -544,8 +526,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 22
-def expectedNonConnV2 : Nat := 44
+def expectedPrunedEdgesV2 : Nat := 19
+def expectedNonConnV2 : Nat := 38
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -595,7 +577,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 181
+  wfModes   : Nat := 176
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

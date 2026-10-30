@@ -94,3 +94,9 @@ depend on the attack). `molding_pack_checkring` (overall 4, D) was not taken: it
 The reserve is 23 files (rampmeter_poll_2to1 back in the suite on 2026-10-29).
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.
+
+Review round 6 of 2026-10-30 (`docs/OVERNIGHT2-2026-10-30.md`) took `molding_pack_checkring` back into the
+suite in its reframed form (domain = the machine's 2000 bar injection-pressure rating on every mode and side;
+the hold setting moved into the claim, `x_R <= 500`; tight 19.24 = 500 l / (10 + l); letter D, genuine: with
+no leak the exact rows certify) in place of `charger_fast_tapers`, skipped
+(`benchmarks/skipped/charger_fast_tapers/SKIPPED.md`). The reserve is 23 files.

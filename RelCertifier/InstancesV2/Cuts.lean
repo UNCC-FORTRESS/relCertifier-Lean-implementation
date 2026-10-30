@@ -6,7 +6,6 @@ import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.bottling_fill_strainer
 import RelCertifier.InstancesV2.Cuts.canal_gate_notches
-import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.elevator_start_discbrake
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
 import RelCertifier.InstancesV2.Cuts.flaps_slow_approach
@@ -24,6 +23,7 @@ import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
 import RelCertifier.InstancesV2.Cuts.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.Cuts.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.Cuts.lit_nahs25_salt_tank
+import RelCertifier.InstancesV2.Cuts.molding_pack_checkring
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
@@ -60,7 +60,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("antenna_track_kvretune", antenna_track_kvretune_cutsV2, antenna_track_kvretune_cutsV2X),
   ("bottling_fill_strainer", bottling_fill_strainer_cutsV2, bottling_fill_strainer_cutsV2X),
   ("canal_gate_notches", canal_gate_notches_cutsV2, canal_gate_notches_cutsV2X),
-  ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
   ("elevator_start_discbrake", elevator_start_discbrake_cutsV2, elevator_start_discbrake_cutsV2X),
   ("engine_start_highidle", engine_start_highidle_cutsV2, engine_start_highidle_cutsV2X),
   ("flaps_slow_approach", flaps_slow_approach_cutsV2, flaps_slow_approach_cutsV2X),
@@ -78,6 +77,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_cutsV2, lit_gpt10_boost_converter_cutsV2X),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_cutsV2, lit_lz21_vehicle_position_cutsV2X),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_cutsV2, lit_nahs25_salt_tank_cutsV2X),
+  ("molding_pack_checkring", molding_pack_checkring_cutsV2, molding_pack_checkring_cutsV2X),
   ("platoon_latency", platoon_latency_cutsV2, platoon_latency_cutsV2X),
   ("platoon_linkloss", platoon_linkloss_cutsV2, platoon_linkloss_cutsV2X),
   ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),

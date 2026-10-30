@@ -15,22 +15,22 @@ open RelCertifier.Parse
 
 def ventilator_vc_cuffleak_cutsV2 : EvolStrengthening :=
   { L := [
-      ("INSP", [((.cmp ">=" (.var "t") (.num "0.0")), CutRoute.diStrict), ((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict), ((.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutRoute.diStrict)]),
-      ("EXP", [((.cmp ">=" (.var "t") (.num "1.0")), CutRoute.diStrict), ((.cmp ">=" (.var "t") (.num "0.0")), CutRoute.diStrict), ((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "0.404")), CutRoute.diStrict), ((.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutRoute.diStrict)])
+      ("INSP", [((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict)]),
+      ("EXP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.frozen), ((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict)])
     ]
     R := [
-      ("INSP", [((.cmp ">=" (.var "t") (.num "0.0")), CutRoute.diStrict), ((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict), ((.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutRoute.diNonstrict)]),
-      ("EXP", [((.cmp ">=" (.var "t") (.num "1.0")), CutRoute.diStrict), ((.cmp ">=" (.var "t") (.num "0.0")), CutRoute.diStrict), ((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "0.404")), CutRoute.diStrict), ((.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutRoute.diStrict)])
+      ("INSP", [((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict)]),
+      ("EXP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.frozen), ((.cmp ">=" (.var "V") (.num "-0.4")), CutRoute.diStrict)])
     ] }
 
 def ventilator_vc_cuffleak_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("INSP", [⟨(.cmp ">=" (.var "t") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("EXP", [⟨(.cmp ">=" (.var "t") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "t") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "0.404")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
+      ("INSP", [⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("EXP", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "s") (.num "0.01")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩])
     ]
     R := [
-      ("INSP", [⟨(.cmp ">=" (.var "t") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
-      ("EXP", [⟨(.cmp ">=" (.var "t") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "t") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "0.404")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "-" (.var "V") (.bin "*" (.num "0.4") (.var "t"))) (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
+      ("INSP", [⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("EXP", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "V") (.num "-0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "s") (.num "0.01")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

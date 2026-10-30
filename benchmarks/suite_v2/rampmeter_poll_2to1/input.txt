@@ -9,7 +9,7 @@
 #   code M3)
 # Suite status: back from benchmarks/reserve/ on 2026-10-29 in place of insulin_basal_cgmloss (same
 #   chain-depth template and letters, M B), with the requirement re-derived from the HCM level-of-service
-#   bands (8, was 10): it now sits 3.0 below the 11 at which any deployed schedule certifies.
+#   bands (8, was 10): it sits 3.0 below the 11 at which any deployed schedule certifies.
 #
 # System (both sides). Two-lane freeway, free-flow speed 60 mi/h, free-flow branch of the cell
 # transmission model (Daganzo 1994), densities in veh/mi/ln, time in s. State: kd = the arrival
@@ -44,21 +44,31 @@
 # steady maxima 22.0 / 25.0 / 29.1 / 33.0 / 34.3 at 1200 / 1800 / 2400 / 3000 / 3300 veh/h). The lower
 # side uses the same 8 (the requirement is symmetric: the deployed must not be two levels better
 # either, a sign of a wrong rate). Not implied by the domains (they allow a gap of 28.5).
-# Tightest (bisection to 0.01, symmetric constant; re-measured 2026-10-29): 7.00 (6.99 declines) = the
-# three-level spread (1800 - 960) / 120: with the band 8 the rows admit a design meter up to two
-# 5-wide bands away at a window start, and the one extra design update inside a held 40 s window steps it one level more;
-# a joint segment of two levels i, j keeps |k_L - k_R| <= |r_i - r_j| / 120 (the gap relaxes to the
-# rate difference), so three levels need 7. An isolated certifying point at 5.00 (5.25 to 6.99
-# decline) is a boundary coincidence of the band edges, not a window.
+# Tightest (symmetric constant c, swept at 0.01 around every jump; measured 2026-10-30): the
+# certifying set is not an interval but {5.00} and [7.00, ...): 4.99 declines, 5.00 certifies, 5.01
+# to 6.99 decline, 7.00 certifies. Tightest 5.00 (4.99 declines); the requirement 8 lies in the upper
+# branch, whose lowest point is 7.00 (6.99 declines). Why the set has a gap: the constant c sets two
+# things at once. As a start relation, the closed row |k_L - k_R| <= c over the half-open 5-wide bands
+# admits design levels at most ceil(c / 5) bands away (adjacent only for c <= 5, two bands for c in
+# (5, 10]); and a joint segment of two levels i, j keeps |k_L - k_R| <= |r_i - r_j| / 120 (the gap
+# relaxes to the rate difference), so the one extra design update inside a held 40 s window, which
+# steps the reference one level further, needs c at least the largest rate gap of levels one band
+# further apart: two levels (1800 - 1200) / 120 = 5 for c <= 5, three levels (1800 - 960) / 120 = 7
+# for c in (5, 10]. Hence c = 5 is a fixed point (adjacent starts need exactly 5) and (5, 7) fails.
 #
-# How the bound depends on the cause (measured, tightest symmetric constant against the deployed
-# update interval, everything else fixed): 20 s (no cause): the exact claim (constant 0) CERTIFIES;
-# 30 s and 40 s (this file): 7.00; 50 s and 60 s: 9.00 (four levels); 80 s: 11.00 = (1800 - 480) /
-# 120, the whole ramp authority, which is also what an arbitrary deployed schedule needs (every left
-# guard the domain): the requirement 8 holds up to 40 s polling and fails from 50 s (9.00 needed),
-# well before the deployed is no better than an arbitrary metering schedule (80 s). Law dependence: an
-# arbitrary deployed schedule DECLINES at 8 (needs 11.00). The design table's rate limit is load-bearing: a design
-# reference that may jump to any level at an update (all levels declared) needs 11.00 at 40 s.
+# How the bound depends on the cause (measured 2026-10-30, certifying set of the symmetric constant
+# against the deployed update interval, everything else fixed, swept at 0.01 around every jump; the
+# same fixed-point structure: ceil(c / 5) start bands plus u extra design updates per held window):
+# 20 s (no cause, u = 0): {0} and [3.00, ...) (0.01 to 2.99 decline: one level apart needs the
+# adjacent rate gap 3); 30 s and 40 s (this file, u = 1): {5.00} and [7.00, ...); 50 s and 60 s
+# (u = 2): [9.00, 10.00] and [11.00, ...) (8.99 and 10.01 to 10.99 decline: two start bands need
+# four levels, 9; three need five, 11); 80 s (u = 3): [11.00, ...) = (1800 - 480) / 120, the whole
+# ramp authority, which is also what an arbitrary deployed schedule needs (every left guard the
+# domain; 5.00, 7.00, 9.00, 10.00 and 10.99 decline there too): the requirement 8 holds up to 40 s
+# polling and fails from 50 s, well before the deployed is no better than an arbitrary metering
+# schedule (80 s). Law dependence: an arbitrary deployed schedule DECLINES at 8 (needs 11.00). The
+# design table's rate limit is load-bearing: a design reference that may jump to any level at an
+# update (all levels declared) needs 11.00 at 40 s.
 # Simulated (0.5 s steps, 3000 random starts and polling phases): the worst sampled gap is 1.00
 # veh/mi/ln at 40 s, 1.53 at 60 s and 2.18 at 80 s; the certificate is an inductive envelope (the
 # held-level spread as if it persisted), about seven times the transient, and it moves with the
@@ -83,19 +93,21 @@
 # domain, so no run is dropped.
 # Letter windows. M and B: at every polling interval above 20 s the covers take ceil(interval / 20)
 # design updates per deployed window (budget 2 at 30 and 40 s, 3 at 50 and 60 s) with branching 2 on
-# the path; none at 20 s. Claim window at 40 s: the 8 requirement sits
-# inside the certifying range [7.00, 11.00) with margins 1.00 below and 3.00 above (from 11.00 on, an
-# arbitrary schedule certifies too: law independence).
+# the path; none at 20 s. Claim window at 40 s: the 8 requirement sits in the upper branch
+# [7.00, ...) of the certifying set, 1.00 above its lowest point and 3.00 below 11.00, from which an
+# arbitrary schedule certifies too (law independence); the isolated point 5.00 is below it.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated; re-measured 2026-10-29 with the band 8: CERTIFIED (2.2 s),
-# tightest 7.00 (6.99 declines), --wellformed and --handoff as below; the ablations measured 2026-10-27 at
-# the first installation with the band 10, on branch benchmark-fixes): CERTIFIED (4.2 s);
-# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
-# SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without
-# RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated). With the band 8 (measured 2026-10-29): CERTIFIED
+# (2.2 s); certifying set {5.00} and [7.00, ...) (swept 2026-10-30); --wellformed and --handoff as
+# below. Ablations (band 8, measured 2026-10-30): CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_REPO=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1
+# (4.1 s).
 # Cover: every left mode at lambda 1, budget 2, joint steps only; admissible starts span three to five
 # levels (the band 8 reaches two bands away); branching 2 at every left mode. Pruned R1440 -> R1800
-# (R1440 always raises the density; not load-bearing: NO_PRUNE certifies). Rows identical (--handoff 36/36, vacuous). relcert --wellformed:
+# (R1440 always raises the density; not load-bearing: NO_PRUNE certifies). Rows identical
+# (--handoff 36/36, vacuous). relcert --wellformed:
 # R1800 ok (exit->R1440,R1200), R1440 ok (exit->R1200), R1200 ok (exit->R1440,R960), R960 ok
 # (exit->R1200,R720), R720 ok (exit->R960), R480 ok (exit->R960,R720), 0 UNKNOWN, 0 BLOCKING.
 # Letters: M B.

@@ -89,7 +89,7 @@ import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
 import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
 import RelCertifier.InstancesV2.WellFormed.RampmeterPoll2to1
 import RelCertifier.InstancesV2.WellFormed.TurbineStartupGearratio
-import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
+import RelCertifier.InstancesV2.WellFormed.MoldingPackCheckring
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
 import RelCertifier.InstancesV2.WellFormed.SatDetumbleWeak
 import RelCertifier.InstancesV2.WellFormed.SatDetumblePhases
@@ -116,7 +116,7 @@ namespace WellFormedBattery
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
   ["platoon_linkloss", "platoon_profiles", "platoon_latency",
-   "charger_fast_tapers", "quad_light_profiles",
+   "molding_pack_checkring", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
    "rover_ladder_2to3",
@@ -190,7 +190,7 @@ and `reactor_feed_wireless`, four exponential runs at dimension 2 as `fuelcell_c
 `antenna_track_kvretune`, `molding_pack_checkring` and `compressor_station_recycle`); unchanged by fix round 4 (2026-10-29: `canal_gate_notches`, its
 batch-I5 proof restored, for `grid_ffr_dos`; the proofs adapted to the new right models of
 `engine_start_highidle` (frozen supply pressure `p`, new mode `STARTER_LOW`),
-`h2_refuel_ambientbias` (no `ABORT`, five 1-D contractions), `charger_fast_tapers` (no `FAULT`),
+`h2_refuel_ambientbias` (no `ABORT`, five 1-D contractions), `charger_fast_tapers` (no `FAULT`; skipped 2026-10-30, replaced by `molding_pack_checkring`),
 `rover_terrain_{2to4,4to6,6to12}` (wheel and torque floors 0.05, 0.05, 0.13) and
 `platoon_{latency,linkloss,profiles}` (no `AEB`, the single invariant mode `CACC`)); unchanged by the
 literature migration (2026-10-29: `lit_gpt10_boost_converter` and `lit_csf25_salt_tank_hold`, new
@@ -202,13 +202,14 @@ def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
-   "bottling_fill_strainer", "canal_gate_notches", "charger_fast_tapers",
+   "bottling_fill_strainer", "canal_gate_notches",
    "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
    "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones",
    "h2_refuel_ambientbias", "hydro_rejection_gatecal", "lit_csf21_vehicle_bus",
    "lit_csf21_vehicle_thermo", "lit_csf25_salt_tank_hold", "lit_drl_lane_control",
    "lit_freedm_meter", "lit_girard08_robot", "lit_gpt10_boost_converter",
-   "lit_lz21_vehicle_position", "lit_nahs25_salt_tank", "platoon_latency", "platoon_linkloss",
+   "lit_lz21_vehicle_position", "lit_nahs25_salt_tank", "molding_pack_checkring",
+   "platoon_latency", "platoon_linkloss",
    "platoon_profiles", "quad_light_lag", "quad_light_profiles", "rampmeter_poll_2to1",
    "reactor_feed_wireless", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6",
@@ -279,7 +280,7 @@ end WellFormedBattery
 #print axioms V2AntennaTrackKvretune.antenna_track_kvretune_wellFormedR
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
 #print axioms V2PlatoonLatency.platoon_latency_wellFormedR
-#print axioms V2ChargerFastTapers.charger_fast_tapers_wellFormedR
+#print axioms V2MoldingPackCheckring.molding_pack_checkring_wellFormedR
 #print axioms V2CanalGateNotches.canal_gate_notches_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band
 #print axioms PlatoonCaccAeb.aeb_w_const

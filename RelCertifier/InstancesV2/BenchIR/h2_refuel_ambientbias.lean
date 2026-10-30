@@ -85,10 +85,10 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
           next := ["COMPLETE"] } ] }
     invariants := [
-      ("STAGE1", (.cmp "<=" (.var "L_p") (.var "R_p"))),
-      ("STAGE2", (.cmp "<=" (.var "L_p") (.var "R_p"))),
-      ("STAGE3", (.cmp "<=" (.var "L_p") (.var "R_p"))),
-      ("TOPOFF", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9")))),
-      ("COMPLETE", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))))] }
+      ("STAGE1", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "0.00")))),
+      ("STAGE2", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "0.00")))),
+      ("STAGE3", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "0.00")))),
+      ("TOPOFF", (.and (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))) (.cmp ">=" (.var "R_p") (.num "58.0")))),
+      ("COMPLETE", (.and (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))) (.cmp ">=" (.var "R_p") (.num "58.0"))))] }
 
 end RelCertifier.Parse

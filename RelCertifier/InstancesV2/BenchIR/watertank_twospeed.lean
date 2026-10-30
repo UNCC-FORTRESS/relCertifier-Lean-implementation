@@ -47,7 +47,7 @@ def watertank_twospeed_IRv2 : PProblem :=
           odes := [("x", (.bin "*" (.num "2.0") (.bin "-" (.num "12.5") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "2.0")) (.cmp "<" (.var "x") (.num "7.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
-          next := ["Fast", "Slow", "MidEco", "MidBoost", "PumpOff"] },
+          next := ["Fast", "Slow", "MidEco", "MidBoost"] },
         {
           name := "Slow"
           odes := [("x", (.bin "*" (.num "1.0") (.bin "-" (.num "12.5") (.var "x"))))]

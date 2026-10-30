@@ -8,7 +8,6 @@ import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 import RelCertifier.InstancesV2.BenchChoice.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
-import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchChoice.engine_start_highidle
 import RelCertifier.InstancesV2.BenchChoice.flaps_slow_approach
@@ -26,6 +25,7 @@ import RelCertifier.InstancesV2.BenchChoice.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchChoice.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchChoice.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_salt_tank
+import RelCertifier.InstancesV2.BenchChoice.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchChoice.platoon_latency
 import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
@@ -62,7 +62,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2_choice),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2_choice),
   ("canal_gate_notches", canal_gate_notches_coverV2_choice),
-  ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2_choice),
   ("engine_start_highidle", engine_start_highidle_coverV2_choice),
   ("flaps_slow_approach", flaps_slow_approach_coverV2_choice),
@@ -80,6 +79,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2_choice),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_choice),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_choice),
+  ("molding_pack_checkring", molding_pack_checkring_coverV2_choice),
   ("platoon_latency", platoon_latency_coverV2_choice),
   ("platoon_linkloss", platoon_linkloss_coverV2_choice),
   ("platoon_profiles", platoon_profiles_coverV2_choice),

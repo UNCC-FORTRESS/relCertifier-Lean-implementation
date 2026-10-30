@@ -2,22 +2,22 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `ventilator_vc_cuffleak_m020`: Theorem 3's claim of a mutant of `ventilator_vc_cuffleak` is false (GENERATED — `scripts/gen_refute.py`)
+# `ventilator_vc_cuffleak_m028`: Theorem 3's claim of a mutant of `ventilator_vc_cuffleak` is false (GENERATED — `scripts/gen_refute.py`)
 
 Mutant RRO/SNO `(<= R_V (+ L_V 0.08)) [<=->>=]`. Kind C (no partner): the left switches
 from mode 0 to mode 1 with a zero-duration flow, the right starts in mode 1. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
-import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m020
+import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m028
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 
-namespace RelCertifier.Refute.VentilatorVcCuffleakM020
+namespace RelCertifier.Refute.VentilatorVcCuffleakM028
 
 open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL
 
-abbrev IR := Refute.ventilator_vc_cuffleak_m020_IRm
+abbrev IR := Refute.ventilator_vc_cuffleak_m028_IRm
 abbrev cX := Oracle.ventilator_vc_cuffleak_cutsV2X
-abbrev w := Refute.ventilator_vc_cuffleak_m020_wit
+abbrev w := Refute.ventilator_vc_cuffleak_m028_wit
 
 /-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.ventilator_vc_cuffleak_IRv2.L ∧ IR.R = Parse.ventilator_vc_cuffleak_IRv2.R := ⟨rfl, rfl⟩
@@ -33,11 +33,11 @@ erasure's hygiene). -/
 theorem names_ok : namesOK IR = true := by decide +kernel
 theorem cuts_ok : cutsOK IR 4 cX = true := by decide +kernel
 
-/-- **The claim of `ventilator_vc_cuffleak_m020` is false** for every cover record (every pruning), every `dt ≥ 0`:
+/-- **The claim of `ventilator_vc_cuffleak_m028` is false** for every cover record (every pruning), every `dt ≥ 0`:
 every query group `relcert-refute-verdicts` sends is `unsat`. -/
 theorem refuted (hv : RefVerdicts IR 4 cX w) (dt : ℝ) (hdt : 0 ≤ dt) (cov : CoverEmitE) :
     ¬ keyedClaim IR 4 cX cov Formula.tt 0 1 2 3 dt :=
   refute_keyed_C_clocked pre_ok rfl hv names_ok cuts_ok (by decide) (by decide) 3 (by decide)
     dt hdt cov
 
-end RelCertifier.Refute.VentilatorVcCuffleakM020
+end RelCertifier.Refute.VentilatorVcCuffleakM028

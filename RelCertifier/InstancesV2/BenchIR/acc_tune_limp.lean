@@ -41,19 +41,7 @@ def acc_tune_limp_IRv2 : PProblem :=
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "30.0") (.var "v"))))]
           guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          next := ["NORMAL", "COMFORT", "SPORT", "DISENGAGE"] },
-        {
-          name := "COMFORT"
-          odes := [("v", (.bin "*" (.num "0.4") (.bin "-" (.num "30.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          next := ["COMFORT", "NORMAL", "DISENGAGE"] },
-        {
-          name := "SPORT"
-          odes := [("v", (.bin "*" (.num "0.6") (.bin "-" (.num "30.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
-          next := ["SPORT", "NORMAL", "DISENGAGE"] },
+          next := ["NORMAL", "DISENGAGE"] },
         {
           name := "DISENGAGE"
           odes := [("v", (.bin "*" (.num "-0.1") (.var "v")))]

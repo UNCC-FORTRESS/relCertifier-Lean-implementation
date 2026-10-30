@@ -1,0 +1,132 @@
+# molding_pack_checkring: an injection-molding cycle's packing (hold) and cooling phases on a machine
+# whose screw-tip check ring is worn (melt leaks back during hold), against the same cycle with a new
+# check ring; the requirement changes with the phase because the gate freezes at the end of hold.
+# scenario: degraded-actuator
+# mechanisms: D (mode-dependent rows: the hold row bounds the nozzle and the cavity pressure, the
+#   cooling row only the cavity pressure; every uniform row declines at the requirement; matrix code M5)
+#
+# System (both sides). Phase clock t in s since the velocity/pressure switchover (the sequencer's
+# timer), nozzle melt pressure x and cavity pressure y in bar; the machine controller re-decides every
+# 0.05 s (epsilon 0.05 on both sides). Two timed phases, the hold time set to the gate-freeze time
+# (5 s, from the gate-freeze study):
+#   HOLD  t < 5   pressure control toward the 500 bar hold pressure through a proportional valve,
+#                 x' = 10 (500 - x) - l x (0.1 s loop); the cavity follows the nozzle through the
+#                 open gate, y' = 3 (x - y)
+#   COOL  t >= 5  the gate has frozen: the sealed cavity's pressure decays as the part cools and
+#                 shrinks, y' = -0.3 y; the screw decompresses, x' = -(2 + l) x
+# with t' = 1 in both. HOLD -> [HOLD, COOL], COOL -> [COOL]. No start-only mode: every cycle starts
+# in HOLD and enters COOL by the phase timer.
+# Right (reference): new check ring, l = 0. Left (deployed): worn check ring, melt flows back past
+# the screw tip at a rate proportional to the melt pressure, l = 0.4 /s. The leak is the only
+# difference (same machine settings, mold, material, phase timing).
+#
+# Property (mode-dependent).
+#   HOLD: t_L = t_R, |x_L - x_R| <= 25, |y_L - y_R| <= 25, x_R <= 500.
+#   COOL: t_L = t_R, |y_L - y_R| <= 25, x_R <= 500.
+# Requirement: the cavity-pressure process-monitoring envelope, +-5 % of the 500 bar hold level =
+# +-25 bar around the reference cavity curve (the part-quality signature). The 25 bar figure is this
+# file's own choice: it has no external source. While the gate is open the cavity follows the nozzle,
+# so the nozzle pressure must stay in the same envelope (the HOLD row); after gate freeze the nozzle
+# no longer reaches the part and only the cavity is bounded. The phase clocks are equal (same
+# sequencer timing). The conjunct x_R <= 500 states the hold set point as a fact about the reference:
+# the new-ring profile's pressure-controlled hold never drives the nozzle above its hold setting
+# (first-order loop, no overshoot: x' = 10 (500 - x) keeps x <= 500 in HOLD, and COOL decays). It is
+# forward invariant on the right, so it carries no requirement, but it limits the claim to cycles
+# at or below the hold setting: starts with the reference's nozzle above 500 bar (a switchover
+# pressure above the hold pressure, common on hydraulic machines) are not admitted. Without it the
+# claim fails at the machine rating: from a switchover pressure above about 650 bar the worn ring
+# leaves the 25 bar envelope (the hold-gap bound is 0.4 x0 / 10.4; from x0 = 2000 it reaches about
+# 33 bar by hand; with a 650 bar cap on x and y the file without the conjunct CERTIFIES, with 660 it
+# DECLINES, measured on the reserve form).
+# Tightest (measured, step 0.01, both HOLD rows and the COOL cavity row together): 19.24 CERTIFIES,
+# 19.23 DECLINES = the hold droop 500 x 0.4 / 10.4 = 19.23 bar, i.e. 500 l / (10 + l), the leak's
+# shift of the hold equilibrium. Not implied by the domains (they allow 2000 bar).
+#
+# Why the rows must differ (D). Uniform rows with the nozzle bound DECLINE unless the bound is at
+# least 83.34 bar (measured: 83.34 certifies, 83.33 declines): after hold the worn ring bleeds the
+# decompressing nozzle faster, the nozzle gap grows to 0.4 x 500 / 2.4 = 83.3 bar, far outside the
+# envelope although the frozen gate keeps it away from the part. Uniform rows without the nozzle
+# bound DECLINE: during hold the cavity row is inductive only together with the nozzle row (the
+# cavity is driven by the nozzle). So no uniform row meets the +-25 bar requirement, while the
+# phase-specific rows do (letters run: uniform HOLD rows DECLINED, uniform COOL rows DECLINED; D_rows
+# and D_strict). The handoffs only drop the nozzle conjunct (HOLD -> COOL; --handoff 3/3 passed).
+# This is not the staged exact-then-shifted pattern: the same envelope holds in both phases, the
+# variable set changes with the coupling (open gate vs frozen gate), the cause acts in both phases,
+# and there is no fallback sink.
+# CAUSE TEST (measured, tightest common tolerance against the leak l, step 0.01): l = 0 (new ring):
+# the exact rows (all constants 0) CERTIFY, also as uniform rows (the nozzle row kept in COOL), so
+# nothing is mode-dependent and D is gone; l = 0.2: 9.81 (9.80 declines); l = 0.4 (this file):
+# 19.24; l = 0.5: 25 certifies, 19.24 declines; l = 0.52: 25 CERTIFIES; l = 0.53: 25 DECLINES (the
+# envelope tolerates a leak up to about 0.52 /s).
+#
+# Domains. One physical evolve domain, the same text on every mode of both sides: t >= 0 s (the
+# phase clock, forward invariant) and x, y in [0, 2000] bar, the machine's pressure rating (the
+# maximum injection pressure of standard hydraulic reciprocating-screw machines, e.g. 2000 bar for
+# the KraussMaffei KM 300-1400 C1 and the Arburg Allrounder 630 H 2500-400 in their manufacturer
+# specifications). Forward invariant on both sides: in HOLD x moves monotonically from x0 toward its
+# equilibrium (500 on the right, 500 x 10 / 10.4 on the left) and y stays between y0 and the range
+# of x; in COOL both decay toward 0. The hold set point is not a domain bound (it is the claim's
+# x_R <= 500). Not load-bearing: every two-sided bound widened by 20 % of its range (W20, x and y in
+# [-400, 2400]) CERTIFIES; scripts/domain_widening.py (each bound by half its range, and all at once)
+# reports no load-bearing bound. The right guards partition t (no coverage gap); every left mode has
+# a satisfiable start (equal states). scripts/check_one_domain.py: compliant.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30 with the frozen binary
+# tmp/stutter-recovery/bin/relcert on branch benchmark-fixes): CERTIFIED (0.34 s); CERTIFIED under
+# RELCERT_SYNC=1, RELCERT_NO_REPO=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, without RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1 (every admitted start
+# in some right guard) and RELCERT_WELLFORMED_STRICT=1. Cover: both left modes at lambda 1, budget 1,
+# admissible start the same phase, joint segments only. Nothing pruned. relcert --wellformed: HOLD
+# ok (exit->COOL), COOL ok (invariant), 0 UNKNOWN, 0 BLOCKING. relcert --handoff: 3/3 passed.
+# Letters: D (D_rows, D_strict).
+#
+# Suite status (2026-10-30): back from benchmarks/reserve/ (batch I11 had moved it there as a
+# single-letter D design whose domain was the 500 bar hold set point) with the domain moved to the
+# machine's pressure rating and the set point moved into the claim (x_R <= 500, see Property). The
+# model and the rows are otherwise the batch-I5 file's. Assumption 1 proof:
+# WellFormed/MoldingPackCheckring.lean, the proof of fb55b6e with the domain and guards at 2000 bar
+# and the HOLD range lemma reworked (x stays between x0 and 500; forcedSol_between with the forcing
+# range 3 [min x0 500, max x0 500]).
+[problem]
+name = molding_pack_checkring
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 30.0
+
+[Lsys]
+state_vars = [t, x, y]
+epsilon = 0.05
+
+[Lsys.mode.HOLD]
+ode = t' = 1.0; x' = smt2:(- (* 10.0 (- 500.0 x)) (* 0.4 x)); y' = smt2:(* 3.0 (- x y));
+guard = t < 5.0 and t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+evolve = t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+next = [HOLD, COOL]
+
+[Lsys.mode.COOL]
+ode = t' = 1.0; x' = smt2:(* (- (+ 2.0 0.4)) x); y' = smt2:(* (- 0.3) y);
+guard = t >= 5.0 and t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+evolve = t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+next = [COOL]
+
+[Rsys]
+state_vars = [t, x, y]
+epsilon = 0.05
+
+[Rsys.mode.HOLD]
+ode = t' = 1.0; x' = smt2:(- (* 10.0 (- 500.0 x)) (* 0.0 x)); y' = smt2:(* 3.0 (- x y));
+guard = t < 5.0 and t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+evolve = t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+next = [HOLD, COOL]
+
+[Rsys.mode.COOL]
+ode = t' = 1.0; x' = smt2:(* (- (+ 2.0 0.0)) x); y' = smt2:(* (- 0.3) y);
+guard = t >= 5.0 and t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+evolve = t >= 0.0 and x >= 0.0 and x <= 2000.0 and y >= 0.0 and y <= 2000.0
+next = [COOL]
+
+[relational_invariant]
+HOLD = t[l] <= t[r] and t[r] <= t[l] and x[l] <= x[r] + 25 and x[r] <= x[l] + 25 and y[l] <= y[r] + 25 and y[r] <= y[l] + 25 and x[r] <= 500
+COOL = t[l] <= t[r] and t[r] <= t[l] and y[l] <= y[r] + 25 and y[r] <= y[l] + 25 and x[r] <= 500

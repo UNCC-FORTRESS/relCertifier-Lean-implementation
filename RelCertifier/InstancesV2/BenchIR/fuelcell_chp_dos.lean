@@ -24,22 +24,22 @@ def fuelcell_chp_dos_IRv2 : PProblem :=
           name := "LOW"
           odes := [("T", (.bin "*" (.num "0.00833333") (.bin "-" (.bin "+" (.var "Tin") (.num "12")) (.var "T")))),
             ("Tin", (.num "0.0"))]
-          guard := (.and (.and (.and (.and (.cmp "<" (.var "T") (.num "52.0")) (.cmp ">=" (.var "T") (.num "40.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "40.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
+          guard := (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "T") (.num "52.0")) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56"))) (.cmp ">=" (.var "T") (.num "0.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
+          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "0.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
           next := ["LOW", "MED", "HIGH"] },
         {
           name := "MED"
           odes := [("T", (.bin "*" (.num "0.00833333") (.bin "-" (.bin "+" (.var "Tin") (.num "17")) (.var "T")))),
             ("Tin", (.num "0.0"))]
-          guard := (.and (.and (.and (.and (.and (.cmp ">=" (.var "T") (.num "52.0")) (.cmp "<=" (.var "T") (.num "78.0"))) (.cmp ">=" (.var "T") (.num "40.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "40.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
+          guard := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "T") (.num "52.0")) (.cmp "<=" (.var "T") (.num "78.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56"))) (.cmp ">=" (.var "T") (.num "0.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
+          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "0.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
           next := ["LOW", "MED", "HIGH"] },
         {
           name := "HIGH"
           odes := [("T", (.bin "*" (.num "0.00833333") (.bin "-" (.bin "+" (.var "Tin") (.num "22")) (.var "T")))),
             ("Tin", (.num "0.0"))]
-          guard := (.and (.and (.and (.and (.cmp ">" (.var "T") (.num "78.0")) (.cmp ">=" (.var "T") (.num "40.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "40.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
+          guard := (.and (.and (.and (.and (.and (.and (.cmp ">" (.var "T") (.num "78.0")) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56"))) (.cmp ">=" (.var "T") (.num "0.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
+          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "0.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
           next := ["LOW", "MED", "HIGH"] } ] }
     R := {
       stateVars := ["T", "Tin"]
@@ -49,22 +49,22 @@ def fuelcell_chp_dos_IRv2 : PProblem :=
           name := "LOW"
           odes := [("T", (.bin "*" (.num "0.00833333") (.bin "-" (.bin "+" (.var "Tin") (.num "12")) (.var "T")))),
             ("Tin", (.num "0.0"))]
-          guard := (.and (.and (.and (.and (.cmp "<" (.var "T") (.num "60.0")) (.cmp ">=" (.var "T") (.num "40.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "40.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
+          guard := (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "T") (.num "60.0")) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56"))) (.cmp ">=" (.var "T") (.num "0.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
+          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "0.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
           next := ["LOW", "MED", "HIGH"] },
         {
           name := "MED"
           odes := [("T", (.bin "*" (.num "0.00833333") (.bin "-" (.bin "+" (.var "Tin") (.num "17")) (.var "T")))),
             ("Tin", (.num "0.0"))]
-          guard := (.and (.and (.and (.and (.and (.cmp ">" (.var "T") (.num "50.0")) (.cmp "<" (.var "T") (.num "80.0"))) (.cmp ">=" (.var "T") (.num "40.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "40.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
+          guard := (.and (.and (.and (.and (.and (.and (.and (.cmp ">" (.var "T") (.num "50.0")) (.cmp "<" (.var "T") (.num "80.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56"))) (.cmp ">=" (.var "T") (.num "0.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
+          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "0.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
           next := ["LOW", "MED", "HIGH"] },
         {
           name := "HIGH"
           odes := [("T", (.bin "*" (.num "0.00833333") (.bin "-" (.bin "+" (.var "Tin") (.num "22")) (.var "T")))),
             ("Tin", (.num "0.0"))]
-          guard := (.and (.and (.and (.and (.cmp ">" (.var "T") (.num "70.0")) (.cmp ">=" (.var "T") (.num "40.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "40.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56")))
+          guard := (.and (.and (.and (.and (.and (.and (.cmp ">" (.var "T") (.num "70.0")) (.cmp ">=" (.var "Tin") (.num "40"))) (.cmp "<=" (.var "Tin") (.num "56"))) (.cmp ">=" (.var "T") (.num "0.0"))) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
+          evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "0.0")) (.cmp "<=" (.var "T") (.num "100.0"))) (.cmp ">=" (.var "Tin") (.num "0"))) (.cmp "<=" (.var "Tin") (.num "100")))
           next := ["LOW", "MED", "HIGH"] } ] }
     invariants := [
       ("LOW", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "7.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "7.0")))) (.cmp "<=" (.var "L_Tin") (.var "R_Tin"))) (.cmp "<=" (.var "R_Tin") (.var "L_Tin")))),

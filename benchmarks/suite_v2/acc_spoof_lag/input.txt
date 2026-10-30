@@ -2,10 +2,12 @@
 # the same powertrain lag and the same control period; the spoofed loop is the stock loop run 3/2
 # times faster toward a set speed 6 m/s lower.
 # scenario: sensor-attack
-# mechanisms: S M (time stretch lambda = 3/2, the ratio of the two dominant time constants,
-#   RELCERT_SYNC=1 declines, matrix code M1; multi-step cover, each 0.1 s left window matched by
-#   two right cycles (budget ceil(3/2 * 0.1 / 0.1) = 2), matrix code M2). Both letters come from
-#   the attack: the spoof scales the loop gain by 1.25 and so the dominant rate by 3/2. Batch I9
+# mechanisms: S (time stretch lambda = 3/2, the ratio of the two dominant time constants,
+#   RELCERT_SYNC=1 declines, matrix code M1). The stretch comes from the attack: the spoof scales
+#   the loop gain by 1.25 and so the dominant rate by 3/2. The cover is multi-step, each 0.1 s left
+#   window matched by two right cycles (budget ceil(3/2 * 0.1 / 0.1) = 2, matrix code M2), but M is
+#   not credited: the right has one mode, so its cycle boundaries are invisible and the two cycles
+#   are one continuous right run cut at epsilon_R (letter rule M, 2026-10-30). Batch I9
 #   (2026-10-27): the exact dominant-mode claim of the round-2 file is restored on the batch-I4
 #   models (0.1 s periods, the engaged envelopes as guards); the batch-I4 real-time claim with the
 #   8 m/s shortfall envelope (letters I) still certifies and is quoted below as a consequence.

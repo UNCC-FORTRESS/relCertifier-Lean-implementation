@@ -3,14 +3,15 @@
 # with the link always up; the deployed follower's link-loss decision waits for two message
 # periods (0.2 s), the design follower decides every message (0.1 s).
 # scenario: dos-attack
-# mechanisms: M (multi-cycle matching: one 0.2 s deployed decision against two 0.1 s design
-#   decisions, budget 2, matrix code M2). M is by construction of the period ratio: it comes from
-#   the link-loss timeout (batch I9, 2026-10-27), and with equal 0.1 s periods the file certifies
-#   with no letter (measured 2026-10-29). Round-4 fix (2026-10-29): the AEB fallback mode is
-#   removed from both sides. It was reachable only as a start (the operating range is forward
-#   invariant under CACC and ACC, see the shared model), so its D letter was the rows differing on
-#   a mode no CACC or ACC run enters (with the AEB removed the file certified with M only). No
-#   physical trigger keeps an AEB pairing (see "Why no AEB" below): letters M D -> M.
+# mechanisms: none (a tight-tolerance file: the deployed's link loss against the design CACC, every
+#   Delta constant tight). The cover is multi-cycle, one 0.2 s deployed decision against two 0.1 s
+#   design decisions (budget 2, matrix code M2), but M is not credited: the design has one mode, so
+#   its cycle boundaries are invisible and the two decisions are one continuous design run cut at
+#   epsilon_R (letter rule M, 2026-10-30). With equal 0.1 s periods the file also certifies
+#   (measured 2026-10-29). Round 4 (2026-10-29): the AEB fallback mode is removed from both sides.
+#   It was reachable only as a start (the operating range is forward invariant under CACC and ACC,
+#   see the shared model), so its D letter was the rows differing on a mode no CACC or ACC run
+#   enters; no physical trigger keeps an AEB pairing (see "Why no AEB" below).
 #
 # Shared platoon model (the same CACC, operating range and domain as platoon_latency and
 # platoon_profiles). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
@@ -36,9 +37,8 @@
 # after two consecutive message periods without, or with, a message (a two-message timeout, the
 # usual guard against a single dropped CAM), so its mode decision (CACC or ACC) is held for up to
 # 0.2 s. The claim compares the two at equal times (lambda 1), so one deployed decision is matched
-# by two design decisions (M).
-# The M window: any left decision period strictly above the right's gives M, with budget
-# ceil(left period / right period) (2 at the stated 2:1); the stated periods are not at an edge.
+# by two design decisions (matrix code M2; any left decision period strictly above the right's gives
+# a multi-cycle cover with budget ceil(left period / right period), 2 at the stated 2:1).
 # Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
 #   (rated closing rate); every mode's guard (the operating range) is forward invariant inside it.
 #
@@ -105,7 +105,8 @@
 # deployed decision, joint steps retaining the own mode only: no branching); admissible starts
 # CACC_L: [CACC], ACC_L: [CACC]. --handoff 4/4 passed (vacuous: one row set). relcert --wellformed:
 # CACC ok (invariant), 0 UNKNOWN, 0 BLOCKING. One-domain check passes. Letters
-# (scripts/suite_v2_letters.py through letters.sh): M D before the round-4 fix, M after.
+# (scripts/suite_v2_letters.py through letters.sh): M D before the round-4 fix, M after it, none
+# under the 2026-10-30 rule M (one design mode).
 #
 [problem]
 name = platoon_linkloss

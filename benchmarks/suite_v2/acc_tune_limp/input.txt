@@ -1,36 +1,39 @@
 # acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against the stock
-# controller with driver-selectable response modes; same control period on both sides.
+# controller; same control period on both sides.
 # scenario: degraded-controller
-# mechanisms: S M B D I X (time stretch 3/2; multi-step cover at that stretch; branching joint
-#   steps; mode-dependent rows, the stated requirement differs per mode; checked cuts,
-#   RELCERT_NO_CUT=1 declines; committed existential choice of the reference's response mode in
-#   both left modes, matrix codes M1 M2 M3 M5 M6). M and B come from the stretch (a CRUISE window
-#   of 0.1 s against 0.15 s of the reference). D under the rule of 2026-10-27: the rows differ,
-#   every handoff is unsat, and the only uniform row that certifies (v_L <= v_R in both modes,
-#   below) drops CRUISE's stated exactness requirement; the uniform exact row DECLINES in LIMP.
+# mechanisms: S M D I (time stretch 3/2; multi-step cover at that stretch, a CRUISE window of
+#   0.1 s against 0.15 s of the reference, budget 2; mode-dependent rows, the stated requirement
+#   differs per mode; checked cuts, RELCERT_NO_CUT=1 declines; matrix codes M1 M2 M5 M6). No X:
+#   RELCERT_NO_CHOICE=1 certifies. No B: the reference has no driver-selectable mode to branch
+#   into. D under the rule of 2026-10-27: the rows differ, every handoff is unsat, and the only
+#   uniform row that certifies (v_L <= v_R in both modes, below) drops CRUISE's stated exactness
+#   requirement; the uniform exact row DECLINES in LIMP.
+# Review round 6 (2026-10-30): the stock controller's COMFORT and SPORT response modes were
+#   removed (NORMAL.next = [NORMAL, DISENGAGE]). No cover ran them (every hop went into NORMAL,
+#   and the LIMP entry from CRUISE inherits the reference in NORMAL), so the earlier B and X were
+#   start-only; letters S M B D I X -> S M D I.
 #
 # System. Speed v (m/s), time s. The deployed controller (left) runs an aftermarket tune: CRUISE
 # v' = 0.75 (30 - v) (speed-loop gain 0.75 /s toward the set speed 30 m/s). When the tuned ECU
 # detects a drivetrain fault it LATCHES a limp-home map until the next ignition cycle: LIMP
 # v' = 0.3 (25 - v) (set speed 25 m/s, soft gain 0.3 /s); CRUISE -> LIMP at any decision, no way
-# back. The reference (right) is the stock controller: the driver selects a response mode at any
-# time, NORMAL 0.5, COMFORT 0.4 or SPORT 0.6 /s toward 30 m/s (NORMAL <-> COMFORT / SPORT), and
+# back. The reference (right) is the stock controller: NORMAL v' = 0.5 (30 - v) toward 30 m/s, and
 # below the 20 m/s ACC floor the system hands back to the driver: DISENGAGE v' = -0.1 v (a
 # coast-down of engine-braking order, 2 m/s^2 at the floor), latched.
 # One cause: the tune (gain x 1.5 and the limp map it adds).
 # Control period: 0.1 s on BOTH sides (epsilon = 0.1; every decision interval is at most 0.1 s):
-# the mode decisions (fault latch, response-mode selection, ACC floor) are taken on the ACC's
-# update cycle, bounded by an automotive long-range radar's cycle (the Continental ARS 408-21 data
-# sheet gives about 72 ms). The speed loops are continuous in the ODEs.
+# the mode decisions (fault latch, ACC floor) are taken on the ACC's update cycle, bounded by an
+# automotive long-range radar's cycle (the Continental ARS 408-21 data sheet gives about 72 ms).
+# The speed loops are continuous in the ODEs.
 #
 # Guards. Both controllers operate from the ACC floor 20 m/s (the stock controller's real
 # engagement speed, kept by the tune). Left CRUISE: 20 to 36 m/s (36 m/s the tune's resume
 # ceiling); LIMP is entered anywhere the ACC is engaged, 20 to 36 m/s (a drivetrain fault is not
-# conditioned on speed). Right NORMAL / COMFORT / SPORT: 20 to 40 m/s, the whole engaged range
-# up to the domain's top; DISENGAGE below 20. The right guards partition [0, 40] (no coverage
-# gap); every left mode has a satisfiable start (v_L = v_R).
+# conditioned on speed). Right NORMAL: 20 to 40 m/s, the whole engaged range up to the domain's
+# top; DISENGAGE below 20. The right guards partition [0, 40] (no coverage gap); every left mode
+# has a satisfiable start (v_L = v_R).
 # Physical domain 0 <= v <= 40 m/s both sides; every right band is forward invariant
-# (relcert --wellformed: all four modes ok (invariant)).
+# (relcert --wellformed: NORMAL, DISENGAGE ok (invariant), 0 UNKNOWN, 0 BLOCKING).
 #
 # Property (mode-dependent).
 #   CRUISE: v_L = v_R (two rows). The tune's specification: the stock NORMAL response, 1.5 times
@@ -39,50 +42,40 @@
 #   LIMP: v_L <= v_R. Requirement: the limp-home map never makes the car faster than the
 #     reference. Constant 0 is forced: the handoff CRUISE -> LIMP starts from v_L = v_R.
 #     The LIMP ceiling is not load-bearing: the row certifies with LIMP admitted up to 37.50 m/s
-#     (37.51 declines), above the 36 m/s CRUISE ceiling; 37.5 is the speed at which NORMAL
-#     (0.5 (30 - v)) and the limp map (0.3 (25 - v)) decelerate equally (7.5 - 0.2 v = 0).
+#     (37.51 declines; measured against the reference in NORMAL), above the 36 m/s CRUISE
+#     ceiling; 37.5 is the speed at which NORMAL (0.5 (30 - v)) and the limp map (0.3 (25 - v))
+#     decelerate equally (7.5 - 0.2 v = 0).
 # The rows differ because the exact CRUISE row cannot hold in LIMP (the limp map settles 5 m/s
-# low): the uniform exact row DECLINES. A uniform v_L <= v_R in both modes certifies (with the same
-# S, X, I verdicts) but states less in CRUISE: it drops the tune's exactness requirement, so under
-# the D rule of 2026-10-27 (the stated requirement differs per mode; a weaker uniform row that drops
-# a stated requirement does not remove D) the file counts D (the letters step: CRUISE row uniform
-# DECLINED, LIMP row uniform CERTIFIED but drops a stated row).
+# low): the uniform exact row DECLINES. A uniform v_L <= v_R in both modes certifies but states
+# less in CRUISE: it drops the tune's exactness requirement, so under the D rule of 2026-10-27
+# (the stated requirement differs per mode; a weaker uniform row that drops a stated requirement
+# does not remove D) the file counts D (the letters step: CRUISE row uniform DECLINED, LIMP row
+# uniform CERTIFIED but drops a stated row).
 # The exact rows place the fallback without a dodge: v_L >= 20 and v_L <= v_R give v_R >= 20,
-# so DISENGAGE is no admissible start, and NORMAL / COMFORT / SPORT -> DISENGAGE are pruned (each
-# loop accelerates at the floor). With any positive lead allowed in CRUISE (v_L <= v_R + c,
-# c > 0) the file DECLINES at the 20 m/s floor (measured at c = 0.5): the reference could then
-# start disengaged. The DISENGAGE field is pruned on every edge, so the verdict never depends on
-# it.
-# Existential choice (X). The deployed tune mirrors NORMAL only. When the reference starts in
-# COMFORT or SPORT the exact CRUISE row fails there; the cover commits the reference's driver to
-# NORMAL (choice hops COMFORT -> NORMAL and SPORT -> NORMAL). In LIMP, above 35 m/s SPORT
-# (0.6 (30 - v)) decelerates faster than the limp map (0.3 (25 - v)), so against a driver who
-# stays in SPORT the tuned car would lead; the cover commits the driver to NORMAL there (hop
-# SPORT -> NORMAL at budget 1). The LIMP row holds against every selection (plain cover, no hop)
-# with the ceiling at 35.00 m/s, and with the committed choice up to 37.50 m/s (37.51 declines).
-# RELCERT_NO_CHOICE=1 DECLINES.
+# so DISENGAGE is no admissible start, and NORMAL -> DISENGAGE is pruned (the loop accelerates at
+# the floor). With any positive lead allowed in CRUISE (v_L <= v_R + c, c > 0) the file DECLINES
+# at the 20 m/s floor (measured at c = 0.5): the reference could then start disengaged. The
+# DISENGAGE field is pruned on every edge, so the verdict never depends on it.
 # The claim depends on the cause: with a tune gain of 0.8 /s (not 1.5 x 0.5) the exact CRUISE row
 # DECLINES. Measured, not part of the claim: in LIMP the reference leads by at most 7.00 m/s
 # (adding v_R <= v_L + c certifies down to c = 7.00; 6.99 declines).
 #
 # Stretch pinned (2026-10-29): lambda_min 1, lambda_max 6 -> 1.5. The per-pairing stretch pairs
 # CRUISE at 3/2 (the tune is NORMAL 1.5 times faster) and LIMP at 1, the two ends of the range, so
-# the unused range (1.5, 6] is gone; verdict, --wellformed, --handoff, covers and the five
-# ablations (SYNC, NO_CHOICE, NO_PRUNE, NO_REPO, NO_CUT) are identical to the lambda_max 6 file.
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes,
-# re-measured 2026-10-29 at lambda_max 1.5):
-# CERTIFIED (1.5 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_REPO=1, without
-# RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and
-# RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1,
-# NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE and RELCERT_NO_CUT=1 (the band conjuncts are checked cuts the
-# segments need). Covers: CRUISE by choice at lambda = 3/2, budget ceil(1.5 * 0.1 / 0.1) = 2, joint
-# steps from NORMAL retaining COMFORT and SPORT (branch 2); LIMP by choice at lambda = 1, budget 1
-# (hop SPORT -> NORMAL, see X above). Pruning is redundant with the exact rows
-# (RELCERT_NO_PRUNE=1 certifies): no P. Pruned: NORMAL, COMFORT, SPORT -> DISENGAGE. --handoff 3/3
-# unsat, non-vacuous. relcert --wellformed: NORMAL, COMFORT, SPORT, DISENGAGE ok (invariant),
-# 0 UNKNOWN, 0 BLOCKING. The right model differs from the 2026-10-27 file in its period
-# (epsilon 1.0 -> 0.1) and its DISENGAGE field (-0.5 v -> -0.1 v); its Assumption 1 proof
-# (WellFormed/AccTuneLimp.lean) states both. Units m/s, s.
+# the unused range (1.5, 6] is gone.
+# Verdicts (2026-10-30, current model): CERTIFIED; CERTIFIED under RELCERT_NO_CHOICE=1; letters
+# S M D I (suite_v2_matrix.py + suite_v2_letters.py). Re-measured 2026-10-30 on the current
+# model (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED (0.7 s); CERTIFIED under
+# RELCERT_NO_PRUNE=1, RELCERT_NO_REPO=1, RELCERT_NO_PAIR_STRETCH=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and
+# RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1 and RELCERT_NO_CUT=1 (the band
+# conjuncts are checked cuts the segments need); --handoff 3/3 unsat, non-vacuous; the LIMP
+# ceiling 37.50 (37.51 declines), the floor lead c = 0.5, the gain 0.8 and the 7.00 lead (6.99
+# declines) above, unchanged. Covers: CRUISE at lambda = 3/2, budget ceil(1.5 * 0.1 / 0.1) = 2; LIMP at lambda = 1,
+# budget 1. Pruning is redundant with the exact rows (RELCERT_NO_PRUNE=1 certifies): no P.
+# Pruned: NORMAL -> DISENGAGE. The right model differs from the 2026-10-27 file in its period
+# (epsilon 1.0 -> 0.1), its DISENGAGE field (-0.5 v -> -0.1 v) and its modes (COMFORT and SPORT
+# removed); its Assumption 1 proof (WellFormed/AccTuneLimp.lean) states all three. Units m/s, s.
 [problem]
 name = acc_tune_limp
 max_depth = 8
@@ -109,17 +102,7 @@ epsilon = 0.1
 ode = v' = smt2:(* 0.5 (- 30.0 v));
 guard = v >= 20.0 and v <= 40.0
 evolve = v >= 0.0 and v <= 40.0
-next = [NORMAL, COMFORT, SPORT, DISENGAGE]
-[Rsys.mode.COMFORT]
-ode = v' = smt2:(* 0.4 (- 30.0 v));
-guard = v >= 20.0 and v <= 40.0
-evolve = v >= 0.0 and v <= 40.0
-next = [COMFORT, NORMAL, DISENGAGE]
-[Rsys.mode.SPORT]
-ode = v' = smt2:(* 0.6 (- 30.0 v));
-guard = v >= 20.0 and v <= 40.0
-evolve = v >= 0.0 and v <= 40.0
-next = [SPORT, NORMAL, DISENGAGE]
+next = [NORMAL, DISENGAGE]
 [Rsys.mode.DISENGAGE]
 ode = v' = smt2:(* -0.1 v);
 guard = v < 20.0

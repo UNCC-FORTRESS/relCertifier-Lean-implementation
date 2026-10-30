@@ -6,7 +6,6 @@ import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
 import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
-import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
 import RelCertifier.InstancesV2.BenchCovers.flaps_slow_approach
@@ -24,6 +23,7 @@ import RelCertifier.InstancesV2.BenchCovers.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchCovers.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchCovers.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchCovers.lit_nahs25_salt_tank
+import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
@@ -60,7 +60,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
   ("canal_gate_notches", canal_gate_notches_coverV2),
-  ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
   ("flaps_slow_approach", flaps_slow_approach_coverV2),
@@ -78,6 +77,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2),
+  ("molding_pack_checkring", molding_pack_checkring_coverV2),
   ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
   ("platoon_profiles", platoon_profiles_coverV2),

@@ -1,6 +1,7 @@
-# lit_gpt10_boost_converter: a boost DC-DC converter switched at 0.5 s sample instants is matched,
-# within the source's precision 2.6, by every run of its lattice abstraction (the boost example of
-# approximately bisimilar symbolic models for incrementally stable switched systems).
+# lit_gpt10_boost_converter: every run of the lattice abstraction of a boost DC-DC converter is
+# matched, within the source's precision 2.6, by a run of the converter switched at 0.5 s sample
+# instants (the boost example of approximately bisimilar symbolic models for incrementally stable
+# switched systems).
 # scenario: abstraction
 # mechanisms: X (committed successor subsets: the converter commits, per window, to the switch
 #   position the abstraction takes)

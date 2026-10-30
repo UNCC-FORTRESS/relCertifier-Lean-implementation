@@ -14,7 +14,7 @@
 #   UP    z < 18, b >= 0.95           speed loop toward the rated 1.6 m/s, v' = 0.8 (1.6 - v)
 #                                      (initial acceleration 1.28 m/s^2), z' = v
 #   APP   18 <= z < 19.9              approach at the levelling speed, v' = 0.8 (0.25 - v)
-#   STOP  z >= 19.9,                  stop at the landing, v' = -4 v (rest at about 19.96 m), brake
+#   STOP  z >= 19.9,                  stop at the landing, v' = -4 v (rest at about 20.07 m), brake
 #         z + v/4 <= 20.5             drops, b' = -5 b; z + v/4 is the rest position (constant in
 #                                      STOP), so the stop is engaged only when the car comes to rest
 #                                      below the overhead clearance (the final limit)
@@ -55,8 +55,10 @@
 # left guard the domain, every mode a successor of every other) DECLINES.
 #
 # Domains. z in [-0.5, 20.5] m (pit buffer to overhead clearance: physical limits; from the UP
-# guard one 0.1 s period reaches at most 18.17 m, STOP comes to rest within 0.1 m of 19.9 m on the
-# trip), v in [0, 1.7] m/s and b in [0, 1]; forward invariant from every mode's guard. The STOP
+# guard one 0.1 s period reaches at most 18.17 m; on the trip the car enters STOP at z = 19.947 m,
+# v = 0.482 m/s and comes to rest at z + v/4 = 20.068 m, 7 cm past the 20 m landing, the same on
+# both sides (simulated 2026-10-30, exact flows per 0.1 s period, from (0, 0, 0))), v in [0, 1.7]
+# m/s and b in [0, 1]; forward invariant from every mode's guard. The STOP
 # guard's rest-position conjunct z + v/4 <= 20.5 (2026-10-27, both sides, at installation): without
 # it the strict Assumption 1 gate reports STOP BLOCKING (a guard state at z = 20.5, v > 0 leaves the
 # overhead limit at once); with it STOP is forward invariant (z + v/4 is constant, z does not fall)
@@ -65,7 +67,8 @@
 # guards: a moving or raised car with an unlifted brake (b < 0.95 and (z > 0.1 or v > 0), z < 18)
 # lies in no right guard; unreachable (the brake lifts before the car moves and stays lifted in UP
 # and APP); nor does a car above 19.9 m whose rest position lies beyond the overhead limit
-# (unreachable: the trip arrives at about 0.5 m/s). RELCERT_OPREGION=1 reports that the UP rows admit such reference starts for UP_L; they
+# (unreachable: the trip arrives at about 0.5 m/s). RELCERT_OPREGION=1 reports that the UP rows
+# admit such reference starts for UP_L; they
 # are outside the right's operating region and excluded by Theorem 3's premise (the OPREGION run
 # CERTIFIES). Every left mode has a satisfiable start (equal states).
 #

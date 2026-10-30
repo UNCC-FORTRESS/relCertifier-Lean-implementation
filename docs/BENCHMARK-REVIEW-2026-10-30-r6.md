@@ -679,3 +679,42 @@ LOW
 - furnace_program_timebase: AMS 2750 Class 3 is a spatial-uniformity class, not a tracking tolerance.
 - rover_terrain_6to12: 3 output-only coordinates inflate dim 12. The requirement rows are left-only.
 - fuelcell_chp_dos: the certified tolerance set is non-monotone and the 5.00 is the tool's segment-end obligation (disclosed). A hot start at 100 degC is not an operating start.
+
+## Verified HIGH findings and actions (2026-10-30)
+
+Every HIGH finding was treated as a hypothesis and checked by tool runs on scratch copies (frozen binary,
+`RELCERT_IMPLIED_CUT=1`, bisection to 0.01, the letters pipeline on scratch suites), by simulation or by Z3
+face checks (`tmp/verify-r6/`). 21 HIGH findings from the reviewers, all confirmed (two only partly); the
+verifiers found three more of the same classes (marked +). Actions:
+
+| benchmark | finding (verified) | action | letters before -> after |
+|---|---|---|---|
+| `hydro_rejection_gatecal` | header said the REJECT speed band is 0.09; the file (since round 4) has 0.07 | header | D -> D |
+| `turbine_startup_gearratio` | the GEN tolerance 0.061 and D needed only for GEN states above rated speed, which no run reaches (start-only) | uniform rows `w_L <= 1.05 w_R and w_L <= 12.705` (ceiling 12.705 tight, factor 1.05 tight) | R P D I -> R P I |
+| `platoon_profiles` | the P_0.45 row is implied by the others (1.49 declining is the tool's route: the rows are proved as a chain); 3.34 is the tool's bound, the semantic fixpoint is 2.80 / 1.12 (Z3 face check) | header (the tool needs the redundant row) | S M -> S (rule M) |
+| `platoon_linkloss` | M comes from a single-mode right whose 0.1 s period changes no run (right epsilon 0.2: budget 1) | letter rule M (below); header | M -> none |
+| `engine_start_highidle` | "real-time" 4 % bound: in lock step the gap reaches 5.51 % | header (profile comparison against a reference that may run ahead alone) | R D I -> R D I |
+| `rampmeter_poll_2to1` | "tightest 7.00": 5.00 also certifies (certifying sets non-monotone, steps of 5) | header (sets per poll period) | M B -> M B |
+| `h2_refuel_ambientbias` | R needed only for TOPOFF_L / STAGE3_R start pairs no handoff produces | rows `p_R >= 58` in TOPOFF and COMPLETE (now certifies under SYNC and NO_REPO) | R D I -> D I |
+| `flaps_slow_approach` | "domain not load-bearing" false: the placard range sets 25 / 10 (guards repeat it) | header | S -> S |
+| `elevator_start_discbrake` | rest position 19.96 m wrong: 20.07 m | header | R D -> R D |
+| `ventilator_vc_cuffleak` | domain `V <= 0.404`, `V - 0.4 t <= 0` is the reachable set of one breath and carries the INSP -> EXP handoff | model: the ventilator's inspiratory countdown timer `s` (INSP `s' = -1`, guard `s >= 0.01`; EXP `s' = 0`); physical domain `s >= 0, V >= -0.4`; the delivered-volume bound moved into the claim; Assumption 1 proof adapted | D -> D |
+| `watertank_twospeed` | P from the dead edge Fast -> PumpOff (Fast keeps x >= 2) | edge removed (right model; proof's edge list) | S M B P -> S M B |
+| `acc_spoof_limp` | X only from LIMP starts at 34.5-36 m/s, unreachable under the 2 s debounce (at most 28.58) | LIMP ceiling 28.6 | M B I X -> M B I |
+| `quad_light_profiles` | B and X from ECO / SPORT, which the witness never ran | redesign: the pilot may switch profiles on both sides, each profile its own stretch (1.25 / 1.2 / 1.16), Phi conserved in every matched pairing; SPORT set point 2.4 -> 2.5; Assumption 1 proof adapted | S M B X -> S M B X (now genuine) |
+| `rover_terrain_2to4` | S and M needed only for starts with w_L > v_R; w_L <= v_R is forward invariant | real-time form (row `w_L <= v_R`, lambda 1) | S M I -> I |
+| `charger_fast_tapers` | S not forced (lambda = 1 file certifies); c = 1 and D from the tool's FULL over-approximation; header rates were the profile's; + the claim does not depend on its cause (an 8x deployed rate certifies) | SKIPPED (`benchmarks/skipped/charger_fast_tapers/SKIPPED.md`); refill `molding_pack_checkring` (reserve, reframed: 2000 bar machine rating as the domain, hold setting in the claim; tight 19.24 = 500 l / (10 + l); D genuine) | S M R B D I -> out; D in |
+| `fuelcell_chp_dos` | Tin [40, 56] design band in the domain decides the verdict; P / X in LOW_L / HIGH_L windows | domain = physical (T, Tin in [0, 100]); the design inlet range moved into every guard on both sides (a stated permission condition); P and X decided in LOW_L, the cold-start warm-up of every real start (HIGH_L carries only mirror halves); Assumption 1 proof adapted | M B P X -> M B P X |
+| `rover_terrain_6to12` | the route-grade bound theta_p <= 0.02 sets the slip verdict, not stated | header (load-bearing physical route constant, edge 0.028) | I -> I |
+| + `acc_tune_limp` | the witness never ran COMFORT / SPORT (every hop into NORMAL): B and X start-only | COMFORT and SPORT removed from the stock controller; Assumption 1 proof adapted | S M B D I X -> S M D I |
+| + `acc_spoof_lag`, `acc_tune_lag`, `gantry_speed_zones`, `quad_light_lag` (and the two platoon files above) | M from a single-mode right (the same class as `platoon_linkloss`) | letter rule M | S M -> S |
+
+Letter rule M (`scripts/suite_v2_letters.py`, 2026-10-30): M also needs a right with at least two modes;
+with one right mode the cycle boundaries are invisible (a multi-step cover is one continuous right run cut at
+epsilon_R), so the matrix still reports the cover shape (M2) but no letter is credited.
+
+Not acted on (LOW): wording items in the per-group notes; `antenna_track_kvretune` STOW row 0.25 (loose
+against 0.085, not a requirement); `train_ato_odometry` M and B from cross-level pairings (borderline,
+filed LOW by its reviewer); `rampmeter_poll_2to1` k domain = the forward-invariant band [14, 42.5] rather than the
+capacity (LOW; measured not load-bearing: with k in [0, 45] it CERTIFIES, 0 UNKNOWN, 0 BLOCKING); `quad_light_lag` lag acting on the feedforward only (RETHINK at 2, a design objection, not a
+HIGH class); `rover_patrol_lag` re-timed one-sided order (RETHINK at 2, no HIGH finding).

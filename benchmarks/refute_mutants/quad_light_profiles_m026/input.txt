@@ -1,0 +1,76 @@
+# quad_light_profiles: the 20 %-lighter quadrotor flown with the pilot's in-flight climb-profile
+# selection (ECO, NORMAL, SPORT, any order), against the reference model with the same profiles;
+# altitude conformance per profile at the time scaling the mass ratio fixes for that profile.
+# scenario: model-refinement
+# mechanisms: S M B X (per-profile stretch: ECO 5/4, NORMAL 6/5, SPORT 29/25 = 1.16, RELCERT_SYNC=1
+#   declines; budget 2 with joint steps; branching: the reference's NORMAL segment retains ECO and
+#   SPORT, both run by the witness; committed choice: when the pilot switches the deployed's profile
+#   the witness switches the reference to the same profile (hops X -> p into p in left mode p),
+#   RELCERT_NO_CHOICE=1 declines). Review round 6 (2026-10-30): the deployed gained the three
+#   profiles (pilot switching, universal), so every reference profile is run and every hop is on
+#   the replayed path.
+#
+# System. h' = w, w' = T/m - g - K w with the autopilot's P loop T = m_R (g + K (w_sp - w)), K = 4.905.
+#   Right (reference, m_R): w' = 4.905 (w_sp - w); ECO 1.6, NORMAL 2.0, SPORT 2.5 m/s
+#     (SPORT 2.5 so its stretch 2.9/2.5 = 1.16 is a decimal grid point).
+#   Left (deployed, m_L = 0.8 m_R): w' = 1.25 (g + K (w_sp - w)) - g = (w_sp + 0.4) 6.13125 - 6.13125 w;
+#     ECO 12.2625 (terminal 2.0), NORMAL 14.715 (2.4), SPORT 17.780625 (2.9); any profile after any.
+#   Stretch per profile lambda_p = (w_sp + 0.4)/w_sp: 1.25, 1.2, 1.16, all on the 21-point grid of
+#   [1.15, 1.25] (step 0.005). Phi = (h_L - h_R) + w_L/6.13125 - w_R/4.905 is conserved in every
+#   matched pairing at its stretch (Phi' = c_L - lambda c_R = 0) and is mode-independent, so pilot
+#   switches do not move it.
+# Rows (uniform, every left mode): requirement h_R - h_L <= 0.8, h_L - h_R <= 0.8 (NAV_MC_ALT_RAD);
+#   Phi <= 0.76 (tight: 0.77 declines; 0.8 - 0.09 x 2.5/6.13125); Phi >= -0.8 (needed: dropping it
+#   declines; any constant >= 0.32 certifies, the radius is stated); 1.16 w_R <= w_L (tight: 1.17
+#   declines; inductive in all three pairings for w_R <= 2.5); w_L <= 2.9 (tight: 2.89 declines;
+#   the deployed's SPORT terminal).
+# Domain (one, both sides): h >= 0, 0 <= w <= 3 (the 3 m/s climb-rate limiter).
+# Verdicts (measured 2026-10-30, RELCERT_IMPLIED_CUT=1): CERTIFIED (about 11 s); DECLINED under
+#   RELCERT_SYNC=1 and RELCERT_NO_CHOICE=1. Letters S M B X (scripts/suite_v2_letters.py).
+#   relcert --wellformed: NORMAL, ECO, SPORT ok (invariant), 0 UNKNOWN, 0 BLOCKING.
+[problem]
+name = quad_light_profiles
+max_depth = 8
+lambda_min = 1.15
+lambda_max = 1.25
+bound_T = 4.0
+[Lsys]
+state_vars = [h, w]
+epsilon = 1.0
+[Lsys.mode.ECO]
+ode = h' = w; w' = smt2:(- 12.2625 (* 6.13125 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
+next = [ECO, NORMAL, SPORT]
+[Lsys.mode.NORMAL]
+ode = h' = w; w' = smt2:(- 14.715 (* 6.13125 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
+next = [NORMAL, ECO, SPORT]
+[Lsys.mode.SPORT]
+ode = h' = w; w' = smt2:(- 17.780625 (* 6.13125 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
+next = [SPORT, ECO, NORMAL]
+[Rsys]
+state_vars = [h, w]
+epsilon = 1.0
+[Rsys.mode.NORMAL]
+ode = h' = w; w' = smt2:(- 9.81 (* 4.905 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
+next = [NORMAL, ECO, SPORT]
+[Rsys.mode.ECO]
+ode = h' = w; w' = smt2:(- 7.848 (* 4.905 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
+next = [ECO, NORMAL, SPORT]
+[Rsys.mode.SPORT]
+ode = h' = w; w' = smt2:(- 12.2625 (* 4.905 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
+next = [SPORT, NORMAL, ECO]
+[relational_invariant]
+ECO = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w))) (* 6.13125 0.76)) (<= (* 1.16 R_w) L_w) (<= L_w 2.9) (>= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 L_w)) (* 6.13125 0.8)) 0.0))
+NORMAL = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w))) (* 6.13125 0.76)) (<= (* 1.16 R_w) L_w) (<= L_w 2.9) (>= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 L_w)) (* 6.13125 0.8)) 0.0))
+SPORT = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w))) (* 6.13125 0.76)) (<= (* 1.16 R_w) L_w) (<= L_w 2.9) (>= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 L_w)) (* 6.13125 0.8)) 0.0))

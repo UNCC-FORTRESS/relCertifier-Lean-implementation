@@ -5,11 +5,12 @@ Released under Apache 2.0 license.
 # `quad_light_profiles`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr` (the file's three pilot-selectable climb
-profiles and their declared `next` lists, each profile listing all three), the lowered right
-guards, `ε_r = 1`. The right model is the reference quadrotor's climb, an affine cascade on
+profiles and their declared `next` lists, each profile listing all three; review round 6,
+2026-10-30, raised the `SPORT` set point from 2.4 to 2.5 m/s), the lowered right guards,
+`ε_r = 1`. The right model is the reference quadrotor's climb, an affine cascade on
 altitude `h` (`Rv 0`) and climb rate `w` (`Rv 1`): `h' = w`, `w' = c_q − 4.905 w` with
-`c_q = 9.81` (`NORMAL`), `7.848` (`ECO`), `11.772` (`SPORT`), terminal climb rates
-`c_q / 4.905 = 2.0, 1.6, 2.4`; in every profile guard = evolve = `h ≥ 0 ∧ 0 ≤ w ≤ 3` (the
+`c_q = 9.81` (`NORMAL`), `7.848` (`ECO`), `12.2625` (`SPORT`; `11.772` before), terminal climb rates
+`c_q / 4.905 = 2.0, 1.6, 2.5`; in every profile guard = evolve = `h ≥ 0 ∧ 0 ≤ w ≤ 3` (the
 autopilot's climb-rate limiter, since the domain audit of 2026-10-29; `2.4` before).
 The bridge dimension is `3` (the cover uses the committed mode choice, so no modal pack fixes
 it and it falls back to `max (#left state vars) 3`): coordinate `Rv 2` is a padding coordinate
@@ -63,8 +64,8 @@ theorem hp981 : Run.parseRat "9.81" = some ((981 : ℚ) / 100) := by
 theorem hp7848 : Run.parseRat "7.848" = some ((981 : ℚ) / 125) := by
   have h : parseQ "7.848" = some (⟨7848, 1000⟩ : QF) := by decide
   simp [Run.parseRat, h]; try norm_num
-theorem hp11772 : Run.parseRat "11.772" = some ((2943 : ℚ) / 250) := by
-  have h : parseQ "11.772" = some (⟨11772, 1000⟩ : QF) := by decide
+theorem hp122625 : Run.parseRat "12.2625" = some ((981 : ℚ) / 80) := by
+  have h : parseQ "12.2625" = some (⟨122625, 10000⟩ : QF) := by decide
   simp [Run.parseRat, h]; try norm_num
 theorem hp4905 : Run.parseRat "4.905" = some ((981 : ℚ) / 200) := by
   have h : parseQ "4.905" = some (⟨4905, 1000⟩ : QF) := by decide
@@ -72,10 +73,10 @@ theorem hp4905 : Run.parseRat "4.905" = some ((981 : ℚ) / 200) := by
 
 /-! ## The right fields, domain and guards, evaluated (`h` = `Rv 0`, `w` = `Rv 1`) -/
 
-/-- The profile's thrust term `c_q` (`NORMAL` 9.81, `ECO` 7.848, `SPORT` 11.772). -/
-noncomputable def cR (q : ℕ) : ℝ := if q = 0 then 981 / 100 else if q = 1 then 981 / 125 else 2943 / 250
+/-- The profile's thrust term `c_q` (`NORMAL` 9.81, `ECO` 7.848, `SPORT` 12.2625). -/
+noncomputable def cR (q : ℕ) : ℝ := if q = 0 then 981 / 100 else if q = 1 then 981 / 125 else 981 / 80
 
-/-- Every terminal climb rate `c_q / 4.905` (2.0, 1.6, 2.4) lies in `[0, 3]`. -/
+/-- Every terminal climb rate `c_q / 4.905` (2.0, 1.6, 2.5) lies in `[0, 3]`. -/
 theorem cR_rate (q : ℕ) (hq : q < 3) : 0 ≤ cR q / (981 / 200) ∧ cR q / (981 / 200) ≤ 3 := by
   interval_cases q <;> norm_num [cR]
 
@@ -83,7 +84,7 @@ theorem cR_rate (q : ℕ) (hq : q < 3) : 0 ≤ cR q / (981 / 200) ∧ cR q / (98
 theorem fR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) : Term.eval (fR q 0) x = x (Rv 1) := by
   interval_cases q <;>
   simp [fR, hostDyn, mR, quad_light_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp981, hp7848,
-    hp11772, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    hp122625, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
     AOp.interp, Rv]
 
 /-- Climb rate: `w' = c_q − 4.905 w`. -/
@@ -91,14 +92,14 @@ theorem fR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
     Term.eval (fR q 1) x = cR q - 981 / 200 * x (Rv 1) := by
   interval_cases q <;>
   simp [fR, hostDyn, mR, quad_light_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp981, hp7848,
-    hp11772, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    hp122625, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
     AOp.interp, Rv, cR]
 
 /-- The padding coordinate (not in `vs`): its right field lowers to `0`. -/
 theorem fR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) : Term.eval (fR q 2) x = 0 := by
   interval_cases q <;>
   simp [fR, hostDyn, mR, quad_light_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp981, hp7848,
-    hp11772, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    hp122625, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
     AOp.interp, Rv]
 
 /-- The climb box (every profile's guard and the evolve domain). -/

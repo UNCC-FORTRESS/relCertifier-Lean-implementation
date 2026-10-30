@@ -14,6 +14,6 @@ namespace RelCertifier
 def acc_spoof_limp_coverV2 : CoverEmitE :=
   ⟨"acc_spoof_limp", [("NORMAL", "DISENGAGE"), ("ECO", "DISENGAGE"), ("SPORT", "DISENGAGE")], [
     ⟨"CRUISE", (1 : ℚ) / 1, 2, [⟨"NORMAL", true, false, false⟩, ⟨"ECO", true, false, false⟩, ⟨"SPORT", true, false, false⟩, ⟨"DISENGAGE", false, false, false⟩], ["NORMAL", "ECO", "SPORT"], [⟨"NORMAL", [0, 1], [], [], 1, 1⟩, ⟨"ECO", [0, 1], [], [], 1, 1⟩, ⟨"SPORT", [0, 1], [], [], 1, 1⟩, ⟨"DISENGAGE", [1], [1], [1], 1, 1⟩]⟩,
-    ⟨"LIMP", (1 : ℚ) / 1, 2, [⟨"NORMAL", true, false, false⟩, ⟨"ECO", false, false, false⟩, ⟨"SPORT", true, false, false⟩, ⟨"DISENGAGE", false, false, false⟩], ["NORMAL", "ECO", "SPORT"], [⟨"NORMAL", [0, 1], [], [], 1, 1⟩, ⟨"ECO", [1], [], [], 1, 1⟩, ⟨"SPORT", [0, 1], [], [], 1, 1⟩, ⟨"DISENGAGE", [1], [1], [1], 1, 1⟩]⟩]⟩
+    ⟨"LIMP", (1 : ℚ) / 1, 2, [⟨"NORMAL", true, false, false⟩, ⟨"ECO", true, false, false⟩, ⟨"SPORT", true, false, false⟩, ⟨"DISENGAGE", false, false, false⟩], ["NORMAL", "ECO", "SPORT"], [⟨"NORMAL", [0, 1], [], [], 1, 1⟩, ⟨"ECO", [0, 1], [], [], 1, 1⟩, ⟨"SPORT", [0, 1], [], [], 1, 1⟩, ⟨"DISENGAGE", [1], [1], [1], 1, 1⟩]⟩]⟩
 
 end RelCertifier

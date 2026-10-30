@@ -13,8 +13,8 @@ namespace RelCertifier
 /-- `rover_terrain_2to4` (emitted, suite_v2, widened cut channel on). -/
 def rover_terrain_2to4_coverV2 : CoverEmitE :=
   ⟨"rover_terrain_2to4", [], [
-    ⟨"MUD", (1 : ℚ) / 1, 1, [⟨"MUD", true, false, false⟩, ⟨"GRAVEL", true, false, false⟩, ⟨"PAVED", true, false, false⟩], ["MUD", "GRAVEL", "PAVED"], [⟨"MUD", [0, 1, 2, 3], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"GRAVEL", [0, 1, 2, 3], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"PAVED", [0, 1, 2, 3], [1, 2, 3], [1, 2, 3], 1, 1⟩]⟩,
-    ⟨"GRAVEL", (67 : ℚ) / 50, 2, [⟨"MUD", false, false, false⟩, ⟨"GRAVEL", true, false, false⟩, ⟨"PAVED", true, false, false⟩], ["GRAVEL", "PAVED"], [⟨"MUD", [2, 3], [1, 2, 3], [1, 2, 3], 67, 50⟩, ⟨"GRAVEL", [0, 1, 2, 3], [1, 2, 3], [1, 2, 3], 67, 50⟩, ⟨"PAVED", [0, 1, 2, 3], [1, 2, 3], [1, 2, 3], 67, 50⟩]⟩,
-    ⟨"PAVED", (27 : ℚ) / 10, 3, [⟨"MUD", false, false, false⟩, ⟨"GRAVEL", false, false, false⟩, ⟨"PAVED", true, false, false⟩], ["PAVED"], [⟨"MUD", [2, 3], [1, 2, 3], [1, 2, 3], 27, 10⟩, ⟨"GRAVEL", [2, 3], [1, 2, 3], [1, 2, 3], 27, 10⟩, ⟨"PAVED", [0, 1, 2, 3], [1, 2, 3], [1, 2, 3], 27, 10⟩]⟩]⟩
+    ⟨"MUD", (1 : ℚ) / 1, 1, [⟨"MUD", true, false, false⟩, ⟨"GRAVEL", true, false, false⟩, ⟨"PAVED", true, false, false⟩], ["MUD", "GRAVEL", "PAVED"], [⟨"MUD", [0, 1, 2, 3, 4], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"GRAVEL", [0, 1, 2, 3, 4], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"PAVED", [0, 1, 2, 3, 4], [1, 2, 3], [1, 2, 3], 1, 1⟩]⟩,
+    ⟨"GRAVEL", (1 : ℚ) / 1, 1, [⟨"MUD", false, false, false⟩, ⟨"GRAVEL", true, false, false⟩, ⟨"PAVED", true, false, false⟩], ["GRAVEL", "PAVED"], [⟨"MUD", [2, 3], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"GRAVEL", [2, 3, 4, 0, 1], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"PAVED", [0, 1, 2, 3, 4], [1, 2, 3], [1, 2, 3], 1, 1⟩]⟩,
+    ⟨"PAVED", (1 : ℚ) / 1, 1, [⟨"MUD", false, false, false⟩, ⟨"GRAVEL", false, false, false⟩, ⟨"PAVED", true, false, false⟩], ["PAVED"], [⟨"MUD", [2, 3], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"GRAVEL", [2, 3], [1, 2, 3], [1, 2, 3], 1, 1⟩, ⟨"PAVED", [2, 3, 4, 0, 1], [1, 2, 3], [1, 2, 3], 1, 1⟩]⟩]⟩
 
 end RelCertifier

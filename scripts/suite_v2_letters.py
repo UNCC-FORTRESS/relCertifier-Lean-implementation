@@ -20,7 +20,10 @@ Letters (the paper's legend), every one measured, never read off a header:
                      lambda_min = lambda_max = 1 WITH the key kept to DECLINE (RELCERT_SYNC drops
                      the stretch-0 candidate, so its decline alone may be W's; 2026-10-30)
   M multi-step cover some left mode's budget >= 2 and its replayed derivation takes a joint
-                     step (matrix M2)
+                     step (matrix M2), and the right has at least two modes (2026-10-30: with one
+                     right mode the cycle boundaries are invisible, a multi-step cover is one
+                     continuous right run cut at epsilon_R, and the right's period changes no run;
+                     matrix M2 still reports the cover shape)
   R right-only       some cover's replayed derivation has a right-only segment AND
                      RELCERT_NO_REPO=1 DECLINES (diagnostic R_cover: on the path at all)
   W witness waits    some cover has a stutter pairing (lambda = 0: the right waits while the left
@@ -222,7 +225,7 @@ def main():
                     keeps["conj"] = True
             L = {
                 "S": cert and v["sync"] == "DECLINED" and lam_ne1 and (not stut or lam1key == "DECLINED"),
-                "M": cells["M2"].startswith("yes"),
+                "M": cells["M2"].startswith("yes") and r["modesR"] >= 2,
                 "R": cert and ro and v["norepo"] == "DECLINED",
                 "W": cert and stut and nostut == "DECLINED",
                 "B": cells["M3"].startswith("yes"),

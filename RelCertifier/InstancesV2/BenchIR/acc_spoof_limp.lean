@@ -29,7 +29,7 @@ def acc_spoof_limp_IRv2 : PProblem :=
         {
           name := "LIMP"
           odes := [("v", (.bin "*" (.num "0.3") (.bin "-" (.num "22.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "36.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "28.6")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["LIMP"] } ] }
     R := {

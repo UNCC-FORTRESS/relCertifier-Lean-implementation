@@ -73,9 +73,9 @@ def turbine_startup_gearratio_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "13.31")))
           next := ["STOP"] } ] }
     invariants := [
-      ("SPINUP", (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w")))),
-      ("RAMP", (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w")))),
-      ("GEN", (.cmp "<=" (.var "L_w") (.bin "+" (.bin "*" (.num "1.05") (.var "R_w")) (.num "0.061")))),
-      ("STOP", (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))))] }
+      ("SPINUP", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705")))),
+      ("RAMP", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705")))),
+      ("GEN", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705")))),
+      ("STOP", (.and (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w"))) (.cmp "<=" (.var "L_w") (.num "12.705"))))] }
 
 end RelCertifier.Parse

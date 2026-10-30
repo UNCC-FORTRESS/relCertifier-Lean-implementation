@@ -1,15 +1,8 @@
 # watertank_twospeed: the running example's attacked tank against a nominal controller whose
 # low-fill pump has two speeds.
 # scenario: sensor-attack
-# mechanisms: S M B P (per-pairing time stretch, RELCERT_SYNC=1 declines; two right segments
-#   per deployed window; branching joint steps; pruned dry-run edge, RELCERT_NO_PRUNE=1
-#   declines; matrix codes M1 M2 M3 M4)
-#
-# Round A (2026-10-26): the claim is now the same in every mode (x_L <= x_R + 3, x_R <= x_L + 2;
-# the lower row tightened to 1.5 on 2026-10-29).
-# The previous rows (+8 overflow margin in Mid and High) were looser than this uniform claim,
-# which also certifies, so their mode dependence (D) was not load-bearing; with the tighter
-# uniform rows the implied cuts are no longer needed either (I lost). Letters were S M B P D I.
+# mechanisms: S M B (per-pairing time stretch, RELCERT_SYNC=1 declines; two right segments
+#   per deployed window; branching joint steps; matrix codes M1 M2 M3)
 #
 # THE PLANT (both sides, as in watertank). A tank of capacity 25 (level x in dm, a 2.5 m tank;
 # time in minutes); every mode is a proportional pump controller x' = k (c - x) toward a set
@@ -26,8 +19,9 @@
 #   High     x >= 17        x' = 1.0 (17 - x)    regulate down to 17
 # The right guards partition [0, 25] (no coverage gap). Successor sets are complete for one
 # 1-min period: Fast can reach the mid band (from just below 7 it reaches 11.76), so its
-# successors are Fast, Slow, MidEco, MidBoost and the interlock PumpOff; Slow: Slow, MidEco,
-# MidBoost.
+# successors are Fast, Slow, MidEco and MidBoost (Fast flows up from its floor 2, so it never
+# reaches the interlock); Slow: Slow, MidEco, MidBoost. PumpOff is the interlock region below the
+# intake (it keeps the guards a partition); no flow enters it.
 # DEPLOYED controller (left) = the running example's attacked controller, unchanged:
 #   Low  5 <= x < 13   x' = 2.0 (15.5 - x)    Mid  13 <= x < 20  x' = 1.0 (20 - x)
 #   High x >= 20       x' = 1.0 (20 - x)
@@ -51,12 +45,12 @@
 #     row stated 2, justified as an underflow margin; with x_R >= 2 that only gives x_L >= 0, the
 #     tank floor, so the row now states the tight lag.)
 # Not implied by the domains. Rows identical in every mode (--handoff vacuous, 6/6).
-# Tightest (bisection to 0.01, measured): upper exactly 3.00 (2.99 and 3.01 DECLINE: on the
+# Tightest (bisection to 0.01, measured 2026-10-30): upper exactly 3.00 (2.99 and 3.01 DECLINE: on the
 # boundary x_L = x_R + 3 the deployed field 2.0 (12.5 - x_R) equals Fast's at lambda 1 and Slow's
 # at lambda 2, neutral; above 3 a reference latched in PumpOff becomes admissible); lower 1.50
 # (1.49 DECLINES): a reference already in mid fill (set point 17) against a deployed still in
 # low fill (target 15.5), 17 - 15.5.
-# Cause dependence (measured; sensor offset s with every deployed threshold and set point s higher,
+# Cause dependence (measured 2026-10-30; sensor offset s with every deployed threshold and set point s higher,
 # the forced full speed kept): the tightest pair is (upper, lower) = (s, 4.5 - s): s = 0: upper 0
 # (0.01 declines), lower 4.50 (4.49 declines); s = 1: lower 3.50; s = 2: upper 2 (1.99 declines),
 # lower 2.50; s = 3 (this file): 3, 1.50; s = 4: upper 4 (3.99 declines), lower 0.50 (0.49
@@ -70,24 +64,23 @@
 # RELCERT_SYNC=1 and RELCERT_NO_PAIR_STRETCH=1 DECLINE. The per-pairing fallback cuts each
 # joint segment to eps_R / 2 of left time, budget 2 (M); a joint step from Fast retains Slow,
 # MidEco and MidBoost (B, branching 3; branching 2 in Mid).
-# Why pruning (P). Fast -> PumpOff is pruned (Fast flows up from its floor 2). Under
-# RELCERT_NO_PRUNE=1 the PumpOff segment fails at every stretch (a latched reference against a
-# filling deployed tank) and the existential choice does not replace it in the per-pairing
-# cover: DECLINED. This is the running example's dead dry-run edge (the source mode's flow never
-# reaches the sink).
+# No pruning (no P). No declared edge enters PumpOff, so nothing is pruned and
+# RELCERT_NO_PRUNE=1 certifies.
+# Review round 6 (2026-10-30): the dead dry-run edge Fast -> PumpOff (the source mode's flow never
+# reaches the sink) is no longer declared; with it the file carried P only from proving that edge
+# dead (RELCERT_NO_PRUNE=1 declined). Letters S M B P -> S M B.
 #
 # DOMAIN: the tank capacity, 0 <= x <= 25, identical in every mode on both sides.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
-# CERTIFIED (about 2 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
-# RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted start in some right guard,
-# all three left modes); DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_PRUNE=1,
-# NO_PRUNE+NO_CHOICE and RELCERT_NO_PAIR_STRETCH=1. Covers: Low per pairing (Fast 1, Slow 2,
-# MidEco 3/2, MidBoost 1, High 1; reported lambda 2), budget 2, admissible Fast, Slow, MidEco,
-# MidBoost; Mid lambda 2, budget 2, admissible MidEco, MidBoost, High; High lambda 1, budget 1,
-# admissible High. Pruned Fast -> PumpOff. relcert --wellformed: Fast ok (exit), Slow ok (exit),
-# MidEco, MidBoost, High, PumpOff ok (invariant), 0 UNKNOWN.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-30 on this file: rows 3 and
+# 1.5, no Fast -> PumpOff): CERTIFIED (2.0 s); CERTIFIED under RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_REPO=1, RELCERT_WELLFORMED_STRICT=1
+# and RELCERT_OPREGION=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE and
+# RELCERT_NO_PAIR_STRETCH=1. Tight values as above (2.99, 3.01 and 1.49 DECLINE). Nothing
+# pruned. --handoff 6/6 (vacuous). relcert --wellformed: Fast ok (exit), Slow ok (exit), MidEco,
+# MidBoost, High, PumpOff ok (invariant), 0 UNKNOWN, 0 BLOCKING. The right model differs
+# from the 2026-10-29 file only in Fast's successor list (no Fast -> PumpOff).
 [problem]
 name = watertank_twospeed
 max_depth = 8
@@ -125,7 +118,7 @@ epsilon = 1.0
 ode = x' = smt2:(* 2.0 (- 12.5 x));
 guard = x >= 2.0 and x < 7.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Fast, Slow, MidEco, MidBoost, PumpOff]
+next = [Fast, Slow, MidEco, MidBoost]
 
 [Rsys.mode.Slow]
 ode = x' = smt2:(* 1.0 (- 12.5 x));

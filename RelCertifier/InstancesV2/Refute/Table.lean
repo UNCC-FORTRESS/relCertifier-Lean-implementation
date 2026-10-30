@@ -6,6 +6,8 @@ Released under Apache 2.0 license.
 
 -/
 import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m021
+import RelCertifier.InstancesV2.Refute.Data.quad_light_profiles_m018
+import RelCertifier.InstancesV2.Refute.Data.quad_light_profiles_m026
 import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m006
 import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m009
 import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m005
@@ -19,6 +21,7 @@ import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m008
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m011
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m012
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m015
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m019
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m016
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m017
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m019
@@ -56,10 +59,13 @@ import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m032
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m035
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
-import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m020
+import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m016
+import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m028
 import RelCertifier.InstancesV2.Refute.Data.lit_girard08_robot_m016
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m032
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m035
+import RelCertifier.InstancesV2.Refute.Data.h2_refuel_ambientbias_m003
+import RelCertifier.InstancesV2.Refute.Data.h2_refuel_ambientbias_m007
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m032
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m035
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m039
@@ -81,6 +87,7 @@ import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
 import RelCertifier.InstancesV2.Refute.Data.lit_csf25_salt_tank_hold_m031
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
+import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
@@ -88,6 +95,7 @@ import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
+import RelCertifier.InstancesV2.Cuts.quad_light_profiles
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
@@ -113,6 +121,8 @@ structure RefRec where
 
 def refuteTable : List RefRec := [
   ⟨"quad_light_lag_m021", 3 + 1, quad_light_lag_m021_IRm, quad_light_lag_cutsV2X, quad_light_lag_m021_wit⟩,
+  ⟨"quad_light_profiles_m018", 3 + 1, quad_light_profiles_m018_IRm, quad_light_profiles_cutsV2X, quad_light_profiles_m018_wit⟩,
+  ⟨"quad_light_profiles_m026", 3 + 1, quad_light_profiles_m026_IRm, quad_light_profiles_cutsV2X, quad_light_profiles_m026_wit⟩,
   ⟨"rover_ladder_6to8_m006", 8 + 1, rover_ladder_6to8_m006_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m006_wit⟩,
   ⟨"rover_ladder_6to8_m009", 8 + 1, rover_ladder_6to8_m009_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m009_wit⟩,
   ⟨"rover_ladder_8to12_m005", 12 + 1, rover_ladder_8to12_m005_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m005_wit⟩,
@@ -126,6 +136,7 @@ def refuteTable : List RefRec := [
   ⟨"rover_terrain_2to4_m011", 4 + 1, rover_terrain_2to4_m011_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m011_wit⟩,
   ⟨"rover_terrain_2to4_m012", 4 + 1, rover_terrain_2to4_m012_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m012_wit⟩,
   ⟨"rover_terrain_2to4_m015", 4 + 1, rover_terrain_2to4_m015_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m015_wit⟩,
+  ⟨"rover_terrain_2to4_m019", 4 + 1, rover_terrain_2to4_m019_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m019_wit⟩,
   ⟨"rover_terrain_4to6_m016", 6 + 1, rover_terrain_4to6_m016_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m016_wit⟩,
   ⟨"rover_terrain_4to6_m017", 6 + 1, rover_terrain_4to6_m017_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m017_wit⟩,
   ⟨"rover_terrain_4to6_m019", 6 + 1, rover_terrain_4to6_m019_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m019_wit⟩,
@@ -163,10 +174,13 @@ def refuteTable : List RefRec := [
   ⟨"platoon_linkloss_m035", 3 + 1, platoon_linkloss_m035_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m035_wit⟩,
   ⟨"hydro_rejection_gatecal_m024", 3 + 1, hydro_rejection_gatecal_m024_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m024_wit⟩,
   ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
-  ⟨"ventilator_vc_cuffleak_m020", 3 + 1, ventilator_vc_cuffleak_m020_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m020_wit⟩,
+  ⟨"ventilator_vc_cuffleak_m016", 3 + 1, ventilator_vc_cuffleak_m016_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m016_wit⟩,
+  ⟨"ventilator_vc_cuffleak_m028", 3 + 1, ventilator_vc_cuffleak_m028_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m028_wit⟩,
   ⟨"lit_girard08_robot_m016", 6 + 1, lit_girard08_robot_m016_IRm, lit_girard08_robot_cutsV2X, lit_girard08_robot_m016_wit⟩,
   ⟨"platoon_profiles_m032", 3 + 1, platoon_profiles_m032_IRm, platoon_profiles_cutsV2X, platoon_profiles_m032_wit⟩,
   ⟨"platoon_profiles_m035", 3 + 1, platoon_profiles_m035_IRm, platoon_profiles_cutsV2X, platoon_profiles_m035_wit⟩,
+  ⟨"h2_refuel_ambientbias_m003", 3 + 1, h2_refuel_ambientbias_m003_IRm, h2_refuel_ambientbias_cutsV2X, h2_refuel_ambientbias_m003_wit⟩,
+  ⟨"h2_refuel_ambientbias_m007", 3 + 1, h2_refuel_ambientbias_m007_IRm, h2_refuel_ambientbias_cutsV2X, h2_refuel_ambientbias_m007_wit⟩,
   ⟨"platoon_latency_m032", 3 + 1, platoon_latency_m032_IRm, platoon_latency_cutsV2X, platoon_latency_m032_wit⟩,
   ⟨"platoon_latency_m035", 3 + 1, platoon_latency_m035_IRm, platoon_latency_cutsV2X, platoon_latency_m035_wit⟩,
   ⟨"platoon_latency_m039", 3 + 1, platoon_latency_m039_IRm, platoon_latency_cutsV2X, platoon_latency_m039_wit⟩,
@@ -189,6 +203,6 @@ def refuteTable : List RefRec := [
   ⟨"lit_csf25_salt_tank_hold_m031", 3 + 1, lit_csf25_salt_tank_hold_m031_IRm, lit_csf25_salt_tank_hold_cutsV2X, lit_csf25_salt_tank_hold_m031_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 206
+def expectedRefuteGroups : Nat := 227
 
 end RelCertifier.Refute

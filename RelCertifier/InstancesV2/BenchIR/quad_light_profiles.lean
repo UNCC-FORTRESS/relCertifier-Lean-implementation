@@ -14,19 +14,33 @@ namespace RelCertifier.Parse
 def quad_light_profiles_IRv2 : PProblem :=
   {
     name := "quad_light_profiles"
-    lambdaMin := "1.2"
-    lambdaMax := "1.2"
+    lambdaMin := "1.15"
+    lambdaMax := "1.25"
     L := {
       stateVars := ["h", "w"]
       epsilon := "1.0"
       modes := [
         {
-          name := "CLIMB"
+          name := "ECO"
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.num "12.2625") (.bin "*" (.num "6.13125") (.var "w"))))]
+          guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
+          evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
+          next := ["ECO", "NORMAL", "SPORT"] },
+        {
+          name := "NORMAL"
           odes := [("h", (.var "w")),
             ("w", (.bin "-" (.num "14.715") (.bin "*" (.num "6.13125") (.var "w"))))]
           guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
           evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
-          next := ["CLIMB"] } ] }
+          next := ["NORMAL", "ECO", "SPORT"] },
+        {
+          name := "SPORT"
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.num "17.780625") (.bin "*" (.num "6.13125") (.var "w"))))]
+          guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
+          evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
+          next := ["SPORT", "ECO", "NORMAL"] } ] }
     R := {
       stateVars := ["h", "w"]
       epsilon := "1.0"
@@ -48,11 +62,13 @@ def quad_light_profiles_IRv2 : PProblem :=
         {
           name := "SPORT"
           odes := [("h", (.var "w")),
-            ("w", (.bin "-" (.num "11.772") (.bin "*" (.num "4.905") (.var "w"))))]
+            ("w", (.bin "-" (.num "12.2625") (.bin "*" (.num "4.905") (.var "w"))))]
           guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
           evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0")))
           next := ["SPORT", "NORMAL", "ECO"] } ] }
     invariants := [
-      ("CLIMB", (.and (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.num "0.1")) (.bin "*" (.num "6.13125") (.num "0.8")))) (.cmp "<=" (.bin "*" (.num "1.2") (.var "R_w")) (.var "L_w"))) (.cmp "<=" (.var "L_w") (.num "2.4"))))] }
+      ("ECO", (.and (.and (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.bin "*" (.num "6.13125") (.num "0.76")))) (.cmp "<=" (.bin "*" (.num "1.16") (.var "R_w")) (.var "L_w"))) (.cmp "<=" (.var "L_w") (.num "2.9"))) (.cmp ">=" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.bin "*" (.num "6.13125") (.num "0.8"))) (.num "0.0")))),
+      ("NORMAL", (.and (.and (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.bin "*" (.num "6.13125") (.num "0.76")))) (.cmp "<=" (.bin "*" (.num "1.16") (.var "R_w")) (.var "L_w"))) (.cmp "<=" (.var "L_w") (.num "2.9"))) (.cmp ">=" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.bin "*" (.num "6.13125") (.num "0.8"))) (.num "0.0")))),
+      ("SPORT", (.and (.and (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.bin "*" (.num "6.13125") (.num "0.76")))) (.cmp "<=" (.bin "*" (.num "1.16") (.var "R_w")) (.var "L_w"))) (.cmp "<=" (.var "L_w") (.num "2.9"))) (.cmp ">=" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.bin "*" (.num "6.13125") (.num "0.8"))) (.num "0.0"))))] }
 
 end RelCertifier.Parse

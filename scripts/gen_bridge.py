@@ -32,9 +32,9 @@ CHOICE = {
     "watertank_choice": dict(ns="ChoiceWatertank", G="GrP", n=2),
 }
 
-KEYED = {"acc_tune_limp", "antenna_track_kvretune", "charger_fast_tapers", "elevator_start_discbrake",
+KEYED = {"acc_tune_limp", "antenna_track_kvretune", "elevator_start_discbrake",
          "engine_start_highidle", "h2_refuel_ambientbias", "hydro_rejection_gatecal",
-         "platoon_latency", "platoon_linkloss", "platoon_profiles", "syringe_relay_prearm", "turbine_startup_gearratio",
+         "platoon_latency", "platoon_linkloss", "platoon_profiles", "syringe_relay_prearm", "molding_pack_checkring",
          "ventilator_vc_cuffleak", "lit_csf25_salt_tank_hold"}
 
 

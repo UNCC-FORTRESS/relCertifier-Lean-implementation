@@ -2,8 +2,10 @@
 # overrides, against the program as commissioned at reduced speed (the path must stay within the
 # commissioning clearance margin).
 # scenario: controller-refinement
-# mechanisms: S M (a different time stretch per left mode, RELCERT_SYNC=1 declines; multi-step
-#   covers of 3 and 2 commissioning cycles per production cycle; matrix codes M1 M2)
+# mechanisms: S (a different time stretch per left mode, RELCERT_SYNC=1 declines; matrix code
+#   M1). The covers are multi-step, 3 and 2 commissioning cycles per production cycle (matrix code
+#   M2), but M is not credited: the right has one mode, so its cycle boundaries are invisible and a
+#   multi-step cover is one continuous right run cut at epsilon_R (letter rule M, 2026-10-30).
 #
 # Renamed from match_multi_rate (2026-10-26), whose synthetic unitless rate-ratio exhibit this
 # file replaces with a physical system in the same matching role.
@@ -55,7 +57,7 @@
 # guard the whole workspace, every mode a successor of every other): CERTIFIED: every uniform
 # override is a time reparametrization of the commissioned path, so the claim depends on the
 # overrides being uniform across the axes, not on where they are scheduled.
-# Why the stretch (S) and the multi-step covers (M). Only a stretch near the zone's override keeps
+# Why the stretch (S) and the multi-step covers. Only a stretch near the zone's override keeps
 # the tolerance: FREE at lambda = 3 with budget 3 (one production period matches three
 # commissioning periods), APPROACH at lambda = 2, budget 2, PLACE at lambda = 1, budget 1.
 # RELCERT_SYNC=1 DECLINES. Not load-bearing: nothing is pruned (no fallback mode), no cut is needed

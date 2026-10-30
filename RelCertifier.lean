@@ -83,6 +83,7 @@ import RelCertifier.Proofs.Encoding.MultiSeg
 import RelCertifier.Proofs.Encoding.NonConnBridge
 import RelCertifier.Proofs.Encoding.Reification
 import RelCertifier.Proofs.Encoding.Reparam
+import RelCertifier.Proofs.Encoding.Stretching
 import RelCertifier.Proofs.Encoding.RepoPrefix
 import RelCertifier.Proofs.Encoding.RepoPrefixR
 import RelCertifier.Proofs.Encoding.RepositionDischarge

@@ -18,6 +18,8 @@ certificate (`flow_certified`, and anything constructing a `CoverCert` from it):
   decideCovered_implies_theorem3_faithful: [propext, Classical.choice, Quot.sound]
   flow_certified                         : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
   segPres_from_flowCert                  : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
+  odeSol_stretch_iff (Lemma 1)           : [propext, Classical.choice, Quot.sound]
+  odeSol_rightBlock_stretch_iff          : [propext, Classical.choice, Quot.sound]
 
 For the per-benchmark audit (every suite_v2 benchmark's Theorem 3 and its axioms) see
 `InstancesV2/WellFormedBattery.lean` (Assumption 1 of every right model) and the bridge
@@ -31,6 +33,7 @@ NOT itself apply `z3_unsat_sound` — the leaf enters when that certificate is c
 import RelCertifier.Proofs.Encoding.BridgeDischarge
 import RelCertifier.Proofs.Flow.StratifiedBarrier
 import RelCertifier.Proofs.Soundness.CutLift
+import RelCertifier.Proofs.Encoding.Stretching
 
 namespace RelCertifier
 
@@ -50,5 +53,9 @@ namespace RelCertifier
 #print axioms segPres_from_flowCert
 #print axioms stratified_barrier_sound
 #print axioms cut_hcert
+
+-- Paper Lemma 1 (Time Stretching), λ ≥ 0, as stated (three standard axioms)
+#print axioms odeSol_stretch_iff
+#print axioms odeSol_rightBlock_stretch_iff
 
 end RelCertifier

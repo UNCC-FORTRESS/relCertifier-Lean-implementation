@@ -231,12 +231,12 @@ theorem nonconn_entry {vars : List String} {atoms : List CutAtomX} {src tgt : PM
   refine ⟨⟨⟨hgy, hey⟩, (sat_cutOfAtoms hcut y).mpr hcy⟩, ?_⟩
   simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hpos
 
-/-- **Kept**: along any flow of the source's field (any left field, positive stretch) inside
+/-- **Kept**: along any flow of the source's field (any left field, any stretch `≥ 0`) inside
 its evolve domain that keeps its atoms, the barrier stays `≤ 0`. -/
 theorem nonconn_keep {vars : List String} {atoms : List CutAtomX} {src tgt : PMode}
     (hv : NonConnVerd vars n atoms src tgt) (hwf : atomsWF vars n Side.R "L_" atoms = true)
     (hfree : PForm.namesFree "L_" tgt.guard = true)
-    (fL : Fin n → Term (Var n)) (c : ℝ) (hc : 0 < c) (dom : Formula (Var n))
+    (fL : Fin n → Term (Var n)) (c : ℝ) (hc : 0 ≤ c) (dom : Formula (Var n))
     (hdomEv : ∀ z, Formula.sat dom z → Formula.sat (hostEvolve vars n Side.R src) z)
     (hstay : AtomsStayC (cutPairsX vars n Side.R atoms)
       (jointSys fL (hostDyn vars n Side.R src) (Term.const c)) dom) :
@@ -256,7 +256,7 @@ theorem nonconn_keep {vars : List String} {atoms : List CutAtomX} {src tgt : PMo
   have hnarrow : BoxLe (Program.ode (jointSys fL (hostDyn vars n Side.R src) (Term.const c))
       (Formula.and dom D)) (fun ω => Term.eval g.toHost ω) ν := by
     rw [hostDyn_of_lower hfR]
-    refine atom_boxle_R_strict g.toHost fL (fun j => (fR j).toHost) c hc (Formula.and dom D) D
+    refine atom_boxle_R_strict0 g.toHost fL (fun j => (fR j).toHost) c hc (Formula.and dom D) D
       hfv (fun z h => h.2) ?_ hinit
     intro σ hσ
     apply z3_unsat_sound hz2 σ

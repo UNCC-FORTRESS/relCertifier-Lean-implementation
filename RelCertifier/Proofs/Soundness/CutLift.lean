@@ -145,6 +145,35 @@ theorem atom_boxle_R_strict (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
       by simpa [Formula.sat, CompOp.interp, Term.eval] using hge⟩
   exact mul_neg_of_pos_of_neg hc hlt
 
+/-- **Frozen right** (stretch `0`, the stutter segment): along the joint system at stretch `0`
+the right field is scaled to `0`, so a right-sided term has Lie derivative `0` and stays where
+it starts. No verdict is needed. -/
+theorem atom_boxle_R_stutter (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
+    (dom : Formula (Var n)) (hfv : ∀ i : Fin n, Lv i ∉ g.fv)
+    {ν : DL.State (Var n)} (hinit : Term.eval g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR (Term.const 0)) dom)
+      (fun ω => Term.eval g ω) ν := by
+  refine DI_nonstrict_domain (jointSys_wellFormed fL fR (Term.const 0))
+    (term_differentiable g) ?_ hinit
+  intro x _
+  rw [← lieDeriv_correct, lieDeriv_one_sided_R g fL fR 0 hfv, zero_mul]
+
+/-- Right-sided atom, strict boundary route (B), at any stretch `c ≥ 0`: the positive case is
+`atom_boxle_R_strict`, the stutter case `c = 0` is `atom_boxle_R_stutter`. -/
+theorem atom_boxle_R_strict0 (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
+    (c : ℝ) (hc : 0 ≤ c) (dom evR : Formula (Var n))
+    (hfv : ∀ i : Fin n, Lv i ∉ g.fv)
+    (hdomImp : ∀ x, Formula.sat dom x → Formula.sat evR x)
+    (hunsat : ∀ σ, ¬ Formula.sat
+      (flowQueryStrict ⟨g, fun _ => Term.const 0, fR, Term.const 1, evR⟩) σ)
+    {ν : DL.State (Var n)} (hinit : Term.eval g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR (Term.const c)) dom)
+      (fun ω => Term.eval g ω) ν := by
+  rcases hc.lt_or_eq with hc | hc
+  · exact atom_boxle_R_strict g fL fR c hc dom evR hfv hdomImp hunsat hinit
+  · subst hc
+    exact atom_boxle_R_stutter g fL fR dom hfv hinit
+
 /-- Left-sided atom, nonstrict route (A) — the stretch is immaterial. -/
 theorem atom_boxle_L_nonstrict (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (dom evL : Formula (Var n))

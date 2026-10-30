@@ -86,17 +86,66 @@ theorem odeSol_right_of_joint {fL fR : Fin n → Term (Var n)} {domL domR : Form
   · show mergeLR σ σ (Φ (c * r / c)) = mergeLR σ σ ω
     rw [show c * r / c = r from by field_simp, hΦr]
 
+/-- **Frozen right** (the mirror of `frozen_left_constant`). Along a run of the joint system at
+stretch `0` (the stutter segment: the left runs, the right waits), every right coordinate is
+constant: its equation is `ẏ = 0 · f_R(y)`. -/
+theorem frozen_right_constant {fL fR : Fin n → Term (Var n)} {dom : Formula (Var n)}
+    {ν μ : State (Var n)}
+    (h : Program.sem (Program.ode (jointSys fL fR (Term.const 0)) dom) ν μ) :
+    ∀ i : Fin n, μ (Rv i) = ν (Rv i) := by
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := h
+  intro i
+  have hpair : ((Rv i : Var n), Term.binop .mul (Term.const 0) (fR i)) ∈
+      jointSys fL fR (Term.const 0) :=
+    List.mem_append_right _ (List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+  have hd : ∀ t ∈ Icc (0:ℝ) r, HasDerivWithinAt (fun u => Φ u (Rv i)) 0 (Icc 0 r) t := by
+    intro t ht
+    have := hder t ht _ hpair
+    simpa [Term.eval, AOp.interp] using this
+  have hconst : ∀ t ∈ Icc (0:ℝ) r, Φ t (Rv i) = Φ 0 (Rv i) := by
+    intro t ht
+    have hmono : ∀ s ∈ Icc (0:ℝ) t, HasDerivWithinAt (fun u => Φ u (Rv i)) 0 (Icc 0 t) s :=
+      fun s hs => (hd s ⟨hs.1, hs.2.trans ht.2⟩).mono (Icc_subset_Icc_right ht.2)
+    have h1 : AntitoneOn (fun u => Φ u (Rv i)) (Icc 0 t) := by
+      refine antitoneOn_of_deriv_nonpos (convex_Icc 0 t)
+        (fun s hs => (hmono s hs).continuousWithinAt) (fun s hs => ?_) (fun s hs => ?_)
+      · rw [interior_Icc] at hs
+        exact ((hmono s (Ioo_subset_Icc_self hs)).hasDerivAt
+          (Icc_mem_nhds hs.1 hs.2)).differentiableAt.differentiableWithinAt
+      · rw [interior_Icc] at hs
+        rw [((hmono s (Ioo_subset_Icc_self hs)).hasDerivAt (Icc_mem_nhds hs.1 hs.2)).deriv]
+    have h2 : MonotoneOn (fun u => Φ u (Rv i)) (Icc 0 t) := by
+      refine monotoneOn_of_deriv_nonneg (convex_Icc 0 t)
+        (fun s hs => (hmono s hs).continuousWithinAt) (fun s hs => ?_) (fun s hs => ?_)
+      · rw [interior_Icc] at hs
+        exact ((hmono s (Ioo_subset_Icc_self hs)).hasDerivAt
+          (Icc_mem_nhds hs.1 hs.2)).differentiableAt.differentiableWithinAt
+      · rw [interior_Icc] at hs
+        rw [((hmono s (Ioo_subset_Icc_self hs)).hasDerivAt (Icc_mem_nhds hs.1 hs.2)).deriv]
+    have ht0 : (0:ℝ) ∈ Icc 0 t := left_mem_Icc.mpr ht.1
+    have htt : t ∈ Icc (0:ℝ) t := right_mem_Icc.mpr ht.1
+    exact le_antisymm (h1 ht0 htt ht.1) (h2 ht0 htt ht.1)
+  rw [← hΦr, hconst r (right_mem_Icc.mpr hr), hΦ0]
+
 /-- A right-only region kept by every right flow (`RegionInvariant`) is kept along a joint
-segment at any positive stretch. -/
+segment at any stretch `c ≥ 0`: at `c > 0` through the time-rescaled right run, at the stutter
+stretch `c = 0` because the right coordinates do not move (`frozen_right_constant`). -/
 theorem reg_kept_joint {G : SearchGraph (Var n)} {reg : Formula (Var n)}
     (hinv : RegionInvariant G reg) (hregR : reg.fv ⊆ range Rv)
     {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var n)}
     (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hdomR : domR.fv ⊆ range Rv)
     {q : ℕ} {m : RMode (Var n)} (hm : G.modeAt q = some m)
     (hsys : m.sys = rightBlock fR (Term.const 1)) (hdomM : m.dom = domR)
-    (c : ℝ) (hc : 0 < c) {σ ω : State (Var n)}
+    (c : ℝ) (hc : 0 ≤ c) {σ ω : State (Var n)}
     (h : Program.sem (Program.ode (jointSys fL fR (Term.const c)) (Formula.and domL domR)) σ ω)
     (hσ : Formula.sat reg σ) : Formula.sat reg ω := by
+  rcases hc.lt_or_eq with hc | hc0
+  swap
+  · subst hc0
+    have hfz := frozen_right_constant h
+    refine (Formula.coincidence reg (fun v hv => ?_)).mp hσ
+    obtain ⟨j, rfl⟩ := hregR hv
+    exact (hfz j).symm
   obtain ⟨r, Ψ, H, hend⟩ := odeSol_right_of_joint hfR hdomR c hc h
   have hσ' : Formula.sat reg (mergeLR σ σ σ) := by
     refine (Formula.coincidence reg (fun v hv => ?_)).mpr hσ

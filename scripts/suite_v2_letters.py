@@ -13,12 +13,16 @@ appendix table: name, family, dimensions, modes, invariant kind, letters, time).
 
 Letters (the paper's legend), every one measured, never read off a header:
   S stretching       RELCERT_SYNC=1 DECLINES and some left mode's cover has lambda != 1
-                     (diagnostic S_lam1: the file with lambda_min = lambda_max = 1, right-only
-                     segments still allowed, DECLINES)
+                     (a positive stretch: a stutter pairing, lambda = 0, does not count, see W)
+                     (diagnostic S_lam1: the file with lambda_min = lambda_max = 1 and no
+                     stutter, right-only segments still allowed, DECLINES)
   M multi-step cover some left mode's budget >= 2 and its replayed derivation takes a joint
                      step (matrix M2)
   R right-only       some cover's replayed derivation has a right-only segment AND
                      RELCERT_NO_REPO=1 DECLINES (diagnostic R_cover: on the path at all)
+  W witness waits    some cover has a stutter pairing (lambda = 0: the right waits while the left
+                     runs a joint segment; the opt-in key `stutter = true`, docs/STUTTER.md) AND
+                     the file without the key DECLINES (the dual of R, in which the left waits)
   B branching        a joint step on the path has >= 2 distinct non-self retained successors
                      (matrix M3)
   P pruning          an edge is pruned AND RELCERT_NO_PRUNE=1 DECLINES (matrix M4)
@@ -43,7 +47,7 @@ sys.path.insert(0, HERE)
 from suite_v2_matrix import parse_input, run, verdict_of  # noqa: E402
 from inv_smt import atoms_of, show  # noqa: E402
 
-LETTERS = ["S", "M", "R", "B", "P", "D", "I", "X"]
+LETTERS = ["S", "M", "R", "W", "B", "P", "D", "I", "X"]
 LINE_RE = re.compile(r"^([A-Za-z0-9_]+): (CERTIFIED|DECLINED|ERROR)(?: \[.*\])? \((\d+)ms\)")
 
 
@@ -63,8 +67,32 @@ def variant_lambda1(text):
             line = "lambda_min = 1.0"
         elif re.match(r"^\s*lambda_max\s*=", line):
             line = "lambda_max = 1.0"
+        elif re.match(r"^\s*stutter\s*=", line):
+            continue
         out.append(line)
     return "\n".join(out) + "\n"
+
+
+def variant_nostutter(text):
+    """The file without the opt-in `stutter` key."""
+    return "\n".join(l for l in text.splitlines() if not re.match(r"^\s*stutter\s*=", l)) + "\n"
+
+
+def stutter_pairs(c):
+    """The cover's pairings at stretch 0 (the matrix keeps a pairing's stretch when it differs
+    from the window's)."""
+    return [m for m, x in c.get("lam_pairs", {}).items() if x == "0"]
+
+
+def positive_stretch_ne1(c):
+    """Some pairing of the cover runs at a positive stretch other than 1: a listed pairing
+    stretch outside {0, 1}, or the window's stretch (when not 1) carried by a pairing that is
+    not listed. A cover without stutter pairings keeps the pre-W rule exactly."""
+    if not stutter_pairs(c):
+        return c.get("lam_float", 1.0) != 1.0 or bool(c.get("lam_pairs"))
+    listed = c.get("lam_pairs", {})
+    return any(x not in ("0", "1") for x in listed.values()) or (
+        c.get("lam_float", 1.0) != 1.0 and any(m not in listed for m in c.get("flags", {})))
 
 
 def variant_uniform(text, row):
@@ -150,7 +178,9 @@ def main():
             text = open(path).read()
             prob = parse_input(path)
             cert = ctl[name][0] == "CERTIFIED"
-            lam_ne1 = any(c.get("lam_float", 1.0) != 1.0 or c.get("lam_pairs") for c in r["covers"])
+            lam_ne1 = any(positive_stretch_ne1(c) for c in r["covers"])
+            stut = any(stutter_pairs(c) for c in r["covers"])
+            nostut = run_variant(a.relcert, variant_nostutter(text), tmp, name + "_nostutter", a.timeout) if stut else "-"
             ro = any(c.get("right_only") for c in r["covers"])
             cells = r["cells"]
             v = {k: runs[k].get(name, ("MISSING", 0))[0] for k in runs}
@@ -176,6 +206,7 @@ def main():
                 "S": cert and v["sync"] == "DECLINED" and lam_ne1,
                 "M": cells["M2"].startswith("yes"),
                 "R": cert and ro and v["norepo"] == "DECLINED",
+                "W": cert and stut and nostut == "DECLINED",
                 "B": cells["M3"].startswith("yes"),
                 "P": cells["M4"].startswith("yes"),
                 "D": cells["M5"].startswith("yes") and any(keeps.values())
@@ -190,6 +221,8 @@ def main():
                 "D_strict": cells["M5"].startswith("yes") and bool(own) and all(uni[k] == "DECLINED" for k in own),
                 "P_noprune_declines": v["noprune"] == "DECLINED",
             }
+            if stut:
+                diag["W_nostutter_verdict"] = nostut
             letters = " ".join(k for k in LETTERS if L[k])
             rec = {"name": name, "family": r["family"], "dimL": r["dimL"], "dimR": r["dimR"],
                    "modesL": r["modesL"], "modesR": r["modesR"], "inv": inv_kind(r["inv_shape"]),

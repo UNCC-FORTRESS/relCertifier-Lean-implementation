@@ -40,7 +40,9 @@ structure PairStrataE where
   /-- The stretch at which this pairing's joint segment was certified, as a reduced fraction
   `lamN / lamD`. With one stretch per left mode it equals the window's `lamQ`; the per-pairing
   fallback (`RELCERT_NO_PAIR_STRETCH` unset) lets it differ per right mode. The kernel pin
-  `VerdictsV2/LamPinV2.lean` ties it to the verdict pack row of the same pairing. -/
+  `VerdictsV2/LamPinV2.lean` ties it to the verdict pack row of the same pairing. `lamN = 0`
+  is the stutter segment (the right waits while the left runs), emitted only for a problem with
+  `stutter = true` (`docs/STUTTER.md`). -/
   lamN  : Nat := 1
   lamD  : Nat := 1
   deriving Repr, DecidableEq
@@ -48,7 +50,8 @@ structure PairStrataE where
 /-- Per left mode: the successful cover's data. `lamQ` is the window's stretch: the common
 stretch when one closes the cover, otherwise (per-pairing fallback) the largest stretch among
 the certified pairings, so that the common segment span is `εR / lamQ` and
-`bBudget = ⌈εL · lamQ / εR⌉` in both cases. -/
+`bBudget = ⌈εL · lamQ / εR⌉` in both cases. A window whose pairings all stutter (stretch `0`)
+has `lamQ = εR / εL` (span `εL`, budget `1`), so `lamQ` is always positive. -/
 structure LeftCoverE where
   mL         : String
   lamQ       : ℚ

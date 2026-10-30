@@ -53,6 +53,7 @@ def emitProblem (nm : String) (p : PProblem) : String :=
     ++ "\n    lambdaMax := " ++ qs p.lambdaMax
     ++ "\n    L := " ++ emitSystem p.L
     ++ "\n    R := " ++ emitSystem p.R
-    ++ "\n    invariants := [\n      " ++ invs ++ "] }"
+    ++ "\n    invariants := [\n      " ++ invs ++ "]"
+    ++ (if p.stutter then "\n    stutter := true }" else " }")
 
 end RelCertifier.Parse

@@ -166,7 +166,7 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (hdomM : ∀ q m, G.modeAt q = some m → m.dom = domR)
   (hweight : ∀ q m, G.modeAt q = some m → m.weight = 1)
   -- the time model: the common segment span `δ`, the right interval `ε_R`, the stretches
-  (epsR δ : ℝ) (hδ : 0 < δ) (lam : ℕ → ℝ) (hlam : ∀ q, 0 < lam q)
+  (epsR δ : ℝ) (hδ : 0 < δ) (lam : ℕ → ℝ) (hlam : ∀ q, 0 ≤ lam q)
   (hspan : ∀ q, lam q * δ ≤ epsR)
   -- the anchors (the pairing's row, both sides' kept atoms, the envelope)
   (A : ℕ → Formula (Var n)) (hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv)
@@ -233,7 +233,7 @@ theorem post_update_tr (ω₀ y ρ : State (Var n)) (q' : ℕ) (μ : State (Var 
   simp only [update_Lv_of_notMem htrL]
 
 include hδ hlam hspan in
-theorem epsR_nonneg : 0 ≤ epsR := (mul_pos (hlam 0) hδ).le.trans (hspan 0)
+theorem epsR_nonneg : 0 ≤ epsR := (mul_nonneg (hlam 0) hδ.le).trans (hspan 0)
 
 include hgR hguards hguardR hfL hdomL hdomR hfR hsys hdomM hlam hspan hAdom hbox hhand hregR hAreg hwf
   htrL htrR in
@@ -252,8 +252,8 @@ theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)
   have hmdom : Formula.sat m.dom ρ := by rw [hdomM q m hm]; exact hρdom
   obtain ⟨⟨Φ, hΦ⟩, hcomp⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom ((sat_merge_R hregR ω₀ (ΦL a) ρ).mp (hAreg q _ hA))
   set T := lam q * (r - a) with hT
-  have hT0 : 0 ≤ T := mul_nonneg hlq.le (by linarith)
-  have hTε : T ≤ epsR := le_trans (mul_le_mul_of_nonneg_left hfit hlq.le) (hspan q)
+  have hT0 : 0 ≤ T := mul_nonneg hlq (by linarith)
+  have hTε : T ≤ epsR := le_trans (mul_le_mul_of_nonneg_left hfit hlq) (hspan q)
   have hΦT : ODESol m.sys m.dom ρ T Φ := ODESol_restrict hΦ hT0 hTε
   have hΦ' : ODESol (rightBlock (fR q) (Term.const 1)) domR ρ T Φ := by
     rw [← hsys q m hm, ← hdomM q m hm]; exact hΦT
@@ -355,7 +355,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         obtain ⟨⟨Φ, hΦ⟩, hcomp⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom ((sat_merge_R hregR ω₀ (ΦL a) ρ).mp (hAreg q _ hA))
         set T := lam q * (b - a) with hT
         have hTδ : T = lam q * δ := by rw [hT, hbdef]; ring
-        have hT0 : 0 ≤ T := by rw [hTδ]; exact mul_nonneg hlq.le hδ.le
+        have hT0 : 0 ≤ T := by rw [hTδ]; exact mul_nonneg hlq hδ.le
         have hTε : T ≤ epsR := by rw [hTδ]; exact hspan q
         have hΦT : ODESol m.sys m.dom ρ T Φ := ODESol_restrict hΦ hT0 hTε
         have hΦ' : ODESol (rightBlock (fR q) (Term.const 1)) domR ρ T Φ := by
@@ -424,7 +424,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         obtain ⟨⟨Φ, hΦ⟩, -⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom ((sat_merge_R hregR ω₀ (ΦL a) ρ).mp (hAreg q _ hA))
         set T := lam q * (b - a) with hT
         have hTδ : T = lam q * δ := by rw [hT, hbdef]; ring
-        have hT0 : 0 ≤ T := by rw [hTδ]; exact mul_nonneg hlq.le hδ.le
+        have hT0 : 0 ≤ T := by rw [hTδ]; exact mul_nonneg hlq hδ.le
         have hTε : T ≤ epsR := by rw [hTδ]; exact hspan q
         have hΦT : ODESol m.sys m.dom ρ T Φ := ODESol_restrict hΦ hT0 hTε
         have hΦ' : ODESol (rightBlock (fR q) (Term.const 1)) domR ρ T Φ := by
@@ -529,7 +529,7 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
     (hsys : ∀ q m, G.modeAt q = some m → m.sys = rightBlock (fR q) (Term.const 1))
     (hdomM : ∀ q m, G.modeAt q = some m → m.dom = domR)
     (hweight : ∀ q m, G.modeAt q = some m → m.weight = 1)
-    (epsR δ : ℝ) (hδ : 0 < δ) (lam : ℕ → ℝ) (hlam : ∀ q, 0 < lam q)
+    (epsR δ : ℝ) (hδ : 0 < δ) (lam : ℕ → ℝ) (hlam : ∀ q, 0 ≤ lam q)
     (hspan : ∀ q, lam q * δ ≤ epsR)
     (A : ℕ → Formula (Var n)) (hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv)
     (hAdom : ∀ q y, Formula.sat (A q) y → Formula.sat domR y)

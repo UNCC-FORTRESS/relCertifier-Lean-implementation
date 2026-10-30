@@ -326,8 +326,10 @@ def namesResolve : Bool :=
 /-- Every window's row lowers to at least one component. -/
 def rowsOK : Bool := (List.range (nL p)).all (fun l => 0 < compsLen p n l)
 
-/-- The record's time model: positive stretches, each pairing's stretch at most its window's,
-and the budget covers one left interval (`bBudget · εR ≥ εL · lamQ`). -/
+/-- The record's time model: positive window stretches, each pairing's stretch at most its
+window's and positive, or `0` (the stutter segment, the right waits) when the problem opts in
+with `stutter = true` (`docs/STUTTER.md`), and the budget covers one left interval
+(`bBudget · εR ≥ εL · lamQ`). -/
 def timeOK : Bool :=
   let eL : ℚ := (Run.parseRat p.L.epsilon).getD 1
   let eR : ℚ := (Run.parseRat p.R.epsilon).getD 1
@@ -337,7 +339,7 @@ def timeOK : Bool :=
     0 < lc.lamQ && (lc.bBudget : ℚ) * eR ≥ eL * lc.lamQ &&
     (List.range (nR p)).all (fun q =>
       let s := strataOf p cov l q
-      0 < s.lamN && 0 < s.lamD && lamQ p cov l q ≤ lc.lamQ))
+      (0 < s.lamN || p.stutter) && 0 < s.lamD && lamQ p cov l q ≤ lc.lamQ))
 
 /-- Every mode's guard, evolve domain and field lower on its side. -/
 def lowersOK : Bool :=

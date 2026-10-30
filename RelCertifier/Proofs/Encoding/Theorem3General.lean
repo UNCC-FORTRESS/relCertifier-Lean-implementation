@@ -45,7 +45,8 @@ structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
     (epsR δ : ℝ) (lam : ℕ → ℝ) (A : ℕ → Formula (Var n))
     (RJ : ℕ → Formula (Var n)) (RR RS : ℕ → SrcSetting → Formula (Var n)) : Prop where
   hδ : 0 < δ
-  hlam : ∀ q, 0 < lam q
+  -- a pairing's stretch may be `0` (the stutter segment: the right waits, `docs/STUTTER.md`)
+  hlam : ∀ q, 0 ≤ lam q
   hspan : ∀ q, lam q * δ ≤ epsR
   hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv
   hAdom : ∀ q y, Formula.sat (A q) y → Formula.sat domR y

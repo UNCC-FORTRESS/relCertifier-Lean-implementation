@@ -879,6 +879,9 @@ I = `RELCERT_NO_CUT=1` declines, X = `RELCERT_NO_CHOICE=1` declines), what each 
 one cause between them, the requirement behind each constant with its tightest certifying value,
 the domains and any coverage gap of the right guards, and the verdict under every configuration.
 Where only a model change could make a header claim true, the header states the limitation.
+A ninth letter, W (the witness waits, the dual of R; 2026-10-29, `docs/STUTTER.md`): a cover has a
+stretch-0 (stutter) pairing, opted in with `[problem] stutter = true`, and the file without the
+key declines. No suite_v2 file sets the key, so no header carries W.
 
 ## The benchmarks
 

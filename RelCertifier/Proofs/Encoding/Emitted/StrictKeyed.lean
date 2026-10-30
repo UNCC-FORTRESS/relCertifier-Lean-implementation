@@ -165,7 +165,7 @@ theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov 
       (AGrS p n cX cov reg l)
       (RJof p n cX l) (RRof p n cX l) (RSof p n cX l) where
   hδ := δ_pos hs hl
-  hlam := lamOf_pos hs hl
+  hlam := lamOf_nonneg hs hl
   hspan := lamOf_span hs hl
   hAfv := AGrS_fv_any hs hregR hl
   hAdom := fun q y h => h.1.2.2
@@ -175,7 +175,7 @@ theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov 
     exact ⟨AGS_box hs hv.nonconn hv.stay hl hq (by simpa [chOfC] using hj)
       (hv.joint l hl q hq (by simpa [chOfC] using hj)) σ ω hA.1 hω,
       reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm (grOf_sys hm)
-        (grOf_dom hm) _ (lam_pos hs hl hq) hω hA.2⟩
+        (grOf_dom hm) _ (lam_nonneg hs hl hq) hω hA.2⟩
   hhand := fun q e he y hA hleg => by
     obtain ⟨hq, -, -, -⟩ := edgesFrom_grOf he
     exact ⟨AGS_hand hs hv.nonconn hl hq e he y hA.1 hleg, hA.2⟩

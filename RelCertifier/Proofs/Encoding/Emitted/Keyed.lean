@@ -197,11 +197,11 @@ theorem AG_post_any {l : ℕ} (hl : l < nL p) (q : ℕ) (y : State (Var n))
 
 /-! ### The certificates of a window -/
 
-theorem lamOf_pos {l : ℕ} (hl : l < nL p) (q : ℕ) : 0 < lamOf p cov l q := by
+theorem lamOf_nonneg {l : ℕ} (hl : l < nL p) (q : ℕ) : 0 ≤ lamOf p cov l q := by
   unfold lamOf
   split_ifs with hq
-  · exact lam_pos hs hl hq
-  · exact (timeOK_at (htime hs) hl).2.2.1
+  · exact lam_nonneg hs hl hq
+  · exact (timeOK_at (htime hs) hl).2.2.1.le
 
 theorem δ_pos {l : ℕ} (hl : l < nL p) : 0 < δ p cov l :=
   div_pos (timeOK_at (htime hs) hl).1 (timeOK_at (htime hs) hl).2.2.1
@@ -255,7 +255,7 @@ theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
       (AGr p n cX cov reg l)
       (RJof p n cX l) (RRof p n cX l) (RSof p n cX l) where
   hδ := δ_pos hs hl
-  hlam := lamOf_pos hs hl
+  hlam := lamOf_nonneg hs hl
   hspan := lamOf_span hs hl
   hAfv := AGr_fv_any hs hregR hl
   hAdom := fun q y h => h.1.2.2
@@ -265,7 +265,7 @@ theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
     exact ⟨AG_box hs hv.nonconn hv.stay hl hq (by simpa [chOfC] using hj)
       (hv.joint l hl q hq (by simpa [chOfC] using hj)) σ ω hA.1 hω,
       reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm (grOf_sys hm)
-        (grOf_dom hm) _ (lam_pos hs hl hq) hω hA.2⟩
+        (grOf_dom hm) _ (lam_nonneg hs hl hq) hω hA.2⟩
   hhand := fun q e he y hA hleg => by
     obtain ⟨hq, -, -, -⟩ := edgesFrom_grOf he
     exact ⟨AG_hand hs hv.nonconn hl hq e he y hA.1 hleg, hA.2⟩

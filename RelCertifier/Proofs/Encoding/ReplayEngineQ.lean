@@ -33,7 +33,7 @@ variable (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n)) (fR : ℕ → Fin
   (hgR : GuardsRight G)
   (hfL : ∀ i, (fL i).fv ⊆ range Lv)
   (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
-  (J : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 < lam q) (hfR : ∀ q, J q → ∀ i, (fR q i).fv ⊆ range Rv) (rank : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
+  (J : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 ≤ lam q) (hfR : ∀ q, J q → ∀ i, (fR q i).fv ⊆ range Rv) (rank : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
   (hmode : ∀ q, J q → G.modeAt q = some (M q))
   (hsys : ∀ q, J q → (M q).sys = rightBlock (fR q) (Term.const 1))
   (hdomM : ∀ q, J q → (M q).dom = domR)
@@ -67,8 +67,8 @@ theorem replay_piece_q (Pre E : ℕ → State (Var n) → Prop) (hmove : HMove G
   induction k using Nat.strong_induction_on with
   | _ k ih =>
     intro q hq hk a ha har ρ hPre hA
-    have hlq : 0 < lam q := hlam q hq
-    have hT : 0 ≤ lam q * (r - a) := mul_nonneg hlq.le (by linarith)
+    have hlq : 0 ≤ lam q := hlam q hq
+    have hT : 0 ≤ lam q * (r - a) := mul_nonneg hlq (by linarith)
     rcases hmove q hq ρ hPre (lam q * (r - a)) hT with
       ⟨Φ, hΦ, e, he, hleg, hE⟩ | ⟨τ, hτ0, hτT, Φ, hΦ, e, he, hleg, hJe, hrk, hPe⟩
     · -- the right runs to the piece's end, then the final switch
@@ -82,15 +82,7 @@ theorem replay_piece_q (Pre E : ℕ → State (Var n) → Prop) (hmove : HMove G
       refine hstep (rrespP_stop ⟨hE, ?_, fun i => right_sol_left hΦ' i⟩)
       exact hhand q hq e he _ hAend ((switchLegal_merge hgR he ω₀ (ΦL r)).mpr hleg)
     · -- a switch inside the piece into a higher joint node
-      set b : ℝ := a + τ / lam q with hbdef
-      have hτl : 0 ≤ τ / lam q := div_nonneg hτ0 hlq.le
-      have hab : a ≤ b := by linarith
-      have hbr : b ≤ r := by
-        have : τ / lam q ≤ r - a := by
-          rw [div_le_iff₀ hlq]; linarith
-        linarith
-      have hdur : lam q * (b - a) = τ := by
-        rw [hbdef]; field_simp; ring
+      obtain ⟨b, hab, hbr, hdur⟩ := stretch_split hlq har hτ0 hτT
       have hΦ' : ODESol (rightBlock (fR q) (Term.const 1)) domR ρ (lam q * (b - a)) Φ := by
         rw [hdur, ← hsys q hq, ← hdomM q hq]; exact hΦ
       have hAb := joint_stretch tg (lam q) hlq hfL (hfR q hq) hdomL hdomR hL ω₀ (A q) (hbox q hq)
@@ -173,7 +165,7 @@ variable (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n)) (fR : ℕ → Fin
   (hgR : GuardsRight G)
   (hfL : ∀ i, (fL i).fv ⊆ range Lv)
   (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
-  (J : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 < lam q) (hfR : ∀ q, J q → ∀ i, (fR q i).fv ⊆ range Rv) (rank : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
+  (J : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 ≤ lam q) (hfR : ∀ q, J q → ∀ i, (fR q i).fv ⊆ range Rv) (rank : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
   (hmode : ∀ q, J q → G.modeAt q = some (M q))
   (hsys : ∀ q, J q → (M q).sys = rightBlock (fR q) (Term.const 1))
   (hdomM : ∀ q, J q → (M q).dom = domR)
@@ -239,7 +231,7 @@ theorem replay_gresp_q (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n))
     (domL gL : Formula (Var n)) (b : Fin n)
     (hgR : GuardsRight G) (hfL : ∀ i, (fL i).fv ⊆ range Lv)
     (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv) (hgL : gL.fv ⊆ range Lv)
-    (J D : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 < lam q) (hfR : ∀ q, J q ∨ D q → ∀ i, (fR q i).fv ⊆ range Rv) (rank rankD : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
+    (J D : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 ≤ lam q) (hfR : ∀ q, J q ∨ D q → ∀ i, (fR q i).fv ⊆ range Rv) (rank rankD : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
     (hmode : ∀ q, J q ∨ D q → G.modeAt q = some (M q))
     (hsys : ∀ q, J q ∨ D q → (M q).sys = rightBlock (fR q) (Term.const 1))
     (hdomM : ∀ q, J q ∨ D q → (M q).dom = domR)
@@ -309,7 +301,7 @@ theorem replay_gresp_k_q (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n))
     (domL gL : Formula (Var n)) (b : Fin n)
     (hgR : GuardsRight G) (hfL : ∀ i, (fL i).fv ⊆ range Lv)
     (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv) (hgL : gL.fv ⊆ range Lv)
-    (J D : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 < lam q) (hfR : ∀ q, J q ∨ D q → ∀ i, (fR q i).fv ⊆ range Rv) (rank rankD : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
+    (J D : ℕ → Prop) (lam : ℕ → ℝ) (hlam : ∀ q, J q → 0 ≤ lam q) (hfR : ∀ q, J q ∨ D q → ∀ i, (fR q i).fv ⊆ range Rv) (rank rankD : ℕ → ℕ) (K : ℕ) (hrank : ∀ q, J q → rank q < K)
     (hmode : ∀ q, J q ∨ D q → G.modeAt q = some (M q))
     (hsys : ∀ q, J q ∨ D q → (M q).sys = rightBlock (fR q) (Term.const 1))
     (hdomM : ∀ q, J q ∨ D q → (M q).dom = domR)

@@ -202,7 +202,7 @@ atom's given forms. -/
 theorem stayR_of_query (hx : atoms[i]? = some x) (hok : atomOK vars n Side.R "L_" x = true)
     {q : IForm n} (hq : stayQueryOf vars n Side.R m atoms i = some q)
     (hz : z3solve q.toHost = Verdict.unsat)
-    (fL : Fin n → Term (Var n)) (c : ℝ) (hc : 0 < c) (dom : Formula (Var n))
+    (fL : Fin n → Term (Var n)) (c : ℝ) (hc : 0 ≤ c) (dom : Formula (Var n))
     (hdomEv : ∀ z, Formula.sat dom z → Formula.sat (hostEvolve vars n Side.R m) z)
     {ν : State (Var n)} (hinit : Term.eval (hostAtomG vars n Side.R x.atom) ν ≤ 0)
     (hgiv : ∀ (r : ℝ) (Φ : ℝ → State (Var n)), 0 ≤ r → Φ 0 = ν →
@@ -231,21 +231,21 @@ theorem stayR_of_query (hx : atoms[i]? = some x) (hok : atomOK vars n Side.R "L_
     all_goals simp only [hroute, routeQuery, ownLie] at hnot
     -- route B
     pick_goal 3
-    · refine atom_boxle_R_strict g.toHost fL (fun j => (f j).toHost) c hc (Formula.and dom D) D
+    · refine atom_boxle_R_strict0 g.toHost fL (fun j => (f j).toHost) c hc (Formula.and dom D) D
         hfv (fun z h => h.2) ?_ hinit
       intro σ hσ
       apply hnot σ
       simpa [flowQueryStrict, IForm.toHost, ITerm.toHost, ilieDeriv_toHost, hD] using hσ
     -- route A
     pick_goal 3
-    · refine atom_boxle_R_nonstrict g.toHost fL (fun j => (f j).toHost) c hc.le (Formula.and dom D)
+    · refine atom_boxle_R_nonstrict g.toHost fL (fun j => (f j).toHost) c hc (Formula.and dom D)
         D hfv (fun z h => h.2) ?_ hinit
       intro σ hσ
       apply hnot σ
       simpa [flowQuery, IForm.toHost, ITerm.toHost, ilieDeriv_toHost, hD] using hσ
     -- route C and the rational routes
     all_goals
-      refine boxle_R_of_super g.toHost fL (fun j => (f j).toHost) c hc.le (Formula.and dom D) D
+      refine boxle_R_of_super g.toHost fL (fun j => (f j).toHost) c hc (Formula.and dom D) D
         hfv (fun z h => h.2) ?_ hinit
       intro z hz0 hge
       by_contra hlt
@@ -334,7 +334,7 @@ end Atom
 `m`'s evolve domain. -/
 theorem atomsStayC_R (vars : List String) (m : PMode) (atoms : List CutAtomX)
     (hwf : atomsWF (vars) n Side.R "L_" atoms = true) (hv : StayVerd vars n Side.R m atoms)
-    (fL : Fin n → Term (Var n)) (c : ℝ) (hc : 0 < c) (dom : Formula (Var n))
+    (fL : Fin n → Term (Var n)) (c : ℝ) (hc : 0 ≤ c) (dom : Formula (Var n))
     (hdomEv : ∀ z, Formula.sat dom z → Formula.sat (hostEvolve vars n Side.R m) z) :
     AtomsStayC (cutPairsX vars n Side.R atoms)
       (jointSys fL (hostDyn vars n Side.R m) (Term.const c)) dom := by

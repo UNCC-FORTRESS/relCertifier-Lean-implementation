@@ -268,9 +268,9 @@ theorem AGS_box (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ}
   · exact couple_box_cutXS (g p n l) (gs p n l) (maskOf p n l) _ (cL p n cX l) (cR p n cX q)
       (fL p n l) (fR p n q) (lam p cov l q) (domL p n) (domR p n) (maskOf_len p n l) hsub1 hsub2
       (hiffL hs hl) (hiffR hs hq) (stayL_env hs hl hst _ _)
-      (stayR_dom hs hq hst _ _ (lam_pos hs hl hq) _ (fun z hz => hz.2))
+      (stayR_dom hs hq hst _ _ (lam_nonneg hs hl hq) _ (fun z hz => hz.2))
       (jointVerdS_core hs hl hq hv) σ ω hFA hω
-  · exact barriers_keep hs hnc hst hq (fL p n l) _ (lam_pos hs hl hq) σ ω hcRσ hbar hω
+  · exact barriers_keep hs hnc hst hq (fL p n l) _ (lam_nonneg hs hl hq) σ ω hcRσ hbar hω
 
 /-- **A frozen-left segment keeps the strict anchor** (the existing reposition pack). -/
 theorem AGS_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
@@ -295,13 +295,13 @@ theorem AGS_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ
       (hiffL hs hl) (hiffR hs hq)
       (cutPairsX_fv_L (atomsWF_L (hcuts hs) hl)) (guardL_fv (hnames hs) l) ?_
       hverd σ ω hFA hgσ hω
-    refine stayR_dom hs hq hst (fun _ => Term.const 0) 1 one_pos _ ?_
+    refine stayR_dom hs hq hst (fun _ => Term.const 0) 1 zero_le_one _ ?_
     intro z hz
     unfold dynBase at hz
     cases pre with
     | true => exact hz.1.2
     | false => exact hz.2
-  · exact barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 one_pos σ ω hcRσ hbar hω
+  · exact barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 zero_le_one σ ω hcRσ hbar hω
 
 theorem AGS_prune (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
     (hq : q < nR p) (e : REdge (Var n)) (he : e ∈ (grOf p n (prunedOf cov)).edgesFrom q)
@@ -380,7 +380,7 @@ theorem hrepoProg_ofS (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR p n q) (Term.const 1))
         (Formula.and (domL p n) (domR p n))) σ ω → Formula.sat (AGrS p n cX cov reg l q) ω :=
     fun σ ω hA hg hω => ⟨AGS_boxD hs hnc hst hl hq pre hflag' (hdyn l hl q hq pre hflag') σ ω hA.1 hg hω,
-      reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm rfl rfl 1 one_pos hω hA.2⟩
+      reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm rfl rfl 1 zero_le_one hω hA.2⟩
   have hε : 0 < epsR p := (timeOK_at (htime hs) hl).1
   -- the region
   have hR : ∀ y, Formula.sat (AGrS p n cX cov reg l q) y → (pre = true → Formula.sat (guardL p n l) y) →

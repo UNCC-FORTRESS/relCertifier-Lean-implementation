@@ -89,6 +89,8 @@ import RelCertifier.Proofs.Encoding.RepositionDischarge
 import RelCertifier.Proofs.Encoding.RepositionEndToEnd
 import RelCertifier.Proofs.Encoding.RepositionFinish
 import RelCertifier.Proofs.Encoding.ReplayDyn
+import RelCertifier.Proofs.Encoding.ReplayDynPL
+import RelCertifier.Proofs.Encoding.ProgressPL
 import RelCertifier.Proofs.Encoding.ReplayEngine
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.StrictInv
@@ -96,6 +98,7 @@ import RelCertifier.Proofs.Encoding.StrictCouple
 import RelCertifier.Proofs.Encoding.Emitted.StrictAnchor
 import RelCertifier.Proofs.Encoding.Emitted.StrictKeyed
 import RelCertifier.Proofs.Encoding.Emitted.StrictRun
+import RelCertifier.Proofs.Encoding.Emitted.Prelanding
 import RelCertifier.Proofs.Encoding.Theorem3GeneralS
 import RelCertifier.Proofs.Encoding.ModeHandoffStrict
 import RelCertifier.Proofs.Encoding.ToolLevel
@@ -149,6 +152,7 @@ import RelCertifier.Trusted.WellFormedCheck
 import RelCertifier.Trusted.Z3
 import RelCertifier.InstancesV2.AxiomCheck
 import RelCertifier.VerdictsV2.ModalDynX
+import RelCertifier.VerdictsV2.ModalDynPL
 import RelCertifier.VerdictsV2.ModalXStrict
 import RelCertifier.InstancesV2.WellFormedBattery
 import RelCertifier.InstancesV2.Bridge

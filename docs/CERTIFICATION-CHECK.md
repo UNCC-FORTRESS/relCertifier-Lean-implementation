@@ -232,6 +232,19 @@ end: `python3 scripts/gen_stutter_demo.py`, `lake build RelCertifier.InstancesV2
 benchmarks and three others (each `propext, Classical.choice, Quot.sound, z3_unsat_sound`) and the
 kernel negatives (the IR with the key off fails `structOK` on a stretch-0 cover).
 
+**Pre-landing (opt-in right-only certificate before the landing)** (2026-10-30, branch
+`prelanding`, `docs/PRELANDING.md`): the `[problem] prelanding = true` key checks a right-only
+node's flow certificate only before its progress certificate's last threshold. No suite_v2 file
+sets it; with the key absent the covers, verdicts and `--check-quick-v2` output are
+byte-identical to `4b154c3`. Tests: `python3 scripts/prelanding_tests.py` (101/101: the engine
+cooling demo's tight band 0.3, the cause test, the adversarial fails-after / fails-before /
+strict-target files, the 78 negatives with the key DECLINED); end to end:
+`python3 scripts/gen_prelanding_demo.py`, `lake build
+RelCertifier.InstancesV2.Bridge.EngineCoolingPrelanding`, `lake env lean
+scripts/prelanding_demo_verdicts.lean` (18/18 groups), `lake env lean
+scripts/prelanding_kernel_checks.lean` (the axioms, and the kernel negatives: the record with the
+key off fails `plOK`, the cover without the pre-landing nodes fails `coversOK`).
+
 **Strict-gate negative check** (2026-10-10): `--check-quick-v2` over the suite with the
 pre-repair `platoon_delay_linkloss` in its place: check 1 `44 certified, 1 declined, 0
 error(s) but the declared suite is 45/0/0` (`[wellformed] STRICT: platoon_delay_linkloss

@@ -893,6 +893,10 @@ A ninth letter, W (the witness waits, the dual of R; 2026-10-29, `docs/STUTTER.m
 stretch-0 (stutter) pairing, opted in with `[problem] stutter = true`, and the file without the
 key declines. One suite_v2 file sets the key (since 2026-10-29, `lit_nahs25_salt_tank`, whose
 header carries W).
+The pre-landing demo (`benchmarks/prelanding_demo/engine_cooling_prelanding`, NOT in suite_v2,
+`docs/PRELANDING.md`, 2026-10-30): the NAHS 2025 engine cooling system at the source's distance
+0.3 with the opt-in key `[problem] prelanding = true` and the genuine Cool guard closed to
+`temp >= 100` (disclosed); letters R (`RELCERT_NO_REPO=1` declines).
 
 ## The benchmarks
 

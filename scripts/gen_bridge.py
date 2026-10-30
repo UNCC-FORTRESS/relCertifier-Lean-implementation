@@ -177,6 +177,13 @@ theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n})
 # by `repoProgress_one_down`, a two-stage certificate must be upward in both stages)
 SKIP = set()
 
+STUTTER_THMS = """/-- The benchmark opts in to stretch 0 (`stutter = true`), and its cover really uses a
+stretch-0 pairing (decided in the kernel). -/
+theorem stutter_on : IR.stutter = true := by decide +kernel
+theorem uses_stutter : (cov.covers.any fun lc => lc.strata.any (·.lamN == 0)) = true := by
+  decide +kernel
+"""
+
 def emit(b, n0):
     """Emit `b`'s instance at dimension `n0 + 1`, `n0` the dimension of its Assumption 1 lemma."""
     n = n0 + 1
@@ -218,6 +225,12 @@ def emit(b, n0):
     direct = info.get("direct", False)
     modeAt = None if direct else f"{info['G']}_modeAt"
     rows_thm = "" if keyed else "theorem rows_same : rowsSame IR = true := by decide +kernel\n"
+    src = f"{SUITE}/{b}/input.txt"
+    if os.path.exists(src) and re.search(r"(?m)^\s*stutter\s*=\s*true\s*$", open(src).read()):
+        # the opt-in stretch 0 (`docs/STUTTER.md`): the IR carries the key and the cover uses a
+        # stretch-0 pairing, both decided in the kernel (`structOK`'s `timeOK` admits `lamN = 0`
+        # only under the key)
+        rows_thm += STUTTER_THMS
     claim = (KEYED_CLAIM if keyed else WINDOW_CLAIM).format(b=b, n=n)
     if direct:
         region_block = DIRECT_REGION.format(n=n, n0=n0, ns=info["ns"], b=b)

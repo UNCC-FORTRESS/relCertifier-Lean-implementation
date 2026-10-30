@@ -219,14 +219,17 @@ BLOCKING`, `SUITE_V2 QUICK CHECKS FAILED`, exit 1. With the successor clause alo
 file passed the gate (all five modes `ok`).
 
 **Stutter (opt-in stretch 0)** (2026-10-29, branch `stutter`, `docs/STUTTER.md`): the
-`[problem] stutter = true` key lets a joint segment run at stretch 0 (the right waits). No
-suite_v2 file sets it, and with every input unchanged the covers, verdicts (control and six
+`[problem] stutter = true` key lets a joint segment run at stretch 0 (the right waits). One
+suite_v2 file sets it (`lit_nahs25_salt_tank`, since 2026-10-29); with the key absent the covers, verdicts (control and six
 switch runs, the exhibits) and `--check-quick-v2` output are byte-identical to `de241c5`. Without
 the key the CLI never certifies with a stretch-0 pairing (`λ_min = 0` alone now declines where it
-used to certify unbacked). Tests: `python3 scripts/stutter_tests.py` (91/91, incl. the 78
-negatives with the key, all DECLINED); end to end: `python3 scripts/gen_stutter_demo.py`,
-`lake build RelCertifier.InstancesV2.Bridge.SaltTankStutter`, `lake env lean
-scripts/stutter_demo_verdicts.lean` (54/54 groups): the salt tank at band 0.
+used to certify unbacked). Tests: `python3 scripts/stutter_tests.py` (103/103 since 2026-10-30, incl. the adversarial
+claims of `docs/STUTTER-SOUNDNESS.md` and the 78 negatives with the key, all DECLINED); end to
+end: `python3 scripts/gen_stutter_demo.py`, `lake build RelCertifier.InstancesV2.Bridge.SaltTankStutter`,
+`lake env lean scripts/stutter_demo_verdicts.lean` (54/54 groups): the salt tank at band 0;
+`lake env lean scripts/stutter_kernel_checks.lean`: the axioms of Theorem 3 of both stutter
+benchmarks and three others (each `propext, Classical.choice, Quot.sound, z3_unsat_sound`) and the
+kernel negatives (the IR with the key off fails `structOK` on a stretch-0 cover).
 
 **Strict-gate negative check** (2026-10-10): `--check-quick-v2` over the suite with the
 pre-repair `platoon_delay_linkloss` in its place: check 1 `44 certified, 1 declined, 0

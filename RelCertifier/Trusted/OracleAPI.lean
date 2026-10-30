@@ -843,8 +843,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     let dpostL := dynMap.filterMap (fun p => if p.2.2 then some p.1 else none)
     IO.eprintln s!"  [repo-dyn-pre] {mL.name}_L: {dpreL} [repo-dyn-post]: {dpostL}"
   -- PER-PAIRING STRETCH (fallback). The common pass below keeps one λ per left mode. When no
-  -- common λ closes the cover, each right mode may use its own stretch: the smallest candidate
-  -- at which its joint segment passed (`firstPass`, recorded during the common pass, so the
+  -- common λ closes the cover, each right mode may use its own stretch: the smallest positive
+  -- candidate at which its joint segment passed, or the stutter stretch `0` (under the key) only
+  -- if it passed at no positive one (`firstPass`, recorded during the common pass, so the
   -- fallback asks Z3 nothing new). Every joint segment is then cut to the common left span
   -- δ = εR / λmax (λmax the largest chosen stretch): a segment of mode `mR` at stretch λ_mR
   -- lasting δ of left time reaches τ_R = λ_mR·δ ≤ εR, inside the right interval, and the
@@ -920,7 +921,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       lastOrder := (mR.name, order) :: lastOrder.filter (·.1 != mR.name)
       if st == Seg.pass then
         match firstPass.find? (·.1 == mR.name) with
-        | some t => if lam < t.2.1 then
+        -- the smallest POSITIVE passing stretch; the stutter candidate `0` (last) only for a
+        -- pairing that passed at no positive one (the reference keeps pace where it can)
+        | some t => if lam != 0 && lam < t.2.1 then
             firstPass := (mR.name, lam, order) :: firstPass.filter (·.1 != mR.name)
         | none => firstPass := firstPass ++ [(mR.name, lam, order)]
       if st == Seg.incon && !everIncon.contains mR.name then everIncon := everIncon ++ [mR.name]

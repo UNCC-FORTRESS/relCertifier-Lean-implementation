@@ -18,14 +18,17 @@ mirror of the right-only (reposition) segment, in which the left waits.
   and Assumption 1 (ii) quantifies over every duration `≤ ε_R`, including 0).
 * A stutter certificate says nothing about the right keeping pace: the witness may wait for as
   long as the left holds a level it can match. A reader who wants "the reference keeps time"
-  keeps the key off (or `λ_min > 0`).
+  keeps the key off (with the key, `0` is appended whatever `λ_min` is).
 
 ## Opt-in
 
 `[problem] stutter = true` (default `false`; any value other than `true`/`false` is a parse
 error; `KeyAudit` recognizes the key). With the key, `Run.lambdaCandidates` appends `λ = 0` as the
 **last** candidate, after `ε_R/ε_L` and the 21-point grid on `[λ_min, λ_max]`, so a file that
-closes at some `λ > 0` keeps that cover. `λ = 0` is never taken from the grid: without the key a
+closes at some `λ > 0` keeps that cover. In the per-pairing fallback (no common `λ` closes the
+cover) each pairing takes the smallest *positive* stretch at which it passed and `0` only if it passed
+at none (since 2026-10-30, `docs/STUTTER-SOUNDNESS.md`; before, `0` replaced a positive pass because
+it is the last and smallest candidate): the reference keeps pace wherever it can. `λ = 0` is never taken from the grid: without the key a
 file with `λ_min ≤ 0` never tries 0. `RELCERT_SYNC=1` (λ = 1 only) drops it.
 
 **Guard.** `certifyWithData` turns a cover with a stretch-0 pairing into ERROR unless the problem
@@ -84,7 +87,8 @@ Lean changes (no `sorry`, no new axiom):
 
 `scripts/stutter_tests.py` (variant files in a temporary directory, `RELCERT_IMPLIED_CUT=1`):
 
-91/91 as expected (measured 2026-10-29):
+91/91 as expected (measured 2026-10-29; 103/103 since 2026-10-30 with the adversarial cases of
+`docs/STUTTER-SOUNDNESS.md`):
 
 | case | verdict |
 |---|---|

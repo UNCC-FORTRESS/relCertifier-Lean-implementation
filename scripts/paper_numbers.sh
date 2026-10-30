@@ -78,8 +78,10 @@ recs = list(recs.values()) if isinstance(recs, dict) else recs
 byname = {r["name"]: r for r in recs}
 def uses_stretch(b): return any(c.get("lam_float", 1.0) != 1.0 for c in byname[b]["covers"])
 def uses_ro(b): return any(c.get("right_only") for c in byname[b]["covers"])
+def uses_stutter(b): return any(x == "0" for c in byname[b]["covers"] for x in c.get("lam_pairs", {}).values())
 syn_decl = [b for b, v in syn.items() if v[0] == "DECLINED"]
 nst = sum(1 for b in syn_decl if uses_stretch(b))
+nsw = sum(1 for b in syn_decl if not uses_stretch(b) and uses_stutter(b))  # SYNC drops stretch 0
 cells = {k: sum(1 for r in recs if str(r["cells"].get(k, "")).startswith("yes")) for k in
          ["M1", "M2", "M3", "M4", "M5", "M6", "M6+", "M6L"]}
 nro = sum(1 for r in recs if uses_ro(r["name"]))
@@ -93,7 +95,7 @@ for line in open(f"{out}/opregion.err"):
 mac = {
  "numbenchmarks": len(ctl), "numcertified": count(ctl, "CERTIFIED"),
  "numsync": count(syn, "CERTIFIED"), "numsyncdeclined": len(syn_decl),
- "numsyncstretch": nst, "numsyncrightonly": len(syn_decl) - nst, "numrightonly": nro,
+ "numsyncstretch": nst, "numsyncrightonly": len(syn_decl) - nst - nsw, "numsyncstutter": nsw, "numrightonly": nro,
  "numnochoice": count(verdicts("nochoice"), "CERTIFIED"),
  "numnoprunedecl": count(verdicts("noprune"), "DECLINED"),
  "numnoprunenochoicedecl": count(verdicts("noprune_nochoice"), "DECLINED"),

@@ -34,6 +34,11 @@ theorem prog_ok : progOK IR 4 cov prog = true := by decide +kernel
 theorem covers_ok : coversOK IR 4 cov ce = true := by decide +kernel
 theorem pad_ok : padOK IR 3 = true := by decide +kernel
 theorem rows_same : rowsSame IR = true := by decide +kernel
+/-- The benchmark opts in to stretch 0 (`stutter = true`), and its cover really uses a
+stretch-0 pairing (decided in the kernel). -/
+theorem stutter_on : IR.stutter = true := by decide +kernel
+theorem uses_stutter : (cov.covers.any fun lc => lc.strata.any (·.lamN == 0)) = true := by
+  decide +kernel
 /-- Assumption 1 holds unconditionally: the region is `⊤`. -/
 abbrev reg : Formula (Var 4) := Formula.tt
 theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h

@@ -16,6 +16,9 @@ Letters (the paper's legend), every one measured, never read off a header:
                      (a positive stretch: a stutter pairing, lambda = 0, does not count, see W)
                      (diagnostic S_lam1: the file with lambda_min = lambda_max = 1 and no
                      stutter, right-only segments still allowed, DECLINES)
+                     For a file whose cover has a stutter pairing, S also needs the file at
+                     lambda_min = lambda_max = 1 WITH the key kept to DECLINE (RELCERT_SYNC drops
+                     the stretch-0 candidate, so its decline alone may be W's; 2026-10-30)
   M multi-step cover some left mode's budget >= 2 and its replayed derivation takes a joint
                      step (matrix M2)
   R right-only       some cover's replayed derivation has a right-only segment AND
@@ -69,6 +72,19 @@ def variant_lambda1(text):
             line = "lambda_max = 1.0"
         elif re.match(r"^\s*stutter\s*=", line):
             continue
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
+def variant_lambda1_key(text):
+    """The file at lambda_min = lambda_max = 1 with the `stutter` key kept (stretch 0 still a
+    candidate): declines only if a positive stretch other than 1 is needed."""
+    out = []
+    for line in text.splitlines():
+        if re.match(r"^\s*lambda_min\s*=", line):
+            line = "lambda_min = 1.0"
+        elif re.match(r"^\s*lambda_max\s*=", line):
+            line = "lambda_max = 1.0"
         out.append(line)
     return "\n".join(out) + "\n"
 
@@ -185,6 +201,8 @@ def main():
             cells = r["cells"]
             v = {k: runs[k].get(name, ("MISSING", 0))[0] for k in runs}
             lam1 = run_variant(a.relcert, variant_lambda1(text), tmp, name + "_lam1", a.timeout) if lam_ne1 else "-"
+            lam1key = (run_variant(a.relcert, variant_lambda1_key(text), tmp, name + "_lam1key", a.timeout)
+                       if lam_ne1 and stut else "-")
             uni, keeps, own = {}, {}, set()
             if cells["M5"].startswith("yes"):
                 distinct = []
@@ -203,7 +221,7 @@ def main():
                     uni["conj"] = run_variant(a.relcert, variant_uniform(text, conj_row(distinct)), tmp, f"{name}_uniconj", a.timeout)
                     keeps["conj"] = True
             L = {
-                "S": cert and v["sync"] == "DECLINED" and lam_ne1,
+                "S": cert and v["sync"] == "DECLINED" and lam_ne1 and (not stut or lam1key == "DECLINED"),
                 "M": cells["M2"].startswith("yes"),
                 "R": cert and ro and v["norepo"] == "DECLINED",
                 "W": cert and stut and nostut == "DECLINED",
@@ -223,6 +241,7 @@ def main():
             }
             if stut:
                 diag["W_nostutter_verdict"] = nostut
+                diag["S_lam1key_verdict"] = lam1key
             letters = " ".join(k for k in LETTERS if L[k])
             rec = {"name": name, "family": r["family"], "dimL": r["dimL"], "dimR": r["dimR"],
                    "modesL": r["modesL"], "modesR": r["modesR"], "inv": inv_kind(r["inv_shape"]),

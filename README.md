@@ -408,6 +408,12 @@ Environment variables of `relcert` (`relcert --help` prints the same list):
 | `RELCERT_MAX_QUERIES=<n>` | per-benchmark query budget, default 20000 |
 | `RELCERT_TIME_BUDGET_MS=<ms>` | per-benchmark wall-clock budget, default 300000 (5 min; 40000 before 2026-10-27) |
 
+Problem key (in the input file, not the environment): `[problem] stutter = true` (opt-in,
+default off) appends the stretch `λ = 0` as the last candidate: a joint segment in which the
+right waits while the left runs. Backed in Lean (`CoverHyps.hlam : 0 ≤ lam`, `Emitted.timeOK`
+admits `lamN = 0` only under the key); without the key the CLI never certifies with a stretch-0
+pairing. See [`docs/STUTTER.md`](docs/STUTTER.md).
+
 ## Guard-gated switching
 
 The paper's model switches only into a declared successor whose guard holds at the switch
@@ -551,6 +557,8 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
+* [`docs/STUTTER.md`](docs/STUTTER.md): the opt-in stretch 0 (`stutter = true`, the right
+  waits during a joint segment): semantics, soundness, the Lean changes, the demo and tests.
 * [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 74 kernel refutations of
   known-false invariant variants (its design was `docs/REFUTATION-SCOPE.md`, planning record, last present at commit 29663d8).
 * [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from

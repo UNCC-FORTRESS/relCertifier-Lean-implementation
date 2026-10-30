@@ -1,0 +1,60 @@
+# salt_tank_stutter: the stutter demo (NOT part of suite_v2; docs/STUTTER.md).
+#
+# benchmarks/suite_v2/lit_nahs25_salt_tank (the attacked brine tank against the genuine one,
+# Xiang, Lanotte, Tini, Chong, Merro, NAHS 2025) with two changes: the opt-in key
+# `stutter = true` and the band tightened from 3 to 0 (xp_L = xp_R, with both lower bounds).
+# Everything else (plant, guards, epsilon, lambda_min = lambda_max = 1) is the suite file's.
+#
+# With the key the stretch candidates end with lambda = 0, the joint segment in which the
+# genuine tank (right) waits while the attacked tank (left) runs. The attacked Off holds its
+# level (xp' = 0), so against it the genuine tank may wait: the pairing Off_L/On certifies at
+# lambda = 0 (the right is frozen, the left does not move) where it fails at lambda = 1. The
+# attacked On moves, so On_L stays at lambda = 1 (at lambda = 0 it fails: the left moves and
+# the right must follow). Without the key the band 0 DECLINES (the suite file's tight value is
+# 3, see its TIGHTNESS paragraph); with it the band certifies down to 0 (-0.01 declines: the
+# rows then admit no start). A stutter certificate says nothing about the genuine tank
+# keeping pace: the witness may wait as long as the attacked tank holds.
+#
+[problem]
+name = salt_tank_stutter
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+stutter = true
+
+[Lsys]
+state_vars = [xp]
+epsilon = 1.0
+
+[Lsys.mode.On]
+ode = xp' = smt2:(* 0.1 (- 25.0 xp));
+guard = xp >= 22.0
+evolve = 0.0 <= 1.0
+next = [On, Off]
+
+[Lsys.mode.Off]
+ode = xp' = smt2:0.0;
+guard = xp < 28.0
+evolve = 0.0 <= 1.0
+next = [On, Off]
+
+[Rsys]
+state_vars = [xp]
+epsilon = 1.0
+
+[Rsys.mode.On]
+ode = xp' = smt2:(* 0.1 (- 25.0 xp));
+guard = xp >= 25.0
+evolve = 0.0 <= 1.0
+next = [On, Off]
+
+[Rsys.mode.Off]
+ode = xp' = smt2:0.0;
+guard = xp < 25.0
+evolve = 0.0 <= 1.0
+next = [On, Off]
+
+[relational_invariant]
+On = xp[l] <= xp[r] + 0.0 and xp[r] <= xp[l] + 0.0 and xp[l] >= 25.0 and xp[r] >= 25.0
+Off = xp[l] <= xp[r] + 0.0 and xp[r] <= xp[l] + 0.0 and xp[l] >= 25.0 and xp[r] >= 25.0

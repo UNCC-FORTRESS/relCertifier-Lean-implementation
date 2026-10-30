@@ -54,6 +54,7 @@ def emitProblem (nm : String) (p : PProblem) : String :=
     ++ "\n    L := " ++ emitSystem p.L
     ++ "\n    R := " ++ emitSystem p.R
     ++ "\n    invariants := [\n      " ++ invs ++ "]"
-    ++ (if p.stutter then "\n    stutter := true }" else " }")
+    ++ (if p.stutter then "\n    stutter := true" else "")
+    ++ (if p.prelanding then "\n    prelanding := true }" else " }")
 
 end RelCertifier.Parse

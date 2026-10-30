@@ -510,6 +510,22 @@ def parse_choice(text):
                     "S": re.findall(r'"(\w+)"', m.group(5))})
     return out
 
+def parse_preland(text):
+    """The `PrelandEmitE` literal the tool writes to RELCERT_PRELANDING_OUT (only under the opt-in
+    `prelanding = true`, docs/PRELANDING.md): one (mL, mR, pre) per pre-landing right-only node."""
+    return [(m.group(1), m.group(2), m.group(3) == "true")
+            for m in re.finditer(r'⟨"(\w+)", "(\w+)", (true|false), \[[^\]]*\]⟩', text)]
+
+def merge_preland(covers, nodes):
+    """The cover graph's rows: the emitted flags with the pre-landing nodes merged in (the tool's
+    `effRows`, the kernel's `Emitted.withPL`); unchanged without the key."""
+    for c in covers:
+        for f in c["flags"]:
+            if (c["mL"], f["name"], True) in nodes:
+                f["dynPre"] = True
+            if (c["mL"], f["name"], False) in nodes:
+                f["dynPost"] = True
+
 def summarize_derivation(d, acc):
     """Collect kinds, modes visited, max branching at joint steps, RO use."""
     if d is None:
@@ -660,8 +676,11 @@ def analyze(name, path, relcert, timeout, z3time=False):
     import tempfile
     with tempfile.NamedTemporaryFile(suffix=".lean", delete=False) as tf:
         choice_out = tf.name
+    with tempfile.NamedTemporaryFile(suffix=".lean", delete=False) as tf:
+        preland_out = tf.name
     rc, out2, err2, _ = run([relcert, "--emit-cover", path, "x"],
-                            {"RELCERT_IMPLIED_CUT": "1", "RELCERT_CHOICE_OUT": choice_out}, timeout)
+                            {"RELCERT_IMPLIED_CUT": "1", "RELCERT_CHOICE_OUT": choice_out,
+                             "RELCERT_PRELANDING_OUT": preland_out}, timeout)
     try:
         entries = parse_choice(open(choice_out).read())
     except OSError:
@@ -671,12 +690,24 @@ def analyze(name, path, relcert, timeout, z3time=False):
             os.unlink(choice_out)
         except OSError:
             pass
+    try:
+        pl_nodes = parse_preland(open(preland_out).read())
+    except OSError:
+        pl_nodes = []
+    finally:
+        try:
+            os.unlink(preland_out)
+        except OSError:
+            pass
+    if pl_nodes:
+        rec["prelanding_nodes"] = len(pl_nodes)
     rec["choice_entries"] = len(entries)
     cov = parse_cover(out2) if v == "CERTIFIED" else None
     rec["covers"] = []
     rec["pruned"] = []
     if cov:
         pruned, covers = cov
+        merge_preland(covers, pl_nodes)
         rec["pruned"] = pruned
         succ = {m: prob["R"]["modes"][m]["next"] for m in prob["R"]["order"]}
         for c in covers:

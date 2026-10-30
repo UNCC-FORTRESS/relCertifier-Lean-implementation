@@ -764,3 +764,86 @@ Largest other per-benchmark counts: handoff 144, bridge 810.
 
 Commits (branch `benchmark-fixes`, pushed): de241c5 (the two installs, generated layers, counts, docs), then the
 paper numbers and this section.
+
+## Stutter merge (2026-10-29)
+
+Owner-approved: merge branch `stutter` (opt-in stretch 0 on joint segments, `[problem] stutter = true`,
+mechanism letter W "the witness waits", `docs/STUTTER.md`) into `benchmark-fixes`, then two follow-ups.
+
+**Merge.** `git merge --no-ff origin/stutter` (bba18b3) into `benchmark-fixes` at b67cacd: merge commit
+f4050e0, no conflicts (b67cacd touched only this file and `docs/paper-numbers/*`; the stutter branch
+touched neither). The tool code of the merge equals bba18b3, so the research runs below used the stutter
+worktree's binary.
+
+**Task 1, `lit_nahs25_salt_tank` (installed).** `stutter = true`; rows xp_L = xp_R (band 0, both rows) with
+the two lower bounds, everything else unchanged. Band 0 is the source's Def. 8 value (NAHS 2025, Sec. 7: from
+xp = 50 both tanks reach exactly (25, 50]); the source's stated 3 is the value of its lock-step proof.
+Tight: c = 0 on either row (-0.01 declines). Without the key the band 0 DECLINES and the tight band stays 3
+(2.99 declines). Cause test: with the key the value is 0 for every attack bound b in {0.01, 1, 2, 3, 4, 10}
+(as Def. 8: the reachable sets coincide for every b); without the key it tracks b (0.01, 1, 2, 3, 4, 10);
+b = 0 (left = right, without the lower-bound rows) certifies with and without the key; the cause of the
+distance 0 is the attacked Off holding its level: with it drifting (xp' = 0.1) the band 0 (and 3) DECLINES.
+Cover: On_L at lambda 1; Off_L in a window lamQ = 1, budget 1, both pairings at stretch 0
+(`[Off_L λ=1] On=fail`, `[Off_L λ=0] On=pass Off=pass`). Ablations: DECLINED under `RELCERT_SYNC` (which drops
+the stretch-0 candidate); CERTIFIED under NO_PRUNE, NO_CHOICE, NO_REPO, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT,
+NO_PAIR_STRETCH, OPREGION, WELLFORMED_STRICT and without `RELCERT_IMPLIED_CUT` (the pairing that needed the
+mode facts, attacked Off with genuine On, now waits). Letters I -> W (measured by `paper_numbers.sh`). The
+header states that a stutter certificate does not promise that the reference keeps pace. Right model
+unchanged, so the Assumption 1 proof is unchanged (builds as is); `--wellformed` 2/2 ok, handoff 4/4 vacuous,
+one domain PASS. `benchmarks/stutter_demo/salt_tank_stutter` is now this file under another name.
+
+**Task 2, NAHS 2025 engine cooling with the key (not installed, no removal).** Model as in Literature round 3
+(attacked Cool iff temp > 99.7, Heat iff temp <= 100.3; genuine at 100; flows -0.5 / +1; domain temp >= 0),
+scratch `tmp/stutter-cool/`. Band 0.3, 1, 2, 5, 10, 50, 100, 200, 1000 all DECLINE with the key, at lambda
+pinned 1 and with lambda in [0.5, 2] and [0, 1]; one-sided rows DECLINE; the same without the key.
+`RELCERT_DEBUG` at band 0.3: `[Cool_L λ=1] Cool=pass Heat=fail`, `[Cool_L λ=0] Cool=fail Heat=fail`. Why:
+the attacked engine has no holding mode, so a waiting genuine engine does not help: at stretch 0 the
+attacked Cool moves (temp_L' = -0.5) while the right is frozen, so the gap grows at 0.5 against either
+genuine mode (at lambda 1 the genuine Cool matches it, the genuine Heat diverges at 1.5); the certificates
+are clock-free, so these rates act without the 1-minute bound, and the start (100, 100) (attacked Cool
+admissible, genuine forced to Heat) already escapes every band. The
+source's 0.3 is a distance between the reachable sets (99.2, 101.3] and (99.5, 101], a bounded-time fact.
+The domain-bounded variant (temp in [99.2, 101.3], not the source's domain) gives 2.10 with and without the
+key. Closing it still needs a time-bounded segment (a clock with reset), not stutter.
+
+**Removal.** None (no engine file installed). Suite 50 (41 designed, 9 literature).
+
+**Letters** (`docs/paper-numbers/letters.md`): S 20 M 24 R 7 B 12 P 4 D 11 I 18 X 15 -> S 20 M 24 R 7 W 1 B 12
+P 4 D 11 I 17 X 15 (only the salt tank changed: I -> W).
+
+**Regeneration.** `gen_v2_data.py lit_nahs25_salt_tank` (IR: band 0 and `stutter := true`; cover: the Off_L
+pairings `lamN = 0, lamD = 1`); the salt tank's pack rows in `VerdictsV2/RunV2.lean` derived from the
+emitted cover ((1, 0) and (1, 1) at `0, 1`); `gen_bridge.py` (instance unchanged); `refute_finder.py --only
+lit_nahs25_salt_tank` (14 mutants, no witness, as before; run from the stutter worktree, whose built parser
+reads the key); `gen_refute.py` (75 instances, nothing written).
+
+**Checks** (all green; one serial `lake build`, exit 0, 9270 jobs, 11 min; then the five executables):
+`--check-quick-v2` 50 certified, modal 1162/1162, handoff 2827/2827, non-connection 44/44, pruned 22/22,
+reposition 74/74, strict gate 181/181 (80 invariant, 101 exit), 0 UNKNOWN, 0 BLOCKING; `check_one_domain.py`
+PASS (48 + 2 kind (iii)); `relcert --wellformed` 181 modes ok; `relcert-test` ALL PASS (50 literals); bridge
+7437/7437 (unchanged; declared count unchanged); progress 194/194; refute 206/206 (75 instances);
+WellFormedBattery 66 lines at the three standard axioms plus the 11 `CutLiftX` replay lines (two of them,
+`entry_z3` and `entryZ3Fact_of_unsat`, with `z3_unsat_sound`), no `sorryAx`; AxiomCheck 9 (6 standard,
+3 plus `z3_unsat_sound`); the three negatives DECLINED; `lit_hypercert_vehicle_s8` 5/5 BLOCKING, DECLINED
+under strict; `scripts/stutter_tests.py` 91/91; stutter demo `lake env lean scripts/stutter_demo_verdicts.lean`
+54/54 groups ALL DISCHARGED.
+
+Failed checks and their resolution: (1) the stutter demo run first failed with `object file ...
+Bridge/SaltTankStutter.olean ... does not exist` (the demo instance is not imported by the root, so `lake
+build` does not build it); `lake build RelCertifier.InstancesV2.Bridge.SaltTankStutter`, then 54/54. Nothing
+reverted. (2) Count fix: the README and check 3's note said 4 suite files DECLINE without
+`RELCERT_IMPLIED_CUT`; measured 6 (`charger_fast_tapers`, `engine_start_highidle`,
+`furnace_program_timebase`, `h2_refuel_ambientbias`, `lit_csf25_salt_tank_hold`,
+`turbine_startup_gearratio`; the salt tank left the list), both updated.
+
+**Paper numbers** (`scripts/paper_numbers.sh docs/paper-numbers` under zsh, 57 min; covers identical):
+`\numletterW` 1 (new), `\numletterI` and `\nummechc` 18 -> 17, `\nummechcplus` 7 -> 6, `\numsync` 25 -> 24,
+`\numsyncdeclined` 25 -> 26, `\numsyncnochoice` 13 -> 12, `\numnocut` 32 -> 33, `\numguardonly` 43 -> 44,
+`\numsyncrightonly` 5 -> 6 (the script counts every SYNC-declined file without a positive stretch as
+right-only; the salt tank declines under SYNC by stutter, not by a right-only segment: the macro's name no
+longer fits, for the paper to decide), `\numunderonesec` 27 -> 26 (timing: `elevator_start_discbrake` 0.9 ->
+1.0 s). Total and slowest times unchanged (250 s; 65 s, `lit_gpt10_boost_converter`).
+
+Commits (branch `benchmark-fixes`, pushed): f4050e0 (merge), dbeadfc (salt tank, generated layers, docs,
+paper numbers), then this section. The worktree `/Users/jxiang1/Develop/relCertifier-stutter` removed after
+the push; `origin/stutter` kept.

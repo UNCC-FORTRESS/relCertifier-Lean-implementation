@@ -39,13 +39,17 @@
 #     declines; measured 2026-10-29), and adding it to the lambda-3/2 rows DECLINES.
 #   u_L <= u_R - 6 (row 2, exact): at lambda = 3/2 the two dominant modes decay alike, so the
 #     spoofed car's dominant-mode speed equals the reference's at 3/2 the elapsed time minus the
-#     6 m/s set-speed shift (30 - 24), and the row is kept exactly. Row 2 holds with equality
-#     (u_L - 24 and u_R - 30 are the same exponential after re-timing); stated one-sided, tight
-#     at -6 (-6.01 declines).
+#     6 m/s set-speed shift (30 - 24), and the row is kept exactly: u is each car's dominant-mode
+#     coordinate (u_L = v + 0.6 a kills the left's fast root -5/3, u_R = v + 0.5 a the right's -2),
+#     u_L - 24 and u_R - 30 obey the same decay after re-timing, so their difference decays and
+#     keeps its sign (a start on the boundary stays on it, a start below stays below); stated
+#     one-sided, tight at -6 (-6.01 declines).
 #     Row 2 is also the inductive strengthening row 1 needs (row 1 alone has no inductive
 #     certificate: its derivative compares the two accelerations).
-# Reading: the spoof turns the stock loop into the same loop 3/2 times faster aiming 6 m/s lower,
-# so every speed profile of the attacked car is a sped-up, lowered profile of the reference. Exact:
+# Reading: the spoof makes the stock loop's dominant mode 3/2 times faster and aims it 6 m/s lower,
+# so the attacked car's dominant-mode speed is the reference's re-timed by 3/2 and lowered by 6; the
+# fast modes do not match (left root -5/3 against the re-timed right's -3), so whole speed profiles
+# are not exact re-timings, which is why the rows bound v and u rather than equate them. Exact:
 # no tolerance constant. Not implied by the domains.
 # The stretch follows the cause: lambda = 1 / (2/3) = 3/2 is the ratio of the dominant rates, i.e.
 # the loop-gain factor the spoof introduces (0.625 / 0.5 = 1.25 on the gain, 3/2 on the dominant
@@ -72,9 +76,9 @@
 # continues (with the box itself as the guard a run from (23, -2) dipped to 22.6 m/s and ended).
 # Right: the reference's ENGAGED ENVELOPE, the forward-invariant hull of the same engagement box
 # under the unspoofed loop: 3 a + 2 v in [40, 66] and a + 2 v in [44, 62] (modal coordinates of
-# the box, each decaying toward 0; relcert --wellformed CRUISE ok (invariant)). It bounds the
-# reference's lag state, which a speed band alone does not. It spans v in [16.5, 36.5]; simulated
-# runs from the engagement box stay in v in [22.8, 30.6].
+# the box, each relaxing toward 60, its value at the set speed; relcert --wellformed CRUISE ok
+# (invariant)). It bounds the reference's lag state, which a speed band alone does not. It spans
+# v in [16.5, 36.5]; simulated runs from the engagement box stay in v in [22.8, 30.6].
 # Coverage. Right-domain states outside the envelope are in no right guard: the reference never
 # reaches them after engaging. The stock controller's disengage branch below 20 m/s is not
 # modeled: neither loop comes near 20 m/s from engagement.

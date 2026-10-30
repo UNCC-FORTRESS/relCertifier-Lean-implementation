@@ -188,7 +188,11 @@
 > physical variables) and one new, `lit_csf25_salt_tank_hold` m031 (the Dec envelope edge `xp + 0.1 t >= 35.5` moved
 > to the attacked level, which falls at up to 0.3 per minute). Witnesses 75; 75 refutation instances,
 > `relcert-refute-verdicts` 206/206, every instance builds.
-> Current instance set: **67 refutations, 199 groups**
+> Review round 6 (2026-10-30, commit `bd7c608`, `docs/BENCHMARK-REVIEW-2026-10-30-r6.md`): the finder re-run on the
+> changed benchmarks (`refute_finder.py` now drops the records of benchmarks that left the suite); instances added or
+> re-emitted for `h2_refuel_ambientbias`, `quad_light_profiles`, `rover_terrain_2to4` and `ventilator_vc_cuffleak`.
+> 81 refutation instances, `relcert-refute-verdicts` 227/227, every instance builds.
+> Current instance set (2026-10-30): **81 refutations, 227 groups** (67 and 199 after batch I11)
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 954 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11
 > (`scripts/refute_experiment.py`, 4 parallel jobs on the owner's Apple M2 Max, Z3 4.15.1, the 300 s default budget; the

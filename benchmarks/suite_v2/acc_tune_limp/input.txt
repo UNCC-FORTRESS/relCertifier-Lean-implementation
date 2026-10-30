@@ -1,9 +1,11 @@
 # acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against the stock
 # controller; same control period on both sides.
 # scenario: degraded-controller
-# mechanisms: S M D I (time stretch 3/2; multi-step cover at that stretch, a CRUISE window of
-#   0.1 s against 0.15 s of the reference, budget 2; mode-dependent rows, the stated requirement
-#   differs per mode; checked cuts, RELCERT_NO_CUT=1 declines; matrix codes M1 M2 M5 M6). No X:
+# mechanisms: S D I (time stretch 3/2; mode-dependent rows, the stated requirement differs per
+#   mode; checked cuts, RELCERT_NO_CUT=1 declines; matrix codes M1 M2 M5 M6). The CRUISE cover is
+#   multi-step (a window of 0.1 s against 0.15 s of the reference, budget 2, matrix M2), but the
+#   witness stays in NORMAL, so no M (letter rule of 2026-10-30: M needs a right mode change on the
+#   replayed path; one continuous NORMAL run). No X:
 #   RELCERT_NO_CHOICE=1 certifies. No B: the reference has no driver-selectable mode to branch
 #   into. D under the rule of 2026-10-27: the rows differ, every handoff is unsat, and the only
 #   uniform row that certifies (v_L <= v_R in both modes, below) drops CRUISE's stated exactness
@@ -11,7 +13,7 @@
 # Review round 6 (2026-10-30): the stock controller's COMFORT and SPORT response modes were
 #   removed (NORMAL.next = [NORMAL, DISENGAGE]). No cover ran them (every hop went into NORMAL,
 #   and the LIMP entry from CRUISE inherits the reference in NORMAL), so the earlier B and X were
-#   start-only; letters S M B D I X -> S M D I.
+#   start-only; letters S M B D I X -> S M D I, then S D I under the M rule (review round 7).
 #
 # System. Speed v (m/s), time s. The deployed controller (left) runs an aftermarket tune: CRUISE
 # v' = 0.75 (30 - v) (speed-loop gain 0.75 /s toward the set speed 30 m/s). When the tuned ECU
@@ -64,7 +66,7 @@
 # CRUISE at 3/2 (the tune is NORMAL 1.5 times faster) and LIMP at 1, the two ends of the range, so
 # the unused range (1.5, 6] is gone.
 # Verdicts (2026-10-30, current model): CERTIFIED; CERTIFIED under RELCERT_NO_CHOICE=1; letters
-# S M D I (suite_v2_matrix.py + suite_v2_letters.py). Re-measured 2026-10-30 on the current
+# S D I (suite_v2_matrix.py + suite_v2_letters.py). Re-measured 2026-10-30 on the current
 # model (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED (0.7 s); CERTIFIED under
 # RELCERT_NO_PRUNE=1, RELCERT_NO_REPO=1, RELCERT_NO_PAIR_STRETCH=1, without RELCERT_IMPLIED_CUT,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and

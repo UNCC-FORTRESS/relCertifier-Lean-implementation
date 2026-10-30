@@ -45,7 +45,7 @@ def JointAll : Prop :=
 def DynAll : Prop :=
   ∀ l < nL p, ∀ q < nR p, ∀ pre : Bool,
     (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true →
-    DynVerd p n cX cov l q pre
+    DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre)
 def AdmAll : Prop :=
   ∀ l < nL p, ∀ q < nR p, q ∉ admissibleOf p cov l →
     AdmVerd (vars p) n (rowOf p l) (mLof p l) (mRof p q)
@@ -56,7 +56,7 @@ structure Verdicts : Prop where
   stay : StayAll p n cX
   nonconn : NonConnAll p n cX cov
   joint : JointAll p n cX cov
-  dyn : DynAll p n cX cov
+  dyn : DynAll p n cX cov prog
   adm : AdmAll p n cov
   handoff : HandoffAll p n
   prog : ProgAll p n cX prog

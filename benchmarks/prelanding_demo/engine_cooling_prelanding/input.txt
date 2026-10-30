@@ -1,0 +1,65 @@
+# engine_cooling_prelanding: the pre-landing demo (NOT part of suite_v2; docs/PRELANDING.md).
+#
+# The NAHS 2025 engine cooling system (Xiang, Lanotte, Tini, Chong, Merro, arXiv 2403.05829,
+# Secs. 3-5, Examples 3 and 5): the attacked controller (left) against the genuine one (right).
+# Plant: Heat temp' = 1, Cool temp' = -0.5, control period epsilon = 1 on both sides. The attack
+# offset is o = 0.3: the attacked controller may Cool once temp > 99.7 and may Heat while
+# temp <= 100.3. The genuine controller Cools iff temp > 100.
+#
+# DEPARTURE from the source (disclosed): the genuine Cool guard is closed to temp >= 100 (the
+# source has temp > 100; the genuine controller becomes nondeterministic at exactly 100). The
+# progress certificate takes its landing threshold from a nonstrict guard atom only, so the
+# source's open guard gives no reposition node.
+#
+# Claim: |temp_L - temp_R| <= 0.3 in both modes, the paper's forward distance 0.3 (Example 3/7).
+# With the opt-in key `prelanding = true` a right-only (reposition) node needs the right-only
+# flow certificate only BEFORE the right lands (temp_R < 100 heating, temp_R > 100 cooling);
+# the witness right run stops at its first entry into the target and ends its control cycle
+# early. Both left modes close: Cool_L {Cool joint; Heat reposition -> Cool joint} and Heat_L
+# {Heat joint; Cool reposition -> Heat joint}. Tight: 0.3 certifies, 0.29 declines; without the
+# key (or under RELCERT_NO_REPO) 0.3 declines (the whole-domain right-only certificate fails:
+# a lone right flow has a nonzero constant rate against a frozen left).
+#
+[problem]
+name = engine_cooling_prelanding
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+prelanding = true
+
+[Lsys]
+state_vars = [temp]
+epsilon = 1.0
+
+[Lsys.mode.Cool]
+ode = temp' = smt2:(- 0.0 0.5);
+guard = temp > 99.7
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[Lsys.mode.Heat]
+ode = temp' = smt2:1.0;
+guard = temp <= 100.3
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[Rsys]
+state_vars = [temp]
+epsilon = 1.0
+
+[Rsys.mode.Cool]
+ode = temp' = smt2:(- 0.0 0.5);
+guard = temp >= 100.0
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[Rsys.mode.Heat]
+ode = temp' = smt2:1.0;
+guard = temp <= 100.0
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[relational_invariant]
+Cool = temp[l] <= temp[r] + 0.3 and temp[r] <= temp[l] + 0.3
+Heat = temp[l] <= temp[r] + 0.3 and temp[r] <= temp[l] + 0.3

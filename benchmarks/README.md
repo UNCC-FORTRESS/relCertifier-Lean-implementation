@@ -901,6 +901,12 @@ Stretch 0 (stutter, opted in with `[problem] stutter = true`, `docs/STUTTER.md`)
 of stretching and is credited under S (2026-10-30; the separate letter W of 2026-10-29 is folded
 into S): a cover has a stretch-0 pairing and the file without the key declines. One suite_v2 file
 sets the key (`lit_nahs25_salt_tank`).
+The pre-landing demo (`benchmarks/prelanding_demo/engine_cooling_prelanding`, NOT in suite_v2,
+`docs/PRELANDING.md`, 2026-10-30): the NAHS 2025 engine cooling system at the source's distance
+0.3 with the opt-in key `[problem] prelanding = true` and the genuine Cool guard closed to
+`temp >= 100` (disclosed); letters R (`RELCERT_NO_REPO=1` declines). Beside it
+`hold_reposition_strict`, a synthetic strict-row demo of the same key (the strict component on the
+closed pre-landing region).
 
 ## The benchmarks
 

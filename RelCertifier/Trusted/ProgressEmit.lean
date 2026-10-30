@@ -59,6 +59,11 @@ def crossed (v : Var n) (st : ProgressStageE) : IForm n :=
 def before (v : Var n) (st : ProgressStageE) : IForm n :=
   if st.up then .cmp .lt (.var v) (.rat st.theta) else .cmp .gt (.var v) (.rat st.theta)
 
+/-- `x ≤ θ` (up) or `x ≥ θ` (down): the closure of `before`, the pre-landing region on which a
+STRICT invariant component's right-only certificate is required (`docs/PRELANDING.md`). -/
+def beforeCl (v : Var n) (st : ProgressStageE) : IForm n :=
+  if st.up then .cmp .le (.var v) (.rat st.theta) else .cmp .ge (.var v) (.rat st.theta)
+
 /-- The conjunction of the crossed facts of the stages before index `i`. -/
 def crossedBefore (vs : List (Var n × ProgressStageE)) (i : ℕ) : IForm n :=
   (vs.take i).foldl (fun d p => IForm.and d (crossed p.1 p.2)) IForm.tt

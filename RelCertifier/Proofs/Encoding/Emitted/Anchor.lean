@@ -20,6 +20,9 @@ and the verdicts (stays, non-connection pairs, flow packs, reposition packs):
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Barrier
 import RelCertifier.Proofs.Encoding.ReplayDyn
+import RelCertifier.Trusted.InvStrictFlags
+import RelCertifier.Proofs.Flow.PicardBridge
+import RelCertifier.Proofs.Encoding.Progress
 
 set_option autoImplicit false
 
@@ -159,6 +162,47 @@ theorem rowsByName_at (h : rowsByName p = true) {l : ℕ} (hl : l < nL p) :
 
 end Read
 
+/-! ## The strictness mask of a row -/
+
+/-- The lowered strictness mask of a row (`hostComps`' companion). -/
+def hostFlags (vars : List String) (n : ℕ) (f : PForm) : List Bool :=
+  (invStrictFlags vars n f).getD []
+
+theorem hostFlags_length (vars : List String) (n : ℕ) (f : PForm) :
+    (hostFlags vars n f).length = (hostComps vars n f).length := by
+  have h := invStrictFlags_map_length vars n f
+  unfold hostFlags hostComps
+  rcases hc : invComponents vars n f with _ | cs <;>
+    rcases hf : invStrictFlags vars n f with _ | fs <;> simp_all
+
+/-- The strictness mask of window `l`'s row, aligned with `comps` (`g :: gs`). -/
+def maskOf (p : PProblem) (n : ℕ) (l : ℕ) : List Bool := hostFlags (vars p) n (rowOf p l)
+
+/-! ## The half-open limit -/
+
+/-- A continuous function `≤ 0` on `[0, T)` is `≤ 0` at `T`. -/
+theorem le_zero_of_Ico {f : ℝ → ℝ} {T : ℝ} (hT : 0 < T) (hf : ContinuousOn f (Icc 0 T))
+    (h : ∀ s ∈ Ico (0 : ℝ) T, f s ≤ 0) : f T ≤ 0 := by
+  have hcl : T ∈ closure (Ico (0 : ℝ) T) := by
+    rw [closure_Ico hT.ne]; exact ⟨hT.le, le_rfl⟩
+  have hfw : ContinuousWithinAt f (Ico 0 T) T :=
+    (hf T ⟨hT.le, le_rfl⟩).mono Ico_subset_Icc_self
+  exact ContinuousWithinAt.closure_le hcl hfw continuousWithinAt_const h
+
+/-- The merged state of a right-only run is continuous in time. -/
+theorem merge_continuousOn {fR : Fin n → Term (Var n)} {domR : Formula (Var n)}
+    {ρ : State (Var n)} {T : ℝ} {Φ : ℝ → State (Var n)}
+    (H : DLCalTiming.ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ) (y : State (Var n)) :
+    ContinuousOn (fun s => mergeLR y y (Φ s)) (Icc 0 T) := by
+  refine continuousOn_pi.mpr (fun v => ?_)
+  obtain ⟨sd, i⟩ := v
+  cases sd with
+  | L => simpa [mergeLR] using continuousOn_const
+  | R =>
+      have h := H.coord_continuousOn i
+      simpa [mergeLR, Rv] using h
+  | Aux => simpa [mergeLR] using continuousOn_const
+
 /-! ## The verdicts of a benchmark -/
 
 section Verdicts
@@ -179,10 +223,11 @@ def NonConnAll : Prop :=
 def JointVerd (l q : ℕ) : Prop :=
   modalVerdX p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q
 
-/-- The reposition pack of a pairing. -/
-def DynVerd (l q : ℕ) (pre : Bool) : Prop :=
+/-- The reposition pack of a pairing, on the region `rg` (default: the whole domain; the
+pre-landing region of the node's progress certificate under the opt-in key, `dynRegion`). -/
+def DynVerd (l q : ℕ) (pre : Bool) (rg : DynRegion n := .whole) : Prop :=
   modalVerdDynX p cX n (rowIdx p l)
-    (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder) pre l q
+    (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder) pre l q rg
 
 /-- The ordered components of a window's row under a strata order. -/
 noncomputable def compsAt (l : ℕ) (order : List ℕ) : List (Term (Var n)) :=
@@ -398,16 +443,16 @@ theorem jointVerd_core {l q : ℕ} (hl : l < nL p) (hq : q < nR p)
         (hostEvolve (vars p) n Side.R (mRof p q))) (cL p n cX l) (cR p n cX q)) := hv
   rwa [hostEvolve_L (hu hs) hl, hostEvolve_R (hu hs) hq] at h
 
-theorem dynVerd_core {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (pre : Bool)
-    (hv : DynVerd p n cX cov l q pre) :
+theorem dynVerd_core {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (pre : Bool) {rg : DynRegion n}
+    (hv : DynVerd p n cX cov l q pre rg) :
     VerdDynCore pre (compsAt p n l
         (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder))
-      (fR p n q) (domCutX (env p n) (cL p n cX l) (cR p n cX q)) (guardL p n l) := by
+      (fR p n q) (domCutX (env p n) (cL p n cX l) (cR p n cX q)) (guardL p n l) rg := by
   have h : VerdDynCore pre (compsAt p n l
         (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder))
       (fR p n q) (domCutX (Formula.and (hostEvolve (vars p) n Side.L (mLof p l))
         (hostEvolve (vars p) n Side.R (mRof p q))) (cL p n cX l) (cR p n cX q))
-      (guardL p n l) := hv
+      (guardL p n l) rg := hv
   rwa [hostEvolve_L (hu hs) hl, hostEvolve_R (hu hs) hq] at h
 
 /-- A joint segment at the pairing's stretch keeps the anchor. -/
@@ -455,6 +500,88 @@ theorem AG_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ}
     | true => exact hz.1.2
     | false => exact hz.2
   · exact barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 zero_le_one σ ω hcRσ hbar hω
+
+/-- **A right-only run that stays in the pack's region before its last instant keeps the
+anchor** (the region premise `hboxB` of `Progress.lean`). Whole domain: `AG_boxD` along the
+merged run. Pre-landing region: on every proper prefix the run is in the half-open region, where
+the pack keeps the rows and atoms (`couple_box_dyn`); the row and atom terms are continuous
+along the run, so they are `≤ 0` at the end too; the barriers and the envelope are whole-domain
+facts. -/
+theorem AG_boxR (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
+    (hq : q < nR p) (pre : Bool)
+    (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true)
+    {rg : DynRegion n} (hrg : rg.fvR) (hv : DynVerd p n cX cov l q pre rg) :
+    ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (AG p n cX cov l q) y →
+      (pre = true → Formula.sat (guardL p n l) y) →
+      ∀ T Φ, DLCalTiming.ODESol (rightBlock (fR p n q) (Term.const 1)) (domR p n) ρ T Φ →
+      (∀ t ∈ Ico (0 : ℝ) T, rg.pred (Φ t)) →
+      Formula.sat (AG p n cX cov l q) (mergeLR y y (Φ T)) := by
+  cases rg with
+  | whole =>
+      intro y ρ hyρ hAy hgLy T Φ H _
+      have hσ : Formula.sat (AG p n cX cov l q) (mergeLR y y ρ) :=
+        (sat_of_agree (AG_fv hs hl hq) (y := y) (fun i => mergeLR_L y y ρ i)
+          (fun i => by rw [mergeLR_R, hyρ i])).mpr hAy
+      exact AG_boxD hs hnc hst hl hq pre hd hv _ _ hσ
+        (fun hp => (sat_merge_L (guardL_fv (hnames hs) l) y y ρ).mpr (hgLy hp))
+        (right_sol_merge_joint (fR_fv (n := n) (hnames hs) q) (domL_fv (n := n) (hnames hs))
+          (domR_fv (n := n) (hnames hs)) H y y hAy.2.1)
+  | pre Bh Bc mask hmono hclosed =>
+    have hBfv : Bh.fv ⊆ range Rv := hrg
+    intro y ρ hyρ hAy hgLy T Φ H hB
+    have hAfv := AG_fv hs hl hq
+    set σ := mergeLR y y ρ with hσdef
+    have hσ : Formula.sat (AG p n cX cov l q) σ :=
+      (sat_of_agree hAfv (y := y) (fun i => mergeLR_L y y ρ i)
+        (fun i => by rw [mergeLR_R, hyρ i])).mpr hAy
+    have hgσ : pre = true → Formula.sat (guardL p n l) σ := fun hp =>
+      (sat_merge_L (guardL_fv (hnames hs) l) y y ρ).mpr (hgLy hp)
+    have hdomLy : Formula.sat (domL p n) y := hAy.2.1
+    have hfR := fR_fv (n := n) (hnames hs) q
+    have hdomL := domL_fv (n := n) (hnames hs)
+    have hdomR := domR_fv (n := n) (hnames hs)
+    -- the whole run, on the envelope
+    have hrunW := right_sol_merge_joint hfR hdomL hdomR H y y hdomLy
+    obtain ⟨hFA, hbar⟩ := (sat_FM_append _ _ _ σ).mp hσ.1
+    obtain ⟨hsub1, hsub2⟩ := comps_mem_equiv hs hl (permOK_dyn (hperm hs) hl hq pre hd)
+    have hcRσ : CutSat (cR p n cX q) σ := by
+      obtain ⟨-, hat⟩ := (sat_FM_append _ _ _ σ).mp hFA
+      exact ((atomTerms_iff (hiffL hs hl) (hiffR hs hq) σ).mp hat).2
+    -- the rows and atoms on every proper prefix (the prefix is in the region)
+    have hverd := dynVerd_core hs hl hq pre hv
+    have hbox := couple_box_dyn pre (g p n l) (gs p n l) _ (cL p n cX l) (cR p n cX q)
+        (fR p n q) (domL p n) (domR p n) (guardL p n l) hsub1 hsub2 (hiffL hs hl) (hiffR hs hq)
+        (cutPairsX_fv_L (atomsWF_L (hcuts hs) hl)) (guardL_fv (hnames hs) l)
+        (stayR_dom hs hq hst (fun _ => Term.const 0) 1 zero_le_one _ (fun z hz => by
+          unfold dynBase at hz
+          cases pre with
+          | true => exact hz.1.2.1
+          | false => exact hz.2.1)) hverd
+    have hpref : ∀ s ∈ Ico (0 : ℝ) T,
+        Formula.sat (FM (g p n l) (gs p n l ++ atomTerms (cL p n cX l) (cR p n cX q)))
+          (mergeLR y y (Φ s)) := by
+      intro s hs'
+      have Hs := ODESol_restrict H hs'.1 hs'.2.le
+      have HsB : DLCalTiming.ODESol (rightBlock (fR p n q) (Term.const 1)) (Formula.and (domR p n) Bh) ρ s Φ :=
+        ⟨Hs.hr, Hs.hΦ0, Hs.hder, Hs.hmask, fun t ht =>
+          ⟨Hs.hdom t ht, hB t ⟨ht.1, ht.2.trans_lt hs'.2⟩⟩⟩
+      have hBR : (Formula.and (domR p n) Bh).fv ⊆ range Rv := by
+        intro v hv'; rcases hv' with hv' | hv'
+        · exact hdomR hv'
+        · exact hBfv hv'
+      have hrun := right_sol_merge_joint hfR hdomL hBR HsB y y hdomLy
+      exact hbox σ _ hFA hgσ hrun
+    -- the limit at the end
+    have hend : Formula.sat (FM (g p n l) (gs p n l ++ atomTerms (cL p n cX l) (cR p n cX q)))
+        (mergeLR y y (Φ T)) := by
+      rcases H.hr.lt_or_eq with hT | hT0
+      · refine (sat_FM_iff _ _ _).mpr (fun t ht => ?_)
+        have hc : ContinuousOn (fun s => Term.eval t (mergeLR y y (Φ s))) (Icc 0 T) :=
+          (term_contDiff t).continuous.comp_continuousOn (merge_continuousOn H y)
+        exact le_zero_of_Ico hT hc (fun s hs' => (sat_FM_iff _ _ _).mp (hpref s hs') t ht)
+      · rw [← hT0, H.hΦ0]; exact hFA
+    refine ⟨(sat_FM_append _ _ _ _).mpr ⟨hend, ?_⟩, sem_ode_ends_in_domain hrunW⟩
+    exact barriers_keep hs hnc hst hq (fun _ => Term.const 0) 1 zero_le_one σ _ hcRσ hbar hrunW
 
 /-- A pruned exit is never enabled after a joint segment from the anchor. -/
 theorem AG_prune (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)

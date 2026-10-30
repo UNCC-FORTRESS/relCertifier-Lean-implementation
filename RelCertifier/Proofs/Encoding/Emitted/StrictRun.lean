@@ -49,7 +49,7 @@ def bridgeGroupsS : Option (List (List (IForm n))) := do
   let nc ← (List.range (nR p)).mapM (nonConnGroups p n cX cov)
   let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroupsS p n cX cov l))
   let dy ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (fun q =>
-    [true, false].mapM (dynGroups p n cX cov l q)))
+    [true, false].mapM (dynGroups p n cX cov prog l q)))
   let ad ← (List.range (nL p)).mapM (admGroups p n cov)
   let ho ← (List.range (nL p)).mapM (handoffGroupsS p n)
   let pr ← prog.certs.mapM (progGroups p n cX)

@@ -170,70 +170,101 @@ theorem couple_box_cutXS (g : Term (Var n)) (gs : List (Term (Var n))) (m : List
 
 /-! ## The reposition coupling (the existing route-A pack) -/
 
-/-- The reposition pack (route A for every component, unchanged) gives flagged preservation
-along the frozen-left right flow: route A preserves `< 0` as well as `≤ 0`. -/
+/-- The reposition pack gives flagged preservation along the frozen-left right flow, on the
+base domain narrowed by the region's half-open part: route A preserves `< 0` as well as `≤ 0`
+(whole region: route A for every component; pre-landing region: a strict component's route A
+holds over the closure, hence over the half-open part, `covers`). -/
 theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
-    (fR : Fin n → Term (Var n)) (D gL : Formula (Var n))
-    (hv : VerdDynCore pre (ts.map Prod.snd) fR D gL) :
+    (fR : Fin n → Term (Var n)) (D gL : Formula (Var n)) {rg : DynRegion n}
+    (hv : VerdDynCore pre (ts.map Prod.snd) fR D gL rg) (hrg : rg.covers (ts.map Prod.fst)) :
     SegPreservesAllOnS ts (jointSys (fun _ => Term.const 0) fR (Term.const 1))
-      (dynBase pre D gL) := by
+      (dynBase pre (rg.dom D) gL) := by
   intro ν hinit
-  refine stratified_barrier_endS _ (dynBase pre D gL) ts ?_ hinit
+  refine stratified_barrier_endS _ (dynBase pre (rg.dom D) gL) ts ?_ hinit
   intro i hi ν' hν'
-  have hcong : ∀ x, Formula.sat (Formula.and (dynBase pre D gL)
+  have hcong : ∀ x, Formula.sat (Formula.and (dynBase pre (rg.dom D) gL)
       (bigLe ((ts.take i).map Prod.snd))) x ↔
-      Formula.sat (dynDomHost pre D gL ((ts.map Prod.snd).take i)) x := by
+      Formula.sat (dynDomHost pre (rg.dom D) gL ((ts.map Prod.snd).take i)) x := by
     intro x
     rw [sat_dynDomHost, ← List.map_take]
   refine holds_dom_congr hcong ?_
   have hi' : i < (ts.map Prod.snd).length := by simpa using hi
-  have hz := z3_unsat_sound (hv i hi')
   have hget : (ts.map Prod.snd)[i] = ts[i].2 := by simp
-  rw [hget] at hz
-  rcases hb : ts[i].1 with _ | _
-  · rw [hb] at hν'
-    intro ω hω
-    show Term.eval ts[i].2 ω ≤ 0
-    exact flow_cert_sound ⟨ts[i].2, fun _ => Term.const 0, fR, Term.const 1,
-      dynDomHost pre D gL ((ts.map Prod.snd).take i)⟩ hz hν' ω hω
-  · rw [hb] at hν'
-    intro ω hω
-    show Term.eval ts[i].2 ω < 0
-    exact flow_cert_sound_lt ⟨ts[i].2, fun _ => Term.const 0, fR, Term.const 1,
-      dynDomHost pre D gL ((ts.map Prod.snd).take i)⟩ hz hν' ω hω
+  cases rg with
+  | whole =>
+      have hz := z3_unsat_sound (hv i hi')
+      rw [hget] at hz
+      rcases hb : ts[i].1 with _ | _
+      · rw [hb] at hν'
+        intro ω hω
+        show Term.eval ts[i].2 ω ≤ 0
+        exact flow_cert_sound ⟨ts[i].2, fun _ => Term.const 0, fR, Term.const 1,
+          dynDomHost pre D gL ((ts.map Prod.snd).take i)⟩ hz hν' ω hω
+      · rw [hb] at hν'
+        intro ω hω
+        show Term.eval ts[i].2 ω < 0
+        exact flow_cert_sound_lt ⟨ts[i].2, fun _ => Term.const 0, fR, Term.const 1,
+          dynDomHost pre D gL ((ts.map Prod.snd).take i)⟩ hz hν' ω hω
+  | pre Bo Bc mask hmono _ =>
+      have hwide : ∀ x, Formula.sat (dynDomHost pre (Formula.and D Bo) gL
+          ((ts.map Prod.snd).take i)) x →
+          Formula.sat (dynDomHost pre (Formula.and D Bc) gL ((ts.map Prod.snd).take i)) x :=
+        dynDomHost_mono (D := Formula.and D Bo) (D' := Formula.and D Bc) pre _
+          (fun x hx => ⟨hx.1, hmono x hx.2⟩)
+      have h := hv i hi'
+      rw [hget] at h
+      rcases hb : ts[i].1 with _ | _
+      · rw [hb] at hν'
+        intro ω hω
+        show Term.eval ts[i].2 ω ≤ 0
+        split_ifs at h with hm
+        · exact flow_cert_sound _ (z3_unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
+        · rcases h with h | h | h
+          · exact flow_cert_sound _ (z3_unsat_sound h) hν' ω hω
+          · exact flow_cert_sound_strict _ (z3_unsat_sound h) hν' ω hω
+          · exact flow_cert_sound_superlevel _ (z3_unsat_sound h) hν' ω hω
+      · rw [hb] at hν'
+        intro ω hω
+        show Term.eval ts[i].2 ω < 0
+        have hm : mask.getD i false = true := hrg i (by
+          rw [List.getD_eq_getElem _ _ (by simpa using hi)]; simp [hb])
+        rw [if_pos hm] at h
+        exact flow_cert_sound_lt _ (z3_unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
 
 /-- **`couple_box_dyn` at a strict row.** -/
 theorem couple_box_dynS (pre : Bool) (g : Term (Var n)) (gs : List (Term (Var n)))
     (m : List Bool) (ts : List (Bool × Term (Var n)))
     (cL cR : List (CutAtomP n)) (fR : Fin n → Term (Var n)) (domL domR gL : Formula (Var n))
-    (hm : m.length ≤ gs.length + 1)
+    {rg : DynRegion n} (hm : m.length ≤ gs.length + 1)
     (hsub1 : ∀ c ∈ ts, c ∈ tagS (g :: gs) m) (hsub2 : ∀ c ∈ tagS (g :: gs) m, c ∈ ts)
     (hiffL : AtomsIff cL) (hiffR : AtomsIff cR) (hLfv : ∀ a ∈ cL, a.2.fv ⊆ range Lv)
     (hgL : gL.fv ⊆ range Lv)
     (hstayR : AtomsStayC cR (jointSys (fun _ => Term.const 0) fR (Term.const 1))
-      (dynBase pre (Formula.and domL domR) gL))
-    (hverd : VerdDynCore pre (ts.map Prod.snd) fR (domCutX (Formula.and domL domR) cL cR) gL) :
+      (dynBase pre (Formula.and domL (rg.dom domR)) gL))
+    (hverd : VerdDynCore pre (ts.map Prod.snd) fR (domCutX (Formula.and domL domR) cL cR) gL rg)
+    (hrg : rg.covers (ts.map Prod.fst)) :
     ∀ σ ω, Formula.sat (FMS g (gs ++ atomTerms cL cR) m) σ → (pre = true → Formula.sat gL σ) →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR (Term.const 1))
-        (Formula.and domL domR)) σ ω →
+        (Formula.and domL (rg.dom domR))) σ ω →
       Formula.sat (FMS g (gs ++ atomTerms cL cR) m) ω := by
   intro σ ω hσ hgσ hω
   set sys := jointSys (fun _ => Term.const 0) fR (Term.const 1) with hsys
-  have hrun : Program.sem (Program.ode sys (dynBase pre (Formula.and domL domR) gL)) σ ω := by
+  have hrun : Program.sem (Program.ode sys
+      (dynBase pre (Formula.and domL (rg.dom domR)) gL)) σ ω := by
     unfold dynBase
     cases pre with
     | false => simpa using hω
     | true => simpa using frozen_run_narrow hgL hω (hgσ rfl)
   have hnarrow : SegPreservesAllOnS ts sys
-      (dynBase pre (domCutX (Formula.and domL domR) cL cR) gL) :=
-    segPresAllS_dyn pre ts fR _ gL hverd
+      (dynBase pre (rg.dom (domCutX (Formula.and domL domR) cL cR)) gL) :=
+    segPresAllS_dyn pre ts fR _ gL hverd hrg
   have hnarrow' : SegPreservesAllOnS ts sys
-      (Formula.and (dynBase pre (Formula.and domL domR) gL)
+      (Formula.and (dynBase pre (Formula.and domL (rg.dom domR)) gL)
         (Formula.and (cutF cL) (cutF cR))) := by
     refine segPresAllS_congr (fun x => ?_) hnarrow
     unfold dynBase
-    cases pre <;> simp only [Bool.false_eq_true, if_false, if_true, Formula.sat,
-      sat_domCutX, sat_cutF] <;> tauto
+    cases rg <;> cases pre <;> simp only [DynRegion.dom, Bool.false_eq_true, if_false, if_true,
+      Formula.sat, sat_domCutX, sat_cutF] <;> tauto
   have hlift := segPresAllS_cut_liftX hiffL hiffR
     (atomsStayC_frozenL hiffL hLfv fR (Term.const 1) _) hstayR hnarrow'
   obtain ⟨hFσ, hatσ⟩ := (sat_FMS_append g gs _ m hm σ).mp hσ

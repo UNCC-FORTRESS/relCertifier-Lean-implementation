@@ -414,6 +414,16 @@ right waits while the left runs. Backed in Lean (`CoverHyps.hlam : 0 ≤ lam`, `
 admits `lamN = 0` only under the key); without the key the CLI never certifies with a stretch-0
 pairing. See [`docs/STUTTER.md`](docs/STUTTER.md).
 
+Problem key `[problem] prelanding = true` (opt-in, default off): a right-only (reposition) node
+needs its flow certificate only on the half-open region before its progress certificate's last
+threshold (routes A, B or C), and the witness right run stops at its first entry into the closed
+target, ending its cycle early. The node is emitted in its own record (`RELCERT_PRELANDING_OUT`),
+never as a `dynPre`/`dynPost` flag. Backed in Lean by the same chain, parameterized by the region
+(`DynRegion`, `Emitted.dynRegion`; strict components on the closed region; the data gate
+`Emitted.plOK` admits a record only under the key);
+without the key the CLI never certifies with a pre-landing node. No suite_v2 file sets it. See
+[`docs/PRELANDING.md`](docs/PRELANDING.md).
+
 ## Guard-gated switching
 
 The paper's model switches only into a declared successor whose guard holds at the switch
@@ -559,6 +569,9 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
 * [`docs/STUTTER.md`](docs/STUTTER.md): the opt-in stretch 0 (`stutter = true`, the right
   waits during a joint segment): semantics, soundness, the Lean changes, the demo and tests.
+* [`docs/PRELANDING.md`](docs/PRELANDING.md): the opt-in pre-landing right-only certificate
+  (`prelanding = true`): semantics, soundness, the Lean changes, the engine cooling demo, tests
+  and the draft paper wording.
 * [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 74 kernel refutations of
   known-false invariant variants (its design was `docs/REFUTATION-SCOPE.md`, planning record, last present at commit 29663d8).
 * [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from

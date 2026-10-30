@@ -45,7 +45,7 @@ structure VerdictsS : Prop where
   stay : StayAll p n cX
   nonconn : NonConnAll p n cX cov
   joint : JointAllS p n cX cov
-  dyn : DynAll p n cX cov
+  dyn : DynAll p n cX cov prog
   adm : AdmAll p n cov
   handoff : HandoffAllS p n
   prog : ProgAll p n cX prog
@@ -548,6 +548,31 @@ theorem theorem3_keyed_of_records_via_strict {p : PProblem} {cX : EvolStrengthen
   (keyedClaimS_iff hno reg a b c d dt).mp
     (theorem3_keyed_strict_of_records hs (VerdictsS.ofVerdicts hno hv) hpo hcovers hregR hinv hwf
       a b c d hba hca hcb hda hdb hdc dt hdt)
+
+
+/-! ## The pre-landing record at a strict row -/
+
+section PLS
+
+variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
+  {ce : ChoiceEmitE}
+
+/-- **Theorem 3 of a one-row benchmark at a strict row with a pre-landing record, over its
+EMITTED cover** (`theorem3_window_strict_of_records` on the merged cover, behind `plOK`). -/
+theorem theorem3_window_strict_of_records_pl {pl : Preland.PrelandEmitE}
+    (_hpl : plOK p cov pl = true)
+    (hs : structOK p n (withPL cov pl) cX = true) (hv : VerdictsS p n cX (withPL cov pl) prog ce)
+    (hpo : progOK p n (withPL cov pl) prog = true)
+    (hcovers : coversOK p n (withPL cov pl) ce = true)
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
+    (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
+    (hdt : dt ≤ epsL p) :
+    windowClaimS p n cX cov reg a b d dt :=
+  theorem3_window_strict_of_records hs hv hpo hcovers hregR hinv hwf hsame a b d hab hda hdb dt hdt
+
+end PLS
 
 end Emitted
 end RelCertifier

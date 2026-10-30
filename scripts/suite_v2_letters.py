@@ -47,13 +47,43 @@ Letters (the paper's legend), every one measured, never read off a header:
                      row set built from the file's own rows DECLINES (the rule before 2026-10-27)
   I mode fact        RELCERT_NO_CUT=1 DECLINES (matrix no_cut_verdict)
   X committed subset RELCERT_NO_CHOICE=1 DECLINES
+
+USED and NEEDED (owner's decision, 2026-10-30, batch 11). Table 1 lists the mechanisms a
+benchmark's certificate USES and marks those it also NEEDS. NEEDED is the rule above, unchanged
+(the `letters` field and the `numletter<L>` macros keep it, for continuity): for R, P, I, X and
+the positive stretch of S, the file DECLINES with the mechanism switched off; M and B have no
+switch-off and are credited by the cover shape (M: owner's decision, the shape rule; B: the
+branching of the replayed derivation), so for them used = needed; D adds the uniform-row test.
+USED is read off the certificate the tool found, through the matrix's replay of the verified
+checker on the emitted cover (`scripts/suite_v2_matrix.py`), on a CERTIFIED file only:
+  S  some left mode's cover runs at a stretch other than 1, stretch 0 included (matrix M1)
+  M  the cover shape (matrix M2: budget >= 2 and a joint step on the replayed path)
+  R  a right-only segment on the replayed path
+  B  a joint step on the path with >= 2 distinct non-self retained successors (matrix M3)
+  P  an edge is pruned out of a right mode on a replayed path, into a LIVE mode (one some cover
+     visits on its path or admits as a start); an edge into a mode no cover ever visits or admits
+     (a sink such as a safe or disengage mode) is dead structure for the certificate and does not
+     count
+  D  the rows differ per mode and the --handoff queries are non-vacuous and all unsat (matrix M5)
+  I  a checked cut is kept on a mode of the path (a left mode, or a right mode on a replayed
+     path) and it is load-bearing for the certificate found: RELCERT_NO_CUT=1 declines, or it
+     certifies with a different emitted cover (the search is deterministic, so the cover found
+     with the cuts did not pass without them); a cut kept on a cover that certifies unchanged
+     without it is vacuous (the matrix's `M6: vacuous` annotation)
+  X  the cover commits to a successor subset (the emitted choice record is non-empty)
+Screens. A use counts only on the replayed derivation path (dead structure off every path never
+counts) and, for P, only into a live mode (above). Start-only structure (a pairing reachable
+only from an arbitrary start) is screened by review for every NEEDED letter (docs/review-rubric.md,
+the start-only test); a letter that is used but not needed is listed per file in letters.md
+(column `used, not needed`) for that inspection. Every needed letter must be used; a violation is
+printed as `NEEDED-NOT-USED` and stops the run.
 """
 import argparse, json, os, re, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, HERE)
-from suite_v2_matrix import parse_input, run, verdict_of  # noqa: E402
+from suite_v2_matrix import parse_input, run, verdict_of, FAMILIES  # noqa: E402
 from inv_smt import atoms_of, show  # noqa: E402
 
 LETTERS = ["S", "M", "R", "B", "P", "D", "I", "X"]
@@ -171,8 +201,122 @@ def run_variant(relcert, text, tmpdir, tag, timeout):
     return verdict_of(out)[0]
 
 
+def emit_cover_text(relcert, path, timeout, extra=None):
+    """The emitted cover literal (`--emit-cover`, RELCERT_IMPLIED_CUT=1), or None when the run
+    does not certify."""
+    env = {"RELCERT_IMPLIED_CUT": "1"}
+    env.update(extra or {})
+    rc, out, _, _ = run([relcert, "--emit-cover", path, "x"], env, timeout)
+    return out if rc == 0 and "def x" in out else None
+
+
+def used_letters(r, prob, cert, cover_same_nocut):
+    """The mechanisms the certificate found USES (module docstring), from the matrix record."""
+    covs = r["covers"]
+    on_path = {m for c in covs for m in c.get("modes_on_path", [])}
+    live = on_path | {m for c in covs for m in c.get("admissible", [])}
+    cells = r["cells"]
+    cut_on_path = False
+    for line in r.get("cut_lines", []):
+        m = re.match(r"\[cut\] ([LR])\.(\w+): (\d+) conjunct", line)
+        if m and int(m.group(3)) > 0 and (m.group(1) == "L" or m.group(2) in on_path):
+            cut_on_path = True
+    return {
+        "S": cert and any(positive_stretch_ne1(c) or stutter_pairs(c) for c in covs),
+        "M": cells["M2"].startswith("yes"),
+        "R": cert and any(c.get("right_only") for c in covs),
+        "B": cells["M3"].startswith("yes"),
+        "P": cert and any(a in on_path and b in live for a, b in r.get("pruned", [])),
+        "D": cells["M5"].startswith("yes"),
+        "I": cert and cut_on_path and (r["no_cut_verdict"] == "DECLINED" or
+                                      (r["no_cut_verdict"] == "CERTIFIED" and not cover_same_nocut)),
+        "X": cert and r.get("choice_entries", 0) > 0,
+    }
+
+
 def inv_kind(shape):
     return "quadratic" if "quadratic" in shape else "linear"
+
+
+TEX_HDR = """% GENERATED by scripts/suite_v2_letters.py (run by scripts/paper_numbers.sh); do not edit.
+% Mechanism cells: \\mechNeeded = needed (the file declines with the mechanism switched off; M and B
+% by the cover shape), \\mechUsed = used by the certificate found but not needed, blank = not used.
+% Define both in the paper's macro file, e.g.
+%   \\newcommand{\\mechNeeded}{$\\bullet$}   % mechanism needed by the certificate
+%   \\newcommand{\\mechUsed}{$\\circ$}       % mechanism used, not needed
+% Dyn/Inv use \\dyntypeL, \\dyntypeP, \\invtypeLin, \\invtypeQuad (the paper's macros).
+"""
+
+
+def tex_name(n):
+    return "\\texttt{" + n.replace("_", "\\_") + "}"
+
+
+def rng(vals):
+    lo, hi = min(vals), max(vals)
+    return f"{lo}" if lo == hi else f"{lo}--{hi}"
+
+
+def group_order(rows):
+    """Groups (the matrix's benchmark families, `suite_v2_matrix.FAMILIES`, in that order; a
+    family not listed last)."""
+    order = []
+    for _, fam in FAMILIES:
+        if fam not in order:
+            order.append(fam)
+    gs = sorted({x["group"] for x in rows}, key=lambda g: (order.index(g) if g in order else len(order), g))
+    return gs
+
+
+def level(x, k):
+    return "\\mechNeeded" if x["needed"][k] else ("\\mechUsed" if x["used"][k] else "")
+
+
+def write_tables(out, rows):
+    """Table 1 (by group) and the appendix per-benchmark table, as LaTeX snippets
+    (docs/paper-numbers/table1.tex, table_per_benchmark.tex): one column per mechanism letter."""
+    dyn = {"linear": "$\\dyntypeL$", "polynomial": "$\\dyntypeP$"}
+    inv = {"linear": "$\\invtypeLin$", "quadratic": "$\\invtypeQuad$"}
+    def dimstr(x):
+        return f"{x['dimL']}" if x["dimL"] == x["dimR"] else f"{x['dimL']}/{x['dimR']}"
+    groups = group_order(rows)
+    lines = [TEX_HDR, "% Table 1: the suite by group; a group's cell is the strongest level among its members",
+             "% (needed > used > none); the last row: needed/used counts per letter over the suite.",
+             "\\begin{tabular}{@{}l c c c c c " + " ".join("c" for _ in LETTERS) + "@{}}", "\\toprule",
+             "Benchmark group & \\# & Sync & Dim & Modes & Dyn/Inv & " + " & ".join(LETTERS) + " \\\\", "\\midrule"]
+    for g in groups:
+        xs = [x for x in rows if x["group"] == g]
+        dims = [x["dimL"] for x in xs] + [x["dimR"] for x in xs]
+        modes = f"{rng([x['modesL'] for x in xs])}/{rng([x['modesR'] for x in xs])}"
+        dy = ",".join(dyn[d] for d in ("linear", "polynomial") if any(x["dyn"] == d for x in xs))
+        iv = ",".join(inv[i] for i in ("linear", "quadratic") if any(x["inv"] == i for x in xs))
+        cells = []
+        for k in LETTERS:
+            cells.append("\\mechNeeded" if any(x["needed"][k] for x in xs) else
+                         ("\\mechUsed" if any(x["used"][k] for x in xs) else ""))
+        nsync = sum(1 for x in xs if x["sync"] == "CERTIFIED")
+        lines.append(f"{g} & {len(xs)} & {nsync} & {rng(dims)} & {modes} & {dy}/{iv} & " + " & ".join(cells) + " \\\\")
+    lines.append("\\midrule")
+    tots = " & ".join(f"{sum(1 for x in rows if x['needed'][k])}/{sum(1 for x in rows if x['used'][k])}" for k in LETTERS)
+    nsync = sum(1 for x in rows if x["sync"] == "CERTIFIED")
+    lines.append(f"Total (needed/used) & {len(rows)} & {nsync} & & & & {tots} \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}", ""]
+    lines.append("% Group mapping (benchmark -> group, from the name-prefix families of scripts/suite_v2_matrix.py):")
+    for g in groups:
+        lines.append(f"%   {g}: " + ", ".join(x["name"] for x in rows if x["group"] == g))
+    open(f"{out}/table1.tex", "w").write("\n".join(lines) + "\n")
+    pl = [TEX_HDR, "% Appendix: the benchmarks individually (group printed at its first row).",
+          "\\begin{tabular}{@{}l l c c c " + " ".join("c" for _ in LETTERS) + " r@{}}", "\\toprule",
+          "Benchmark & Group & Dim & Modes & Inv & " + " & ".join(LETTERS) + " & Time (s) \\\\", "\\midrule"]
+    for g in groups:
+        first = True
+        for x in sorted((x for x in rows if x["group"] == g), key=lambda x: x["name"]):
+            cells = " & ".join(level(x, k) for k in LETTERS)
+            pl.append(f"{tex_name(x['name'])} & {g if first else ''} & {dimstr(x)} & {x['modesL']}/{x['modesR']} & "
+                      f"{inv[x['inv']]} & {cells} & {x['ms']/1000:.1f} \\\\")
+            first = False
+    pl += ["\\bottomrule", "\\end{tabular}", ""]
+    open(f"{out}/table_per_benchmark.tex", "w").write("\n".join(pl) + "\n")
 
 
 def main():
@@ -251,7 +395,20 @@ def main():
             if stut:
                 diag["S_nostutter_verdict"] = nostut
                 diag["S_lam1key_verdict"] = lam1key
+            same_nocut = True
+            if cert and r["no_cut_verdict"] == "CERTIFIED":
+                c0 = emit_cover_text(a.relcert, path, a.timeout)
+                c1 = emit_cover_text(a.relcert, path, a.timeout, {"RELCERT_NO_CUT": "1"})
+                same_nocut = c0 is not None and c0 == c1
+            U = used_letters(r, prob, cert, same_nocut)
+            diag["I_nocut_same_cover"] = same_nocut
+            bad = [k for k in LETTERS if L[k] and not U[k]]
+            if bad:
+                print(f"NEEDED-NOT-USED {name}: {' '.join(bad)}", flush=True)
+                sys.exit(f"{name}: needed but not used: {bad}")
             letters = " ".join(k for k in LETTERS if L[k])
+            uletters = " ".join((f"**{k}**" if L[k] else k) for k in LETTERS if U[k])
+            unn = " ".join(k for k in LETTERS if U[k] and not L[k])
             rec = {"name": name, "family": r["family"], "dimL": r["dimL"], "dimR": r["dimR"],
                    "modesL": r["modesL"], "modesR": r["modesR"], "inv": inv_kind(r["inv_shape"]),
                    "inv_shape": r["inv_shape"], "dyn": "polynomial" if (r["nonlinear_L"] or r["nonlinear_R"]) else "linear",
@@ -259,28 +416,38 @@ def main():
                    "sync": v["sync"], "nochoice": v["nochoice"], "noprune": v["noprune"], "norepo": v["norepo"],
                    "nocut": r["no_cut_verdict"], "noimplied": r["no_implied_verdict"], "nolinear": r["no_linear_verdict"],
                    "lambdas": {c["mL"]: c["lam"] for c in r["covers"]},
-                   "letters": L, "diagnostics": diag}
+                   "letters": L, "needed": L, "used": U, "group": r["family"],
+                   "mech_used": " ".join(k for k in LETTERS if U[k]), "diagnostics": diag}
             rows.append(rec)
             dl = [k for k, x in (("S_lam1", diag["S_lam1"]), ("R_cover", ro), ("D_rows", diag["D_rows"]),
                                  ("D_strict", diag["D_strict"])) if x]
             unis = ", ".join(f"{k}:{x}" + ("" if keeps[k] else " (drops a stated row)") for k, x in uni.items())
-            table.append(f"| `{name}` | {r['family']} | {r['dimL']}/{r['dimR']} | {r['modesL']}/{r['modesR']} | {rec['inv']} | {letters or '--'} | {ctl[name][1]/1000:.1f} | {v['sync']} | {lam1} | {v['norepo']} | {diag['single_step']} | {unis or '-'} | {' '.join(dl) or '-'} |")
-            print(f"{name}: {letters or '--'} (lam1={lam1}, norepo={v['norepo']}, uniform={uni}, keeps_all={keeps})", flush=True)
+            table.append(f"| `{name}` | {r['family']} | {r['dimL']}/{r['dimR']} | {r['modesL']}/{r['modesR']} | {rec['inv']} | {letters or '--'} | {uletters or '--'} | {unn or '-'} | {ctl[name][1]/1000:.1f} | {v['sync']} | {lam1} | {v['norepo']} | {diag['single_step']} | {unis or '-'} | {' '.join(dl) or '-'} |")
+            print(f"{name}: {letters or '--'} used {rec['mech_used'] or '--'} (lam1={lam1}, norepo={v['norepo']}, uniform={uni}, keeps_all={keeps})", flush=True)
     tot = {k: sum(1 for x in rows if x["letters"][k]) for k in LETTERS}
+    totu = {k: sum(1 for x in rows if x["used"][k]) for k in LETTERS}
     nstrict = sum(1 for x in rows if x["diagnostics"]["D_strict"])
-    json.dump({"rows": rows, "totals": tot}, open(f"{a.out}/letters.json", "w"), indent=1)
-    json.dump([{k: x[k] for k in ("name", "family", "dimL", "dimR", "modesL", "modesR", "inv", "dyn", "mech", "ms")} for x in rows],
+    json.dump({"rows": rows, "totals": tot, "totals_needed": tot, "totals_used": totu},
+              open(f"{a.out}/letters.json", "w"), indent=1)
+    json.dump([{k: x[k] for k in ("name", "family", "dimL", "dimR", "modesL", "modesR", "inv", "dyn", "mech", "mech_used", "ms")} for x in rows],
               open(f"{a.out}/suite_results.json", "w"), indent=1)
     with open(f"{a.out}/letters.md", "w") as f:
-        f.write("| benchmark | family | dim L/R | modes L/R | inv | letters | time (s) | SYNC | lambda=1 file | NO_REPO | SINGLE_STEP (info) | uniform rows | diagnostics |\n")
-        f.write("|---|---|---|---|---|---|---|---|---|---|---|---|---|\n")
+        f.write("| benchmark | family | dim L/R | modes L/R | inv | needed | used (needed in bold) | used, not needed | time (s) | SYNC | lambda=1 file | NO_REPO | SINGLE_STEP (info) | uniform rows | diagnostics |\n")
+        f.write("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n")
         f.write("\n".join(table) + "\n\n")
-        f.write("Totals: " + ", ".join(f"{k} {tot[k]}" for k in LETTERS) + "\n\n")
+        f.write("Totals (needed, the `letters` field and `\\numletter<L>`): " + ", ".join(f"{k} {tot[k]}" for k in LETTERS) + "\n\n")
+        f.write("Totals (used, `\\numletter<L>used`): " + ", ".join(f"{k} {totu[k]}" for k in LETTERS) + "\n\n")
+        f.write("Used and needed (2026-10-30, batch 11): see the docstring of scripts/suite_v2_letters.py. Needed = the "
+                "rule below (the file declines with the mechanism off; M and B by the cover shape). Used = the mechanism "
+                "appears in the replayed derivation of the certificate found (P only into a live mode; I only when the cut "
+                "is load-bearing for that certificate: NO_CUT declines or finds a different cover).\n\n")
         f.write("D rule (2026-10-27): the stated requirement differs per mode, so the claim needs mode-dependent rows: "
                 "matrix M5 and every uniform row set from the file's own rows that keeps every stated requirement declines; "
                 "a uniform row marked (drops a stated row) may certify without removing D. "
                 f"Under the earlier strict rule (every uniform row set declines, diagnostic D_strict) D = {nstrict}.\n")
+    write_tables(a.out, rows)
     print("TOTALS " + " ".join(f"{k}={tot[k]}" for k in LETTERS) + f" (D_strict={nstrict})")
+    print("TOTALS_USED " + " ".join(f"{k}={totu[k]}" for k in LETTERS))
 
 
 if __name__ == "__main__":

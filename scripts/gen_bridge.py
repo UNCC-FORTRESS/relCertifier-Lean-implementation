@@ -14,6 +14,11 @@ The instance's dimension is the Assumption 1 lemma's dimension plus one (`bridge
 runner sends every query at that dimension, so the instance's `Verdicts` hypothesis is
 exactly the runner's queries.
 
+A benchmark with the opt-in `prelanding = true` (docs/PRELANDING.md; the window form only) gets
+the pre-landing instance (`PL_TEMPLATE`): the structural bundles on the cover merged with its
+pre-landing record (`withPL`), the data gate `plOK`, Theorem 3 over the emitted cover
+(`theorem3_window_of_records_pl`).
+
 Usage: python3 scripts/gen_bridge.py [bench ...]   (default: all of benchmarks/suite_v2)
 """
 import os, re, sys
@@ -174,6 +179,81 @@ theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n})
     (wellFormedR_transport ({wfterm}) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
       (edges_transport_check edges_ok (edgesSrcOK_sound src_ok)))) reg"""
 
+PL_TEMPLATE = '''/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# `{b}` (suite_v2) through the generic bridge (GENERATED — `scripts/gen_bridge.py {b}`)
+
+The benchmark opts in to `prelanding = true` (`docs/PRELANDING.md`): the cover's right-only
+nodes are pre-landing nodes, recorded in the pre-landing record `pl`, never as the cover's
+`dynPre`/`dynPost` flags. The kernel merges them (`withPL`) for the cover graph; each node's
+reposition pack is on its region (`dynRegion`: before its progress certificate's last threshold,
+strict components on the closure).
+
+Theorem 3 of the benchmark from its emitted records: the structural bundles decided in the
+kernel on the merged cover (`struct_ok`, `prog_ok`, `covers_ok`, `rows_same`, `pad_ok`), the data
+gate `pl_ok` (the key is set, the whole-domain flags are off), Assumption 1 from the suite's
+lemma at dimension {n0} lifted to {n} (the right clock), the verdicts assumed (`Verdicts`: the
+groups `relcert-bridge-verdicts` discharges on the merged cover, `Emitted.verdicts_of_groups`).
+The claim is over the emitted cover `cov`.
+-/
+import RelCertifier.Proofs.Encoding.Emitted.Window
+import RelCertifier.Proofs.Encoding.Emitted.Run
+import RelCertifier.Proofs.Encoding.Emitted.Transport
+import RelCertifier.Proofs.Encoding.Emitted.Lift
+import {wfmod}
+{record_imports}import RelCertifier.InstancesV2.BenchPrelanding.{b}
+
+namespace RelCertifier.Bridge.{camel}
+
+open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL Set
+
+abbrev IR := Parse.{ir}
+abbrev cX := Oracle.{cuts}
+abbrev cov := {b}_coverV2
+abbrev prog := Progress.{b}_coverV2_progress
+abbrev ce := {cerec}
+abbrev pl := Preland.{b}_coverV2_prelanding
+/-- The cover graph's rows: the emitted cover with the pre-landing nodes merged in. -/
+abbrev covM := withPL cov pl
+
+/-- The data gate: the key is set and the emitted whole-domain flags are all off. -/
+theorem pl_ok : plOK IR cov pl = true := by decide +kernel
+theorem struct_ok : structOK IR {n} covM cX = true := by decide +kernel
+theorem prog_ok : progOK IR {n} covM prog = true := by decide +kernel
+theorem covers_ok : coversOK IR {n} covM ce = true := by decide +kernel
+theorem pad_ok : padOK IR {n0} = true := by decide +kernel
+theorem rows_same : rowsSame IR = true := by decide +kernel
+{transport_block}{region_block}
+
+/-- The benchmark opts in, and its cover really uses pre-landing nodes (decided in the kernel). -/
+theorem prelanding_on : IR.prelanding = true := by decide +kernel
+theorem uses_prelanding : pl.nodes.isEmpty = false := by decide +kernel
+
+/-- **Theorem 3 of `{b}`** (window form, over the emitted cover): every verdict group of the
+benchmark `unsat`. -/
+theorem {b}_bridge (hv : Verdicts IR {n} cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+    windowClaim IR {n} cX cov reg 0 1 2 dt :=
+  theorem3_window_of_records_pl pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
+    rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
+
+/-- The same from a green run of the benchmark's groups (`bridgeGroups` on the merged cover,
+`relcert-bridge-verdicts`). -/
+theorem {b}_bridge_run {{gs : List (List (IForm {n}))}}
+    (hrun : bridgeGroups IR {n} cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+    (hdt : dt ≤ epsL IR) : windowClaim IR {n} cX cov reg 0 1 2 dt :=
+  {b}_bridge (verdicts_of_groups hrun hok) dt hdt
+
+end RelCertifier.Bridge.{camel}
+'''
+
+
+def is_prelanding(b):
+    """`b`'s file sets the opt-in `prelanding = true` (docs/PRELANDING.md)."""
+    src = f"{SUITE}/{b}/input.txt"
+    return os.path.exists(src) and bool(re.search(r"(?m)^\s*prelanding\s*=\s*true\s*$", open(src).read()))
+
 # benchmarks without a generated instance (none; a downward single progress stage is covered
 # by `repoProgress_one_down`, a two-stage certificate must be upward in both stages)
 SKIP = set()
@@ -239,6 +319,19 @@ def emit(b, n0):
     else:
         region_block = SUITE_REGION.format(n=n, n0=n0, ns=info["ns"], wfname=rec["wfname"], wfterm=rec["wfterm"])
         transport_block = TRANSPORT_BLOCK.format(n0=n0, ns=info["ns"], G=info["G"], modeAt=modeAt, eps_thm=rec["eps_thm"])
+    if is_prelanding(b):
+        # the opt-in pre-landing right-only certificate (docs/PRELANDING.md): the instance is over
+        # the cover merged with the pre-landing record; the window form only (the keyed chain has
+        # no `_pl` theorem; no keyed suite file sets the key)
+        if keyed:
+            sys.exit(f"{b}: prelanding = true with per-mode rows is not supported by the generator")
+        txt = PL_TEMPLATE.format(b=b, camel=camel(b), n=n, n0=n0, wfmod=info["module"],
+                                 region_block=region_block, transport_block=transport_block,
+                                 **{k: v for k, v in rec.items() if k != "eps_thm"})
+        os.makedirs(OUT, exist_ok=True)
+        with open(f"{OUT}/{camel(b)}.lean", "w") as f:
+            f.write(txt)
+        return True
     txt = TEMPLATE.format(b=b, camel=camel(b), n=n, n0=n0, form_mod="Keyed" if keyed else "Window",
                           wfmod=info["module"], ns=info["ns"], G=info["G"], modeAt=modeAt,
                           rows_doc="" if keyed else ", `rows_same`", rows_thm=rows_thm,

@@ -10,8 +10,8 @@ import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
+import RelCertifier.InstancesV2.BenchCovers.extruder_pe100_manualstart
 import RelCertifier.InstancesV2.BenchCovers.flaps_slow_approach
-import RelCertifier.InstancesV2.BenchCovers.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchCovers.h2_refuel_ambientbias
@@ -24,6 +24,7 @@ import RelCertifier.InstancesV2.BenchCovers.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchCovers.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchCovers.lit_lz21_vehicle_position
+import RelCertifier.InstancesV2.BenchCovers.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.BenchCovers.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
@@ -38,7 +39,6 @@ import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_4to6
-import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
@@ -64,8 +64,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("canal_gate_notches", canal_gate_notches_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
+  ("extruder_pe100_manualstart", extruder_pe100_manualstart_coverV2),
   ("flaps_slow_approach", flaps_slow_approach_coverV2),
-  ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2),
   ("furnace_program_timebase", furnace_program_timebase_coverV2),
   ("gantry_speed_zones", gantry_speed_zones_coverV2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2),
@@ -78,6 +78,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("lit_girard08_robot", lit_girard08_robot_coverV2),
   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2),
+  ("lit_nahs25_engine_cooling", lit_nahs25_engine_cooling_coverV2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2),
   ("molding_pack_checkring", molding_pack_checkring_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
@@ -92,7 +93,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2),
-  ("rover_terrain_6to12", rover_terrain_6to12_coverV2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),

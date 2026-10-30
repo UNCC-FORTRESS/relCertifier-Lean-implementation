@@ -98,13 +98,6 @@ def packsV2 : List PackV2 :=
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 1, 1⟩,
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 1, 2⟩,
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 7, 0, 1, 4], 1, 1, 2, 2⟩,
-    -- rover_terrain_6to12 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 0, 1, 5, 9, 8], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 5, 9, 0, 1, 8], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 5, 9, 0, 1, 8], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 0, 1, 5, 9, 8], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 5, 9, 0, 1, 8], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 9, 0, 1, 5, 8], 1, 1, 2, 2⟩,
     -- rover_ladder_2to3 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -287,6 +280,27 @@ def packsV2 : List PackV2 :=
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 1⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 2⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩,
+    -- extruder_pe100_manualstart (batch 11, 2026-10-30; rows derived from the emitted cover: every jointOK
+    -- pairing of each left step, λ = 1, budget 2; the four pruned edges into the live steps N1 and N4)
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 0, 2⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 1, 0⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 1, 1⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 1, 2⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 1, 3⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 2, 0⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 2, 1⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 2, 3⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 3, 1⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 3, 2⟩,
+    ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩,
+    -- lit_nahs25_engine_cooling (batch 11, 2026-10-30; rows derived from the emitted cover: the jointOK
+    -- pairing of each left mode, λ = 1, budget 1; its right-only nodes are pre-landing nodes, discharged
+    -- on their regions by the bridge runner, not here)
+    ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     -- antenna_track_kvretune (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 0, 0⟩,
     ⟨"antenna_track_kvretune", 3, 1, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 1, 1⟩,
@@ -490,8 +504,10 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table; 537 until
 the literature migration of 2026-10-29, 2827 since: the 48 abstraction modes of
 `lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2256
-transitions, all vacuous as its rows are identical). -/
-def expectedHandoffV2 : Nat := 2835
+transitions, all vacuous as its rows are identical; 2841 since batch 11 of 2026-10-30:
+`extruder_pe100_manualstart` and `lit_nahs25_engine_cooling` in for `fuelcell_chp_dos` and
+`rover_terrain_6to12`). -/
+def expectedHandoffV2 : Nat := 2841
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -525,9 +541,10 @@ the source mode's cut rebuilt from the EXTENDED certificate, as the tool narrows
 def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
-/-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 14
-def expectedNonConnV2 : Nat := 28
+/-- Declared: pruned edges in the suite_v2 covers, and two queries per edge (14 / 28 until batch 11 of
+2026-10-30; 16 / 32 since: the extruder's four pruned edges in, the fuel cell's two out). -/
+def expectedPrunedEdgesV2 : Nat := 16
+def expectedNonConnV2 : Nat := 32
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do

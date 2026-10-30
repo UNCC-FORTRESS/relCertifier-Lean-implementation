@@ -1,0 +1,213 @@
+# extruder_pe100_manualstart: a single-screw extruder starting up on a PE100 pipe grade, its screw
+# speed stepped by a torque-limit permissive on the melt temperature (each speed step only once the
+# melt is fluid enough that the drive stays below its torque limit), run by hand from the start-up
+# SOP with a melt-temperature check every 2 min, against the validated automatic start-up sequence
+# evaluating the same permissive every minute. The same permissive table on both sides.
+# scenario: degraded-controller
+# mechanisms: M B P I (multi-cycle matching: one manual check against two sequence evaluations;
+#   branching from STATE-DEPENDENT successors, the sequence's permissive is a deterministic
+#   partition; non-connection pruning of four edges into LIVE speed steps, RELCERT_NO_PRUNE=1
+#   declines; mode facts: the recipe's die temperature range lives in the guards, RELCERT_NO_CUT=1
+#   declines; matrix codes M2 M3 M4 M6)
+#
+# System (both sides). Melt temperature T at the die and die-zone set temperature p in degC, time in
+# min. The barrel and die zones are held at p by their own controllers (p constant over the
+# start-up); viscous dissipation in the screw channel heats the melt above p by r_k at speed step k,
+# melt response time constant 2 min (residence time of the melt, design value):
+#   T' = 0.5 (p + r_k - T), r = 1.33, 3.39, 8.64, 22.0 K at N1..N4 = 8.7, 16.5, 31.5, 60 rpm.
+# Where the numbers come from. HDPE melt viscosity is Arrhenius in T with a flow activation energy
+# of about 27 kJ/mol (Dealy and Wissbrun, Melt Rheology and Its Role in Plastics Processing; measured
+# 24 to 29 kJ/mol for HDPE grades), i.e. it falls by a factor e per R T^2 / Ea = 68.9 K at 200 degC;
+# with a power-law index n = 0.45 (design value, typical of HDPE at extrusion shear rates) the screw
+# torque is m(T) N^n, so at the torque limit the permitted speed grows by a factor e per
+# n R T^2 / Ea = 31.0 K. The speed steps are spaced so that each needs the same 20 K: a ratio
+# e^(20/31.0) = 1.905 between steps (8.7, 16.5, 31.5, 60 rpm). The dissipation rise scales as
+# N^(1+n), a factor 1.905^1.45 = 2.55 per step, from 22 K at full speed (design value; melt
+# temperatures 10 to 30 K above the zone settings at full screw speed are usual in single-screw
+# extrusion). The N^(1+n) scaling takes the dissipated power to be carried off by conduction to the
+# zones held at p (the melt's rise above p proportional to the power), a model assumption of this
+# file; an adiabatic channel (no heat loss) would scale as N^n and is not modeled.
+# Permissive (identical on both sides; the speed step is a function of the melt reading, a static
+# map, so every step may follow every step):
+#   N1 for T < 186 (start-up speed), N2 on [186, 206], N3 on (206, 226], N4 for T > 226.
+# 186 degC is the recipe's minimum melt temperature for leaving the start-up speed (design value);
+# the next two thresholds follow from the 20 K torque-limit spacing. Every guard carries the
+# recipe's die temperature range p in [180, 220] degC: the typical process temperature range of the
+# PE100 pipe grade Relene 46GP003 (Reliance Industries technical data sheet: "Typical Process
+# Temperature: 180 - 220 degC"; GAIL P52A003, PE100: barrel 180 - 230 degC); the permissive table is
+# validated for that range only. relcert --wellformed: N1 ok (exit->N2,N3), N2 ok (exit->N1,N3),
+# N3 ok (exit->N2,N4), N4 ok (exit->N2,N3).
+# Right (validated design, epsilon 1 min): the line PLC's automatic start-up sequence reads the melt
+#   thermocouple and sets the speed step every minute.
+# Left (deployed, epsilon 2 min): the same table executed by the operator from the melt-temperature
+#   display, at the SOP's 2-min checks (the line is started by hand while the sequence is out of
+#   service); each speed step is held for up to 2 min. The check interval is the only difference
+#   (same line, resin, recipe, steps and thresholds). lambda_min = lambda_max = 1: the claim
+#   compares the two start-ups at equal times, one manual check matched by two sequence evaluations.
+#
+# Property (every left mode): |T_L - T_R| <= 18.61, p_L = p_R. Requirement: at every instant the
+# manual start-up's melt is less than one speed-step band (20 K) from the validated start-up's. Why:
+# the torque-limited speed grows by the step ratio 1.905 per 20 K, so a melt within 20 K of the
+# validated melt can carry the validated speed schedule to within one step without exceeding the
+# drive torque, and its viscosity is within e^(20/68.9) = 1.34 of the validated melt's (die pressure
+# and output within the factor the recipe's step spacing allows). Tightest 18.61 (18.60 declines) =
+# two dissipation steps (r_4 - r_2 = 22.00 - 3.39); certified window [18.61, 20.00] (20.01 to 20.66
+# DECLINE: from 20 K the admissible starts span two bands; 20.67 = r_4 - r_1, three steps,
+# certifies with nothing load-bearing). Not implied by the domain (it allows 170 K).
+#
+# Why branching (B), from the state. The sequence's permissive is deterministic: which step follows
+# N2 depends on where the melt goes, and that depends on the die temperature: N2 settles at p + 3.39,
+# below 186 (successor N1) for p < 182.61; N3 settles at p + 8.64, above 226 (N4) for p > 217.36 and
+# below 206 (N2) for p < 197.36. In each manual window the sequence takes one joint step (budget 2)
+# from the step it starts in, and both neighbours are retained (branching 2 in every left mode;
+# in runs the branching is exercised in N2_L and N3_L windows, while in N1_L and N4_L it comes from
+# the unpruned edges N1 -> N3, N4 -> N2 and admissible pairs no simulated run produced, review of
+# batch 11).
+# No choice is involved (RELCERT_NO_CHOICE=1 CERTIFIES with the same cover).
+# Where a cold start (T below 186) settles, per recipe temperature (simulated): N1 for p < 184.67,
+# N2 up to p = 202.61, N3 up to 217.36, full speed N4 only for p > 217.36: the torque-limited
+# operating point of the recipe, the start-up reaching full screw speed only at the hot end of the
+# range.
+# Why pruning is needed (P), from edges into live steps. Pruned: N1 -> N4 and N2 -> N4 (N1 and N2
+# settle at most at 220 + 1.33 = 221.33 and 220 + 3.39 = 223.39 < 226: at T = 226 their flow is
+# negative for every recipe temperature), N3 -> N1 and N4 -> N1 (they settle at least at
+# 180 + 8.64 = 188.64 and 180 + 22 = 202 > 186: at T = 186 their flow is positive). The targets are
+# live, not sinks: N3 reaches N4 for p > 217.36 (witness: T = 220, p = 220, N3 settles at 228.64)
+# and N2 reaches N1 for p < 182.61 (witness: T = 190, p = 180, N2 settles at 183.39); N4 and N1
+# return to N3 and N2. Each pruned edge is live from a domain state outside the recipe range (the
+# pruning uses the source guard's range; the guards' range removed, nothing is pruned): one
+# sequence step takes N1 -> N4 from (T, p) = (185.9, 288) (to 226.6), N2 -> N4 from (206, 254)
+# (to 226.2), N3 -> N1 from (206.1, 140) (to 183.5), N4 -> N1 from (226.1, 100) (to 185.1).
+# Start-only test: every step is entered from another step in runs inside the recipe range (N1 from
+# N2, N2 from N1 and N3, N3 from N1, N2 and N4, N4 from N3, at the 1-min or the 2-min sampling;
+# simulated). Without the pruning a sequence window's successors include a step 20.67 K from the
+# manual step's settling point, and the choice cannot drop it (no cut bounds the melt at the segment
+# end, every step's settling point moves with p, and above 226 only N4 is enabled). The edges
+# N1 -> N4 and N4 -> N1 are needed at window pairs that simulated runs produce; N2 -> N4 and N3 -> N1
+# only at the admissible pairs (N1_L, N2) and (N4_L, N3), which no simulated run produced (review of
+# batch 11, NO_PRUNE with edge subsets). RELCERT_NO_PRUNE=1 DECLINES (it needs
+# 20.67 = three steps, beyond the 20 K requirement).
+# Window (measured, recipe range): the pruning holds for p_lo > 177.36 and p_hi < 222.61
+# ([177.45, 220] and [180, 222.55] CERTIFY, [177.3, 220] and [180, 222.7] DECLINE); the targets are
+# live only for p_lo < 182.61 and p_hi > 217.36; the data-sheet range [180, 220] is inside both,
+# 2.6 K from every edge.
+# Mode facts (I). The recipe range is a set-point range, so it is in the guards, not the domain;
+# the prunings need it (RELCERT_NO_CUT=1 DECLINES). With the range moved into the domain instead
+# (not admissible here: a set-point range) the file certifies and RELCERT_NO_CUT=1 certifies too.
+# Multi-cycle matching (M): budget 2 in every left mode, one joint step; RELCERT_SINGLE_STEP=1
+# DECLINES (information).
+# How the claim depends on the cause (measured, tightest tolerance by bisection): check interval
+# 1 min (no cause): the exact claim (constant 0) CERTIFIES, also under RELCERT_NO_PRUNE=1 (one
+# segment, nothing pruned or branched); 1.5 and 2 min (this file): 18.61; 3 and 4 min: 20.67 =
+# three steps, above the 20 K requirement (the sequence may be three steps away; RELCERT_NO_PRUNE=1
+# needs the same 20.67, so P is not needed there), DECLINED at 18.61.
+# Simulated worst gap |T_L - T_R| from equal starts (p on a 0.5 K grid in [180, 220], T0 on a 1 K
+# grid in [160, 250], 60 min): 7.27 K at 1.5 min, 8.63 K at 2 min, 10.54 K at 3 min. Law
+# dependence: an arbitrary manual speed schedule (every left guard the domain) needs 20.67 and
+# DECLINES at 18.61.
+#
+# Not modeled, stated: the drive's own torque trip and the melt-pressure alarm (protective functions
+# outside the start-up envelope), the dependence of the melt response time on throughput (one time
+# constant for every step), and the viscosity dependence of the dissipation rise (the rises are
+# evaluated at the recipe's mid temperature). The 22 K full-speed rise, n = 0.45, the 2 min time
+# constant, the 186 degC start threshold and the speeds are design values of this file; the recipe
+# range is the data-sheet range; the 2-min check is the SOP interval of this file.
+# Letter windows. M and P: budget 2 at every check interval in (1, 2] min; B: branching 2 at every left
+# step for every recipe range reaching below 182.61 and above 217.36; P: the pruning holds for
+# p_lo > 177.36 and p_hi < 222.61; tolerance window [18.61, 20.00], the stated 18.61 at its lower
+# edge.
+#
+# Template note: this is the four-level positive-association schedule of reactor_feed_wireless
+# (the selected step drives the selecting variable the same way, so far steps are unreachable) with
+# a different selecting law (a torque limit through the melt viscosity, so the step spacing is
+# derived, not chosen), unequal settling steps (1.33 : 3.39 : 8.64 : 22, from the power-law
+# dissipation), the operating range in the guards (I), and a manual-operation cause.
+#
+# Domains. T in [130, 300] degC: 130 = the crystalline melting point of HDPE (below it the material
+# at the die is solid), 300 = the barrel temperature above which PE degrades thermally (processing
+# ceiling); forward invariant at every step under the recipe range (settling points in
+# [181.33, 242]). p in [0, 300] degC: the zone heaters' range, constant. One domain, identical on
+# every mode and both sides. Widened by 20 % (T in [96, 334], p in [-60, 360]) and by 10x the file
+# still CERTIFIES. The right guards partition [130, 300] at every recipe temperature; the left
+# guards partition it; every left mode has a satisfiable start (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30; re-measured on the installed file
+# with the branch's binary after the prelanding merge, batch 11, identical):
+# CERTIFIED (0.8 s alone; about 5 s inside the matrix run); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE,
+# RELCERT_NO_REPO=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE and RELCERT_NO_CUT=1; RELCERT_SINGLE_STEP=1 DECLINED
+# (information). Cover: every left mode at lambda 1, budget 2; N1_L admissible [N1, N2], path
+# N1 N2; N2_L [N1, N2, N3], path N1..N3; N3_L [N2, N3, N4], path N2..N4; N4_L [N3, N4], path N3 N4;
+# branching 2 in every left mode. Pruned N1->N4, N2->N4, N3->N1, N4->N1. Rows identical (--handoff
+# vacuous, 16/16). relcert --wellformed: 4 ok (exit), 0 UNKNOWN, 0 BLOCKING. Letters (matrix
+# replay, scripts/suite_v2_matrix.py; letter rules of scripts/suite_v2_letters.py): M B P I.
+#
+[problem]
+name = extruder_pe100_manualstart
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 600.0
+
+[Lsys]
+state_vars = [T, p]
+epsilon = 2.0
+
+[Lsys.mode.N1]
+ode = T' = smt2:(* 0.5 (- (+ p 1.33) T)); p' = 0.0;
+guard = T < 186 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[Lsys.mode.N2]
+ode = T' = smt2:(* 0.5 (- (+ p 3.39) T)); p' = 0.0;
+guard = T >= 186 and T <= 206 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[Lsys.mode.N3]
+ode = T' = smt2:(* 0.5 (- (+ p 8.64) T)); p' = 0.0;
+guard = T > 206 and T <= 226 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[Lsys.mode.N4]
+ode = T' = smt2:(* 0.5 (- (+ p 22.0) T)); p' = 0.0;
+guard = T > 226 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[Rsys]
+state_vars = [T, p]
+epsilon = 1.0
+
+[Rsys.mode.N1]
+ode = T' = smt2:(* 0.5 (- (+ p 1.33) T)); p' = 0.0;
+guard = T < 186 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[Rsys.mode.N2]
+ode = T' = smt2:(* 0.5 (- (+ p 3.39) T)); p' = 0.0;
+guard = T >= 186 and T <= 206 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[Rsys.mode.N3]
+ode = T' = smt2:(* 0.5 (- (+ p 8.64) T)); p' = 0.0;
+guard = T > 206 and T <= 226 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[Rsys.mode.N4]
+ode = T' = smt2:(* 0.5 (- (+ p 22.0) T)); p' = 0.0;
+guard = T > 226 and T >= 130 and T <= 300 and p >= 0 and p <= 300 and p >= 180 and p <= 220
+evolve = T >= 130 and T <= 300 and p >= 0 and p <= 300
+next = [N1, N2, N3, N4]
+
+[relational_invariant]
+N1 = T[l] <= T[r] + 18.61 and T[r] <= T[l] + 18.61 and p[l] <= p[r] and p[r] <= p[l]
+N2 = T[l] <= T[r] + 18.61 and T[r] <= T[l] + 18.61 and p[l] <= p[r] and p[r] <= p[l]
+N3 = T[l] <= T[r] + 18.61 and T[r] <= T[l] + 18.61 and p[l] <= p[r] and p[r] <= p[l]
+N4 = T[l] <= T[r] + 18.61 and T[r] <= T[l] + 18.61 and p[l] <= p[r] and p[r] <= p[l]

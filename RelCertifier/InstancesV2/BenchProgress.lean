@@ -10,8 +10,8 @@ import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
+import RelCertifier.InstancesV2.BenchProgress.extruder_pe100_manualstart
 import RelCertifier.InstancesV2.BenchProgress.flaps_slow_approach
-import RelCertifier.InstancesV2.BenchProgress.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchProgress.h2_refuel_ambientbias
@@ -22,6 +22,7 @@ import RelCertifier.InstancesV2.BenchProgress.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.BenchProgress.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchProgress.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchProgress.lit_lz21_vehicle_position
+import RelCertifier.InstancesV2.BenchProgress.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.BenchProgress.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchProgress.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
@@ -36,7 +37,6 @@ import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_4to6
-import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
@@ -63,8 +63,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("canal_gate_notches", canal_gate_notches_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
+   ("extruder_pe100_manualstart", extruder_pe100_manualstart_coverV2_progress),
    ("flaps_slow_approach", flaps_slow_approach_coverV2_progress),
-   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_progress),
    ("furnace_program_timebase", furnace_program_timebase_coverV2_progress),
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
    ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_progress),
@@ -75,6 +75,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("lit_girard08_robot", lit_girard08_robot_coverV2_progress),
    ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2_progress),
    ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_progress),
+   ("lit_nahs25_engine_cooling", lit_nahs25_engine_cooling_coverV2_progress),
    ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_progress),
    ("molding_pack_checkring", molding_pack_checkring_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
@@ -89,7 +90,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
    ("rover_terrain_2to4", rover_terrain_2to4_coverV2_progress),
    ("rover_terrain_4to6", rover_terrain_4to6_coverV2_progress),
-   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_progress),
    ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_progress),
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),

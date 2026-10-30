@@ -1,0 +1,138 @@
+# lit_nahs25_engine_cooling: an engine cooling system whose temperature sensor is under a bounded
+# attack stays within the source's forward distance 0.3 of the genuine system: every attacked run
+# is matched, at matched instants of its control periods, by a genuine run whose temperature is at
+# most 0.3 away (measuring robustness of cyber-physical systems under sensor attacks).
+# scenario: sensor-attack
+# mechanisms: R (right-only segments: in a left window the genuine engine first runs alone,
+#   the attacked one frozen, until it reaches the switching temperature 100, then both run the
+#   period jointly; the right-only certificate holds only before that landing, the opt-in
+#   `prelanding = true`, docs/PRELANDING.md; RELCERT_NO_REPO=1 DECLINES, and the file without the
+#   key DECLINES)
+#
+# SOURCE. Xiang, Lanotte, Tini, Chong, Merro, "Measuring robustness in cyber-physical systems
+# under sensor attacks", Nonlinear Analysis: Hybrid Systems 56 (2025) (arXiv 2403.05829), Secs. 3-5,
+# Figs. 3-5 (model), Examples 3 and 5 (attack and forward distance), Example 7 (the reachable
+# sets). The source's running example, a simple cooling system (of an engine, in this file's name)
+# whose temperature rises by 1 per time unit while the cooling is off (Heat,
+# temp' = 1) and falls by 0.5 per time unit while it is on (Cool, temp' = -0.5); the controller
+# samples the sensor every period eps = 1 and switches the cooling on iff the reading is above
+# 100. Bounded sensor attack: the reading is any value within 0.3 of the temperature, so the
+# attacked controller may Cool once temp > 99.7 and may Heat while temp <= 100.3. The source's
+# result: the attacked system is at forward simulation distance 0.3 from the genuine one on the
+# temperature (Example 7: from the pre temp = 100 the attacked engine reaches (99.2, 101.3], the
+# genuine one (99.5, 101]).
+#
+# THIS FILE. Left = attacked controller (forall), right = genuine controller (exists), the same
+# plant, the direction of the source's forward distance. Left: Cool `temp > 99.7`, Heat
+# `temp <= 100.3`; right: Cool `temp >= 100`, Heat `temp <= 100`; eps_L = eps_R = 1; lambda 1.
+# Opt-in key `prelanding = true` (docs/PRELANDING.md): a right-only (reposition) segment needs its
+# right-only flow certificate only BEFORE the right lands on the switching temperature, i.e. on
+# temp_R < 100 while the genuine engine heats toward its Cool guard and on temp_R > 100 while it
+# cools toward its Heat guard; the witness genuine run stops at its first entry into the guard
+# (the closed set temp_R >= 100 or temp_R <= 100), ending that control cycle early (any cycle
+# duration in [0, eps] is a run of the plant `& t <= eps`), and the joint period follows from
+# there. Cover: Cool_L {Cool joint; Heat right-only to temp_R = 100, then Cool joint}, Heat_L
+# {Heat joint; Cool right-only to temp_R = 100, then Heat joint}; budget 1; nothing pruned; no
+# choice.
+#
+# CLAIM (both left modes): |temp_L - temp_R| <= 0.3 (two rows, temp_L <= temp_R + 0.3 and
+# temp_R <= temp_L + 0.3), the source's forward distance 0.3. Requirement: every temperature the
+# attacked engine passes through is within 0.3 of a temperature the genuine engine passes
+# through at a matched instant. The relation is run-wise (period by period, each attacked period
+# matched by genuine right-only time and one joint period), so from the pre temp_L = temp_R = 100
+# it implies the source's set-based forward distance 0.3. Not implied by the domain (temp >= 0).
+#
+# TIGHTNESS (measured 2026-10-30, the two rows moved together): 0.3 CERTIFIES, 0.29 DECLINES; the
+# tool gets the source's value 0.3, attained (the pre-landing region is half-open). 0.31
+# CERTIFIES.
+#
+# CAUSE TEST (measured 2026-10-30). The cause of the distance is the attack offset o (left Cool
+# `temp > 100 - o`, Heat `temp <= 100 + o`): for o in {0.1, 0.5, 1} the band o CERTIFIES and
+# o - 0.01 DECLINES (the tight value is the offset); o = 0 (attack removed: the attacked guards
+# are the source's genuine ones) certifies at the band 0, the exact claim.
+#
+# WHY R (genuine). In a Cool_L window the attacked engine may be cooling at a temperature in
+# (99.7, 100), where the genuine controller must still Heat: the genuine engine first heats alone
+# to 100 (at most 0.6 time units: temp_R >= temp_L - 0.3 > 99.4), then cools jointly; symmetrically
+# in Heat_L windows above 100, where the genuine engine cools alone to 100 (at most 1.2 time units,
+# more than one period: temp_R <= 100.6 at rate 0.5).
+# RELCERT_NO_REPO=1 DECLINES at 0.3 (with lock-step matching only, the genuine Heat moves away from
+# the attacked Cool at rate 1.5), and the file without the key DECLINES at 0.3 (the right-only
+# flow certificate on the whole domain fails: past 100 the lone genuine Heat would keep moving
+# away from the frozen attacked temperature).
+#
+# Where this file departs from the source.
+# (1) The genuine Cool guard is closed to `temp >= 100` (the source has `temp > 100`; the genuine
+#   controller becomes nondeterministic at exactly 100). The progress certificate of a right-only
+#   segment takes its landing threshold from a nonstrict guard atom only (a strict landing is not
+#   supported); with the source's `temp > 100` the file DECLINES (no closed target, measured).
+# (2) The evolve domain `temp >= 0` (the same text on every mode of both sides) is not
+#   load-bearing (with the constant atom `0.0 <= 1.0` in its place the file CERTIFIES at
+#   0.3, measured).
+# (3) The source's distance relates reachable sets; this file relates runs (a stronger, run-wise
+#   claim, as in lit_nahs25_salt_tank (4)): a genuine witness may spend part of an attacked
+#   period running alone (right-only, the attacked engine frozen in the matching) before the joint
+#   period.
+# Assumption 1 holds without a stand-in: both genuine modes admit a full 1-unit run from their
+# guard (linear motion; a Cool cycle from temp >= 100 stays above 99.5), and the two guards cover
+# the line; proved in InstancesV2/WellFormed/LitNahs25EngineCooling.lean (Z3-free).
+#
+# RELATION TO lit_nahs25_salt_tank (same source, Sec. 7). Different plant (an engine with constant
+# heating and cooling rates vs a brine tank contracting toward 25), different claim (the source's
+# 0.3 vs 0) and a different mechanism (R, the genuine engine reaching its switching temperature
+# alone, vs S, the genuine tank waiting). benchmarks/prelanding_demo/engine_cooling_prelanding is
+# this file under another name (the demo of docs/PRELANDING.md).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30 on branch benchmark-fixes):
+# CERTIFIED (about 0.3 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1,
+# RELCERT_WELLFORMED_STRICT=1, RELCERT_SINGLE_STEP=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# RELCERT_NO_REPO=1 and RELCERT_SYNC=1 (lock step without right-only segments), and without the key.
+# Cover: both left modes at lambda 1, budget 1, the joint pairing of the same mode plus one
+# pre-landing right-only node each (Cool_L: Heat to temp_R >= 100 at rate 1; Heat_L: Cool to
+# temp_R <= 100 at rate 1/2); nothing pruned, no choice, no cut kept. Rows identical (--handoff
+# vacuous, 4/4). relcert --wellformed: Cool ok (exit -> Heat), Heat ok (exit -> Cool), 0 UNKNOWN,
+# 0 BLOCKING. check_one_domain: passes. Letters (scripts/suite_v2_letters.py): R.
+[problem]
+name = lit_nahs25_engine_cooling
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+prelanding = true
+
+[Lsys]
+state_vars = [temp]
+epsilon = 1.0
+
+[Lsys.mode.Cool]
+ode = temp' = smt2:(- 0.0 0.5);
+guard = temp > 99.7
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[Lsys.mode.Heat]
+ode = temp' = smt2:1.0;
+guard = temp <= 100.3
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[Rsys]
+state_vars = [temp]
+epsilon = 1.0
+
+[Rsys.mode.Cool]
+ode = temp' = smt2:(- 0.0 0.5);
+guard = temp >= 100.0
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[Rsys.mode.Heat]
+ode = temp' = smt2:1.0;
+guard = temp <= 100.0
+evolve = temp >= 0.0
+next = [Cool, Heat]
+
+[relational_invariant]
+Cool = temp[l] <= temp[r] + 0.3 and temp[r] <= temp[l] + 0.3
+Heat = temp[l] <= temp[r] + 0.3 and temp[r] <= temp[l] + 0.3

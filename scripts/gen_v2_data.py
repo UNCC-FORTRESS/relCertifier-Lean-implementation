@@ -7,9 +7,11 @@ Per benchmark `<b>` of benchmarks/suite_v2 (all of them):
   BenchProgress/<b>.lean `<b>_coverV2_progress`   (the same run, RELCERT_PROGRESS_OUT)
   Cuts/<b>.lean          `Oracle.<b>_cutsV2` (legacy part) and `Oracle.<b>_cutsV2X` (extended),
                          both kernel-checked well-formed against the IR literal by `rfl`
+  BenchPrelanding/<b>.lean `<b>_coverV2_prelanding` (the same run, RELCERT_PRELANDING_OUT; only for a
+                         file with the opt-in `prelanding = true`, docs/PRELANDING.md)
 Aggregators: BenchIR.lean (`benchIRTableV2`), BenchCovers.lean (`coverTableV2`),
 BenchChoice.lean (`choiceTableV2`), BenchProgress.lean (`progressTableV2`), Cuts.lean
-(`cutTableV2`).
+(`cutTableV2`), BenchPrelanding.lean (`prelandTableV2`, the keyed files only).
 
 Usage: python3 scripts/gen_v2_data.py [bench ...]   (default: all of benchmarks/suite_v2)
 Every generated file is overwritten; the aggregators always list the whole suite.
@@ -46,6 +48,17 @@ def run(args, env_extra=None):
 def all_benches():
     return sorted(d for d in os.listdir(SUITE) if os.path.isfile(f"{SUITE}/{d}/input.txt"))
 
+def is_prelanding(path):
+    """The file sets the opt-in key `prelanding = true` in its [problem] section."""
+    sec = None
+    for line in open(path):
+        t = line.split("#", 1)[0].strip()
+        if t.startswith("[") and t.endswith("]"):
+            sec = t
+        elif sec == "[problem]" and t.replace(" ", "") == "prelanding=true":
+            return True
+    return False
+
 def emit_leaves(b):
     path = f"{SUITE}/{b}/input.txt"
     ir = run([RELCERT, "--emit-ir", path, f"{b}_IRv2"])
@@ -55,10 +68,22 @@ def emit_leaves(b):
         f.write(ir.rstrip() + "\n\nend RelCertifier.Parse\n")
     # the cover is searched with the progress certificates required of every reposition node
     # (the tool's default); the certificates found are written to the BenchProgress leaf
-    cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"],
-              {"RELCERT_IMPLIED_CUT": "1",
-               "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean",
-               "RELCERT_CHOICE_OUT": f"{OUT}/BenchChoice/{b}.lean"})
+    env = {"RELCERT_IMPLIED_CUT": "1",
+           "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean",
+           "RELCERT_CHOICE_OUT": f"{OUT}/BenchChoice/{b}.lean"}
+    # a benchmark with the opt-in `prelanding = true` (docs/PRELANDING.md): the same run writes
+    # its pre-landing record (the right-only nodes certified before the landing, never in the
+    # cover's dynPre/dynPost flags) to BenchPrelanding/<b>.lean
+    pl_leaf = f"{OUT}/BenchPrelanding/{b}.lean" if is_prelanding(path) else None
+    if pl_leaf:
+        env["RELCERT_PRELANDING_OUT"] = pl_leaf
+    cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"], env)
+    if pl_leaf:
+        pl = open(pl_leaf).read()
+        if "PrelandEmitE" not in pl:
+            sys.exit(f"{b}: prelanding = true but no pre-landing record written")
+        if not pl.startswith("/-"):
+            open(pl_leaf, "w").write(HDR.format(b=b, what="emitted pre-landing record") + pl)
     with open(f"{OUT}/BenchCovers/{b}.lean", "w") as f:
         f.write(HDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default"))
         f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")
@@ -131,6 +156,19 @@ compares it with the literal of the same name in `benchIRTableV2`.
         f.write("def progressTableV2 : List (String × ProgressEmitE) :=\n")
         f.write("  [" + ",\n   ".join(f"(\"{b}\", {b}_coverV2_progress)" for b in pbenches))
         f.write("]\n\nend RelCertifier.Progress\n")
+    # the pre-landing records (docs/PRELANDING.md) of the benchmarks with `prelanding = true`
+    pbs = [b for b in benches if is_prelanding(f"{SUITE}/{b}/input.txt")]
+    with open(f"{OUT}/BenchPrelanding.lean", "w") as f:
+        f.write("/- suite_v2 pre-landing-record aggregator (GENERATED — `scripts/gen_v2_data.py`): the\n")
+        f.write("pre-landing records of the benchmarks with the opt-in `prelanding = true`\n")
+        f.write("(`docs/PRELANDING.md`); a benchmark without the key has none. -/\n")
+        f.write("import RelCertifier.Trusted.PrelandEmit\n")
+        for b in pbs:
+            f.write(f"import RelCertifier.InstancesV2.BenchPrelanding.{b}\n")
+        f.write("\nnamespace RelCertifier.Preland\n\n")
+        f.write("def prelandTableV2 : List (String × PrelandEmitE) := [")
+        f.write(",\n".join(f"\n  (\"{b}\", {b}_coverV2_prelanding)" for b in pbs))
+        f.write(" ]\n\nend RelCertifier.Preland\n")
     with open(f"{OUT}/Cuts.lean", "w") as f:
         f.write("/- suite_v2 cut-certificate aggregator (GENERATED — `scripts/gen_v2_data.py`). -/\n")
         for b in benches:
@@ -153,7 +191,7 @@ def nvars(b):
     return 1
 
 def main():
-    for d in ["BenchIR", "BenchCovers", "Cuts", "BenchProgress", "BenchChoice"]:
+    for d in ["BenchIR", "BenchCovers", "Cuts", "BenchProgress", "BenchChoice", "BenchPrelanding"]:
         os.makedirs(f"{OUT}/{d}", exist_ok=True)
     benches = all_benches()
     todo = sys.argv[1:] or benches

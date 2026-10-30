@@ -3,6 +3,14 @@
 #   scripts/paper_numbers.sh OUTDIR
 # Records the commit, Z3 version, OS and flags; emits every cover twice and requires them
 # byte-identical; runs every configuration; runs the mechanism matrix; writes OUTDIR/numbers.tex.
+# Letter macros (2026-10-30, batch 11; scripts/suite_v2_letters.py, docstring "USED and NEEDED"):
+#   \numletter<L>      files whose certificate NEEDS mechanism <L> (the rule kept for continuity:
+#                      the file declines with <L> switched off; M and B by the cover shape)
+#   \numletter<L>used  files whose certificate USES <L> (the replayed derivation of the cover found)
+#   <L> in S M R B P D I X; needed <= used for every letter.
+# Table snippets (same script): OUTDIR/table1.tex (Table 1, by group, one column per letter,
+# \mechNeeded / \mechUsed / blank, a needed/used totals row) and OUTDIR/table_per_benchmark.tex
+# (the appendix table); the paper defines \mechNeeded and \mechUsed.
 set -u
 OUT=${1:?usage: paper_numbers.sh OUTDIR}
 mkdir -p $OUT/covers1 $OUT/covers2
@@ -120,6 +128,7 @@ mac = {
  "numnolinear": cert(recs, "no_linear_verdict"),
  "numsinglestep": count(verdicts("singlestep"), "CERTIFIED"),
  **{f"numletter{k}": v for k, v in let["totals"].items()},
+ **{f"numletter{k}used": v for k, v in let.get("totals_used", {}).items()},
 }
 # informational macros: measured and kept, not paper numbers
 info = {"numnolinear": "informational, not a paper number: certified without decoupling forms (no benchmark needs one)",

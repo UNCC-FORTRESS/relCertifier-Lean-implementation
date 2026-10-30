@@ -19,8 +19,8 @@ import RelCertifier.InstancesV2.BenchIR.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchIR.canal_gate_notches
 import RelCertifier.InstancesV2.BenchIR.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchIR.engine_start_highidle
+import RelCertifier.InstancesV2.BenchIR.extruder_pe100_manualstart
 import RelCertifier.InstancesV2.BenchIR.flaps_slow_approach
-import RelCertifier.InstancesV2.BenchIR.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchIR.h2_refuel_ambientbias
@@ -33,6 +33,7 @@ import RelCertifier.InstancesV2.BenchIR.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchIR.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchIR.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchIR.lit_lz21_vehicle_position
+import RelCertifier.InstancesV2.BenchIR.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.BenchIR.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchIR.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
@@ -47,7 +48,6 @@ import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
-import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
@@ -73,8 +73,8 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("canal_gate_notches", canal_gate_notches_IRv2),
   ("elevator_start_discbrake", elevator_start_discbrake_IRv2),
   ("engine_start_highidle", engine_start_highidle_IRv2),
+  ("extruder_pe100_manualstart", extruder_pe100_manualstart_IRv2),
   ("flaps_slow_approach", flaps_slow_approach_IRv2),
-  ("fuelcell_chp_dos", fuelcell_chp_dos_IRv2),
   ("furnace_program_timebase", furnace_program_timebase_IRv2),
   ("gantry_speed_zones", gantry_speed_zones_IRv2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_IRv2),
@@ -87,6 +87,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("lit_girard08_robot", lit_girard08_robot_IRv2),
   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_IRv2),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_IRv2),
+  ("lit_nahs25_engine_cooling", lit_nahs25_engine_cooling_IRv2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_IRv2),
   ("molding_pack_checkring", molding_pack_checkring_IRv2),
   ("platoon_linkloss", platoon_linkloss_IRv2),
@@ -101,7 +102,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_ladder_8to12", rover_ladder_8to12_IRv2),
   ("rover_terrain_2to4", rover_terrain_2to4_IRv2),
   ("rover_terrain_4to6", rover_terrain_4to6_IRv2),
-  ("rover_terrain_6to12", rover_terrain_6to12_IRv2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),

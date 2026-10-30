@@ -16,6 +16,7 @@ import RelCertifier.Proofs.Encoding.Emitted.StrictRun
 import RelCertifier.VerdictsV2.RunV2
 import RelCertifier.InstancesV2.BenchProgress
 import RelCertifier.InstancesV2.BenchChoice
+import RelCertifier.InstancesV2.BenchPrelanding
 import RelCertifier.InstancesV2.Choice.BenchIR.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.BenchIR.watertank_choice
 import RelCertifier.InstancesV2.Choice.Cuts.vehicle_accel_copy
@@ -52,6 +53,14 @@ def choiceRecsV2 : List BridgeRec :=
 def coverV2 (b : String) : CoverEmitE :=
   ((coverTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, [], []⟩
 
+/-- The cover the bridge groups are built on: the emitted cover, merged with the benchmark's
+pre-landing record (`Emitted.withPL`) when it has one (the opt-in `prelanding = true`,
+`docs/PRELANDING.md`; the instance's `covM`); every other benchmark's cover unchanged. -/
+def coverV2M (b : String) : CoverEmitE :=
+  match Preland.prelandTableV2.find? (·.1 == b) with
+  | some (_, pl) => withPL (coverV2 b) pl
+  | none => coverV2 b
+
 def progV2 (b : String) : ProgressEmitE :=
   ((progressTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, []⟩
 
@@ -82,12 +91,14 @@ def bridgeDimV2 (b : String) : ℕ :=
 since literature round 3: `lit_csf25_salt_tank_hold`'s stale-reading rows, four atoms per mode; 7375
 since review round 6 of 2026-10-30: `charger_fast_tapers` out, `molding_pack_checkring` in, the changed
 benchmarks re-emitted; 7570 since batch 10 of 2026-10-30: `boiler_purge_vfd` and
-`autoclave_liquid_steambank` in for `platoon_latency` and `rover_patrol_lag`, four models changed). -/
-def expectedBridgeGroupsV2 : Nat := 7570
+`autoclave_liquid_steambank` in for `platoon_latency` and `rover_patrol_lag`, four models changed; 7550
+since batch 11 of 2026-10-30: `extruder_pe100_manualstart` (118) and `lit_nahs25_engine_cooling` (18, on
+the cover merged with its pre-landing record) in for `fuelcell_chp_dos` and `rover_terrain_6to12`). -/
+def expectedBridgeGroupsV2 : Nat := 7550
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=
-  ⟨b, bridgeDimV2 b, irV2 b, cutV2 b, coverV2 b, progV2 b, choiceV2 b⟩
+  ⟨b, bridgeDimV2 b, irV2 b, cutV2 b, coverV2M b, progV2 b, choiceV2 b⟩
 
 def runBridgeBench (s : Z3Session) (r : BridgeRec) : IO (Bool × Nat) := do
   let b := r.name

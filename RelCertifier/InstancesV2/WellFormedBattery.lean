@@ -80,7 +80,6 @@ import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
 import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
 import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
-import RelCertifier.InstancesV2.WellFormed.RoverTerrain6to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
 import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
 import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
@@ -108,7 +107,8 @@ import RelCertifier.InstancesV2.WellFormed.CanalGateNotches
 import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
 import RelCertifier.InstancesV2.WellFormed.BoilerPurgeVfd
 import RelCertifier.InstancesV2.WellFormed.AutoclaveLiquidSteambank
-import RelCertifier.InstancesV2.WellFormed.FuelcellChpDos
+import RelCertifier.InstancesV2.WellFormed.ExtruderPe100Manualstart
+import RelCertifier.InstancesV2.WellFormed.LitNahs25EngineCooling
 
 namespace RelCertifier
 namespace WellFormedBattery
@@ -121,10 +121,10 @@ def wfProved : List String :=
    "quad_light_lag", "autoclave_liquid_steambank", "gantry_speed_zones",
    "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
-   "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
+   "rover_ladder_8to12", "rover_terrain_2to4",
    "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
    "turbine_startup_gearratio", "rampmeter_poll_2to1",
-   "h2_refuel_ambientbias", "fuelcell_chp_dos", "elevator_start_discbrake",
+   "h2_refuel_ambientbias", "extruder_pe100_manualstart", "elevator_start_discbrake",
    "furnace_program_timebase", "reactor_feed_wireless", "syringe_relay_prearm",
    "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "antenna_track_kvretune", "canal_gate_notches",
    "bottling_fill_strainer",
@@ -136,7 +136,8 @@ def wfProved : List String :=
    "lit_csf21_vehicle_thermo",
    "lit_csf21_vehicle_bus",
    "lit_gpt10_boost_converter",
-   "lit_csf25_salt_tank_hold"]
+   "lit_csf25_salt_tank_hold",
+   "lit_nahs25_engine_cooling"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
 repairs; the nine refuted until then are in `wfProved`). -/
@@ -196,24 +197,26 @@ batch-I5 proof restored, for `grid_ffr_dos`; the proofs adapted to the new right
 literature migration (2026-10-29: `lit_gpt10_boost_converter` and `lit_csf25_salt_tank_hold`, new
 proofs, affine runs of every length via `Proofs/Flow/LipschitzRun.lean`, for `lit_drl_car_stop` and
 `zone_lightmass_schedule`; `rampmeter_poll_2to1`, its batch-I6 proof restored, for
-`insulin_basal_cgmloss`). -/
+`insulin_basal_cgmloss`); unchanged by batch 11 (2026-10-30: `lit_nahs25_engine_cooling`, the
+pre-landing demo's direct proof under the suite name, and `extruder_pe100_manualstart`, four
+exponential runs at dimension 2 as `reactor_feed_wireless` with the recipe range from the guards, for
+`fuelcell_chp_dos` and `rover_terrain_6to12`). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
-   "autoclave_liquid_steambank", "boiler_purge_vfd", "bottling_fill_strainer", "canal_gate_notches",
-   "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
-   "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones",
-   "h2_refuel_ambientbias", "hydro_rejection_gatecal", "lit_csf21_vehicle_bus",
-   "lit_csf21_vehicle_thermo", "lit_csf25_salt_tank_hold", "lit_drl_lane_control",
-   "lit_freedm_meter", "lit_girard08_robot", "lit_gpt10_boost_converter",
-   "lit_lz21_vehicle_position", "lit_nahs25_salt_tank", "molding_pack_checkring",
-   "platoon_linkloss",
-   "platoon_profiles", "quad_light_lag", "quad_light_profiles", "rampmeter_poll_2to1",
-   "reactor_feed_wireless", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
-   "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_4to6",
-   "rover_terrain_6to12", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
+   "autoclave_liquid_steambank", "boiler_purge_vfd", "bottling_fill_strainer",
+   "canal_gate_notches", "elevator_start_discbrake", "engine_start_highidle",
+   "extruder_pe100_manualstart", "flaps_slow_approach", "furnace_program_timebase",
+   "gantry_speed_zones", "h2_refuel_ambientbias", "hydro_rejection_gatecal",
+   "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo", "lit_csf25_salt_tank_hold",
+   "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot", "lit_gpt10_boost_converter",
+   "lit_lz21_vehicle_position", "lit_nahs25_engine_cooling", "lit_nahs25_salt_tank",
+   "molding_pack_checkring", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
+   "quad_light_profiles", "rampmeter_poll_2to1", "reactor_feed_wireless", "rover_ladder_2to3",
+   "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12", "rover_terrain_2to4",
+   "rover_terrain_4to6", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
    "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry", "turbine_startup_gearratio",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
 
@@ -241,6 +244,7 @@ end WellFormedBattery
 #print axioms V2LitCsf21VehicleBus.lit_csf21_vehicle_bus_wellFormedR_direct
 #print axioms V2LitGpt10BoostConverter.lit_gpt10_boost_converter_wellFormedR_direct
 #print axioms V2LitCsf25SaltTankHold.lit_csf25_salt_tank_hold_wellFormedR_direct
+#print axioms V2LitNahs25EngineCooling.lit_nahs25_engine_cooling_wellFormedR_direct
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR
@@ -256,7 +260,6 @@ end WellFormedBattery
 #print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR
 #print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
 #print axioms RoverTerrain2to4Guarded.rover_terrain_2to4_wellFormedR
-#print axioms RoverTerrain6to12Guarded.rover_terrain_6to12_wellFormedR
 #print axioms RoverTerrain4to6Guarded.rover_terrain_4to6_wellFormedR
 
 /-! ## The later additions: Assumption 1 at every mode -/
@@ -279,7 +282,7 @@ end WellFormedBattery
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
 #print axioms V2BoilerPurgeVfd.boiler_purge_vfd_wellFormedR
 #print axioms V2AutoclaveLiquidSteambank.autoclave_liquid_steambank_wellFormedR
-#print axioms V2FuelcellChpDos.fuelcell_chp_dos_wellFormedR
+#print axioms V2ExtruderPe100Manualstart.extruder_pe100_manualstart_wellFormedR
 #print axioms V2MoldingPackCheckring.molding_pack_checkring_wellFormedR
 #print axioms V2CanalGateNotches.canal_gate_notches_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band

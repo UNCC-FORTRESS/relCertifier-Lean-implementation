@@ -12,8 +12,8 @@ import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
 import RelCertifier.InstancesV2.BenchChoice.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchChoice.engine_start_highidle
+import RelCertifier.InstancesV2.BenchChoice.extruder_pe100_manualstart
 import RelCertifier.InstancesV2.BenchChoice.flaps_slow_approach
-import RelCertifier.InstancesV2.BenchChoice.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchChoice.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchChoice.h2_refuel_ambientbias
@@ -26,6 +26,7 @@ import RelCertifier.InstancesV2.BenchChoice.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchChoice.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchChoice.lit_lz21_vehicle_position
+import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchChoice.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
@@ -40,7 +41,6 @@ import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
-import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
@@ -66,8 +66,8 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("canal_gate_notches", canal_gate_notches_coverV2_choice),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2_choice),
   ("engine_start_highidle", engine_start_highidle_coverV2_choice),
+  ("extruder_pe100_manualstart", extruder_pe100_manualstart_coverV2_choice),
   ("flaps_slow_approach", flaps_slow_approach_coverV2_choice),
-  ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_choice),
   ("furnace_program_timebase", furnace_program_timebase_coverV2_choice),
   ("gantry_speed_zones", gantry_speed_zones_coverV2_choice),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_choice),
@@ -80,6 +80,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("lit_girard08_robot", lit_girard08_robot_coverV2_choice),
   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2_choice),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_choice),
+  ("lit_nahs25_engine_cooling", lit_nahs25_engine_cooling_coverV2_choice),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_choice),
   ("molding_pack_checkring", molding_pack_checkring_coverV2_choice),
   ("platoon_linkloss", platoon_linkloss_coverV2_choice),
@@ -94,7 +95,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
-  ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),

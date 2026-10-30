@@ -150,7 +150,8 @@ def main():
         pl = open(PL_LEAF).read()
         if "PrelandEmitE" not in pl:
             sys.exit(f"{B}: no pre-landing record written")
-        open(PL_LEAF, "w").write(D.HDR.format(b=B, what="emitted pre-landing record") + pl)
+        if not pl.startswith("/-"):   # gen_v2_data.emit_leaves writes the header itself since batch 11
+            open(PL_LEAF, "w").write(D.HDR.format(b=B, what="emitted pre-landing record") + pl)
         print(f"  emitted leaves of {B}")
         out = f"RelCertifier/InstancesV2/Bridge/{CAMEL}.lean"
         if strict:

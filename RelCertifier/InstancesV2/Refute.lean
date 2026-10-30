@@ -30,17 +30,6 @@ import RelCertifier.InstancesV2.Refute.RoverTerrain4to6M021
 import RelCertifier.InstancesV2.Refute.RoverTerrain4to6M022
 import RelCertifier.InstancesV2.Refute.RoverTerrain4to6M024
 import RelCertifier.InstancesV2.Refute.RoverTerrain4to6M028
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M020
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M021
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M023
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M024
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M025
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M026
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M028
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M032
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M035
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M036
-import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M037
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM002
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM003
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM004

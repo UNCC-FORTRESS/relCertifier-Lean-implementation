@@ -30,17 +30,6 @@ import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m021
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m022
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m024
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m028
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m020
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m021
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m023
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m024
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m025
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m026
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m028
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m032
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m035
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m036
-import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m037
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m002
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m003
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m004
@@ -97,7 +86,6 @@ import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
-import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
@@ -143,17 +131,6 @@ def refuteTable : List RefRec := [
   ⟨"rover_terrain_4to6_m022", 6 + 1, rover_terrain_4to6_m022_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m022_wit⟩,
   ⟨"rover_terrain_4to6_m024", 6 + 1, rover_terrain_4to6_m024_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m024_wit⟩,
   ⟨"rover_terrain_4to6_m028", 6 + 1, rover_terrain_4to6_m028_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m028_wit⟩,
-  ⟨"rover_terrain_6to12_m020", 12 + 1, rover_terrain_6to12_m020_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m020_wit⟩,
-  ⟨"rover_terrain_6to12_m021", 12 + 1, rover_terrain_6to12_m021_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m021_wit⟩,
-  ⟨"rover_terrain_6to12_m023", 12 + 1, rover_terrain_6to12_m023_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m023_wit⟩,
-  ⟨"rover_terrain_6to12_m024", 12 + 1, rover_terrain_6to12_m024_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m024_wit⟩,
-  ⟨"rover_terrain_6to12_m025", 12 + 1, rover_terrain_6to12_m025_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m025_wit⟩,
-  ⟨"rover_terrain_6to12_m026", 12 + 1, rover_terrain_6to12_m026_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m026_wit⟩,
-  ⟨"rover_terrain_6to12_m028", 12 + 1, rover_terrain_6to12_m028_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m028_wit⟩,
-  ⟨"rover_terrain_6to12_m032", 12 + 1, rover_terrain_6to12_m032_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m032_wit⟩,
-  ⟨"rover_terrain_6to12_m035", 12 + 1, rover_terrain_6to12_m035_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m035_wit⟩,
-  ⟨"rover_terrain_6to12_m036", 12 + 1, rover_terrain_6to12_m036_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m036_wit⟩,
-  ⟨"rover_terrain_6to12_m037", 12 + 1, rover_terrain_6to12_m037_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m037_wit⟩,
   ⟨"sat3w_detumble_phases_m002", 6 + 1, sat3w_detumble_phases_m002_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m002_wit⟩,
   ⟨"sat3w_detumble_phases_m003", 6 + 1, sat3w_detumble_phases_m003_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m003_wit⟩,
   ⟨"sat3w_detumble_phases_m004", 6 + 1, sat3w_detumble_phases_m004_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m004_wit⟩,
@@ -199,6 +176,6 @@ def refuteTable : List RefRec := [
   ⟨"boiler_purge_vfd_m026", 3 + 1, boiler_purge_vfd_m026_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m026_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 229
+def expectedRefuteGroups : Nat := 196
 
 end RelCertifier.Refute

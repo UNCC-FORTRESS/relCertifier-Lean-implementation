@@ -10,8 +10,8 @@ import RelCertifier.InstancesV2.Cuts.bottling_fill_strainer
 import RelCertifier.InstancesV2.Cuts.canal_gate_notches
 import RelCertifier.InstancesV2.Cuts.elevator_start_discbrake
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
+import RelCertifier.InstancesV2.Cuts.extruder_pe100_manualstart
 import RelCertifier.InstancesV2.Cuts.flaps_slow_approach
-import RelCertifier.InstancesV2.Cuts.fuelcell_chp_dos
 import RelCertifier.InstancesV2.Cuts.furnace_program_timebase
 import RelCertifier.InstancesV2.Cuts.gantry_speed_zones
 import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
@@ -24,6 +24,7 @@ import RelCertifier.InstancesV2.Cuts.lit_freedm_meter
 import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
 import RelCertifier.InstancesV2.Cuts.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.Cuts.lit_lz21_vehicle_position
+import RelCertifier.InstancesV2.Cuts.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.Cuts.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.Cuts.molding_pack_checkring
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
@@ -38,7 +39,6 @@ import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
-import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
@@ -64,8 +64,8 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("canal_gate_notches", canal_gate_notches_cutsV2, canal_gate_notches_cutsV2X),
   ("elevator_start_discbrake", elevator_start_discbrake_cutsV2, elevator_start_discbrake_cutsV2X),
   ("engine_start_highidle", engine_start_highidle_cutsV2, engine_start_highidle_cutsV2X),
+  ("extruder_pe100_manualstart", extruder_pe100_manualstart_cutsV2, extruder_pe100_manualstart_cutsV2X),
   ("flaps_slow_approach", flaps_slow_approach_cutsV2, flaps_slow_approach_cutsV2X),
-  ("fuelcell_chp_dos", fuelcell_chp_dos_cutsV2, fuelcell_chp_dos_cutsV2X),
   ("furnace_program_timebase", furnace_program_timebase_cutsV2, furnace_program_timebase_cutsV2X),
   ("gantry_speed_zones", gantry_speed_zones_cutsV2, gantry_speed_zones_cutsV2X),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_cutsV2, h2_refuel_ambientbias_cutsV2X),
@@ -78,6 +78,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("lit_girard08_robot", lit_girard08_robot_cutsV2, lit_girard08_robot_cutsV2X),
   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_cutsV2, lit_gpt10_boost_converter_cutsV2X),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_cutsV2, lit_lz21_vehicle_position_cutsV2X),
+  ("lit_nahs25_engine_cooling", lit_nahs25_engine_cooling_cutsV2, lit_nahs25_engine_cooling_cutsV2X),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_cutsV2, lit_nahs25_salt_tank_cutsV2X),
   ("molding_pack_checkring", molding_pack_checkring_cutsV2, molding_pack_checkring_cutsV2X),
   ("platoon_linkloss", platoon_linkloss_cutsV2, platoon_linkloss_cutsV2X),
@@ -92,7 +93,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
   ("rover_terrain_2to4", rover_terrain_2to4_cutsV2, rover_terrain_2to4_cutsV2X),
   ("rover_terrain_4to6", rover_terrain_4to6_cutsV2, rover_terrain_4to6_cutsV2X),
-  ("rover_terrain_6to12", rover_terrain_6to12_cutsV2, rover_terrain_6to12_cutsV2X),
   ("sat3w_detumble_phases", sat3w_detumble_phases_cutsV2, sat3w_detumble_phases_cutsV2X),
   ("sat_detumble_phases", sat_detumble_phases_cutsV2, sat_detumble_phases_cutsV2X),
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),

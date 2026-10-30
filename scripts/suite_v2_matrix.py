@@ -108,6 +108,10 @@ FAMILIES = [
     ("zone_", "Building zone heating (lightweight construction)"),
     ("h2_", "Hydrogen refuelling (sensor bias)"),
     ("reactor_", "Exothermic reactor feed interlock"),
+    ("extruder_", "Extruder start-up (manual speed steps)"),
+    ("autoclave_", "Steam sterilizer liquids cycle"),
+    ("boiler_", "Steam boiler cold start (purge retrofit)"),
+    ("canal_", "Irrigation canal gate notches"),
     # case studies reproduced from published work (each header cites its source)
     ("lit_", "Literature"),
 ]

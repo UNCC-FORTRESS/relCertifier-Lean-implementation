@@ -8,7 +8,7 @@
   "modesR": 1,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M",
+  "mech": "S",
   "mech_used": "S M I",
   "ms": 113
  },
@@ -21,7 +21,7 @@
   "modesR": 3,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "M B I X",
+  "mech": "I X",
   "mech_used": "M B I X",
   "ms": 121
  },
@@ -34,7 +34,7 @@
   "modesR": 1,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M",
+  "mech": "S",
   "mech_used": "S M I",
   "ms": 53
  },
@@ -47,7 +47,7 @@
   "modesR": 2,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M D I",
+  "mech": "S D I",
   "mech_used": "S M P D I",
   "ms": 562
  },
@@ -151,7 +151,7 @@
   "modesR": 4,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "M B P I",
+  "mech": "P I",
   "mech_used": "M B P I",
   "ms": 821
  },
@@ -190,7 +190,7 @@
   "modesR": 1,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M",
+  "mech": "S",
   "mech_used": "S M I",
   "ms": 1250
  },
@@ -372,7 +372,7 @@
   "modesR": 1,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "M",
+  "mech": "",
   "mech_used": "M I",
   "ms": 218
  },
@@ -385,7 +385,7 @@
   "modesR": 1,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M",
+  "mech": "S",
   "mech_used": "S M I",
   "ms": 122
  },
@@ -398,7 +398,7 @@
   "modesR": 1,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M",
+  "mech": "S",
   "mech_used": "S M I",
   "ms": 66
  },
@@ -411,7 +411,7 @@
   "modesR": 3,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M B X",
+  "mech": "S X",
   "mech_used": "S M B I X",
   "ms": 11240
  },
@@ -424,7 +424,7 @@
   "modesR": 6,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "M B",
+  "mech": "",
   "mech_used": "M B P I",
   "ms": 2229
  },
@@ -437,7 +437,7 @@
   "modesR": 4,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "M B P",
+  "mech": "P",
   "mech_used": "M B P I",
   "ms": 738
  },
@@ -476,7 +476,7 @@
   "modesR": 3,
   "inv": "quadratic",
   "dyn": "polynomial",
-  "mech": "S M I",
+  "mech": "S I",
   "mech_used": "S M I",
   "ms": 16511
  },
@@ -489,7 +489,7 @@
   "modesR": 3,
   "inv": "quadratic",
   "dyn": "polynomial",
-  "mech": "S M I",
+  "mech": "S I",
   "mech_used": "S M I",
   "ms": 34124
  },
@@ -528,7 +528,7 @@
   "modesR": 3,
   "inv": "quadratic",
   "dyn": "polynomial",
-  "mech": "M I X",
+  "mech": "I X",
   "mech_used": "M P I X",
   "ms": 21067
  },
@@ -541,7 +541,7 @@
   "modesR": 3,
   "inv": "quadratic",
   "dyn": "polynomial",
-  "mech": "M I X",
+  "mech": "I X",
   "mech_used": "M P I X",
   "ms": 7481
  },
@@ -554,7 +554,7 @@
   "modesR": 4,
   "inv": "quadratic",
   "dyn": "polynomial",
-  "mech": "S M B X",
+  "mech": "S X",
   "mech_used": "S M B P I X",
   "ms": 4183
  },
@@ -580,7 +580,7 @@
   "modesR": 4,
   "inv": "linear",
   "dyn": "polynomial",
-  "mech": "M I",
+  "mech": "I",
   "mech_used": "M I",
   "ms": 938
  },
@@ -593,7 +593,7 @@
   "modesR": 3,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M B",
+  "mech": "S",
   "mech_used": "S M B I",
   "ms": 2351
  },
@@ -632,7 +632,7 @@
   "modesR": 5,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M B",
+  "mech": "S",
   "mech_used": "S M B P I",
   "ms": 2240
  },
@@ -645,7 +645,7 @@
   "modesR": 6,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M B",
+  "mech": "S",
   "mech_used": "S M B I",
   "ms": 1978
  }

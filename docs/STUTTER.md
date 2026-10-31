@@ -4,6 +4,16 @@ Branch `stutter`, 2026-10-29, from `benchmark-fixes` at `de241c5` (not rebased; 
 has moved on since). Scope record: the λ = 0 scoping of 2026-10-29 (probe files under
 `tmp/lam0-scope/` of the main checkout, not committed).
 
+**Status (2026-10-31, batch 12, `docs/BATCH12-2026-10-31.md`): always on.** Stretch 0 is no longer
+an opt-in key: it is a run feature, on for every benchmark (`PProblem.stutter`, default `true`, not
+read from the file; the key `stutter` is retired and refused by the unknown-key gate). The ablation
+`RELCERT_NO_STUTTER=1` switches it off for a run (`Oracle.withRunFeatures`); the emitted IR records
+the run's value (printed only when off), and the kernel gate `Emitted.timeOK` admits a stretch-0
+pairing exactly when the IR records the feature as on. The property (Theorem 3's statement) is
+unchanged and the feature is sound for every benchmark (below), so it is not a per-benchmark option.
+The sections below describe the opt-in era (2026-10-29/30); read "with the key" as the default run
+and "without the key" as `RELCERT_NO_STUTTER=1`.
+
 ## Semantics
 
 A joint segment of a left mode `m_L` with a right mode `m_R` at stretch `λ` runs the product
@@ -20,7 +30,7 @@ mirror of the right-only (reposition) segment, in which the left waits.
   long as the left holds a level it can match. A reader who wants "the reference keeps time"
   keeps the key off (with the key, `0` is appended whatever `λ_min` is).
 
-## Opt-in
+## Opt-in (until 2026-10-31)
 
 `[problem] stutter = true` (default `false`; any value other than `true`/`false` is a parse
 error; `KeyAudit` recognizes the key). With the key, `Run.lambdaCandidates` appends `λ = 0` as the

@@ -33,6 +33,10 @@ D.HDR = D.HDR.replace("(suite_v2)", "(strict_demo)").replace(
 _wf_info = G.wf_info
 G.wf_info = lambda b: _wf_info(WF_FROM if b == B else b)
 
+G.PL_TEMPLATE = G.PL_TEMPLATE.replace(
+    "# `{b}` (suite_v2) through the generic bridge (GENERATED — `scripts/gen_bridge.py {b}`)",
+    "# `{b}` (strict_demo) through the generic bridge at its strict rows (GENERATED —\n"
+    "`scripts/gen_strict_demo.py`)")
 G.TEMPLATE = G.TEMPLATE.replace(
     "# `{b}` (suite_v2) through the generic bridge (GENERATED — `scripts/gen_bridge.py {b}`)",
     "# `{b}` (strict_demo) through the generic bridge at its strict rows (GENERATED —\n"
@@ -66,8 +70,35 @@ theorem {b}_bridge_run {{gs : List (List (IForm {n}))}}
 '''
 
 
+# the pre-landing instance (the cover has pre-landing right-only nodes since the pre-landing
+# certificate is always on, 2026-10-31): the strict chain's `_pl` theorem over the merged cover
+G.WINDOW_CLAIM_PL = '''/-- The rows really carry a strict atom: the strictness mask of every window's row
+(`x_L ≤ x_R + 3` closure, `x_R < x_L + 3.5` strict), decided in the kernel. -/
+theorem masks : (List.range (nL IR)).map (maskOf IR {n}) = [[false, true], [false, true], [false, true]] := by
+  decide +kernel
+theorem not_collapse : noStrictRows IR {n} = false := by decide +kernel
+
+/-- **Theorem 3 of `{b}` at its strict row** (window form, over the emitted cover): every strict
+verdict group of the benchmark `unsat`. The claim carries the strict row (`windowClaimS`,
+`canonInvMS`). -/
+theorem {b}_bridge (hv : VerdictsS IR {n} cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+    windowClaimS IR {n} cX cov reg 0 1 2 dt :=
+  theorem3_window_strict_of_records_pl pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv
+    wellFormedR rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
+'''
+PL_STRICT = [
+    ("import RelCertifier.Proofs.Encoding.Emitted.Run\n", "import RelCertifier.Proofs.Encoding.Emitted.StrictRun\n"),
+    ("(hrun : bridgeGroups IR", "(hrun : bridgeGroupsS IR"),
+    ("(hdt : dt ≤ epsL IR) : windowClaim IR", "(hdt : dt ≤ epsL IR) : windowClaimS IR"),
+    ("(verdicts_of_groups hrun hok)", "(verdictsS_of_groups hrun hok)"),
+    ("the verdicts assumed (`Verdicts`: the\ngroups `relcert-bridge-verdicts` discharges on the merged cover, `Emitted.verdicts_of_groups`).",
+     "the verdicts assumed (`VerdictsS`: the\nstrict groups `bridgeGroupsS` on the merged cover, `Emitted.verdictsS_of_groups`)."),
+    ("(`bridgeGroups` on the merged cover,\n`relcert-bridge-verdicts`)", "(`bridgeGroupsS` on the merged cover,\n`scripts/strict_demo_verdicts.lean`)"),
+]
+
+
 def main():
-    for d in ["BenchIR", "BenchCovers", "Cuts", "BenchProgress", "BenchChoice"]:
+    for d in ["BenchIR", "BenchCovers", "Cuts", "BenchProgress", "BenchChoice", "BenchPrelanding"]:
         os.makedirs(f"{D.OUT}/{d}", exist_ok=True)
     D.emit_leaves(B)
     print(f"  emitted leaves of {B}")
@@ -77,6 +108,10 @@ def main():
     # Assumption 1 is the suite watertank's lemma (the emitter names it after the benchmark)
     fn = f"{G.OUT}/{G.camel(B)}.lean"
     txt = open(fn).read().replace(f"{B}_wellFormedR", f"{WF_FROM}_wellFormedR")
+    if "abbrev covM" in txt:
+        for old, new in PL_STRICT:
+            assert old in txt, f"strict pre-landing patch does not apply: {old!r}"
+            txt = txt.replace(old, new)
     open(fn, "w").write(txt)
     print(f"  emitted RelCertifier/InstancesV2/Bridge/{G.camel(B)}.lean (dim {n + 1})")
 

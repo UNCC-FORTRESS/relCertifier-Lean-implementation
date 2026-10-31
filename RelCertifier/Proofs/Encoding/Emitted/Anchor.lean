@@ -224,7 +224,7 @@ def JointVerd (l q : ℕ) : Prop :=
   modalVerdX p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q
 
 /-- The reposition pack of a pairing, on the region `rg` (default: the whole domain; the
-pre-landing region of the node's progress certificate under the opt-in key, `dynRegion`). -/
+pre-landing region of the node's progress certificate with the pre-landing feature on, `dynRegion`). -/
 def DynVerd (l q : ℕ) (pre : Bool) (rg : DynRegion n := .whole) : Prop :=
   modalVerdDynX p cX n (rowIdx p l)
     (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder) pre l q rg

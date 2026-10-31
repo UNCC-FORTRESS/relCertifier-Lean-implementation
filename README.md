@@ -408,21 +408,25 @@ Environment variables of `relcert` (`relcert --help` prints the same list):
 | `RELCERT_MAX_QUERIES=<n>` | per-benchmark query budget, default 20000 |
 | `RELCERT_TIME_BUDGET_MS=<ms>` | per-benchmark wall-clock budget, default 300000 (5 min; 40000 before 2026-10-27) |
 
-Problem key (in the input file, not the environment): `[problem] stutter = true` (opt-in,
-default off) appends the stretch `λ = 0` as the last candidate: a joint segment in which the
-right waits while the left runs. Backed in Lean (`CoverHyps.hlam : 0 ≤ lam`, `Emitted.timeOK`
-admits `lamN = 0` only under the key); without the key the CLI never certifies with a stretch-0
-pairing. See [`docs/STUTTER.md`](docs/STUTTER.md).
+Two features are always on (since 2026-10-31, `docs/BATCH12-2026-10-31.md`; until then the opt-in
+problem keys `stutter = true` / `prelanding = true`, now retired and refused by the unknown-key
+gate). Neither changes the claimed property (Theorem 3's statement), and both are sound for every
+benchmark, so neither is a per-benchmark option; each has an ablation switch for the paper's
+measurements:
 
-Problem key `[problem] prelanding = true` (opt-in, default off): a right-only (reposition) node
-needs its flow certificate only on the half-open region before its progress certificate's last
-threshold (routes A, B or C), and the witness right run stops at its first entry into the closed
-target, ending its cycle early. The node is emitted in its own record (`RELCERT_PRELANDING_OUT`),
-never as a `dynPre`/`dynPost` flag. Backed in Lean by the same chain, parameterized by the region
-(`DynRegion`, `Emitted.dynRegion`; strict components on the closed region; the data gate
-`Emitted.plOK` admits a record only under the key);
-without the key the CLI never certifies with a pre-landing node. No suite_v2 file sets it. See
-[`docs/PRELANDING.md`](docs/PRELANDING.md).
+| switch | effect |
+|---|---|
+| `RELCERT_NO_STUTTER=1` | no stretch `λ = 0` (by default appended as the last candidate: a joint segment in which the right waits while the left runs; `docs/STUTTER.md`) |
+| `RELCERT_NO_PRELANDING=1` | right-only (reposition) nodes need the whole-domain right-only certificate (by default the pre-landing one: the flow certificate only on the half-open region before the progress certificate's last threshold, routes A/B/C, strict components on the closed region, the witness right run stopped at its first entry into the closed target; `docs/PRELANDING.md`) |
+
+The run's feature flags are recorded in the problem (`PProblem.stutter` / `prelanding`, default
+`true`, set by `Oracle.withRunFeatures`), so the emitted IR carries them (printed only when off) and
+the kernel gates read them: `Emitted.timeOK` admits a stretch-0 pairing, and `Emitted.plOK` /
+`Emitted.nodeStage` a pre-landing record and region, exactly when the IR records the feature as on.
+The CLI guards are the same test (a stretch-0 pairing or a pre-landing node with its feature off is
+an ERROR). Pre-landing nodes are emitted in their own record (`RELCERT_PRELANDING_OUT`), never as
+`dynPre`/`dynPost` flags; every bridge instance with right-only nodes is over the cover merged with
+it (`withPL`, `theorem3_window_of_records_pl` / `theorem3_keyed_of_records_pl`).
 
 ## Guard-gated switching
 
@@ -567,11 +571,13 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
-* [`docs/STUTTER.md`](docs/STUTTER.md): the opt-in stretch 0 (`stutter = true`, the right
-  waits during a joint segment): semantics, soundness, the Lean changes, the demo and tests.
-* [`docs/PRELANDING.md`](docs/PRELANDING.md): the opt-in pre-landing right-only certificate
-  (`prelanding = true`): semantics, soundness, the Lean changes, the engine cooling demo, tests
-  and the draft paper wording.
+* [`docs/STUTTER.md`](docs/STUTTER.md): stretch 0 (the right waits during a joint segment; always
+  on since 2026-10-31, opt-in before): semantics, soundness, the Lean changes, the demo and tests.
+* [`docs/PRELANDING.md`](docs/PRELANDING.md): the pre-landing right-only certificate (always on
+  since 2026-10-31, opt-in before): semantics, soundness, the Lean changes, the engine cooling demo,
+  tests and the draft paper wording.
+* [`docs/BATCH12-2026-10-31.md`](docs/BATCH12-2026-10-31.md): both features always on, the ablation
+  switches, what moved.
 * [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 74 kernel refutations of
   known-false invariant variants (its design was `docs/REFUTATION-SCOPE.md`, planning record, last present at commit 29663d8).
 * [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from

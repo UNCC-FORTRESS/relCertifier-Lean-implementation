@@ -83,7 +83,7 @@ def antenna_track_kvretune_m036_IRm : PProblem :=
 /-- The finder's witness (kind C). -/
 def antenna_track_kvretune_m036_wit : RefWitE :=
   { kind := "C", u := 0, m := 1, q0 := 1, k := 0,
-    wL := [(60 : ℚ), (89 : ℚ), (4453/50 : ℚ)],
-    wR := [(60 : ℚ), (89 : ℚ), (3561/40 : ℚ)] }
+    wL := [(60 : ℚ), (179/2 : ℚ), (17893/200 : ℚ)],
+    wR := [(60 : ℚ), (179/2 : ℚ), (179/2 : ℚ)] }
 
 end RelCertifier.Refute

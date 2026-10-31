@@ -1,17 +1,18 @@
 # salt_tank_stutter: the stutter demo (NOT part of suite_v2; docs/STUTTER.md).
 #
 # benchmarks/suite_v2/lit_nahs25_salt_tank (the attacked brine tank against the genuine one,
-# Xiang, Lanotte, Tini, Chong, Merro, NAHS 2025) with two changes: the opt-in key
-# `stutter = true` and the band tightened from 3 to 0 (xp_L = xp_R, with both lower bounds).
-# Everything else (plant, guards, epsilon, lambda_min = lambda_max = 1) is the suite file's.
+# Xiang, Lanotte, Tini, Chong, Merro, NAHS 2025) at the band 0 (xp_L = xp_R, with both lower
+# bounds); since 2026-10-29 the suite file is this file under another name. Stretch 0 was the
+# opt-in key `stutter = true` until 2026-10-31 and is now on for every benchmark (the ablation
+# RELCERT_NO_STUTTER=1 switches it off).
 #
-# With the key the stretch candidates end with lambda = 0, the joint segment in which the
+# With stretch 0 the stretch candidates end with lambda = 0, the joint segment in which the
 # genuine tank (right) waits while the attacked tank (left) runs. The attacked Off holds its
 # level (xp' = 0), so against it the genuine tank may wait: the pairing Off_L/On certifies at
 # lambda = 0 (the right is frozen, the left does not move) where it fails at lambda = 1. The
 # attacked On moves, so On_L stays at lambda = 1 (at lambda = 0 it fails: the left moves and
-# the right must follow). Without the key the band 0 DECLINES (the suite file's tight value is
-# 3, see its TIGHTNESS paragraph); with it the band certifies down to 0 (-0.01 declines: the
+# the right must follow). With RELCERT_NO_STUTTER=1 the band 0 DECLINES (the tight value is
+# then 3, see the suite file's TIGHTNESS paragraph); with stretch 0 the band certifies down to 0 (-0.01 declines: the
 # rows then admit no start). A stutter certificate says nothing about the genuine tank
 # keeping pace: the witness may wait as long as the attacked tank holds.
 #
@@ -21,7 +22,6 @@ max_depth = 8
 lambda_min = 1.0
 lambda_max = 1.0
 bound_T = 40.0
-stutter = true
 
 [Lsys]
 state_vars = [xp]

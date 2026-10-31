@@ -28,40 +28,43 @@
 #
 # Property (mode-dependent).
 #   ONGRID: t_L = t_R, w_L = w_R, |g_L - g_R| <= 0.027.
-#   REJECT: t_L = t_R, |w_L - w_R| <= 0.09, |g_L - g_R| <= 0.027.
+#   REJECT: t_L = t_R, |w_L - w_R| <= 0.07, |g_L - g_R| <= 0.027.
 # Requirements. Power: the plant's dispatch tolerance, +-3 % of rated output; with power
 # proportional to the gate above no-load, P = (g - 0.1) / 0.9, that is +-0.027 of stroke. Speed:
-# the unit's overspeed protection is set at 1.30 pu; the commissioned rejection peaks at 1.2055 pu
-# (simulated from every on-grid start, the highest from w = -0.004), so the deployed speed may
-# exceed the commissioned speed trajectory by at most 0.0945, rounded down to 0.09. On the grid
+# the unit's overspeed protection is set at 1.30 pu; the commissioned rejection peaks at 1.227 pu
+# (simulated from every admitted on-grid start, the highest from a fully open gate, g = 1, at
+# w = 0.004 when the breaker opens; 1.2055 from the settled gate), so the deployed speed may
+# exceed the commissioned speed trajectory by at most 0.073, rounded down to 0.07. On the grid
 # the two runs see the same grid frequency (w_L = w_R, the comparison's premise, as a shared
 # inflow would be); after the breaker opens the speed is no longer the grid's. The REJECT gate row
 # is a stated strengthening (the speed is driven by the gate; without it the file DECLINES).
 # Tightest: gate 0.02 (0.019 declines) = the transducer offset; speed 0.02 with the gate at 0.02
 # (0.019 declines; the speed row needs a gate bound no larger than itself, since the speed gap is
-# driven by the gate gap through the unit self-regulation of 1 pu); keyed rows certify for every
-# gate tolerance in [0.02, 0.09] at speed 0.09. Not implied by the domains (they allow a gate gap
-# of 1 and a speed gap of 2). Simulated: the deployed rejection peaks 0.0101 pu above the
-# commissioned one and settles 0.02 pu above it (its no-load gate is 0.02 more open).
+# driven by the gate gap through the unit self-regulation of 1 pu), 0.027 at the stated gate 0.027
+# (0.026 declines); keyed rows certify for every gate tolerance in [0.02, 0.07] at speed 0.07
+# (gate 0.071 declines). Not implied by the domains (they allow a gate gap of 1 and a speed gap
+# of 2). Simulated: the deployed rejection peaks 0.0101 pu above the commissioned one and settles
+# 0.02 pu above it (its no-load gate is 0.02 more open).
 #
 # Why the rows must differ (D). Uniform rows with exact speeds (the ONGRID rows in both modes)
 # DECLINE at every gate tolerance up to 1 (after the rejection the deployed unit, 0.02 more open,
 # runs faster: the exact speed row is false). Uniform rows with the speed band (the REJECT rows in
-# both modes) DECLINE at the requirement and at every gate tolerance with the 0.09 speed band: on
+# both modes) DECLINE at the requirement and at every gate tolerance with the 0.07 speed band: on
 # the grid the 5 % droop turns a speed gap s into a gate gap 20 s, so the on-grid gate row needs a
 # tolerance of at least 0.02 + 20 x 0.008 = 0.18 (the ONGRID mode facts bound each speed by 0.004),
 # while the REJECT speed row needs the gate tolerance below the speed tolerance. The smallest
 # uniform band that certifies is 0.18 on both rows (0.17 declines): six times the power
-# requirement, twice the speed requirement. So no uniform row meets the requirement; the keyed
+# requirement, 2.6 times the speed requirement. So no uniform row meets the requirement; the keyed
 # rows do. The handoff ONGRID -> REJECT relaxes w_L = w_R to the band (--handoff 3/3 unsat). This
 # is not molding_pack_checkring's gate-freeze drop: here the dropped conjunct is an exact equality
 # that the shared grid imposes and the droop feedback needs, and the requirement itself switches
 # from power to speed. The D needs the droop coupling: with no frequency response (droop term
 # removed) the uniform speed band certifies at the requirement (measured).
-# How the bound depends on the cause (measured, tightest gate tolerance with the speed at 0.09):
-# offset 0: the exact uniform claim (all constants 0) CERTIFIES, nothing mode-dependent; 0.01:
-# 0.01; 0.02 (this file): 0.02; 0.03: 0.03, and the file DECLINES at the requirement (+-3 % of
-# rated power tolerates an offset below 0.027 of stroke); 0.05: 0.05. Law dependence: an arbitrary
+# How the bound depends on the cause (measured 2026-10-30, tightest gate tolerance with the speed at
+# 0.07; 0.001 tighter declines at every offset): offset 0: the exact uniform claim (all constants
+# 0) CERTIFIES, nothing mode-dependent; 0.01: 0.01; 0.02 (this file): 0.02; 0.03: 0.03, and the
+# file DECLINES at the requirement (+-3 % of rated power tolerates an offset below 0.027 of
+# stroke); 0.05: 0.05. Law dependence: an arbitrary
 # deployed mode schedule (every left guard the clock domain, each mode a successor of the other)
 # DECLINES.
 #
@@ -73,8 +76,8 @@
 # (t < 20): unreachable, the grid holds the speed in its band (RELCERT_OPREGION=1 CERTIFIES).
 # Every left mode has a satisfiable start (equal states).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED
-# (0.35 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-30): CERTIFIED (0.35 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
 # NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
 # RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, without RELCERT_IMPLIED_CUT,
 # RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1. Cover: both left modes at lambda 1, budget

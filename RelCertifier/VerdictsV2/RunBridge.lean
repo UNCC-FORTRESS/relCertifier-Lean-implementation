@@ -27,6 +27,8 @@ import RelCertifier.InstancesV2.Choice.BenchProgress.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.BenchProgress.watertank_choice
 import RelCertifier.InstancesV2.Choice.BenchChoice.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.BenchChoice.watertank_choice
+import RelCertifier.InstancesV2.Choice.BenchPrelanding.vehicle_accel_copy
+import RelCertifier.InstancesV2.Choice.BenchPrelanding.watertank_choice
 
 namespace RelCertifier.VerdictsV2
 
@@ -43,26 +45,18 @@ structure BridgeRec where
   ce   : ChoiceEmitE
 
 /-- The choice exhibits (`benchmarks/choice`): their records, at the hand-written general
-instance's dimension plus the right clock (`bridgeDimV2`'s rule). -/
+instance's dimension plus the right clock (`bridgeDimV2`'s rule), each cover merged with its
+pre-landing record (`withPL`, the instance's `covM`; the pre-landing feature is always on). -/
 def choiceRecsV2 : List BridgeRec :=
-  [ ⟨"vehicle_accel_copy", 2 + 1, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX, vehicle_accel_copy_coverV2,
+  [ ⟨"vehicle_accel_copy", 2 + 1, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX,
+      withPL vehicle_accel_copy_coverV2 Preland.vehicle_accel_copy_coverV2_prelanding,
       vehicle_accel_copy_coverV2_progress, vehicle_accel_copy_coverV2_choice⟩,
-    ⟨"watertank_choice", 2 + 1, watertank_choice_IRc, watertank_choice_cutsCX, watertank_choice_coverV2,
+    ⟨"watertank_choice", 2 + 1, watertank_choice_IRc, watertank_choice_cutsCX,
+      withPL watertank_choice_coverV2 Preland.watertank_choice_coverV2_prelanding,
       watertank_choice_coverV2_progress, watertank_choice_coverV2_choice⟩ ]
 
-def coverV2 (b : String) : CoverEmitE :=
-  ((coverTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, [], []⟩
-
-/-- The cover the bridge groups are built on: the emitted cover, merged with the benchmark's
-pre-landing record (`Emitted.withPL`) when it has one (the opt-in `prelanding = true`,
-`docs/PRELANDING.md`; the instance's `covM`); every other benchmark's cover unchanged. -/
-def coverV2M (b : String) : CoverEmitE :=
-  match Preland.prelandTableV2.find? (·.1 == b) with
-  | some (_, pl) => withPL (coverV2 b) pl
-  | none => coverV2 b
-
-def progV2 (b : String) : ProgressEmitE :=
-  ((progressTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, []⟩
+-- `coverV2`, `coverV2M` (the cover merged with the pre-landing record) and `progV2` are in
+-- `VerdictsV2/RunV2.lean` (its reposition phase reads the same records).
 
 def choiceV2 (b : String) : ChoiceEmitE :=
   ((choiceTableV2.find? (·.1 == b)).map (·.2)).getD (ChoiceEmitE.empty b)
@@ -93,8 +87,13 @@ since review round 6 of 2026-10-30: `charger_fast_tapers` out, `molding_pack_che
 benchmarks re-emitted; 7570 since batch 10 of 2026-10-30: `boiler_purge_vfd` and
 `autoclave_liquid_steambank` in for `platoon_latency` and `rover_patrol_lag`, four models changed; 7550
 since batch 11 of 2026-10-30: `extruder_pe100_manualstart` (118) and `lit_nahs25_engine_cooling` (18, on
-the cover merged with its pre-landing record) in for `fuelcell_chp_dos` and `rover_terrain_6to12`). -/
-def expectedBridgeGroupsV2 : Nat := 7550
+the cover merged with its pre-landing record) in for `fuelcell_chp_dos` and `rover_terrain_6to12`;
+13132 since batch 12 of 2026-10-31: stretch 0 and the pre-landing certificate always on, every
+right-only node a pre-landing node (its pack on its region, routes A/B/C per component), the
+progress certificates of `lit_drl_lane_control` and `lit_freedm_meter` now sent (they were left out
+of `progressTableV2`), every benchmark's groups built on its cover merged with its pre-landing
+record). -/
+def expectedBridgeGroupsV2 : Nat := 13132
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

@@ -5,6 +5,31 @@ Released under Apache 2.0 license.
 # The refutation records (the runner's table) (GENERATED — `scripts/gen_refute.py`)
 
 -/
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m016
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m017
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m018
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m019
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m020
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m021
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m022
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m023
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m028
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m029
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m032
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m016
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m017
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m018
+import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m026
+import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
+import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
+import RelCertifier.InstancesV2.Refute.Data.lit_csf25_salt_tank_hold_m031
+import RelCertifier.InstancesV2.Refute.Data.lit_girard08_robot_m016
+import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m032
+import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m035
+import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m032
+import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m035
 import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m021
 import RelCertifier.InstancesV2.Refute.Data.quad_light_profiles_m018
 import RelCertifier.InstancesV2.Refute.Data.quad_light_profiles_m026
@@ -44,35 +69,10 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m002
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m003
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
-import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m032
-import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m035
 import RelCertifier.InstancesV2.Refute.Data.turbine_startup_gearratio_m020
 import RelCertifier.InstancesV2.Refute.Data.turbine_startup_gearratio_m024
-import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
-import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m016
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m028
-import RelCertifier.InstancesV2.Refute.Data.lit_girard08_robot_m016
-import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m032
-import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m035
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m016
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m017
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m018
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m019
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m020
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m021
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m022
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m023
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m028
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m029
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m032
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
-import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
-import RelCertifier.InstancesV2.Refute.Data.lit_csf25_salt_tank_hold_m031
-import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m016
-import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m017
-import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m018
-import RelCertifier.InstancesV2.Refute.Data.boiler_purge_vfd_m026
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.boiler_purge_vfd
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
@@ -106,6 +106,31 @@ structure RefRec where
   wit : RefWitE
 
 def refuteTable : List RefRec := [
+  ⟨"antenna_track_kvretune_m016", 3 + 1, antenna_track_kvretune_m016_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m016_wit⟩,
+  ⟨"antenna_track_kvretune_m017", 3 + 1, antenna_track_kvretune_m017_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m017_wit⟩,
+  ⟨"antenna_track_kvretune_m018", 3 + 1, antenna_track_kvretune_m018_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m018_wit⟩,
+  ⟨"antenna_track_kvretune_m019", 3 + 1, antenna_track_kvretune_m019_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m019_wit⟩,
+  ⟨"antenna_track_kvretune_m020", 3 + 1, antenna_track_kvretune_m020_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m020_wit⟩,
+  ⟨"antenna_track_kvretune_m021", 3 + 1, antenna_track_kvretune_m021_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m021_wit⟩,
+  ⟨"antenna_track_kvretune_m022", 3 + 1, antenna_track_kvretune_m022_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m022_wit⟩,
+  ⟨"antenna_track_kvretune_m023", 3 + 1, antenna_track_kvretune_m023_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m023_wit⟩,
+  ⟨"antenna_track_kvretune_m028", 3 + 1, antenna_track_kvretune_m028_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m028_wit⟩,
+  ⟨"antenna_track_kvretune_m029", 3 + 1, antenna_track_kvretune_m029_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m029_wit⟩,
+  ⟨"antenna_track_kvretune_m032", 3 + 1, antenna_track_kvretune_m032_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m032_wit⟩,
+  ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
+  ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩,
+  ⟨"boiler_purge_vfd_m016", 3 + 1, boiler_purge_vfd_m016_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m016_wit⟩,
+  ⟨"boiler_purge_vfd_m017", 3 + 1, boiler_purge_vfd_m017_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m017_wit⟩,
+  ⟨"boiler_purge_vfd_m018", 3 + 1, boiler_purge_vfd_m018_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m018_wit⟩,
+  ⟨"boiler_purge_vfd_m026", 3 + 1, boiler_purge_vfd_m026_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m026_wit⟩,
+  ⟨"hydro_rejection_gatecal_m024", 3 + 1, hydro_rejection_gatecal_m024_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m024_wit⟩,
+  ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
+  ⟨"lit_csf25_salt_tank_hold_m031", 3 + 1, lit_csf25_salt_tank_hold_m031_IRm, lit_csf25_salt_tank_hold_cutsV2X, lit_csf25_salt_tank_hold_m031_wit⟩,
+  ⟨"lit_girard08_robot_m016", 6 + 1, lit_girard08_robot_m016_IRm, lit_girard08_robot_cutsV2X, lit_girard08_robot_m016_wit⟩,
+  ⟨"platoon_linkloss_m032", 3 + 1, platoon_linkloss_m032_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m032_wit⟩,
+  ⟨"platoon_linkloss_m035", 3 + 1, platoon_linkloss_m035_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m035_wit⟩,
+  ⟨"platoon_profiles_m032", 3 + 1, platoon_profiles_m032_IRm, platoon_profiles_cutsV2X, platoon_profiles_m032_wit⟩,
+  ⟨"platoon_profiles_m035", 3 + 1, platoon_profiles_m035_IRm, platoon_profiles_cutsV2X, platoon_profiles_m035_wit⟩,
   ⟨"quad_light_lag_m021", 3 + 1, quad_light_lag_m021_IRm, quad_light_lag_cutsV2X, quad_light_lag_m021_wit⟩,
   ⟨"quad_light_profiles_m018", 3 + 1, quad_light_profiles_m018_IRm, quad_light_profiles_cutsV2X, quad_light_profiles_m018_wit⟩,
   ⟨"quad_light_profiles_m026", 3 + 1, quad_light_profiles_m026_IRm, quad_light_profiles_cutsV2X, quad_light_profiles_m026_wit⟩,
@@ -145,35 +170,10 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_weak_m003", 4 + 1, sat_detumble_weak_m003_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m003_wit⟩,
   ⟨"sat_detumble_weak_m005", 4 + 1, sat_detumble_weak_m005_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m005_wit⟩,
   ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
-  ⟨"platoon_linkloss_m032", 3 + 1, platoon_linkloss_m032_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m032_wit⟩,
-  ⟨"platoon_linkloss_m035", 3 + 1, platoon_linkloss_m035_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m035_wit⟩,
   ⟨"turbine_startup_gearratio_m020", 3 + 1, turbine_startup_gearratio_m020_IRm, turbine_startup_gearratio_cutsV2X, turbine_startup_gearratio_m020_wit⟩,
   ⟨"turbine_startup_gearratio_m024", 3 + 1, turbine_startup_gearratio_m024_IRm, turbine_startup_gearratio_cutsV2X, turbine_startup_gearratio_m024_wit⟩,
-  ⟨"hydro_rejection_gatecal_m024", 3 + 1, hydro_rejection_gatecal_m024_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m024_wit⟩,
-  ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
   ⟨"ventilator_vc_cuffleak_m016", 3 + 1, ventilator_vc_cuffleak_m016_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m016_wit⟩,
-  ⟨"ventilator_vc_cuffleak_m028", 3 + 1, ventilator_vc_cuffleak_m028_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m028_wit⟩,
-  ⟨"lit_girard08_robot_m016", 6 + 1, lit_girard08_robot_m016_IRm, lit_girard08_robot_cutsV2X, lit_girard08_robot_m016_wit⟩,
-  ⟨"platoon_profiles_m032", 3 + 1, platoon_profiles_m032_IRm, platoon_profiles_cutsV2X, platoon_profiles_m032_wit⟩,
-  ⟨"platoon_profiles_m035", 3 + 1, platoon_profiles_m035_IRm, platoon_profiles_cutsV2X, platoon_profiles_m035_wit⟩,
-  ⟨"antenna_track_kvretune_m016", 3 + 1, antenna_track_kvretune_m016_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m016_wit⟩,
-  ⟨"antenna_track_kvretune_m017", 3 + 1, antenna_track_kvretune_m017_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m017_wit⟩,
-  ⟨"antenna_track_kvretune_m018", 3 + 1, antenna_track_kvretune_m018_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m018_wit⟩,
-  ⟨"antenna_track_kvretune_m019", 3 + 1, antenna_track_kvretune_m019_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m019_wit⟩,
-  ⟨"antenna_track_kvretune_m020", 3 + 1, antenna_track_kvretune_m020_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m020_wit⟩,
-  ⟨"antenna_track_kvretune_m021", 3 + 1, antenna_track_kvretune_m021_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m021_wit⟩,
-  ⟨"antenna_track_kvretune_m022", 3 + 1, antenna_track_kvretune_m022_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m022_wit⟩,
-  ⟨"antenna_track_kvretune_m023", 3 + 1, antenna_track_kvretune_m023_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m023_wit⟩,
-  ⟨"antenna_track_kvretune_m028", 3 + 1, antenna_track_kvretune_m028_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m028_wit⟩,
-  ⟨"antenna_track_kvretune_m029", 3 + 1, antenna_track_kvretune_m029_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m029_wit⟩,
-  ⟨"antenna_track_kvretune_m032", 3 + 1, antenna_track_kvretune_m032_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m032_wit⟩,
-  ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
-  ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩,
-  ⟨"lit_csf25_salt_tank_hold_m031", 3 + 1, lit_csf25_salt_tank_hold_m031_IRm, lit_csf25_salt_tank_hold_cutsV2X, lit_csf25_salt_tank_hold_m031_wit⟩,
-  ⟨"boiler_purge_vfd_m016", 3 + 1, boiler_purge_vfd_m016_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m016_wit⟩,
-  ⟨"boiler_purge_vfd_m017", 3 + 1, boiler_purge_vfd_m017_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m017_wit⟩,
-  ⟨"boiler_purge_vfd_m018", 3 + 1, boiler_purge_vfd_m018_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m018_wit⟩,
-  ⟨"boiler_purge_vfd_m026", 3 + 1, boiler_purge_vfd_m026_IRm, boiler_purge_vfd_cutsV2X, boiler_purge_vfd_m026_wit⟩ ]
+  ⟨"ventilator_vc_cuffleak_m028", 3 + 1, ventilator_vc_cuffleak_m028_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m028_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
 def expectedRefuteGroups : Nat := 196

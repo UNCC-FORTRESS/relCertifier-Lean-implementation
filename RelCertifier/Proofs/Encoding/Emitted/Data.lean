@@ -328,8 +328,9 @@ def namesResolve : Bool :=
 def rowsOK : Bool := (List.range (nL p)).all (fun l => 0 < compsLen p n l)
 
 /-- The record's time model: positive window stretches, each pairing's stretch at most its
-window's and positive, or `0` (the stutter segment, the right waits) when the problem opts in
-with `stutter = true` (`docs/STUTTER.md`), and the budget covers one left interval
+window's and positive, or `0` (the stutter segment, the right waits) when the IR records that
+the run had the stutter feature on (`stutter = true`, the default since 2026-10-31; off only under
+the ablation `RELCERT_NO_STUTTER=1`; `docs/STUTTER.md`), and the budget covers one left interval
 (`bBudget · εR ≥ εL · lamQ`). -/
 def timeOK : Bool :=
   let eL : ℚ := (Run.parseRat p.L.epsilon).getD 1
@@ -487,7 +488,8 @@ theorem name_tgtIdx (h : namesResolve p = true) {q : ℕ} (hq : q < nR p) {nm : 
 end Struct
 
 
-/-! ## The pre-landing record (opt-in `prelanding = true`, `docs/PRELANDING.md`)
+/-! ## The pre-landing record (the pre-landing feature, `docs/PRELANDING.md`; always on since
+2026-10-31, the IR records the run's value)
 
 The pre-landing right-only nodes are emitted in their own record (`Preland.PrelandEmitE`), never
 as the cover's `dynPre`/`dynPost` flags. The record carries the region kind: a node it lists is
@@ -506,9 +508,10 @@ def withPL (cov : CoverEmitE) (pl : Preland.PrelandEmitE) : CoverEmitE :=
                    dynPostOrder := ((pl.find lc.mL s.mR false).map (·.order)).getD
                      s.dynPostOrder }) }) }
 
-/-- **The kernel-side data gate**: a pre-landing record is admitted only for a problem with the
-opt-in key, and then every reposition node of the emitted cover is a pre-landing one (its
-whole-domain flags are all off). -/
+/-- **The kernel-side data gate**: a pre-landing record is admitted only when the IR records that
+the run had the pre-landing feature on (`prelanding = true`, the default; off only under the
+ablation `RELCERT_NO_PRELANDING=1`), and then every reposition node of the emitted cover is a
+pre-landing one (its whole-domain flags are all off). -/
 def plOK (p : PProblem) (cov : CoverEmitE) (pl : Preland.PrelandEmitE) : Bool :=
   (pl.nodes.isEmpty || p.prelanding) &&
   (!p.prelanding || cov.covers.all (fun lc => lc.flags.all (fun f => !f.dynPre && !f.dynPost)))

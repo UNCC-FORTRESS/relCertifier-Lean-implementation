@@ -5,7 +5,8 @@
 # scenario: degraded-actuator
 # mechanisms: D (mode-dependent rows: during inspiration the lung-volume row is relative to the
 #   delivered volume, during expiration it is an absolute band; every uniform row set declines at the
-#   requirement; matrix code M5)
+#   requirement; matrix code M5) and I (mode facts: the inspiratory timer's guard s >= 0.01 bounds
+#   the volume still to be delivered; RELCERT_NO_CUT=1 and RELCERT_NO_IMPLIED_CUT=1 decline)
 #
 # System (both sides). Inspiratory timer s in s (the time left of the set inspiratory time), lung
 # volume V in L above the end-expiratory volume at PEEP (alveolar pressure PA = PEEP + V / C).
@@ -78,7 +79,7 @@
 # and RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_NO_CUT=1 and RELCERT_NO_IMPLIED_CUT=1. Cover:
 # both left modes at lambda 1, budget 1, admissible start the same phase, joint segments only. Nothing
 # pruned. --handoff 3/3 unsat. relcert --wellformed: INSP ok (exit->EXP), EXP ok (invariant),
-# 0 UNKNOWN, 0 BLOCKING. Letters: D.
+# 0 UNKNOWN, 0 BLOCKING. Letters (paper pipeline, 2026-10-30): D I.
 [problem]
 name = ventilator_vc_cuffleak
 max_depth = 8

@@ -2,9 +2,10 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The pre-landing right-only nodes of a cover (emitted, opt-in `prelanding = true`)
+# The pre-landing right-only nodes of a cover (emitted; the pre-landing feature, always on)
 
-A benchmark with `[problem] prelanding = true` may certify a right-only (reposition) node
+With the pre-landing run feature (`PProblem.prelanding`, on for every benchmark since 2026-10-31,
+off only under the ablation `RELCERT_NO_PRELANDING=1`) the tool certifies a right-only (reposition) node
 `(mL, mR, pre)` by the PRE-LANDING right-only flow certificate: the stratified route A/B/C pack
 of the frozen-left flow of `mR` over the reposition domain narrowed by the half-open region
 `before(x, θ)` of the node's progress certificate's last stage (`x < θ` upward, `x > θ`
@@ -16,8 +17,8 @@ These nodes are emitted HERE, in their own record, never as the cover's `dynPre`
 flags: a consumer of the emitted cover that reads those flags as the whole-domain certificate
 never sees a pre-landing node. The kernel merges the two (`Emitted.withPL`) for the cover
 graph only, and backs every merged node by the pre-landing verdict and the progress
-certificate (`Emitted/Prelanding.lean`); it admits a nonempty record only when the IR has
-`prelanding := true`.
+certificate (`Emitted.hrepoProg_of` on the node's region); it admits a nonempty record only when
+the IR records the feature as on (`prelanding = true`, the default).
 -/
 import RelCertifier.Trusted.ProgressEmit
 
@@ -38,7 +39,7 @@ structure PrelandEmitE where
   nodes : List PrelandNodeE
   deriving Repr, DecidableEq, Inhabited
 
-/-- The empty record (every benchmark without the key). -/
+/-- The empty record (a run with the pre-landing feature off). -/
 def PrelandEmitE.none : PrelandEmitE := ⟨"", []⟩
 
 /-- The node `(mL, mR, pre)` of a record, if any. -/

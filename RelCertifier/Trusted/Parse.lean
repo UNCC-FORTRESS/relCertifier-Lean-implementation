@@ -72,13 +72,19 @@ structure PProblem where
   L          : PSystem
   R          : PSystem
   invariants : List (String × PForm)
-  /-- `[problem] stutter = true` (opt-in, default off): the stretch candidates end with `λ = 0`,
-  the joint segment in which the right waits while the left runs (`docs/STUTTER.md`). -/
-  stutter    : Bool := false
-  /-- `[problem] prelanding = true` (opt-in, default off): a right-only (reposition) node may be
-  certified by the PRE-LANDING right-only flow certificate, whose domain is narrowed to the
-  half-open region before the progress certificate's last threshold (`docs/PRELANDING.md`). -/
-  prelanding : Bool := false
+  /-- RUN FEATURE, not read from the file (always on since 2026-10-31,
+  `docs/BATCH12-2026-10-31.md`): the stretch candidates end with `λ = 0`, the joint segment in
+  which the right waits while the left runs (`docs/STUTTER.md`). The parser leaves the default;
+  a run switches it off only for the ablation `RELCERT_NO_STUTTER=1`
+  (`Oracle.withRunFeatures`), and the emitted IR records the run's value. -/
+  stutter    : Bool := true
+  /-- RUN FEATURE, not read from the file (always on since 2026-10-31,
+  `docs/BATCH12-2026-10-31.md`): a right-only (reposition) node is certified by the PRE-LANDING
+  right-only flow certificate, whose domain is narrowed to the region before the progress
+  certificate's last threshold (`docs/PRELANDING.md`). The parser leaves the default; a run
+  switches it off only for the ablation `RELCERT_NO_PRELANDING=1` (`Oracle.withRunFeatures`), and
+  the emitted IR records the run's value. -/
+  prelanding : Bool := true
   deriving Repr, Inhabited, DecidableEq
 
 /-! ## Lexing -/
@@ -436,26 +442,6 @@ def validateSystem (sysName : String) (sys : PSystem) : Except String Unit := do
     for c in nums do
       if !numOk c then throw s!"[{sec}]: malformed numeral '{c}'"
 
-/-- The optional `[problem] stutter = true|false` (absent = `false`); any other value is
-rejected. -/
-def stutterKey (prob : List (String × String)) : Except String Bool :=
-  match secGet prob "stutter" with
-  | none => .ok false
-  | some v =>
-    if tr v == "true" then .ok true
-    else if tr v == "false" then .ok false
-    else .error s!"[problem]: malformed stutter '{v}' (true or false)"
-
-/-- The optional `[problem] prelanding = true|false` (absent = `false`); any other value is
-rejected. -/
-def prelandingKey (prob : List (String × String)) : Except String Bool :=
-  match secGet prob "prelanding" with
-  | none => .ok false
-  | some v =>
-    if tr v == "true" then .ok true
-    else if tr v == "false" then .ok false
-    else .error s!"[problem]: malformed prelanding '{v}' (true or false)"
-
 /-- Assemble the full problem from sections, strictly. -/
 def assembleE (secs : List (String × List (String × String))) : Except String PProblem := do
   let find (n : String) := (secs.find? (fun p => p.1 == n)).map Prod.snd
@@ -476,8 +462,6 @@ def assembleE (secs : List (String × List (String × String))) : Except String 
   let lambdaMax ← secNeed "problem" prob "lambda_max"
   if !numOk lambdaMin then throw s!"[problem]: malformed lambda_min '{lambdaMin}'"
   if !numOk lambdaMax then throw s!"[problem]: malformed lambda_max '{lambdaMax}'"
-  let stutter ← stutterKey prob
-  let prelanding ← prelandingKey prob
   let lVars ← secNeed "Lsys" lsys "state_vars"
   let rVars ← secNeed "Rsys" rsys "state_vars"
   let lEps ← secNeed "Lsys" lsys "epsilon"
@@ -514,8 +498,7 @@ def assembleE (secs : List (String × List (String × String))) : Except String 
     for c in formNums f do
       if !numOk c then throw s!"[relational_invariant] {k}: malformed numeral '{c}'"
   return { name := name, lambdaMin := lambdaMin, lambdaMax := lambdaMax,
-           L := L, R := R, invariants := invs, stutter := stutter,
-           prelanding := prelanding }
+           L := L, R := R, invariants := invs }
 
 /-- Strict entry point: a parse failure carries its reason. -/
 def parseProblemE (text : String) : Except String PProblem := do

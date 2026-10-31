@@ -13,6 +13,6 @@ namespace RelCertifier
 /-- `quad_light_lag` (emitted, suite_v2, widened cut channel on). -/
 def quad_light_lag_coverV2 : CoverEmitE :=
   ⟨"quad_light_lag", [], [
-    ⟨"CLIMB", (6 : ℚ) / 5, 2, [⟨"CLIMB", true, false, false⟩], ["CLIMB"], [⟨"CLIMB", [2, 3, 0, 1], [1, 2], [1, 2], 6, 5⟩]⟩]⟩
+    ⟨"CLIMB", (6 : ℚ) / 5, 2, [⟨"CLIMB", true, false, false⟩], ["CLIMB"], [⟨"CLIMB", [2, 3, 0, 1], [], [], 6, 5⟩]⟩]⟩
 
 end RelCertifier

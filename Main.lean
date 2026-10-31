@@ -218,6 +218,9 @@ SWITCHES (environment)
   RELCERT_MAX_QUERIES=<n>         per-benchmark query budget, default 20000
   RELCERT_NO_PROGRESS=1           no progress certificates at reposition nodes (ablation)
   RELCERT_NO_CHOICE=1             no existential mode choice after the all-successors rule fails (ablation)
+  RELCERT_NO_STUTTER=1            no stretch 0 (the right waits) on joint segments (ablation; on by default)
+  RELCERT_NO_PRELANDING=1         right-only nodes need the whole-domain certificate, not the
+                                  pre-landing one (ablation; pre-landing on by default)
   RELCERT_TIME_BUDGET_MS=<ms>     per-benchmark wall-clock budget, default 300000
 
 EXIT
@@ -333,11 +336,12 @@ def emitCuts (path defname : String) : IO Unit := do
           IO.println "    ] }"
 
 /-- `--emit-ir <file> <defname>`: print the parsed `PProblem` as a Lean literal (the
-single-door bridge for the `Faithful` kernel certificates — see EmitIR.lean). -/
+single-door bridge for the `Faithful` kernel certificates — see EmitIR.lean), with the run's
+feature flags (`Oracle.withRunFeatures`: on unless `RELCERT_NO_STUTTER` / `RELCERT_NO_PRELANDING`). -/
 def emitIR (path defname : String) : IO Unit := do
   match ← RelCertifier.Oracle.readProblemStrict path with
   | .error e => IO.eprintln s!"ERROR: parse: {e}"; IO.Process.exit 1
-  | .ok p => IO.println (RelCertifier.Parse.emitProblem defname p)
+  | .ok p => IO.println (RelCertifier.Parse.emitProblem defname (← RelCertifier.Oracle.withRunFeatures p))
 
 def main (args : List String) : IO Unit := do
   match args with

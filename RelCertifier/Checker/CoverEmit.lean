@@ -41,8 +41,8 @@ structure PairStrataE where
   `lamN / lamD`. With one stretch per left mode it equals the window's `lamQ`; the per-pairing
   fallback (`RELCERT_NO_PAIR_STRETCH` unset) lets it differ per right mode. The kernel pin
   `VerdictsV2/LamPinV2.lean` ties it to the verdict pack row of the same pairing. `lamN = 0`
-  is the stutter segment (the right waits while the left runs), emitted only for a problem with
-  `stutter = true` (`docs/STUTTER.md`). -/
+  is the stutter segment (the right waits while the left runs), emitted only when the run's
+  stutter feature is on (`PProblem.stutter`, the default; `docs/STUTTER.md`). -/
   lamN  : Nat := 1
   lamD  : Nat := 1
   deriving Repr, DecidableEq

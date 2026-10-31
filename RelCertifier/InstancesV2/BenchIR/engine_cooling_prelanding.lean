@@ -50,7 +50,6 @@ def engine_cooling_prelanding_IRv2 : PProblem :=
           next := ["Cool", "Heat"] } ] }
     invariants := [
       ("Cool", (.and (.cmp "<=" (.var "L_temp") (.bin "+" (.var "R_temp") (.num "0.3"))) (.cmp "<=" (.var "R_temp") (.bin "+" (.var "L_temp") (.num "0.3"))))),
-      ("Heat", (.and (.cmp "<=" (.var "L_temp") (.bin "+" (.var "R_temp") (.num "0.3"))) (.cmp "<=" (.var "R_temp") (.bin "+" (.var "L_temp") (.num "0.3")))))]
-    prelanding := true }
+      ("Heat", (.and (.cmp "<=" (.var "L_temp") (.bin "+" (.var "R_temp") (.num "0.3"))) (.cmp "<=" (.var "R_temp") (.bin "+" (.var "L_temp") (.num "0.3")))))] }
 
 end RelCertifier.Parse

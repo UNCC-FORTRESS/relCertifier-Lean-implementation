@@ -7,13 +7,24 @@ Per benchmark `<b>` of benchmarks/suite_v2 (all of them):
   BenchProgress/<b>.lean `<b>_coverV2_progress`   (the same run, RELCERT_PROGRESS_OUT)
   Cuts/<b>.lean          `Oracle.<b>_cutsV2` (legacy part) and `Oracle.<b>_cutsV2X` (extended),
                          both kernel-checked well-formed against the IR literal by `rfl`
-  BenchPrelanding/<b>.lean `<b>_coverV2_prelanding` (the same run, RELCERT_PRELANDING_OUT; only for a
-                         file with the opt-in `prelanding = true`, docs/PRELANDING.md)
+  BenchPrelanding/<b>.lean `<b>_coverV2_prelanding` (the same run, RELCERT_PRELANDING_OUT: the
+                         pre-landing right-only nodes, docs/PRELANDING.md; every benchmark since
+                         2026-10-31, the pre-landing feature being always on; empty for a cover
+                         without right-only nodes)
 Aggregators: BenchIR.lean (`benchIRTableV2`), BenchCovers.lean (`coverTableV2`),
 BenchChoice.lean (`choiceTableV2`), BenchProgress.lean (`progressTableV2`), Cuts.lean
-(`cutTableV2`), BenchPrelanding.lean (`prelandTableV2`, the keyed files only).
+(`cutTableV2`), BenchPrelanding.lean (`prelandTableV2`).
+
+The run features (stretch 0, the pre-landing certificate) are on for every benchmark; the
+ablation switches RELCERT_NO_STUTTER / RELCERT_NO_PRELANDING are removed from the environment of
+every run, so the leaves are always the default configuration's.
+
+The choice exhibits (benchmarks/choice, `--choice`): the same run's leaves under
+InstancesV2/Choice/{BenchCovers,BenchProgress,BenchChoice,BenchPrelanding}/<b>.lean (their IR and
+cut leaves are checked to be unchanged, not rewritten: `<b>_IRc`, `<b>_cutsC(X)`).
 
 Usage: python3 scripts/gen_v2_data.py [bench ...]   (default: all of benchmarks/suite_v2)
+       python3 scripts/gen_v2_data.py --choice      (the two choice exhibits)
 Every generated file is overwritten; the aggregators always list the whole suite.
 """
 import os, subprocess, sys
@@ -21,7 +32,6 @@ import os, subprocess, sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 os.chdir(ROOT)
 RELCERT = "./.lake/build/bin/relcert"
-PROGRESS_TABLE_SKIP = {"lit_drl_lane_control", "lit_freedm_meter"}
 SUITE = "benchmarks/suite_v2"
 OUT = "RelCertifier/InstancesV2"
 HDR = """/-
@@ -38,6 +48,10 @@ def run(args, env_extra=None):
     env = dict(os.environ)
     env.pop("RELCERT_NO_CUT", None); env.pop("RELCERT_NO_IMPLIED_CUT", None)
     env.pop("RELCERT_NO_LINEAR_CUT", None); env.pop("RELCERT_NO_PRUNE", None)
+    for k in ["RELCERT_NO_STUTTER", "RELCERT_NO_PRELANDING", "RELCERT_SYNC", "RELCERT_NO_REPO",
+              "RELCERT_NO_CHOICE", "RELCERT_NO_PAIR_STRETCH", "RELCERT_SINGLE_STEP",
+              "RELCERT_NO_PROGRESS"]:
+        env.pop(k, None)
     if env_extra:
         env.update(env_extra)
     r = subprocess.run(args, capture_output=True, text=True, env=env)
@@ -48,16 +62,6 @@ def run(args, env_extra=None):
 def all_benches():
     return sorted(d for d in os.listdir(SUITE) if os.path.isfile(f"{SUITE}/{d}/input.txt"))
 
-def is_prelanding(path):
-    """The file sets the opt-in key `prelanding = true` in its [problem] section."""
-    sec = None
-    for line in open(path):
-        t = line.split("#", 1)[0].strip()
-        if t.startswith("[") and t.endswith("]"):
-            sec = t
-        elif sec == "[problem]" and t.replace(" ", "") == "prelanding=true":
-            return True
-    return False
 
 def emit_leaves(b):
     path = f"{SUITE}/{b}/input.txt"
@@ -71,19 +75,17 @@ def emit_leaves(b):
     env = {"RELCERT_IMPLIED_CUT": "1",
            "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean",
            "RELCERT_CHOICE_OUT": f"{OUT}/BenchChoice/{b}.lean"}
-    # a benchmark with the opt-in `prelanding = true` (docs/PRELANDING.md): the same run writes
-    # its pre-landing record (the right-only nodes certified before the landing, never in the
-    # cover's dynPre/dynPost flags) to BenchPrelanding/<b>.lean
-    pl_leaf = f"{OUT}/BenchPrelanding/{b}.lean" if is_prelanding(path) else None
-    if pl_leaf:
-        env["RELCERT_PRELANDING_OUT"] = pl_leaf
+    # the pre-landing record (docs/PRELANDING.md; the feature is on for every benchmark): the
+    # right-only nodes certified before the landing, never in the cover's dynPre/dynPost flags
+    pl_leaf = f"{OUT}/BenchPrelanding/{b}.lean"
+    env["RELCERT_PRELANDING_OUT"] = pl_leaf
+    if os.path.exists(pl_leaf):
+        os.remove(pl_leaf)
     cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"], env)
-    if pl_leaf:
-        pl = open(pl_leaf).read()
-        if "PrelandEmitE" not in pl:
-            sys.exit(f"{b}: prelanding = true but no pre-landing record written")
-        if not pl.startswith("/-"):
-            open(pl_leaf, "w").write(HDR.format(b=b, what="emitted pre-landing record") + pl)
+    pl = open(pl_leaf).read() if os.path.exists(pl_leaf) else ""
+    if "PrelandEmitE" not in pl:
+        sys.exit(f"{b}: no pre-landing record written")
+    open(pl_leaf, "w").write(HDR.format(b=b, what="emitted pre-landing record") + pl)
     with open(f"{OUT}/BenchCovers/{b}.lean", "w") as f:
         f.write(HDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default"))
         f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")
@@ -142,10 +144,11 @@ compares it with the literal of the same name in `benchIRTableV2`.
         f.write("def choiceTableV2 : List (String × ChoiceEmitE) := [\n")
         f.write(",\n".join(f"  (\"{b}\", {b}_coverV2_choice)" for b in benches))
         f.write(" ]\n\nend RelCertifier.Choice\n")
-    # the progress runner's table (`relcert-progress-verdicts`): every benchmark except the four
-    # literature ones, which were never in it (their certificates are discharged with their
-    # bridge groups by `relcert-bridge-verdicts`, like every benchmark's)
-    pbenches = [b for b in benches if b not in PROGRESS_TABLE_SKIP]
+    # the progress table (`relcert-progress-verdicts`, and the bridge runner's `progV2`): every
+    # benchmark (until 2026-10-31 `lit_drl_lane_control` and `lit_freedm_meter` were left out, so
+    # the bridge runner sent their groups without their progress certificates' queries, which their
+    # instances' `Verdicts` name; docs/BATCH12-2026-10-31.md)
+    pbenches = list(benches)
     with open(f"{OUT}/BenchProgress.lean", "w") as f:
         f.write("/- suite_v2 progress-certificate aggregator (GENERATED by `--emit-cover` with "
                 "`RELCERT_PROGRESS_OUT`). -/\n")
@@ -156,12 +159,12 @@ compares it with the literal of the same name in `benchIRTableV2`.
         f.write("def progressTableV2 : List (String × ProgressEmitE) :=\n")
         f.write("  [" + ",\n   ".join(f"(\"{b}\", {b}_coverV2_progress)" for b in pbenches))
         f.write("]\n\nend RelCertifier.Progress\n")
-    # the pre-landing records (docs/PRELANDING.md) of the benchmarks with `prelanding = true`
-    pbs = [b for b in benches if is_prelanding(f"{SUITE}/{b}/input.txt")]
+    # the pre-landing records (docs/PRELANDING.md) of every benchmark (the feature is always on)
+    pbs = list(benches)
     with open(f"{OUT}/BenchPrelanding.lean", "w") as f:
         f.write("/- suite_v2 pre-landing-record aggregator (GENERATED — `scripts/gen_v2_data.py`): the\n")
-        f.write("pre-landing records of the benchmarks with the opt-in `prelanding = true`\n")
-        f.write("(`docs/PRELANDING.md`); a benchmark without the key has none. -/\n")
+        f.write("pre-landing records of every benchmark (`docs/PRELANDING.md`; the pre-landing\n")
+        f.write("certificate is on for every benchmark; a record without nodes is empty). -/\n")
         f.write("import RelCertifier.Trusted.PrelandEmit\n")
         for b in pbs:
             f.write(f"import RelCertifier.InstancesV2.BenchPrelanding.{b}\n")
@@ -190,7 +193,66 @@ def nvars(b):
             return len([v for v in line.split("[", 1)[1].split("]")[0].split(",") if v.strip()])
     return 1
 
+CHOICE_DIR = "benchmarks/choice"
+COUT = f"{OUT}/Choice"
+CHDR = """/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# `{b}` (choice) — {what} (GENERATED leaf)
+
+Regenerate with `scripts/gen_v2_data.py --choice`.
+-/
+"""
+
+def body_of(path, start):
+    """The text of a leaf from its first line starting with `start` (the literal itself)."""
+    txt = open(path).read()
+    i = txt.find(start)
+    return txt[i:] if i >= 0 else None
+
+def emit_choice_leaves(b):
+    """The choice exhibit `b`'s cover-run leaves (cover, progress, choice, pre-landing record);
+    its IR and cut leaves must be unchanged (checked, not rewritten)."""
+    path = f"{CHOICE_DIR}/{b}/input.txt"
+    ir = run([RELCERT, "--emit-ir", path, f"{b}_IRc"])
+    lit = ir[ir.index(f"def {b}_IRc"):].rstrip()
+    old = body_of(f"{COUT}/BenchIR/{b}.lean", f"def {b}_IRc")
+    if old is None or old.split("\n\nend RelCertifier.Parse")[0].rstrip() != lit:
+        sys.exit(f"{b}: the choice IR leaf differs from --emit-ir (regenerate it first)")
+    cuts = run([RELCERT, "--emit-cuts", path, f"{b}_cutsC"], {"RELCERT_IMPLIED_CUT": "1"})
+    oldc = open(f"{COUT}/Cuts/{b}.lean").read()
+    for blk in cuts.strip().split("\n\n"):
+        if blk.strip() and blk.strip() not in oldc:
+            sys.exit(f"{b}: the choice cut leaf differs from --emit-cuts (regenerate it first)")
+    for d in ["BenchCovers", "BenchProgress", "BenchChoice", "BenchPrelanding"]:
+        os.makedirs(f"{COUT}/{d}", exist_ok=True)
+    pr, ch, pl = (f"{COUT}/BenchProgress/{b}.lean", f"{COUT}/BenchChoice/{b}.lean",
+                  f"{COUT}/BenchPrelanding/{b}.lean")
+    for x in (pr, ch, pl):
+        if os.path.exists(x):
+            os.remove(x)
+    env = {"RELCERT_IMPLIED_CUT": "1", "RELCERT_PROGRESS_OUT": pr, "RELCERT_CHOICE_OUT": ch,
+           "RELCERT_PRELANDING_OUT": pl}
+    cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"], env)
+    for x, what in ((pr, "emitted progress certificates"), (ch, "emitted choice record"),
+                    (pl, "emitted pre-landing record")):
+        if not os.path.exists(x):
+            sys.exit(f"{b}: no {what} written")
+        body = open(x).read()
+        open(x, "w").write(CHDR.format(b=b, what=what) + body)
+    with open(f"{COUT}/BenchCovers/{b}.lean", "w") as f:
+        f.write(CHDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default"))
+        f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")
+        f.write(cov.rstrip() + "\n\n\nend RelCertifier\n")
+
 def main():
+    if sys.argv[1:] == ["--choice"]:
+        for b in sorted(os.listdir(CHOICE_DIR)):
+            if os.path.isfile(f"{CHOICE_DIR}/{b}/input.txt"):
+                emit_choice_leaves(b)
+                print(f"  emitted choice {b}")
+        return
     for d in ["BenchIR", "BenchCovers", "Cuts", "BenchProgress", "BenchChoice", "BenchPrelanding"]:
         os.makedirs(f"{OUT}/{d}", exist_ok=True)
     benches = all_benches()

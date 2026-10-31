@@ -117,7 +117,7 @@ def turbine_startup_gearratio_m024_IRm : PProblem :=
 /-- The finder's witness (kind C). -/
 def turbine_startup_gearratio_m024_wit : RefWitE :=
   { kind := "C", u := 2, m := 3, q0 := 3, k := 0,
-    wL := [(262769/20000 : ℚ), (0 : ℚ), (0 : ℚ)],
-    wR := [(262769/21000 : ℚ), (0 : ℚ), (0 : ℚ)] }
+    wL := [(26531/2000 : ℚ), (0 : ℚ), (0 : ℚ)],
+    wR := [(26531/2100 : ℚ), (0 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

@@ -24,6 +24,9 @@ import RelCertifier.Verdicts.RunHandoff
 import RelCertifier.Trusted.NonConnQuery
 import RelCertifier.Trusted.JointVars
 import RelCertifier.InstancesV2.BenchCovers
+import RelCertifier.InstancesV2.BenchProgress
+import RelCertifier.InstancesV2.BenchPrelanding
+import RelCertifier.Proofs.Encoding.Emitted.Progress
 
 namespace RelCertifier.VerdictsV2
 
@@ -63,9 +66,9 @@ def packsV2 : List PackV2 :=
   [ ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 0⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 1⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 2⟩,
-    ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 1⟩,
-    ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 2⟩,
-    ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 3⟩,
+    ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 3⟩,
+    ⟨"watertank", 2, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"watertank", 2, 0, [0, 1], 1, 1, 1, 3⟩,
     ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
     -- acc_spoof_limp (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 0⟩,
@@ -137,9 +140,8 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 3, 2, 0, 2⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 0, 3⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 0, 4⟩,
-    ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 1, 2⟩,
-    ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 1, 3⟩,
-    ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 1, 4⟩,
+    ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 1, 3⟩,
+    ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 1, 4⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 2, 4⟩,
     -- MidEco 3/2, MidBoost 1, High 1), Mid at 2 against MidEco/MidBoost/High, High at 1
     -- engine_start_highidle (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
@@ -356,8 +358,12 @@ def packsV2 : List PackV2 :=
     ⟨"autoclave_liquid_steambank", 3, 2, [0, 1, 2, 3], 1, 1, 2, 2⟩,
     ⟨"autoclave_liquid_steambank", 3, 3, [0, 1, 2, 3], 1, 1, 3, 3⟩ ]
 
-/-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1211
+/-- Declared: the number of component queries the packs owe (one per component). 1209 since batch 12
+of 2026-10-31 (1211 before): with stretch 0 and the pre-landing certificate always on, the
+running example's Mid window closes at stretch 1 (budget 1) instead of 2, so the `watertank` and
+`watertank_twospeed` rows were re-derived (`scripts/gen_pack_rows.py --joint`), one pairing fewer
+in `watertank_twospeed`. -/
+def expectedModalV2 : Nat := 1209
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -409,9 +415,32 @@ def runModalV2 (cfg : Z3Config) : IO Bool := do
 One row per dynamic-reposition pack a replaying instance assumes: the reposition of right
 mode `m` against left window `l`, before the window's first joint segment (`pre = true`: the
 left guard conjoined) or after it, the invariant row's components in the cover's reposition
-strata order (`dynPreOrder` / `dynPostOrder` of the emitted cover). The runner rebuilds each
-pack with `modalVerdDynXQueries` (the builder `modalVerdDynX_of_queries` proves denotes the
-instance's hypothesis), prints it with `toScript`, and owes one `unsat` per component. -/
+strata order (`dynPreOrder` / `dynPostOrder` of the emitted cover, or the pre-landing record's
+order). Since 2026-10-31 every reposition node is a PRE-LANDING node (`preland = true`, the
+pre-landing feature always on, `docs/PRELANDING.md`): its pack is on the node's region, read off
+the benchmark's records exactly as the bridge does (`Emitted.dynRegionI` on the cover merged with
+the pre-landing record and the progress record), and is sent as groups (one per component, its
+routes A/B/C as members, `modalVerdDynXGroups`); a whole-domain row (`preland = false`) is the
+old pack, one query per component (`modalVerdDynXQueries`, the builder `modalVerdDynX_of_queries`
+proves denotes the hypothesis). The runner owes one `unsat` per group. The rows are generated
+from the emitted leaves by `scripts/gen_pack_rows.py` (the replay of the verified checker on the
+merged cover). -/
+
+/-- The emitted cover of a suite benchmark. -/
+def coverV2 (b : String) : CoverEmitE :=
+  ((coverTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, [], []⟩
+
+/-- The cover the bridge groups are built on: the emitted cover, merged with the benchmark's
+pre-landing record (`Emitted.withPL`; the pre-landing feature, on for every benchmark,
+`docs/PRELANDING.md`; the instance's `covM`). -/
+def coverV2M (b : String) : CoverEmitE :=
+  match Preland.prelandTableV2.find? (·.1 == b) with
+  | some (_, pl) => Emitted.withPL (coverV2 b) pl
+  | none => coverV2 b
+
+/-- The emitted progress certificates of a suite benchmark. -/
+def progV2 (b : String) : Progress.ProgressEmitE :=
+  ((Progress.progressTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, []⟩
 
 structure DynPackV2 where
   bench  : String
@@ -421,70 +450,217 @@ structure DynPackV2 where
   pre    : Bool := true
   l      : ℕ
   m      : ℕ
+  /-- a pre-landing node: the pack on the node's region (`Emitted.dynRegionI`) -/
+  preland : Bool := false
   deriving Repr, Inhabited
 
 def dynPackQueries (r : DynPackV2) : Option (List (IForm r.dim)) :=
   modalVerdDynXQueries (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+
+/-- The node's region (a pre-landing row), read off the records as the bridge's `dynGroups`
+does; `none` for a whole-domain row. -/
+def dynPackRegion (r : DynPackV2) : Option (IForm r.dim × IForm r.dim × List Bool) :=
+  if r.preland then
+    Emitted.dynRegionI (irV2 r.bench) r.dim (coverV2M r.bench) (progV2 r.bench) r.l r.m r.pre
+  else none
+
+/-- The pack's groups as the runner sends them: one group per component (a pre-landing node's
+routes as members), `modalVerdDynXGroups` on the row's region. -/
+def dynPackGroups (r : DynPackV2) : Option (List (List (IForm r.dim))) :=
+  modalVerdDynXGroups (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+    (dynPackRegion r)
 
 noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
   modalVerdDynX (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
 
 /-- The reposition packs. -/
 def dynPacksV2 : List DynPackV2 :=
-  [ -- rover_terrain_4to6
-    -- MEDIUM_BRISK_L and FAST_L through right-only MEDIUM_ECO
-    -- engine_start_highidle: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩,
-    ⟨"engine_start_highidle", 3, 4, [0], true, 4, 3⟩,
-    -- turbine_startup_gearratio: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], true, 0, 1⟩,
-    -- elevator_start_discbrake: right-only reposition nodes
-    ⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0⟩,
-    -- syringe_relay_prearm: right-only reposition nodes
-    ⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], true, 0, 1⟩,
-    ⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], true, 0, 2⟩,
-    ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], true, 1, 1⟩,
-    ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], true, 1, 2⟩,
-    ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 1⟩,
-    ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 2⟩,
-    ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 4, 6, 3, 5], true, 3, 2⟩,
-    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩,
-    -- boiler_purge_vfd: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"boiler_purge_vfd", 3, 1, [0, 1, 2, 3, 4], true, 1, 0⟩,
-    -- h2_refuel_ambientbias: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"h2_refuel_ambientbias", 3, 4, [0], true, 4, 2⟩,
-    ⟨"h2_refuel_ambientbias", 3, 5, [0], true, 5, 2⟩,
-    -- autoclave_liquid_steambank: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"autoclave_liquid_steambank", 3, 2, [0, 1, 2, 3], true, 2, 1⟩ ]
+  [
+    -- acc_spoof_limp: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], true, 1, 1, true⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], false, 1, 1, true⟩,
+    -- autoclave_liquid_steambank: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    ⟨"autoclave_liquid_steambank", 3, 2, [0, 1, 2, 3], true, 2, 1, true⟩,
+    -- boiler_purge_vfd: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    ⟨"boiler_purge_vfd", 3, 1, [0, 1, 2, 3, 4], true, 1, 0, true⟩,
+    -- canal_gate_notches: the right-only nodes the replay consumes (8 of 8 pre-landing)
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 0, 1, true⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 0, 2, true⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 0, 3, true⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 1, 0, true⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 1, 3, true⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 2, 0, true⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 2, 1, true⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], true, 2, 2, true⟩,
+    -- elevator_start_discbrake: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    ⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0, true⟩,
+    -- engine_start_highidle: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2, true⟩,
+    ⟨"engine_start_highidle", 3, 4, [0], true, 4, 3, true⟩,
+    -- h2_refuel_ambientbias: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    ⟨"h2_refuel_ambientbias", 3, 4, [0], true, 4, 2, true⟩,
+    ⟨"h2_refuel_ambientbias", 3, 5, [0], true, 5, 2, true⟩,
+    -- lit_csf21_vehicle_thermo: the right-only nodes the replay consumes (24 of 24 pre-landing)
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 0, 2, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 0, 3, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 0, 4, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 0, 5, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 1, 2, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 1, 3, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 1, 4, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 1, 5, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 2, 0, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 2, 1, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 2, 4, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 2, 5, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 3, 0, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 3, 1, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 3, 4, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 3, 5, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 4, 0, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 4, 1, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 4, 2, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 4, 3, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 5, 0, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 5, 1, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 5, 2, true⟩,
+    ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 5, 3, true⟩,
+    -- lit_drl_lane_control: the right-only nodes the replay consumes (30 of 30 pre-landing)
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 1, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 2, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 3, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 4, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 5, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 1, 0, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 1, 2, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 1, 3, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 1, 4, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 1, 5, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 0, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 1, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 3, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 4, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 5, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 3, 0, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 3, 1, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 3, 2, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 3, 4, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 3, 5, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 4, 0, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 4, 1, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 4, 2, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 4, 3, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 4, 5, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 0, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 1, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 2, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 3, true⟩,
+    ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 4, true⟩,
+    -- lit_girard08_robot: the right-only nodes the replay consumes (30 of 30 pre-landing)
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 0, 1, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 3, 4, 0, 2], true, 0, 2, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 2, 3, 4, 0], true, 0, 3, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 2, 4, 0, 3], true, 0, 4, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 2, 4, 1, 3], true, 0, 5, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 2, 3, 4, 1], true, 1, 0, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 3, 4, 0, 2], true, 1, 2, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 2, 3, 4, 0], true, 1, 3, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 2, 4, 0, 3], true, 1, 4, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 2, 4, 1, 3], true, 1, 5, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 2, 0, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 2, 1, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 2, 3, 4, 0], true, 2, 3, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 2, 4, 0, 3], true, 2, 4, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 2, 4, 1, 3], true, 2, 5, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 3, 0, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 3, 1, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 3, 4, 0, 2], true, 3, 2, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 2, 4, 0, 3], true, 3, 4, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 2, 4, 1, 3], true, 3, 5, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 2, 3, 4, 1], true, 4, 0, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 4, 1, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 3, 4, 0, 2], true, 4, 2, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 4, 3, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 2, 4, 1, 3], true, 4, 5, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 5, 0, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 5, 1, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [1, 3, 4, 0, 2], true, 5, 2, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 5, 3, true⟩,
+    ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 5, 4, true⟩,
+    -- lit_lz21_vehicle_position: the right-only nodes the replay consumes (6 of 6 pre-landing)
+    ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 0, 1, true⟩,
+    ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 0, 2, true⟩,
+    ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 1, 0, true⟩,
+    ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 1, 2, true⟩,
+    ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 2, 0, true⟩,
+    ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 2, 1, true⟩,
+    -- lit_nahs25_engine_cooling: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], true, 0, 1, true⟩,
+    ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], true, 1, 0, true⟩,
+    -- quad_light_profiles: the right-only nodes the replay consumes (12 of 12 pre-landing)
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 0, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 0, 0, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 2, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 0, 2, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 1, 1, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 1, 1, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 1, 2, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 1, 2, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 0, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 2, 0, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 1, true⟩,
+    ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 2, 1, true⟩,
+    -- syringe_relay_prearm: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1, true⟩,
+    -- turbine_startup_gearratio: the right-only nodes the replay consumes (6 of 6 pre-landing)
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], true, 0, 1, true⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], true, 0, 4, true⟩,
+    ⟨"turbine_startup_gearratio", 3, 1, [0, 1, 2, 3, 4], true, 1, 4, true⟩,
+    ⟨"turbine_startup_gearratio", 3, 2, [0, 1, 2, 3, 4], true, 2, 4, true⟩,
+    ⟨"turbine_startup_gearratio", 3, 3, [0, 1, 2, 3, 4, 5], true, 3, 4, true⟩,
+    ⟨"turbine_startup_gearratio", 3, 4, [0, 1, 2, 3, 4, 5], true, 4, 3, true⟩,
+    -- watertank: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    ⟨"watertank", 2, 0, [0, 1], true, 1, 1, true⟩,
+    -- watertank_twospeed: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    ⟨"watertank_twospeed", 2, 0, [0, 1], true, 1, 2, true⟩ ]
 
-/-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 76
+/-- Declared: the number of component groups the reposition packs owe (one per component). 610 since
+batch 12 of 2026-10-31 (76 before, whole-domain packs): every reposition node is a pre-landing node,
+and the table lists every reposition pack the replay consumes over the suite (130 packs in 17
+benchmarks, `scripts/gen_pack_rows.py --dyn`). -/
+def expectedDynV2 : Nat := 610
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
   let vars := p.L.stateVars
   let coord := fun (i : Fin r.dim) => vars.getD i.val s!"pad{i.val}"
-  match dynPackQueries r with
+  let tag := s!"{r.bench} (l={r.l},m={r.m},pre={r.pre}{if r.preland then ",pre-landing" else ""})"
+  if r.preland && (dynPackRegion r).isNone then
+    IO.println s!"  FAIL  {tag}  (no landing stage in the records)"
+    return false
+  match dynPackGroups r with
   | none =>
-      IO.println s!"  SKIP  {r.bench} (l={r.l},m={r.m},pre={r.pre})  (rebuild failed)"
+      IO.println s!"  SKIP  {tag}  (rebuild failed)"
       pure false
-  | some qs =>
-      if qs.isEmpty then
-        IO.println s!"  SKIP  {r.bench} (l={r.l},m={r.m},pre={r.pre})  (no component)"
+  | some gs =>
+      if gs.isEmpty then
+        IO.println s!"  SKIP  {tag}  (no component)"
         return false
       let mut ok := true
-      for i in List.range qs.length do
-        let q := qs.getD i IForm.tt
-        match ← s.check (q.toScript coord) with
-        | .ok .unsat =>
-            IO.println s!"  UNSAT (A=unsat)  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i}"
-            RelCertifier.Verdicts.counted
-        | .ok v =>
-            IO.println s!"  FAIL  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i} : A={reprStr v}"
-            ok := false
-        | .error e =>
-            IO.println s!"  FAIL  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i} : A=err({e})"
-            ok := false
+      for i in List.range gs.length do
+        let g := gs.getD i []
+        let mut hit := false
+        for q in g do
+          if !hit then
+            match ← s.check (q.toScript coord) with
+            | .ok .unsat => hit := true
+            | _ => pure ()
+        if hit then
+          IO.println s!"  UNSAT  {tag} comp={i}"
+          RelCertifier.Verdicts.counted
+        else
+          IO.println s!"  FAIL  {tag} comp={i} : no route unsat ({g.length} tried)"
+          ok := false
       pure ok
 
 def runDynV2 (cfg : Z3Config) : IO Bool := do

@@ -1,6 +1,7 @@
 /-
 The stutter demo's verdict run: the query groups (`bridgeGroups`) of
-`benchmarks/stutter_demo/salt_tank_stutter`, sent to Z3 at the instance's dimension, each group
+`benchmarks/stutter_demo/salt_tank_stutter` (on the cover merged with its pre-landing record,
+`covM`), sent to Z3 at the instance's dimension, each group
 discharged by its first `unsat` member, as the bridge runner does (`VerdictsV2.runBridgeBench`).
 Every group discharged is the hypothesis `hok : GroupsOK gs` of `salt_tank_stutter_bridge_run`
 (and, through `verdicts_of_groups`, `Verdicts`).
@@ -22,7 +23,7 @@ def runDemo : IO Unit := do
     match ← Z3Session.start cfg with
     | .error e => IO.eprintln s!"ERROR: z3: {e}"
     | .ok s =>
-      match bridgeGroups p n Bridge.SaltTankStutter.cX Bridge.SaltTankStutter.cov
+      match bridgeGroups p n Bridge.SaltTankStutter.cX Bridge.SaltTankStutter.covM
           Bridge.SaltTankStutter.prog Bridge.SaltTankStutter.ce with
       | none => IO.println "  [stutter demo] the query groups did not rebuild"
       | some gs =>

@@ -5,7 +5,8 @@ Called by scripts/paper_numbers.sh after its runs and the mechanism matrix:
 
   scripts/suite_v2_letters.py OUTDIR [--bench DIR] [--relcert BIN]
 
-Reads OUTDIR/{control,sync,nochoice,noprune,norepo}.txt (one verdict line per benchmark) and
+Reads OUTDIR/{control,sync,nochoice,noprune,norepo}.txt (one verdict line per benchmark; and, when
+present, OUTDIR/{nostutter,noprelanding}.txt, the two feature ablations, for diagnostics) and
 OUTDIR/matrix.json (scripts/suite_v2_matrix.py), runs two kinds of variant files of its own
 (written to a temporary directory, never to the suite), and writes OUTDIR/letters.json,
 OUTDIR/letters.md and OUTDIR/suite_results.json (the per-benchmark rows of the paper's
@@ -13,25 +14,28 @@ appendix table: name, family, dimensions, modes, invariant kind, letters, time).
 
 Letters (the paper's legend), every one measured, never read off a header:
   S stretching       the certificate needs a stretch other than 1, a positive one or 0 (stutter:
-                     the right waits while the left runs a joint segment; the opt-in key
-                     `stutter = true`, docs/STUTTER.md; 2026-10-30 the former letter W is folded
-                     into S, as lambda = 0 is a special case of stretching). Credited when
-                     (positive) RELCERT_SYNC=1 DECLINES and some left mode's cover has a positive
-                     lambda != 1; for a file whose cover also has a stutter pairing the file at
-                     lambda_min = lambda_max = 1 WITH the key kept must DECLINE too (RELCERT_SYNC
-                     drops the stretch-0 candidate, so its decline alone may be the stutter's), or
-                     (stutter) some cover has a stretch-0 pairing and the file without the key
-                     DECLINES (at the same values).
-                     (diagnostic S_lam1: the file with lambda_min = lambda_max = 1 and no
-                     stutter, right-only segments still allowed, DECLINES)
+                     the right waits while the left runs a joint segment, docs/STUTTER.md; on for
+                     every benchmark since 2026-10-31; 2026-10-30 the former letter W is folded
+                     into S, as lambda = 0 is a special case of stretching). Credited when some
+                     pairing of the cover runs at a stretch other than 1 (0 included) and
+                     RELCERT_SYNC=1 (lambda = 1 only, which disables every other stretch, 0
+                     included) DECLINES (2026-10-31; until then a stutter pairing was credited by
+                     the file without the opt-in key, and a mixed file needed the lambda = 1 file
+                     with the key kept to decline too).
+                     (diagnostics: S_lam1, the file with lambda_min = lambda_max = 1 under
+                     RELCERT_NO_STUTTER=1, right-only segments still allowed, DECLINES;
+                     S_nostutter_verdict, the file under RELCERT_NO_STUTTER=1)
   M multi-step cover some left mode's budget >= 2 and its replayed derivation takes a joint
                      step (matrix M2, the cover shape; 2026-10-30 owner's decision: the shape rule
                      is the official M, the refinement that also required a right mode change on
                      the replayed path is reverted). Information only, not a letter: the file
                      under RELCERT_SINGLE_STEP=1 (every cover capped at budget 1, one right control
                      step per left window) is reported in letters.json (diagnostic single_step)
-  R right-only       some cover's replayed derivation has a right-only segment AND
-                     RELCERT_NO_REPO=1 DECLINES (diagnostic R_cover: on the path at all)
+  R right-only       some cover's replayed derivation has a right-only segment (the pre-landing
+                     right-only nodes merged in: since 2026-10-31 every right-only node is a
+                     pre-landing one, docs/PRELANDING.md) AND RELCERT_NO_REPO=1 DECLINES
+                     (diagnostics: R_cover, on the path at all; R_noprelanding_verdict, the file
+                     under RELCERT_NO_PRELANDING=1)
   B branching        a joint step on the path has >= 2 distinct non-self retained successors
                      (matrix M3)
   P pruning          an edge is pruned AND RELCERT_NO_PRUNE=1 DECLINES (matrix M4)
@@ -60,8 +64,8 @@ certificate records, as replayed by `scripts/suite_v2_matrix.py`), on a CERTIFIE
   D  mode-dependent rows: the invariant's rows differ per left mode
   I  a checked cut (mode-fact atom) kept in the certificate, on any mode
   X  a committed successor subset (the emitted choice record is non-empty)
-NEEDED: the ablation rule above: with the mechanism switched off the tool DECLINES (S: SYNC and the
-lambda = 1 file; R: RELCERT_NO_REPO; P: RELCERT_NO_PRUNE; I: RELCERT_NO_CUT; X: RELCERT_NO_CHOICE;
+NEEDED: the ablation rule above: with the mechanism switched off the tool DECLINES (S: SYNC;
+R: RELCERT_NO_REPO; P: RELCERT_NO_PRUNE; I: RELCERT_NO_CUT; X: RELCERT_NO_CHOICE;
 D: the uniform-row test). M and B have no switch-off ablation, so they are never marked needed
 (owner's decision 2026-10-30, replacing "needed = used by the cover shape"): Table 1 shows them
 used (open circle) only, its "Total needed" row prints -- for them, and numbers.tex defines no
@@ -134,21 +138,8 @@ def verdicts(path):
 
 
 def variant_lambda1(text):
-    out = []
-    for line in text.splitlines():
-        if re.match(r"^\s*lambda_min\s*=", line):
-            line = "lambda_min = 1.0"
-        elif re.match(r"^\s*lambda_max\s*=", line):
-            line = "lambda_max = 1.0"
-        elif re.match(r"^\s*stutter\s*=", line):
-            continue
-        out.append(line)
-    return "\n".join(out) + "\n"
-
-
-def variant_lambda1_key(text):
-    """The file at lambda_min = lambda_max = 1 with the `stutter` key kept (stretch 0 still a
-    candidate): declines only if a positive stretch other than 1 is needed."""
+    """The file at lambda_min = lambda_max = 1 (run under RELCERT_NO_STUTTER=1 for S_lam1: no
+    stretch other than 1 at all, right-only segments still allowed)."""
     out = []
     for line in text.splitlines():
         if re.match(r"^\s*lambda_min\s*=", line):
@@ -157,11 +148,6 @@ def variant_lambda1_key(text):
             line = "lambda_max = 1.0"
         out.append(line)
     return "\n".join(out) + "\n"
-
-
-def variant_nostutter(text):
-    """The file without the opt-in `stutter` key."""
-    return "\n".join(l for l in text.splitlines() if not re.match(r"^\s*stutter\s*=", l)) + "\n"
 
 
 def stutter_pairs(c):
@@ -227,11 +213,13 @@ def conj_row(rows):
     return "smt2:(and " + " ".join(x for r in rows for x in row_atoms(r)) + ")"
 
 
-def run_variant(relcert, text, tmpdir, tag, timeout):
+def run_variant(relcert, text, tmpdir, tag, timeout, extra=None):
     p = os.path.join(tmpdir, f"{tag}.txt")
     with open(p, "w") as f:
         f.write(text)
-    _, out, _, _ = run([relcert, p], {"RELCERT_IMPLIED_CUT": "1"}, timeout)
+    env = {"RELCERT_IMPLIED_CUT": "1"}
+    env.update(extra or {})
+    _, out, _, _ = run([relcert, p], env, timeout)
     return verdict_of(out)[0]
 
 
@@ -374,12 +362,15 @@ def main():
     for k in ("RELCERT_NO_PRUNE", "RELCERT_NO_CUT", "RELCERT_NO_IMPLIED_CUT", "RELCERT_NO_LINEAR_CUT",
               "RELCERT_NO_CHOICE", "RELCERT_SYNC", "RELCERT_NO_REPO", "RELCERT_NO_PAIR_STRETCH",
               "RELCERT_DEBUG", "RELCERT_LAMBDA_SCAN", "RELCERT_OPREGION", "RELCERT_TIME_BUDGET_MS",
-              "RELCERT_MAX_QUERIES", "RELCERT_SINGLE_STEP"):
+              "RELCERT_MAX_QUERIES", "RELCERT_SINGLE_STEP", "RELCERT_NO_STUTTER", "RELCERT_NO_PRELANDING"):
         os.environ.pop(k, None)
     ctl = verdicts(f"{a.out}/control.txt")
     runs = {k: verdicts(f"{a.out}/{k}.txt") for k in ("sync", "nochoice", "noprune", "norepo")}
     # information only (not a letter): the single-step ablation, when its run exists
     single = verdicts(f"{a.out}/singlestep.txt") if os.path.exists(f"{a.out}/singlestep.txt") else {}
+    # diagnostics only: the two feature ablations, when their runs exist
+    nostut_run = verdicts(f"{a.out}/nostutter.txt") if os.path.exists(f"{a.out}/nostutter.txt") else {}
+    nopl_run = verdicts(f"{a.out}/noprelanding.txt") if os.path.exists(f"{a.out}/noprelanding.txt") else {}
     recs = json.load(open(f"{a.out}/matrix.json"))["records"]
     recs = list(recs.values()) if isinstance(recs, dict) else recs
     byname = {r["name"]: r for r in recs}
@@ -393,13 +384,12 @@ def main():
             cert = ctl[name][0] == "CERTIFIED"
             lam_ne1 = any(positive_stretch_ne1(c) for c in r["covers"])
             stut = any(stutter_pairs(c) for c in r["covers"])
-            nostut = run_variant(a.relcert, variant_nostutter(text), tmp, name + "_nostutter", a.timeout) if stut else "-"
+            nostut = nostut_run.get(name, ("-", 0))[0]
             ro = any(c.get("right_only") for c in r["covers"])
             cells = r["cells"]
             v = {k: runs[k].get(name, ("MISSING", 0))[0] for k in runs}
-            lam1 = run_variant(a.relcert, variant_lambda1(text), tmp, name + "_lam1", a.timeout) if lam_ne1 else "-"
-            lam1key = (run_variant(a.relcert, variant_lambda1_key(text), tmp, name + "_lam1key", a.timeout)
-                       if lam_ne1 and stut else "-")
+            lam1 = (run_variant(a.relcert, variant_lambda1(text), tmp, name + "_lam1", a.timeout,
+                                {"RELCERT_NO_STUTTER": "1"}) if (lam_ne1 or stut) else "-")
             uni, keeps, own = {}, {}, set()
             if cells["M5"].startswith("yes"):
                 distinct = []
@@ -418,8 +408,7 @@ def main():
                     uni["conj"] = run_variant(a.relcert, variant_uniform(text, conj_row(distinct)), tmp, f"{name}_uniconj", a.timeout)
                     keeps["conj"] = True
             L = {
-                "S": cert and ((v["sync"] == "DECLINED" and lam_ne1 and (not stut or lam1key == "DECLINED"))
-                               or (stut and nostut == "DECLINED")),
+                "S": cert and (lam_ne1 or stut) and v["sync"] == "DECLINED",
                 "M": False,  # no switch-off ablation: never needed (used only)
                 "R": cert and ro and v["norepo"] == "DECLINED",
                 "B": False,  # no switch-off ablation: never needed (used only)
@@ -438,9 +427,8 @@ def main():
                 "M_shape": cells["M2"].startswith("yes"), "B_shape": cells["M3"].startswith("yes"),
                 "single_step": single.get(name, ("-", 0))[0],
             }
-            if stut:
-                diag["S_nostutter_verdict"] = nostut
-                diag["S_lam1key_verdict"] = lam1key
+            diag["S_nostutter_verdict"] = nostut
+            diag["R_noprelanding_verdict"] = nopl_run.get(name, ("-", 0))[0]
             U = used_letters(r, cert)
             bad = [k for k in LETTERS if L[k] and not U[k]]
             if bad:

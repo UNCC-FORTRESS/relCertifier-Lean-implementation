@@ -50,7 +50,6 @@ def lit_nahs25_salt_tank_IRv2 : PProblem :=
           next := ["On", "Off"] } ] }
     invariants := [
       ("On", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "0.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "0.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0")))),
-      ("Off", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "0.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "0.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0"))))]
-    stutter := true }
+      ("Off", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "0.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "0.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0"))))] }
 
 end RelCertifier.Parse

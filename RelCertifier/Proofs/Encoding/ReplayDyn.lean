@@ -37,7 +37,7 @@ noncomputable def dynDomHost (pre : Bool) (D gL : Formula (Var n)) (prev : List 
 
 /-- **The region on which a reposition pack requires invariance.** `whole`: the whole
 reposition domain (the default; `OracleAPI.checkDynRepo` without a region). `pre Bo Bc mask`: the
-PRE-LANDING region of the node's progress certificate (opt-in `prelanding = true`,
+PRE-LANDING region of the node's progress certificate (the pre-landing feature, `prelanding = true`,
 `docs/PRELANDING.md`): the half-open region `Bo` before the last threshold (`x < θ`) for the
 components the `mask` marks non-strict, its closure `Bc` (`x ≤ θ`) for the strict ones (at the
 stop point a strict component needs `< 0`, which the limit along the half-open region does not

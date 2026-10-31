@@ -76,8 +76,7 @@
 #     w_R = 13.31 - d / 1.05, so d = 1.21 x 0.05 = 0.0605 rpm. The factor is tight: 1.049 declines.
 #     The tight value is set by the deployed's trip (a physical bound, W20 below), not by the
 #     gust plateaus: the gap between the run-level value below and 0.0605 comes from admitted
-#     reference states between the gust plateau and the trip (in the first draft, at G <= 6.33,
-#     a cover-only test with the reachable gust ceilings as row conjuncts passed from 0.058). Run level: the largest lockstep w_L - 1.05 w_R over
+#     reference states between the gust plateau and the trip. Run level: the largest lockstep w_L - 1.05 w_R over
 #     a grid of runs from rest (3 starts, gust onsets 137 to 217 s, durations 1 to 30 s,
 #     G in {0.5, 2, 4.68, 5.03}, with and without a second gust) is 0.0173 rpm, after a 30 s design
 #     gust: the exact relation is broken by real runs, the bound is not.

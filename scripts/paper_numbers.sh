@@ -12,6 +12,14 @@
 # Table snippets (same script): OUTDIR/table1.tex (Table 1, by group, one column per letter,
 # \mechNeeded / \mechUsed / blank, needed and used totals rows) and OUTDIR/table_per_benchmark.tex
 # (the appendix table); the paper defines \mechNeeded and \mechUsed.
+# Feature ablations (2026-10-31; both features are always on, docs/BATCH12-2026-10-31.md):
+#   \numnostutter      files that DECLINE under RELCERT_NO_STUTTER=1 (no stretch 0, the right never
+#                      waits on a joint segment; run `nostutter`)
+#   \numnoprelanding   files that DECLINE under RELCERT_NO_PRELANDING=1 (right-only nodes need the
+#                      whole-domain right-only certificate, not the pre-landing one; run `noprelanding`)
+#   Both count suite_v2 files of the control run; a file certified in the control run and declined
+#   in the ablation needs the feature (the certificate found uses it).
+# S needed (letters) is the SYNC ablation (lambda = 1 only: every other stretch, 0 included, off).
 # LETTERS_ONLY=1 scripts/paper_numbers.sh OUTDIR re-runs only the letters step and numbers.tex.
 set -u
 OUT=${1:?usage: paper_numbers.sh OUTDIR}
@@ -28,7 +36,7 @@ export RELCERT_IMPLIED_CUT=1
 unset RELCERT_NO_PRUNE RELCERT_NO_CUT RELCERT_NO_IMPLIED_CUT RELCERT_NO_LINEAR_CUT \
       RELCERT_NO_CHOICE RELCERT_SYNC RELCERT_NO_PAIR_STRETCH RELCERT_DEBUG \
       RELCERT_LAMBDA_SCAN RELCERT_OPREGION RELCERT_TIME_BUDGET_MS RELCERT_MAX_QUERIES \
-      RELCERT_NO_REPO RELCERT_NO_PROGRESS RELCERT_SINGLE_STEP
+      RELCERT_NO_REPO RELCERT_NO_PROGRESS RELCERT_SINGLE_STEP RELCERT_NO_STUTTER RELCERT_NO_PRELANDING
 
 # LETTERS_ONLY=1 re-runs steps 3b and 4 only, on the runs and matrix already in OUTDIR (their
 # MANIFEST lines kept; one line is appended recording the commit of the letters re-run).
@@ -68,6 +76,8 @@ run noprune_nochoice RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1
 run norepo RELCERT_NO_REPO=1
 run singlestep RELCERT_SINGLE_STEP=1   # information only: single-step covers (budget 1), not a letter
 run opregion RELCERT_OPREGION=1
+run nostutter RELCERT_NO_STUTTER=1         # feature ablation: no stretch 0
+run noprelanding RELCERT_NO_PRELANDING=1   # feature ablation: whole-domain right-only certificates
 FILES="$C"
 run exhibits_off RELCERT_NO_CHOICE=1
 run exhibits_on
@@ -138,6 +148,8 @@ mac = {
  "numguardonly": cert(recs, "no_implied_verdict"),
  "numnolinear": cert(recs, "no_linear_verdict"),
  "numsinglestep": count(verdicts("singlestep"), "CERTIFIED"),
+ "numnostutter": count(verdicts("nostutter"), "DECLINED"),
+ "numnoprelanding": count(verdicts("noprelanding"), "DECLINED"),
  **{f"numletter{k}": v for k, v in let["totals"].items()},
  **{f"numletter{k}used": v for k, v in let.get("totals_used", {}).items()},
 }

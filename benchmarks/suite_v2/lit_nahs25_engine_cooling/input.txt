@@ -5,9 +5,9 @@
 # scenario: sensor-attack
 # mechanisms: R (right-only segments: in a left window the genuine engine first runs alone,
 #   the attacked one frozen, until it reaches the switching temperature 100, then both run the
-#   period jointly; the right-only certificate holds only before that landing, the opt-in
-#   `prelanding = true`, docs/PRELANDING.md; RELCERT_NO_REPO=1 DECLINES, and the file without the
-#   key DECLINES)
+#   period jointly; the right-only certificate holds only before that landing, the pre-landing
+#   certificate of docs/PRELANDING.md, on for every benchmark since 2026-10-31; RELCERT_NO_REPO=1
+#   DECLINES, and the file DECLINES with the whole-domain certificate, RELCERT_NO_PRELANDING=1)
 #
 # SOURCE. Xiang, Lanotte, Tini, Chong, Merro, "Measuring robustness in cyber-physical systems
 # under sensor attacks", Nonlinear Analysis: Hybrid Systems 56 (2025) (arXiv 2403.05829), Secs. 3-5,
@@ -25,7 +25,7 @@
 # THIS FILE. Left = attacked controller (forall), right = genuine controller (exists), the same
 # plant, the direction of the source's forward distance. Left: Cool `temp > 99.7`, Heat
 # `temp <= 100.3`; right: Cool `temp >= 100`, Heat `temp <= 100`; eps_L = eps_R = 1; lambda 1.
-# Opt-in key `prelanding = true` (docs/PRELANDING.md): a right-only (reposition) segment needs its
+# Pre-landing certificate (docs/PRELANDING.md): a right-only (reposition) segment needs its
 # right-only flow certificate only BEFORE the right lands on the switching temperature, i.e. on
 # temp_R < 100 while the genuine engine heats toward its Cool guard and on temp_R > 100 while it
 # cools toward its Heat guard; the witness genuine run stops at its first entry into the guard
@@ -57,7 +57,7 @@
 # in Heat_L windows above 100, where the genuine engine cools alone to 100 (at most 1.2 time units,
 # more than one period: temp_R <= 100.6 at rate 0.5).
 # RELCERT_NO_REPO=1 DECLINES at 0.3 (with lock-step matching only, the genuine Heat moves away from
-# the attacked Cool at rate 1.5), and the file without the key DECLINES at 0.3 (the right-only
+# the attacked Cool at rate 1.5), and with RELCERT_NO_PRELANDING=1 the file DECLINES at 0.3 (the right-only
 # flow certificate on the whole domain fails: past 100 the lone genuine Heat would keep moving
 # away from the frozen attacked temperature).
 #
@@ -87,7 +87,8 @@
 # CERTIFIED (about 0.3 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1,
 # RELCERT_WELLFORMED_STRICT=1, RELCERT_SINGLE_STEP=1 and without RELCERT_IMPLIED_CUT; DECLINED under
-# RELCERT_NO_REPO=1 and RELCERT_SYNC=1 (lock step without right-only segments), and without the key.
+# RELCERT_NO_REPO=1 and RELCERT_SYNC=1 (lock step without right-only segments), and under
+# RELCERT_NO_PRELANDING=1.
 # Cover: both left modes at lambda 1, budget 1, the joint pairing of the same mode plus one
 # pre-landing right-only node each (Cool_L: Heat to temp_R >= 100 at rate 1; Heat_L: Cool to
 # temp_R <= 100 at rate 1/2); nothing pruned, no choice, no cut kept. Rows identical (--handoff
@@ -99,7 +100,6 @@ max_depth = 8
 lambda_min = 1.0
 lambda_max = 1.0
 bound_T = 40.0
-prelanding = true
 
 [Lsys]
 state_vars = [temp]

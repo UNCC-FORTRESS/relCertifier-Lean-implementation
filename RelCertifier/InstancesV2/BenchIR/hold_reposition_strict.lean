@@ -43,7 +43,6 @@ def hold_reposition_strict_IRv2 : PProblem :=
           evolve := (.cmp ">=" (.var "y") (.num "-10.0"))
           next := ["Hold"] } ] }
     invariants := [
-      ("Hold", (.and (.cmp "<" (.var "L_y") (.bin "+" (.var "R_y") (.num "5.0"))) (.cmp "<=" (.var "R_y") (.num "0.0"))))]
-    prelanding := true }
+      ("Hold", (.and (.cmp "<" (.var "L_y") (.bin "+" (.var "R_y") (.num "5.0"))) (.cmp "<=" (.var "R_y") (.num "0.0"))))] }
 
 end RelCertifier.Parse

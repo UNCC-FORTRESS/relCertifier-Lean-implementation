@@ -10,7 +10,7 @@
 #   profiles (pilot switching, universal), so every reference profile is run and every hop is on
 #   the replayed path.
 #
-# System. h' = w, w' = T/m - g - K w with the autopilot's P loop T = m_R (g + K (w_sp - w)), K = 4.905.
+# System. h' = w, w' = T/m - g with the autopilot's P loop T = m_R (g + K (w_sp - w)), K = 4.905.
 #   Right (reference, m_R): w' = 4.905 (w_sp - w); ECO 1.6, NORMAL 2.0, SPORT 2.5 m/s
 #     (SPORT 2.5 so its stretch 2.9/2.5 = 1.16 is a decimal grid point).
 #   Left (deployed, m_L = 0.8 m_R): w' = 1.25 (g + K (w_sp - w)) - g = (w_sp + 0.4) 6.13125 - 6.13125 w;
@@ -21,11 +21,14 @@
 #   switches do not move it.
 # Rows (uniform, every left mode): requirement h_R - h_L <= 0.8, h_L - h_R <= 0.8 (NAV_MC_ALT_RAD);
 #   Phi <= 0.76 (tight: 0.77 declines; 0.8 - 0.09 x 2.5/6.13125); Phi >= -0.8 (needed: dropping it
-#   declines; any constant >= 0.32 certifies, the radius is stated); 1.16 w_R <= w_L (tight: 1.17
+#   declines; Phi is conserved, so the band is a start relation: -0.8 is the widest lower edge for
+#   which the 0.8 m requirement holds, -0.81, -1.0, -1.31 and -1.5 decline, any narrower edge such
+#   as -0.31 or 0 certifies; measured 2026-10-30); the domain's w >= 0 is not load-bearing (w >= -1
+#   on both sides certifies); 1.16 w_R <= w_L (tight: 1.17
 #   declines; inductive in all three pairings for w_R <= 2.5); w_L <= 2.9 (tight: 2.89 declines;
 #   the deployed's SPORT terminal).
 # Domain (one, both sides): h >= 0, 0 <= w <= 3 (the 3 m/s climb-rate limiter).
-# Verdicts (measured 2026-10-30, RELCERT_IMPLIED_CUT=1): CERTIFIED (about 11 s); DECLINED under
+# Verdicts (measured 2026-10-30, RELCERT_IMPLIED_CUT=1): CERTIFIED (about 10 s); DECLINED under
 #   RELCERT_SYNC=1 and RELCERT_NO_CHOICE=1. Letters S M B X (scripts/suite_v2_letters.py).
 #   relcert --wellformed: NORMAL, ECO, SPORT ok (invariant), 0 UNKNOWN, 0 BLOCKING.
 [problem]

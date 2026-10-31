@@ -13,6 +13,6 @@ namespace RelCertifier
 /-- `platoon_profiles` (emitted, suite_v2, widened cut channel on). -/
 def platoon_profiles_coverV2 : CoverEmitE :=
   ⟨"platoon_profiles", [], [
-    ⟨"SPORT", (6 : ℚ) / 5, 2, [⟨"CACC", true, false, false⟩], ["CACC"], [⟨"CACC", [2, 3, 4, 5, 6, 7, 0, 1], [6, 7], [6, 7], 6, 5⟩]⟩]⟩
+    ⟨"SPORT", (6 : ℚ) / 5, 2, [⟨"CACC", true, false, false⟩], ["CACC"], [⟨"CACC", [2, 3, 4, 5, 6, 7, 0, 1], [], [], 6, 5⟩]⟩]⟩
 
 end RelCertifier

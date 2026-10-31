@@ -40,7 +40,8 @@ physical story, the units, the measured cover and the mechanisms it exercises
 ## Batch 11, 2026-10-30: the pre-landing key in the suite, a P carrier, used and needed letters
 
 `docs/BATCH11-2026-10-30.md`:
-* Merged `origin/prelanding` (the opt-in `prelanding = true`, `docs/PRELANDING.md`).
+* Merged `origin/prelanding` (the opt-in `prelanding = true`, `docs/PRELANDING.md`; always on since
+  2026-10-31, batch 12).
 * In: `lit_nahs25_engine_cooling` (NAHS 2025 engine cooling, the source's forward distance 0.3, tight; letter R through the pre-landing right-only certificate; the genuine Cool guard closed to `temp >= 100`, disclosed) for `fuelcell_chp_dos` (to `skipped/`); `extruder_pe100_manualstart` (M B P I, tight 18.61) for `rover_terrain_6to12` (to the reserve, valid, displaced for letter balance).
 * Letters: Table 1 lists the mechanisms the certificate USES and marks those it NEEDS (rule below, `scripts/suite_v2_letters.py`). Needed S 19 M 21 R 8 B 9 P 2 D 13 I 17 X 14; used S 19 M 21 R 8 B 9 P 3 D 13 I 21 X 14. Literature files 10.
 
@@ -904,17 +905,19 @@ I = `RELCERT_NO_CUT=1` declines, X = `RELCERT_NO_CHOICE=1` declines), what each 
 one cause between them, the requirement behind each constant with its tightest certifying value,
 the domains and any coverage gap of the right guards, and the verdict under every configuration.
 Where only a model change could make a header claim true, the header states the limitation.
-Stretch 0 (stutter, opted in with `[problem] stutter = true`, `docs/STUTTER.md`) is a special case
-of stretching and is credited under S (2026-10-30; the separate letter W of 2026-10-29 is folded
-into S): a cover has a stretch-0 pairing and the file without the key declines. One suite_v2 file
-sets the key (`lit_nahs25_salt_tank`).
-The pre-landing key (`[problem] prelanding = true`, `docs/PRELANDING.md`, 2026-10-30): a right-only
-segment's flow certificate only before the landing. One suite_v2 file sets it since batch 11
-(`lit_nahs25_engine_cooling`, the NAHS 2025 engine cooling system at the source's distance 0.3, the
-genuine Cool guard closed to `temp >= 100`, disclosed; letter R, `RELCERT_NO_REPO=1` declines); the
-same file under its demo name stays in `benchmarks/prelanding_demo/engine_cooling_prelanding`, beside
-`hold_reposition_strict`, a synthetic strict-row demo of the same key (the strict component on the
-closed pre-landing region).
+Stretch 0 (stutter, `docs/STUTTER.md`) is a special case of stretching and is credited under S
+(2026-10-30; the separate letter W of 2026-10-29 is folded into S). Since 2026-10-31 (batch 12,
+`docs/BATCH12-2026-10-31.md`) stretch 0 and the pre-landing right-only certificate
+(`docs/PRELANDING.md`: a right-only segment's flow certificate only before the landing) are on for
+every benchmark (they were the opt-in keys `stutter = true` and `prelanding = true`, set by
+`lit_nahs25_salt_tank` and `lit_nahs25_engine_cooling`; the keys are retired); the ablations
+`RELCERT_NO_STUTTER=1` and `RELCERT_NO_PRELANDING=1` switch them off. S is needed when a pairing runs
+at a stretch other than 1 (0 included) and `RELCERT_SYNC=1` declines; R includes the pre-landing
+right-only nodes. `lit_nahs25_engine_cooling` (the NAHS 2025 engine cooling system at the source's
+distance 0.3, the genuine Cool guard closed to `temp >= 100`, disclosed; letter R,
+`RELCERT_NO_REPO=1` declines) is the file under its demo name in
+`benchmarks/prelanding_demo/engine_cooling_prelanding`, beside `hold_reposition_strict`, a synthetic
+strict-row demo (the strict component on the closed pre-landing region).
 Used and needed (2026-10-30, batch 11, owner's decision): Table 1 lists the mechanisms a certificate
 USES and marks those it also NEEDS. Needed is the rule above (the file declines with the mechanism
 switched off; M and B by the cover shape); used is read off the replayed derivation of the cover
@@ -976,8 +979,8 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
 | `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan; batch I9: the plan's speed loop at the wheel loop's 3 /s again, progress against the plan re-timed within `lambda in [1, 3]` (S M I) |
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T`; lambda pinned to 1 (batch I6) |
-| `lit_nahs25_engine_cooling` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025, Secs. 3-5, Examples 3/5), the source's forward distance 0.3, tight; new 2026-10-30 (batch 11, from the pre-landing demo): the opt-in `prelanding = true` (right-only certificate only before the landing, `docs/PRELANDING.md`), letter R; the genuine Cool guard closed to `temp >= 100` (disclosed); took the slot of `fuelcell_chp_dos` (to `skipped/`) |
-| `lit_nahs25_salt_tank` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), the source's Def. 8 distance 0 by stutter (S at stretch 0, `stutter = true`, 2026-10-29; the lock-step distance 3 before); new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
+| `lit_nahs25_engine_cooling` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025, Secs. 3-5, Examples 3/5), the source's forward distance 0.3, tight; new 2026-10-30 (batch 11, from the pre-landing demo): the pre-landing certificate (right-only certificate only before the landing, `docs/PRELANDING.md`; the opt-in `prelanding = true` until 2026-10-31, always on since), letter R; the genuine Cool guard closed to `temp >= 100` (disclosed); took the slot of `fuelcell_chp_dos` (to `skipped/`) |
+| `lit_nahs25_salt_tank` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), the source's Def. 8 distance 0 by stutter (S at stretch 0, 2026-10-29; the opt-in `stutter = true` until 2026-10-31, always on since; the lock-step distance 3 under `RELCERT_NO_STUTTER=1`); new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: both sides at the design-model level (one cause: the weakened gain); batch I9: the exact re-timed claim at the derating ratio 4/5 and the power-saving 2 s period (S M B X) |

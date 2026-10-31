@@ -3,7 +3,7 @@
 # robustness of cyber-physical systems under sensor attacks (the source's Def. 8 value).
 # scenario: sensor-attack
 # mechanisms: S (stretch 0: the genuine tank waits, while the attacked Off holds its level; the
-#   file without `stutter = true` DECLINES at the band 0)
+#   file DECLINES at the band 0 with stretch 0 switched off, RELCERT_NO_STUTTER=1)
 #
 # SOURCE. Xiang, Lanotte, Tini, Chong, Merro, "Measuring robustness in cyber-physical systems
 # under sensor attacks", Nonlinear Analysis: Hybrid Systems 56 (2025) (arXiv 2403.05829), Sec. 7,
@@ -26,8 +26,8 @@
 # exactly: On (r = 10) is possible when some reading in [xp - 3, xp + 3] is >= 25, i.e. xp >= 22;
 # Off (r = 0) when some reading is < 25, i.e. xp < 28. Genuine: On iff xp >= 25, Off iff
 # xp < 25. Flows On xp' = 0.1 (25 - xp) (the source's 10/4 - 10 xp/100, written in set-point
-# form), Off xp' = 0. Stretch 1 (lambda_min = lambda_max = 1) plus the opt-in stretch 0
-# (`stutter = true`, docs/STUTTER.md): a joint segment at stretch 0 runs the attacked period
+# form), Off xp' = 0. Stretch 1 (lambda_min = lambda_max = 1) plus stretch 0 (on for every
+# benchmark since 2026-10-31, docs/STUTTER.md): a joint segment at stretch 0 runs the attacked period
 # while the genuine tank takes a zero-duration cycle (it waits).
 #
 # CLAIM (both left modes): xp_L = xp_R (two rows, xp_L <= xp_R + 0 and xp_R <= xp_L + 0),
@@ -40,26 +40,26 @@
 # below 25 while xp is in [25, 28)) where the genuine one would keep draining toward 25, the
 # genuine tank waits at the same level (the cover's Off_L pairings are at stretch 0). A stutter
 # certificate does not promise that the reference keeps pace with the attacked run: the genuine
-# witness may wait for as long as the attacked tank holds. The lock-step reading (no key) is the
+# witness may wait for as long as the attacked tank holds. The lock-step reading (RELCERT_NO_STUTTER=1) is the
 # source's run-matched value 3 (TIGHTNESS). Not implied by the domain (none); every left mode has
 # a satisfiable start (xp_L = xp_R = 26). The source's second result (backward distance 0,
 # Figs. 14-19) is not this file's claim.
 #
 # TIGHTNESS (measured 2026-10-29, other rows fixed). xp_L <= xp_R + c certifies down to c = 0
 # (-0.01 declines; the rows then admit no start), as does the other row xp_R <= xp_L + c'
-# (c' = 0; -0.01 declines): the tool gets the source's Def. 8 value exactly. Without the key the
+# (c' = 0; -0.01 declines): the tool gets the source's Def. 8 value exactly. With RELCERT_NO_STUTTER=1 the
 # band 0 DECLINES and the tight c is 3.00 (2.99 declines), the source's run-matched value and the
 # exact lock-step supremum from xp = 50 (the attacked tank may turn Off just below 28 while the
 # genuine one settles toward 25). Without the lower bounds the band 0 DECLINES (the band alone is
 # not inductive, as in the source, whose invariant carries them too).
 #
 # CAUSE TEST (measured 2026-10-29). The cause of the distance 0 is that the attacked Off holds
-# (xp' = 0, r = 0): letting it drift (xp' = 0.1) makes the band 0 DECLINE with the key (and the
-# band 3 too). The attack bound b (left guards xp >= 25 - b, xp < 25 + b) does not move the
-# value with the key: b = 0.01, 1, 2, 3, 4, 10 all give c = 0 (as Def. 8 does: from xp = 50 the
-# reachable sets coincide for every b); without the key the tight c tracks b (0.01, 1.00, 2.00,
+# (xp' = 0, r = 0): letting it drift (xp' = 0.1) makes the band 0 DECLINE with stretch 0 (and
+# the band 3 too). The attack bound b (left guards xp >= 25 - b, xp < 25 + b) does not move the
+# value with stretch 0: b = 0.01, 1, 2, 3, 4, 10 all give c = 0 (as Def. 8 does: from xp = 50 the
+# reachable sets coincide for every b); with RELCERT_NO_STUTTER=1 the tight c tracks b (0.01, 1.00, 2.00,
 # 3.00, 4.00, 10.00, bisected to within 0.05). b = 0 (attack removed,
-# left = right): the band 0 certifies with and without the key (without the lower-bound rows,
+# left = right): the band 0 certifies with and without stretch 0 (without the lower-bound rows,
 # which leave the attacked Off, guard xp < 25, without a start).
 #
 # Where this file departs from the source.
@@ -78,7 +78,7 @@
 #   waiting (stretch 0). This is a run-wise relation, so it implies the set-based Def. 8 value.
 # Assumption 1 holds without a stand-in: both genuine modes admit a full 1-min run from their
 # guard (On contracts to 25, Off holds), proved in InstancesV2/WellFormed/LitNahs25SaltTank.lean
-# (the right model is unchanged by the key; a zero-duration cycle is covered by Assumption 1 (ii)).
+# (the right model is unchanged by stretch 0; a zero-duration cycle is covered by Assumption 1 (ii)).
 #
 # RELATION TO THE RUNNING EXAMPLE (watertank). Not the same benchmark: different plant (salt
 # mixing with an on/off brine valve, 2 modes, one equilibrium at 25, vs a water level under
@@ -93,7 +93,7 @@
 # CERTIFIED (about 0.2 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
 # RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
 # RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1, RELCERT_NO_PRUNE=1
-# RELCERT_NO_CHOICE=1 and without RELCERT_IMPLIED_CUT (with the key the mode facts are no longer
+# RELCERT_NO_CHOICE=1 and without RELCERT_IMPLIED_CUT (with stretch 0 the mode facts are no longer
 # needed: the pairing that needed them, the attacked Off with the genuine On, now waits);
 # DECLINED under RELCERT_SYNC=1 (lambda = 1 only, which drops the stutter candidate) and
 # RELCERT_SYNC=1 RELCERT_NO_CHOICE=1. Cover: On_L at lambda 1 (budget 1) against the genuine On;
@@ -109,7 +109,6 @@ max_depth = 8
 lambda_min = 1.0
 lambda_max = 1.0
 bound_T = 40.0
-stutter = true
 
 [Lsys]
 state_vars = [xp]

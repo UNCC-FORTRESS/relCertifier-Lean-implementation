@@ -181,9 +181,9 @@ def routeQueries {n : ℕ} (domain : IForm n) (g gdot : ITerm n) : List (IForm n
 /-- λ candidates: `εR/εL` (the largest λ at which one right segment spans the left
 residence) and the 21-point grid `λmin + i·(λmax − λmin)/20`, kept inside
 `[λmin, λmax]`, duplicates removed. The stretch `0` (the stutter segment: the right waits while
-the left runs, `docs/STUTTER.md`) is never taken from the grid; with `stutter` (the problem's
-opt-in key `stutter = true`) it is appended as the LAST candidate, so a file that closes at
-some `λ > 0` keeps that cover. -/
+the left runs, `docs/STUTTER.md`) is never taken from the grid; with `stutter` (the run feature
+`PProblem.stutter`, on unless `RELCERT_NO_STUTTER=1`) it is appended as the LAST candidate, so a
+file that closes at some `λ > 0` keeps that cover. -/
 def lambdaCandidates (lmin lmax epsL epsR : ℚ) (stutter : Bool := false) : List ℚ :=
   let cover := if epsL == 0 then lmax else epsR / epsL
   let step := (lmax - lmin) / 20

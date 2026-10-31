@@ -522,7 +522,7 @@ theorem dynRegion_covers (l q : ℕ) (pre : Bool) :
 
 /-- **The reposition-progress premise of every reposition node of window `l`, at a strict row**, from the node's
 progress certificate and its right-only pack on the node's region (`dynRegion`: the whole domain
-without the key, the pre-landing region with it). The landing cycle stops at the first entry into
+with the pre-landing feature off, the pre-landing region with it). The landing cycle stops at the first entry into
 the certificate's closed target (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
 theorem hrepoProg_ofS (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)

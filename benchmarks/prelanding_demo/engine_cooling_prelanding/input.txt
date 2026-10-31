@@ -12,12 +12,13 @@
 # source's open guard gives no reposition node.
 #
 # Claim: |temp_L - temp_R| <= 0.3 in both modes, the paper's forward distance 0.3 (Example 3/7).
-# With the opt-in key `prelanding = true` a right-only (reposition) node needs the right-only
+# With the pre-landing certificate (the opt-in key `prelanding = true` until 2026-10-31, now on
+# for every benchmark; RELCERT_NO_PRELANDING=1 switches it off) a right-only (reposition) node needs the right-only
 # flow certificate only BEFORE the right lands (temp_R < 100 heating, temp_R > 100 cooling);
 # the witness right run stops at its first entry into the target and ends its control cycle
 # early. Both left modes close: Cool_L {Cool joint; Heat reposition -> Cool joint} and Heat_L
-# {Heat joint; Cool reposition -> Heat joint}. Tight: 0.3 certifies, 0.29 declines; without the
-# key (or under RELCERT_NO_REPO) 0.3 declines (the whole-domain right-only certificate fails:
+# {Heat joint; Cool reposition -> Heat joint}. Tight: 0.3 certifies, 0.29 declines; under
+# RELCERT_NO_PRELANDING=1 (or RELCERT_NO_REPO=1) 0.3 declines (the whole-domain right-only certificate fails:
 # a lone right flow has a nonzero constant rate against a frozen left).
 #
 [problem]
@@ -26,7 +27,6 @@ max_depth = 8
 lambda_min = 1.0
 lambda_max = 1.0
 bound_T = 40.0
-prelanding = true
 
 [Lsys]
 state_vars = [temp]

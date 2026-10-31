@@ -19,6 +19,8 @@ import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchProgress.lit_csf25_salt_tank_hold
+import RelCertifier.InstancesV2.BenchProgress.lit_drl_lane_control
+import RelCertifier.InstancesV2.BenchProgress.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchProgress.lit_girard08_robot
 import RelCertifier.InstancesV2.BenchProgress.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchProgress.lit_lz21_vehicle_position
@@ -72,6 +74,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2_progress),
    ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2_progress),
    ("lit_csf25_salt_tank_hold", lit_csf25_salt_tank_hold_coverV2_progress),
+   ("lit_drl_lane_control", lit_drl_lane_control_coverV2_progress),
+   ("lit_freedm_meter", lit_freedm_meter_coverV2_progress),
    ("lit_girard08_robot", lit_girard08_robot_coverV2_progress),
    ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2_progress),
    ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_progress),

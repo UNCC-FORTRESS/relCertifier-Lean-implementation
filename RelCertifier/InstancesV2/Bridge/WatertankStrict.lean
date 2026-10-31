@@ -5,12 +5,21 @@ Released under Apache 2.0 license.
 # `watertank_strict` (strict_demo) through the generic bridge at its strict rows (GENERATED —
 `scripts/gen_strict_demo.py`)
 
+The pre-landing certificate is on (`docs/PRELANDING.md`, always on since 2026-10-31; the IR
+records it, `prelanding = true`): the cover's right-only
+nodes are pre-landing nodes, recorded in the pre-landing record `pl`, never as the cover's
+`dynPre`/`dynPost` flags. The kernel merges them (`withPL`) for the cover graph; each node's
+reposition pack is on its region (`dynRegion`: before its progress certificate's last threshold,
+strict components on the closure).
+
 Theorem 3 of the benchmark from its emitted records: the structural bundles decided in the
-kernel (`struct_ok`, `prog_ok`, `covers_ok`, `rows_same`, `pad_ok`), Assumption 1 transported
-from the suite's lemma at dimension 2 and lifted to 3 (the right clock), the verdicts
-assumed (`Verdicts`: the groups `relcert-bridge-verdicts` discharges,
-`Emitted.verdicts_of_groups`).
+kernel on the merged cover (`struct_ok`, `prog_ok`, `covers_ok`, `rows_same`, `pad_ok`), the data
+gate `pl_ok` (the IR records the feature, the whole-domain flags are off), Assumption 1 from the suite's
+lemma at dimension 2 lifted to 3 (the right clock), the verdicts assumed (`VerdictsS`: the
+strict groups `bridgeGroupsS` on the merged cover, `Emitted.verdictsS_of_groups`).
+The claim is over the emitted cover `cov`.
 -/
+import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.StrictRun
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Proofs.Encoding.Emitted.Lift
@@ -19,6 +28,7 @@ import RelCertifier.InstancesV2.Cuts.watertank_strict
 import RelCertifier.InstancesV2.BenchCovers.watertank_strict
 import RelCertifier.InstancesV2.BenchProgress.watertank_strict
 import RelCertifier.InstancesV2.BenchChoice.watertank_strict
+import RelCertifier.InstancesV2.BenchPrelanding.watertank_strict
 
 namespace RelCertifier.Bridge.WatertankStrict
 
@@ -29,10 +39,16 @@ abbrev cX := Oracle.watertank_strict_cutsV2X
 abbrev cov := watertank_strict_coverV2
 abbrev prog := Progress.watertank_strict_coverV2_progress
 abbrev ce := Choice.watertank_strict_coverV2_choice
+abbrev pl := Preland.watertank_strict_coverV2_prelanding
+/-- The cover graph's rows: the emitted cover with the pre-landing nodes merged in. -/
+abbrev covM := withPL cov pl
 
-theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
-theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel
-theorem covers_ok : coversOK IR 3 cov ce = true := by decide +kernel
+/-- The data gate: the IR records the pre-landing feature and the emitted whole-domain flags are
+all off. -/
+theorem pl_ok : plOK IR cov pl = true := by decide +kernel
+theorem struct_ok : structOK IR 3 covM cX = true := by decide +kernel
+theorem prog_ok : progOK IR 3 covM prog = true := by decide +kernel
+theorem covers_ok : coversOK IR 3 covM ce = true := by decide +kernel
 theorem pad_ok : padOK IR 2 = true := by decide +kernel
 theorem rows_same : rowsSame IR = true := by decide +kernel
 theorem nR_eq : nR IR = V2Watertank.Gr.modes.length := by decide +kernel
@@ -57,24 +73,30 @@ theorem wellFormedR : WellFormedRIn (grOf IR 3 (prunedOf cov)) (guardR IR 3) reg
     (wellFormedR_transport (V2Watertank.watertank_wellFormedR) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
       (edges_transport_check edges_ok (edgesSrcOK_sound src_ok)))) reg
 
+/-- The run had the pre-landing feature on, and its cover really uses pre-landing nodes (decided
+in the kernel). -/
+theorem prelanding_on : IR.prelanding = true := by decide +kernel
+theorem uses_prelanding : pl.nodes.isEmpty = false := by decide +kernel
+
 /-- The rows really carry a strict atom: the strictness mask of every window's row
 (`x_L ≤ x_R + 3` closure, `x_R < x_L + 3.5` strict), decided in the kernel. -/
 theorem masks : (List.range (nL IR)).map (maskOf IR 3) = [[false, true], [false, true], [false, true]] := by
   decide +kernel
 theorem not_collapse : noStrictRows IR 3 = false := by decide +kernel
 
-/-- **Theorem 3 of `watertank_strict` at its strict row** (window form): every strict verdict group of the
-benchmark `unsat`. The claim carries the strict row (`windowClaimS`, `canonInvMS`). -/
-theorem watertank_strict_bridge (hv : VerdictsS IR 3 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+/-- **Theorem 3 of `watertank_strict` at its strict row** (window form, over the emitted cover): every strict
+verdict group of the benchmark `unsat`. The claim carries the strict row (`windowClaimS`,
+`canonInvMS`). -/
+theorem watertank_strict_bridge (hv : VerdictsS IR 3 cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaimS IR 3 cX cov reg 0 1 2 dt :=
-  theorem3_window_strict_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
-    rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
+  theorem3_window_strict_of_records_pl pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv
+    wellFormedR rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 
-/-- The same from a green strict run of the benchmark's groups (`bridgeGroupsS`). -/
+/-- The same from a green run of the benchmark's groups (`bridgeGroupsS` on the merged cover,
+`scripts/strict_demo_verdicts.lean`). -/
 theorem watertank_strict_bridge_run {gs : List (List (IForm 3))}
-    (hrun : bridgeGroupsS IR 3 cX cov prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+    (hrun : bridgeGroupsS IR 3 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : windowClaimS IR 3 cX cov reg 0 1 2 dt :=
-  theorem3_window_strict_of_run struct_ok hrun hok prog_ok covers_ok reg_fv reg_inv wellFormedR
-    rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
+  watertank_strict_bridge (verdictsS_of_groups hrun hok) dt hdt
 
 end RelCertifier.Bridge.WatertankStrict

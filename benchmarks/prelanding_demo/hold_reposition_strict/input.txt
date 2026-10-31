@@ -8,7 +8,8 @@
 #   y_R <= 0        (non-strict: the right never overshoots the landing level)
 # The non-strict component breaks only AFTER the landing threshold y_R = 0 (the right keeps
 # rising in Up past it), so the whole-domain right-only certificate fails and the file declines
-# without the key. With `prelanding = true` the non-strict component is certified on the
+# under RELCERT_NO_PRELANDING=1. With the pre-landing certificate (on for every benchmark since
+# 2026-10-31) the non-strict component is certified on the
 # half-open region y_R < 0 (route B: its boundary lies outside it) and the strict one on the
 # closed region y_R <= 0 (route A: it decreases while the right rises), so it is `< 0` at the
 # stop point too. The witness right run stops at its first entry into y_R >= 0, ends its cycle
@@ -20,7 +21,6 @@ max_depth = 8
 lambda_min = 1.0
 lambda_max = 1.0
 bound_T = 40.0
-prelanding = true
 
 [Lsys]
 state_vars = [y]

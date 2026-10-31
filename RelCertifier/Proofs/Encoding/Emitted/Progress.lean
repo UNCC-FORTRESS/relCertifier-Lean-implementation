@@ -74,8 +74,9 @@ noncomputable def regionF (l q : ℕ) (pre : Bool) : Formula (Var n) :=
 
 /-! ### The region of a reposition node's pack -/
 
-/-- The landing stage of node `(l, q, pre)` under the opt-in key: its certificate's last stage
-with its resolved coordinate. `none` without the key (or without a certificate). -/
+/-- The landing stage of node `(l, q, pre)` when the IR records the pre-landing feature as on
+(`prelanding = true`, the default): its certificate's last stage with its resolved coordinate.
+`none` with the feature off (or without a certificate). -/
 def nodeStage (l q : ℕ) (pre : Bool) : Option (Var n × ProgressStageE) :=
   if p.prelanding then
     match certFor p prog l q pre with
@@ -92,7 +93,7 @@ def dynMask (l q : ℕ) (pre : Bool) : List Bool :=
     (fun i => (maskOf p n l).getD i false)
 
 /-- The pack's region at the IR level (the bridge's `dynGroups`): the pre-landing region of the
-node's landing stage, `none` (the whole domain) without the key. -/
+node's landing stage, `none` (the whole domain) with the pre-landing feature off. -/
 def dynRegionI (l q : ℕ) (pre : Bool) : Option (IForm n × IForm n × List Bool) :=
   (nodeStage p n prog l q pre).map (fun vs => (before vs.1 vs.2, beforeCl vs.1 vs.2, dynMask p n cov l q pre))
 
@@ -135,7 +136,7 @@ noncomputable def regionOfStage (v : Var n) (st : ProgressStageE) (mask : List B
           show (st.theta : ℝ) - f t v ≤ 0; linarith)
         linarith)
 
-/-- **The region of node `(l, q, pre)`'s pack**: the whole domain without the key; with it, the
+/-- **The region of node `(l, q, pre)`'s pack**: the whole domain with the pre-landing feature off; with it, the
 pre-landing region of the node's landing stage, strict components on its closure. -/
 noncomputable def dynRegion (p : PProblem) (n : ℕ) (cov : CoverEmitE) (prog : ProgressEmitE)
     (l q : ℕ) (pre : Bool) : DynRegion n :=
@@ -273,7 +274,7 @@ theorem dynRegion_cases {l q : ℕ} {pre : Bool} {c : ProgressE} {st : ProgressS
 
 /-- **The reposition-progress premise of every reposition node of window `l`**, from the node's
 progress certificate and its right-only pack on the node's region (`dynRegion`: the whole domain
-without the key, the pre-landing region with it). The landing cycle stops at the first entry into
+with the pre-landing feature off, the pre-landing region with it). The landing cycle stops at the first entry into
 the certificate's closed target (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
 theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)

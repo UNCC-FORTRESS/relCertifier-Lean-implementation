@@ -220,32 +220,32 @@ mode)`), check 3 `169/174 right modes ok, both clauses (90 invariant, 79 exit), 
 BLOCKING`, `SUITE_V2 QUICK CHECKS FAILED`, exit 1. With the successor clause alone the same
 file passed the gate (all five modes `ok`).
 
-**Stutter (opt-in stretch 0)** (2026-10-29, branch `stutter`, `docs/STUTTER.md`): the
-`[problem] stutter = true` key lets a joint segment run at stretch 0 (the right waits). One
-suite_v2 file sets it (`lit_nahs25_salt_tank`, since 2026-10-29); with the key absent the covers, verdicts (control and six
-switch runs, the exhibits) and `--check-quick-v2` output are byte-identical to `de241c5`. Without
-the key the CLI never certifies with a stretch-0 pairing (`λ_min = 0` alone now declines where it
-used to certify unbacked). Tests: `python3 scripts/stutter_tests.py` (109/109 since review round 6 of 2026-10-30, incl. the adversarial
-claims of `docs/STUTTER-SOUNDNESS.md` and the 78 negatives with the key, all DECLINED); end to
-end: `python3 scripts/gen_stutter_demo.py`, `lake build RelCertifier.InstancesV2.Bridge.SaltTankStutter`,
-`lake env lean scripts/stutter_demo_verdicts.lean` (54/54 groups): the salt tank at band 0;
-`lake env lean scripts/stutter_kernel_checks.lean`: the axioms of Theorem 3 of both stutter
-benchmarks and three others (each `propext, Classical.choice, Quot.sound, z3_unsat_sound`) and the
-kernel negatives (the IR with the key off fails `structOK` on a stretch-0 cover).
-
-**Pre-landing (opt-in right-only certificate before the landing)** (2026-10-30, branch
-`prelanding`, `docs/PRELANDING.md`): the `[problem] prelanding = true` key checks a right-only
-node's flow certificate only before its progress certificate's last threshold. No suite_v2 file
-sets it; with the key absent the covers, verdicts and `--check-quick-v2` output are
-byte-identical to `4b154c3`. Tests: `python3 scripts/prelanding_tests.py` (105/105: the engine
-cooling demo's tight band 0.3, the cause test, the strict-row demo, the adversarial fails-after /
-fails-before / strict-target / strict-equality files, the 78 negatives with the key DECLINED);
-end to end: `python3 scripts/gen_prelanding_demo.py`, `lake build
+**Stretch 0 and the pre-landing certificate, always on** (2026-10-31, batch 12,
+`docs/BATCH12-2026-10-31.md`; opt-in keys `stutter = true` / `prelanding = true` from 2026-10-29/30,
+`docs/STUTTER.md`, `docs/PRELANDING.md`, now retired and refused by the unknown-key gate): both are
+run features, on for every benchmark; `RELCERT_NO_STUTTER=1` / `RELCERT_NO_PRELANDING=1` switch them
+off for an ablation. The emitted IR records the run's values, which the kernel gates read
+(`Emitted.timeOK` admits a stretch-0 pairing, `Emitted.plOK` / `Emitted.nodeStage` a pre-landing
+record and region, exactly when the IR records the feature as on); the CLI guards refuse a
+stretch-0 pairing or a pre-landing node with the feature off. Every right-only node is a pre-landing
+node (`BenchPrelanding/<b>.lean` for every benchmark); every bridge instance with right-only nodes is
+over the cover merged with its record (`theorem3_window_of_records_pl`,
+`theorem3_keyed_of_records_pl`). Tests: `python3 scripts/stutter_tests.py` (97/97: the salt tank
+demo's tight band 0 by default and 3 under `RELCERT_NO_STUTTER=1`, the adversarial claims of
+`docs/STUTTER-SOUNDNESS.md`, the retired key refused, the 68 refutation mutants and 3 negatives
+DECLINED by default) and `python3 scripts/prelanding_tests.py` (99/99: the engine cooling demo's
+tight band 0.3, the cause test, the strict-row demo, the adversarial synthetic files with stretch 0
+off (their left holds, so with stretch 0 on the right may wait and every one of their claims is
+true and certifies; listed as such), the retired key refused, the 71 negatives DECLINED by default);
+end to end: `python3 scripts/gen_stutter_demo.py`, `python3 scripts/gen_prelanding_demo.py`,
+`python3 scripts/gen_strict_demo.py`, `lake build RelCertifier.InstancesV2.Bridge.SaltTankStutter
 RelCertifier.InstancesV2.Bridge.EngineCoolingPrelanding
-RelCertifier.InstancesV2.Bridge.HoldRepositionStrict`, `lake env lean
-scripts/prelanding_demo_verdicts.lean` (18/18 and 15/15 groups), `lake env lean
-scripts/prelanding_kernel_checks.lean` (the axioms, and the kernel negatives: the record with the
-key off fails `plOK`, the cover without the pre-landing nodes fails `coversOK`).
+RelCertifier.InstancesV2.Bridge.HoldRepositionStrict RelCertifier.InstancesV2.Bridge.WatertankStrict`,
+`lake env lean scripts/stutter_demo_verdicts.lean` (54/54 groups),
+`scripts/prelanding_demo_verdicts.lean` (18/18 and 15/15), `scripts/strict_demo_verdicts.lean`
+(90 groups), `scripts/stutter_kernel_checks.lean` (6 axiom lines, the kernel negatives) and
+`scripts/prelanding_kernel_checks.lean` (8 axiom lines, the kernel negatives: a record with the
+flag off fails `plOK`, a cover without its pre-landing nodes fails `coversOK`).
 
 **Strict-gate negative check** (2026-10-10): `--check-quick-v2` over the suite with the
 pre-repair `platoon_delay_linkloss` in its place: check 1 `44 certified, 1 declined, 0

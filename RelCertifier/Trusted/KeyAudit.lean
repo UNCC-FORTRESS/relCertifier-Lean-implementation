@@ -13,7 +13,7 @@ benchmark runs `auditKeys` first and REFUSES inputs containing sections or keys
 the parser does not consume. Same operational guarantee — the tool never certifies
 a model containing directives it ignored — with an exe-only rebuild.
 
-Recognized: `[problem]` name/max_depth/lambda_min/lambda_max/bound_T/stutter/prelanding (max_depth
+Recognized: `[problem]` name/max_depth/lambda_min/lambda_max/bound_T (max_depth
 and bound_T are read by no stage and are on the explicit IGNORED list — present in
 all 45 suite_v2 inputs); `[Lsys]`/`[Rsys]` state_vars/epsilon; mode sections
 ode/guard/evolve/next; `[relational_invariant]` any key (keys are mode names).
@@ -31,7 +31,9 @@ private def sectionKind (s : String) : Option String :=
   else none
 
 private def knownKeys : String → List String
-  | "problem" => ["name", "max_depth", "lambda_min", "lambda_max", "bound_T", "stutter", "prelanding"]
+  -- `stutter` / `prelanding` were opt-in keys until 2026-10-31; both features are now always on
+  -- (run features, `Parse.PProblem`), so a file still carrying either key is refused here
+  | "problem" => ["name", "max_depth", "lambda_min", "lambda_max", "bound_T"]
   | "sys" => ["state_vars", "epsilon"]
   | "mode" => ["ode", "guard", "evolve", "next"]
   | _ => []

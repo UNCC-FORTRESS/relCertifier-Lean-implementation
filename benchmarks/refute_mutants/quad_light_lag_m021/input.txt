@@ -1,8 +1,10 @@
 # quad_light_lag: the 20 %-lighter quadrotor against the reference model, both with the same
 # motor thrust lag; altitude conformance up to a time scaling.
 # scenario: model-refinement
-# mechanisms: S M (time stretch lambda = 6/5 needed, RELCERT_SYNC=1 declines; multi-step cover,
-#   matrix codes M1 M2)
+# mechanisms: S (time stretch lambda = 6/5 needed, RELCERT_SYNC=1 declines; matrix code M1). The
+#   cover is multi-step (budget 2, matrix code M2), but M is not credited: the right has one mode,
+#   so its cycle boundaries are invisible and the two cycles are one continuous right run cut at
+#   epsilon_R (letter rule M, 2026-10-30).
 #
 # System. The climb segment of quad_light_airframe_20 (in benchmarks/reserve/ since 2026-10-27,
 # batch I7; same airframe numbers) with the motors'
@@ -24,7 +26,7 @@
 # K = 4.905 = g/2 is the gain at which the terminal rates are 2.0 and 2.4 m/s and the ratio is the
 # round 6/5. The ratio is not grid-tuned: with PX4's default K = 4.0 /s (terminals 2.0 and 2.4905)
 # the same rows certify pinned at lambda = 1 + 0.2 g / (K w_sp) = 1.24525, and with K = 4.5
-# (terminals 2.0 and 2.436) at 1.218, Psi rebuilt for the new constants and the letters S M
+# (terminals 2.0 and 2.436) at 1.218, Psi rebuilt for the new constants and the letters
 # unchanged (re-measured 2026-10-29 on the one domain, where these gains leave the reference's box
 # open at the limiter: 14.715 > 3 K, relcert --wellformed CLIMB BLOCKING). At every K the claim
 # certifies only with the exact ratio on the stretch grid, pinned or as the top of a range
@@ -76,7 +78,7 @@
 # invariant (relcert --wellformed: CLIMB ok (invariant)). Guard = evolve stays: with per-side
 # guards narrower than the domain the tool's Assumption 1 check returns UNKNOWN (measured).
 # Altitude unbounded above. One right mode (no coverage gap); the left mode has a satisfiable
-# start (hover). Control interval 1 s on both sides; budget ceil(6/5) = 2 (M).
+# start (hover). Control interval 1 s on both sides; budget ceil(6/5) = 2 (matrix M2).
 # One domain (2026-10-29): per-side climb envelopes (left w <= 2.4, right w <= 2.0, a <= 9.81: the
 # terminal rates and thrust commands) -> the one physical box above; rows unchanged, CERTIFIED
 # without the envelopes; three tight values moved; the Psi band set to its tight 0.45 the same day.

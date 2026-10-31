@@ -13,7 +13,7 @@ namespace RelCertifier
 /-- `lit_nahs25_salt_tank` (emitted, suite_v2, widened cut channel on). -/
 def lit_nahs25_salt_tank_coverV2 : CoverEmitE :=
   ⟨"lit_nahs25_salt_tank", [], [
-    ⟨"On", (1 : ℚ) / 1, 1, [⟨"On", true, false, false⟩, ⟨"Off", true, true, true⟩], ["On"], [⟨"On", [0, 1, 2, 3], [1, 2], [1, 2], 1, 1⟩, ⟨"Off", [1, 2, 3, 0], [0, 1, 2, 3], [0, 1, 2, 3], 1, 1⟩]⟩,
-    ⟨"Off", (1 : ℚ) / 1, 1, [⟨"On", true, false, false⟩, ⟨"Off", true, true, true⟩], ["On"], [⟨"On", [0, 1, 2, 3], [1, 2], [1, 2], 0, 1⟩, ⟨"Off", [0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3], 0, 1⟩]⟩]⟩
+    ⟨"On", (1 : ℚ) / 1, 1, [⟨"On", true, false, false⟩, ⟨"Off", true, false, false⟩], ["On"], [⟨"On", [0, 1, 2, 3], [], [], 1, 1⟩, ⟨"Off", [1, 2, 3, 0], [], [], 1, 1⟩]⟩,
+    ⟨"Off", (1 : ℚ) / 1, 1, [⟨"On", true, false, false⟩, ⟨"Off", true, false, false⟩], ["On"], [⟨"On", [0, 1, 2, 3], [], [], 0, 1⟩, ⟨"Off", [0, 1, 2, 3], [], [], 0, 1⟩]⟩]⟩
 
 end RelCertifier

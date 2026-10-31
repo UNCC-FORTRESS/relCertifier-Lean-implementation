@@ -234,7 +234,7 @@ variable (G : SearchGraph (Var n)) (fR : Fin n → Term (Var n)) (domL domR gL :
       (Formula.and domL domR)) σ ω → Formula.sat A ω)
   -- the right-only premise on a REGION: the anchor is kept along a right-only run that stays in
   -- `Bf` before its last instant (`Bf = ⊤`: the whole-domain premise `hboxD`, `hboxB_of_hboxD`;
-  -- the pre-landing region of the opt-in key, `docs/PRELANDING.md`)
+  -- the pre-landing region of the pre-landing feature, `docs/PRELANDING.md`)
   (Bf : State (Var n) → Prop)
   (hboxB : ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat A y → (pre = true → Formula.sat gL y) →
     ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ →

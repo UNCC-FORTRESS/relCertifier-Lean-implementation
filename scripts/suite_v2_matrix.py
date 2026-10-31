@@ -515,14 +515,15 @@ def parse_choice(text):
     return out
 
 def parse_preland(text):
-    """The `PrelandEmitE` literal the tool writes to RELCERT_PRELANDING_OUT (only under the opt-in
-    `prelanding = true`, docs/PRELANDING.md): one (mL, mR, pre) per pre-landing right-only node."""
+    """The `PrelandEmitE` literal the tool writes to RELCERT_PRELANDING_OUT (docs/PRELANDING.md; the
+    pre-landing certificate is on for every benchmark since 2026-10-31): one (mL, mR, pre) per
+    pre-landing right-only node."""
     return [(m.group(1), m.group(2), m.group(3) == "true")
             for m in re.finditer(r'⟨"(\w+)", "(\w+)", (true|false), \[[^\]]*\]⟩', text)]
 
 def merge_preland(covers, nodes):
     """The cover graph's rows: the emitted flags with the pre-landing nodes merged in (the tool's
-    `effRows`, the kernel's `Emitted.withPL`); unchanged without the key."""
+    `effRows`, the kernel's `Emitted.withPL`); unchanged under RELCERT_NO_PRELANDING=1."""
     for c in covers:
         for f in c["flags"]:
             if (c["mL"], f["name"], True) in nodes:

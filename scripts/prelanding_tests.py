@@ -1,36 +1,44 @@
 #!/usr/bin/env python3
-"""The pre-landing tests (docs/PRELANDING.md): the opt-in `[problem] prelanding = true` (a
-right-only node needs its flow certificate only on the half-open region before the progress
-certificate's last threshold; the witness right run stops at its first entry into the target).
+"""The pre-landing tests (docs/PRELANDING.md): the pre-landing certificate (a right-only node
+needs its flow certificate only on the half-open region before the progress certificate's last
+threshold; the witness right run stops at its first entry into the target), on for every
+benchmark since 2026-10-31 (docs/BATCH12-2026-10-31.md; until then the opt-in key
+`[problem] prelanding = true`). "Off" below is the ablation RELCERT_NO_PRELANDING=1 (the key-off
+cases of the opt-in era); "on" is the default run.
 
 Every variant file is written to a temporary directory, never to the suite. Runs the CLI with
 RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a summary.
 
   engine     benchmarks/prelanding_demo/engine_cooling_prelanding (NAHS 2025 engine cooling, the
              genuine Cool guard closed to temp >= 100): band 0.3 CERTIFIED (the paper's distance),
-             0.29 DECLINED; 0.3 without the key DECLINED; 0.3 with the key under RELCERT_NO_REPO
+             0.29 DECLINED; 0.3 off DECLINED; 0.3 on under RELCERT_NO_REPO
              DECLINED (the right-only node is genuine, letter R); the source's strict genuine
              Cool guard (temp > 100) DECLINED (no closed target: strict-guard targets are
              rejected)
   cause      the attack offset o in {0, 0.1, 0.5, 1} (attacked guards temp > 100 - o,
              temp <= 100 + o): band o CERTIFIED, band o - 0.01 DECLINED (o > 0); the tight band
              tracks the attack offset, and o = 0 is exact (band 0)
-  adversarial synthetic (a frozen left, a right that climbs in Up and holds in Hold):
+  adversarial synthetic (a frozen left, a right that climbs in Up and holds in Hold), with
+             stretch 0 off (RELCERT_NO_STUTTER=1; with it on the right may wait and every claim
+             below is true and CERTIFIED, listed as `stutter` cases):
              fails-after: the row y_R <= 0 breaks only after the landing threshold y = 0
-             (CERTIFIED with the key, DECLINED without);
+             (CERTIFIED on, DECLINED off);
              fails-before: the row y_R <= 0.5 against the landing threshold y = 1 breaks before
-             the landing (DECLINED with the key; the claim is false);
+             the landing (DECLINED on; false for every right run that moves);
              strict-target: fails-after with the Hold guard opened to y > 0 (DECLINED: no
              closed target)
   strict     benchmarks/prelanding_demo/hold_reposition_strict (a row with a strict component that
              falls while the right repositions, and a non-strict one that breaks only past the
-             landing): CERTIFIED with the key (the strict component on the CLOSED pre-landing
-             region, route A), DECLINED without the key and under RELCERT_NO_REPO;
+             landing): CERTIFIED on (the strict component on the CLOSED pre-landing
+             region, route A), DECLINED off and under RELCERT_NO_REPO (both with stretch 0
+             off; CERTIFIED by default, and off, because the right may wait);
              strict-equality: the synthetic file with the strict row y_R < 0, which reaches
              equality exactly at the landing y_R = 0: DECLINED (on the half-open region route B
              would pass vacuously, its boundary lying outside it; the closed region refuses it)
   negatives  every benchmarks/refute_mutants/*/input.txt and benchmarks/negative/*/input.txt
-             with `prelanding = true` added: DECLINED
+             (on): DECLINED
+  key        a file that still carries the retired key `prelanding = true` is refused (ERROR,
+             the unknown-key gate)
 
 Every text edit is asserted to change the file (no case passes on an unedited file).
 
@@ -47,7 +55,8 @@ VERD = re.compile(r": (CERTIFIED|DECLINED|ERROR)")
 def verdict(relcert, path, extra_env=None):
     env = dict(os.environ, RELCERT_IMPLIED_CUT="1")
     for k in ("RELCERT_SYNC", "RELCERT_NO_CUT", "RELCERT_NO_IMPLIED_CUT", "RELCERT_NO_PAIR_STRETCH",
-              "RELCERT_NO_CHOICE", "RELCERT_NO_PRUNE", "RELCERT_NO_REPO", "RELCERT_NO_PROGRESS"):
+              "RELCERT_NO_CHOICE", "RELCERT_NO_PRUNE", "RELCERT_NO_REPO", "RELCERT_NO_PROGRESS",
+              "RELCERT_NO_STUTTER", "RELCERT_NO_PRELANDING"):
         env.pop(k, None)
     if extra_env:
         env.update(extra_env)
@@ -65,9 +74,14 @@ def sub(text, old, new, count=-1):
     return text.replace(old, new) if count < 0 else text.replace(old, new, count)
 
 
-def with_key(text, on=True):
-    text = re.sub(r"(?m)^prelanding\s*=.*\n", "", text)
-    return sub(text, "[problem]\n", "[problem]\nprelanding = true\n", 1) if on else text
+OFF = {"RELCERT_NO_PRELANDING": "1"}
+# The synthetic files and the strict demo have a HOLDING left (y' = 0): with stretch 0 on (the
+# default since 2026-10-31) the right may wait through every left cycle, so every one of their
+# claims is TRUE under Theorem 3 (a zero-duration right cycle is a run) and CERTIFIES by stutter.
+# Their pre-landing cases therefore run with stretch 0 off (RELCERT_NO_STUTTER=1), which isolates
+# the pre-landing certificate as in the opt-in era; the default run is listed separately.
+NOSTUT = {"RELCERT_NO_STUTTER": "1"}
+OFF_NOSTUT = {"RELCERT_NO_PRELANDING": "1", "RELCERT_NO_STUTTER": "1"}
 
 
 def band(text, c):
@@ -85,7 +99,6 @@ max_depth = 8
 lambda_min = 1.0
 lambda_max = 1.0
 bound_T = 40.0
-prelanding = true
 
 [Lsys]
 state_vars = [y]
@@ -130,11 +143,13 @@ def main():
     ap.add_argument("--skip-negatives", action="store_true")
     a = ap.parse_args()
     demo = open(DEMO).read()
+    for f in (DEMO, STRICT):
+        assert not re.search(r"(?m)^prelanding\s*=", open(f).read()), f"{f} carries the retired key"
     cases = []   # (name, text, expected, extra_env)
     cases.append(("engine band 0.3", demo, "CERTIFIED", None))
     cases.append(("engine band 0.29", band(demo, 0.29), "DECLINED", None))
     cases.append(("engine band 0.31", band(demo, 0.31), "CERTIFIED", None))
-    cases.append(("engine band 0.3 without the key", with_key(demo, False), "DECLINED", None))
+    cases.append(("engine band 0.3 off", demo, "DECLINED", OFF))
     cases.append(("engine band 0.3 RELCERT_NO_REPO", demo, "DECLINED", {"RELCERT_NO_REPO": "1"}))
     cases.append(("engine source strict genuine Cool (temp > 100)",
                   sub(demo, "guard = temp >= 100.0", "guard = temp > 100.0"), "DECLINED", None))
@@ -145,26 +160,37 @@ def main():
             cases.append((f"cause offset {o} band {round(o - 0.01, 2)}", band(t, round(o - 0.01, 2)),
                           "DECLINED", None))
     after = synthetic("0.0", "y >= 0.0", "y[r] <= 0.0 and y[l] <= y[l]")
-    cases.append(("adversarial fails-after (row breaks only past the threshold)", after,
-                  "CERTIFIED", None))
-    cases.append(("adversarial fails-after without the key", with_key(after, False),
-                  "DECLINED", None))
-    cases.append(("adversarial fails-before (row y_R <= 0.5, threshold 1)",
-                  synthetic("1.0", "y >= 1.0", "y[r] <= 0.5 and y[l] <= y[l]"), "DECLINED", None))
-    cases.append(("adversarial strict-target (Hold guard y > 0)",
-                  synthetic("0.0", "y > 0.0", "y[r] <= 0.0 and y[l] <= y[l]"), "DECLINED", None))
+    before = synthetic("1.0", "y >= 1.0", "y[r] <= 0.5 and y[l] <= y[l]")
+    starget = synthetic("0.0", "y > 0.0", "y[r] <= 0.0 and y[l] <= y[l]")
+    sequal = synthetic("0.0", "y >= 0.0", "y[r] < 0.0 and y[l] <= y[l]")
     strict = open(STRICT).read()
+    cases.append(("adversarial fails-after (row breaks only past the threshold), no stutter", after,
+                  "CERTIFIED", NOSTUT))
+    cases.append(("adversarial fails-after off, no stutter", after, "DECLINED", OFF_NOSTUT))
+    cases.append(("adversarial fails-before (row y_R <= 0.5, threshold 1), no stutter", before,
+                  "DECLINED", NOSTUT))
+    cases.append(("adversarial strict-target (Hold guard y > 0), no stutter", starget,
+                  "DECLINED", NOSTUT))
     cases.append(("strict demo", strict, "CERTIFIED", None))
-    cases.append(("strict demo without the key", with_key(strict, False), "DECLINED", None))
-    cases.append(("strict demo RELCERT_NO_REPO", strict, "DECLINED", {"RELCERT_NO_REPO": "1"}))
-    cases.append(("adversarial strict-equality (row y_R < 0 reaches 0 at the landing)",
-                  synthetic("0.0", "y >= 0.0", "y[r] < 0.0 and y[l] <= y[l]"), "DECLINED", None))
+    cases.append(("strict demo, no stutter", strict, "CERTIFIED", NOSTUT))
+    cases.append(("strict demo off, no stutter", strict, "DECLINED", OFF_NOSTUT))
+    cases.append(("strict demo RELCERT_NO_REPO, no stutter", strict, "DECLINED",
+                  {"RELCERT_NO_REPO": "1", "RELCERT_NO_STUTTER": "1"}))
+    cases.append(("adversarial strict-equality (row y_R < 0 reaches 0 at the landing), no stutter",
+                  sequal, "DECLINED", NOSTUT))
+    # stretch 0 on (the default): the holding left lets the right wait, every claim is true
+    for nm, t in (("fails-after", after), ("fails-before", before), ("strict-target", starget),
+                  ("strict-equality", sequal)):
+        cases.append((f"stutter: {nm} (the right waits; true claim)", t, "CERTIFIED", None))
+    cases.append(("stutter: strict demo off (the right waits; true claim)", strict, "CERTIFIED", OFF))
+    cases.append(("key: the retired key prelanding = true is refused",
+                  sub(demo, "[problem]\n", "[problem]\nprelanding = true\n", 1), "ERROR", None))
     if not a.skip_negatives:
         negs = sorted(glob.glob(os.path.join(ROOT, "benchmarks", "refute_mutants", "*", "input.txt")) +
                       glob.glob(os.path.join(ROOT, "benchmarks", "negative", "*", "input.txt")))
         for f in negs:
             name = os.path.basename(os.path.dirname(f))
-            cases.append((f"negative {name} with the key", with_key(open(f).read()), "DECLINED", None))
+            cases.append((f"negative {name} (on)", open(f).read(), "DECLINED", None))
     ok = 0
     with tempfile.TemporaryDirectory() as td:
         for i, (name, text, exp, env) in enumerate(cases):

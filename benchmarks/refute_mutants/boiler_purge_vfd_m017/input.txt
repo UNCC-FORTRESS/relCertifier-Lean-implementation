@@ -38,7 +38,7 @@
 #   FIRE: p_L <= p_R and p_R <= p_L + e_L, and 0.625 v_L <= v_R.
 #     Requirement: after light-off the retrofit never runs above the qualified pressure profile and
 #     falls short of it by at most its own transmitter offset e_L (per run; with the leg full,
-#     e_L = 0.1962 bar, the fleet-level bound). Tight on both sides: p_R <= p_L + e_L - 0.001 DECLINES
+#     e_L = 0.1962 bar, the fleet-level bound). Tight on both sides: p_R <= p_L + 0.999 e_L DECLINES
 #     and p_L <= p_R - 0.0001 (a margin below the profile) DECLINES; the fleet form
 #     p_R <= p_L + 0.1962 also certifies (0.1961 declines) and is implied by the per-run form and the
 #     offset range (batch 10 review: the per-run form is the stronger claim, measured 2026-10-30).

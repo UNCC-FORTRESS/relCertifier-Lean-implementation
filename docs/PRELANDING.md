@@ -4,6 +4,19 @@ Branch `prelanding`, 2026-10-30, from `benchmark-fixes` at `4b154c3`. Scope reco
 pre-landing scoping of 2026-10-30 (probe files under `tmp/landing-scope/` of the main checkout,
 not committed).
 
+**Status (2026-10-31, batch 12, `docs/BATCH12-2026-10-31.md`): always on.** The pre-landing
+right-only certificate is no longer an opt-in key: it is a run feature, on for every benchmark
+(`PProblem.prelanding`, default `true`, not read from the file; the key `prelanding` is retired and
+refused by the unknown-key gate), so every right-only node is a pre-landing node, recorded in the
+pre-landing record (`BenchPrelanding/<b>.lean` for every benchmark). The ablation
+`RELCERT_NO_PRELANDING=1` switches it off for a run (whole-domain right-only certificates, the
+`dynPre`/`dynPost` flags; `Oracle.withRunFeatures`); the emitted IR records the run's value
+(printed only when off), and the kernel gates `Emitted.plOK` and `Emitted.nodeStage` read it. The
+property (Theorem 3's statement) is unchanged and the certificate is sound for every benchmark
+(below), so it is not a per-benchmark option. The sections below describe the opt-in era
+(2026-10-30); read "with the key" as the default run and "without the key" as
+`RELCERT_NO_PRELANDING=1`.
+
 ## Semantics
 
 A right-only (reposition) segment of right mode `m_R` in window `m_L` (paper Definition
@@ -37,7 +50,7 @@ With the opt-in key the right-only flow certificate is checked only BEFORE the l
   keeps the invariant; at the instant the invariant holds by continuity, and the line
   `x = θ` is reached, where an exit is enabled.
 
-## Opt-in
+## Opt-in (until 2026-10-31)
 
 `[problem] prelanding = true` (default `false`; any value other than `true`/`false` is a parse
 error; `KeyAudit` recognizes the key; the IR prints `prelanding := true` only when set). With the

@@ -409,7 +409,7 @@ is narrowed only by components proven in earlier rounds, docs/history/COVER-AUDI
 `withGuardL` selects σ: pre-j domain `guardL ∧ evolveL ∧ evolveR`, post-j `evolveL ∧ evolveR`.
 * `rg = none` (default): the WHOLE domain, route A only (`UNSAT(ġ > 0 ∧ domain)`,
   `DI_nonstrict_domain`). Whole-domain, NOT boundary (`g=0 ∧ ġ≥0`): the `t²` guard.
-* `rg = some (Bo, Bc)` (opt-in `prelanding = true`, `docs/PRELANDING.md`): the PRE-LANDING region
+* `rg = some (Bo, Bc)` (the pre-landing run feature, on by default, `docs/PRELANDING.md`): the PRE-LANDING region
   of the node's progress certificate, `Bo` = before its last threshold (`x < θ`), `Bc` its
   closure (`x ≤ θ`). A non-strict component: routes A, B or C over `domain ∧ Bo` (the invariant
   at the first entry into the target follows by continuity); a strict one (`strict`, the row's
@@ -695,7 +695,8 @@ emission (`RELCERT_CHOICE_OUT`). -/
 initialize choiceLog : IO.Ref (List Choice.ChoiceEntryE) ← IO.mkRef []
 
 /-- The pre-landing nodes of the current run (per benchmark; reset by `certifyWithData`), for
-emission (`RELCERT_PRELANDING_OUT`); nonempty only under `prelanding = true`. -/
+emission (`RELCERT_PRELANDING_OUT`); empty when the run switched the pre-landing feature off
+(`RELCERT_NO_PRELANDING=1`). -/
 initialize prelandLog : IO.Ref (List Preland.PrelandNodeE) ← IO.mkRef []
 
 /-- The variables of an IR term. -/
@@ -724,8 +725,8 @@ last stage (its landing query first, then its rate on a geometric grid); failing
 helper stage on a coordinate the field reads (its keep query, its rate, then the last stage's
 rate under the helper's crossed fact). Two stages at most. `accept` (the pre-landing check,
 `checkDynRepo` on the region, which reads only the last stage): a found stage list is returned only if it
-holds, otherwise the next candidate is tried; the default accepts, so without the key the
-search is the old one. -/
+holds, otherwise the next candidate is tried; the default accepts, so with the pre-landing
+feature off (`RELCERT_NO_PRELANDING=1`) the search is the old one. -/
 def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (coord : Fin n → String) (R guardq : IForm n) (fR : Fin n → ITerm n)
     (exits : List PMode)
@@ -820,8 +821,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
   let mut dynMap : List (String × Bool × Bool) := []
   let mut dynOrders : List (String × List Nat × List Nat) := []
-  -- With `prelanding = true` the whole-domain pack is not tried: every reposition node is a
-  -- pre-landing node (below), whose pack is implied by the whole-domain one on the same strata.
+  -- With the pre-landing feature (`p.prelanding`, on unless `RELCERT_NO_PRELANDING=1`) the
+  -- whole-domain pack is not tried: every reposition node is a pre-landing node (below), whose
+  -- pack is implied by the whole-domain one on the same strata.
   for mR in p.R.modes do
     let (pre, preOrd)  ← if p.prelanding then pure (false, []) else
       checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR true
@@ -836,7 +838,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- (`RELCERT_NO_PROGRESS=1` disables it: the ablation of the right-only kind's progress)
   let progressOn := (← IO.getEnv "RELCERT_NO_PROGRESS").isNone
   let mut progMap : List (String × Bool × Bool) := []
-  -- PRE-LANDING (`prelanding = true`, `docs/PRELANDING.md`): the progress search runs first;
+  -- PRE-LANDING (the run feature `p.prelanding`, `docs/PRELANDING.md`): the progress search runs first;
   -- each candidate stage list is accepted only if the pre-landing pack holds on the half-open
   -- region before its last stage (`checkDynRepo` on the region). `(mR, pre, order)` per node found.
   let mut plMap : List (String × Bool × List Nat) := []
@@ -895,7 +897,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
   let repoDynPostOK := fun (nm : String) => !sync && !noRepo && progOK nm false &&
     ((dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false)
-  -- the pre-landing nodes (empty without the key): a NEW flag, never `dynPre`/`dynPost` (the
+  -- the pre-landing nodes (empty with the feature off): a NEW flag, never `dynPre`/`dynPost` (the
   -- emitted rows keep those for the whole-domain pack); the cover graph uses the merged rows
   let plOK := fun (nm : String) (pre : Bool) => !sync && !noRepo &&
     plMap.any (fun t => t.1 == nm && t.2.1 == pre)
@@ -913,7 +915,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       IO.eprintln s!"  [repo-prelanding] {mL.name}_L: {plMap.map (fun t => s!"{t.1}{if t.2.1 then "/pre" else "/post"}")}"
   -- PER-PAIRING STRETCH (fallback). The common pass below keeps one λ per left mode. When no
   -- common λ closes the cover, each right mode may use its own stretch: the smallest positive
-  -- candidate at which its joint segment passed, or the stutter stretch `0` (under the key) only
+  -- candidate at which its joint segment passed, or the stutter stretch `0` (the run feature
+  -- `p.stutter`, on unless `RELCERT_NO_STUTTER=1`) only
   -- if it passed at no positive one (`firstPass`, recorded during the common pass, so the
   -- fallback asks Z3 nothing new). Every joint segment is then cut to the common left span
   -- δ = εR / λmax (λmax the largest chosen stretch): a segment of mode `mR` at stretch λ_mR
@@ -942,7 +945,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       { name := m.name, jointOK := seg m.name == Seg.pass,
         dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
     -- the rows the graph is built on: the emitted rows with the pre-landing nodes merged in
-    -- (equal to `flagRows` without the key); `Emitted.withPL` is the kernel's same merge
+    -- (equal to `flagRows` with the pre-landing feature off); `Emitted.withPL` is the kernel's same merge
     let effRows : List ModeFlagsE := flagRows.map (fun f =>
       { f with dynPre := f.dynPre || plOK f.name true, dynPost := f.dynPost || plOK f.name false })
     let repoOK := fun nm => repoPreE nm || repoPostE nm
@@ -1124,9 +1127,23 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
         return (.cov, some lc)
   return ((if sawIncon then .incon else .nocov), none)
 
-/-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
+/-- **The run's feature flags** (since 2026-10-31, `docs/BATCH12-2026-10-31.md`): stretch 0
+(`stutter`, `docs/STUTTER.md`) and the pre-landing right-only certificate (`prelanding`,
+`docs/PRELANDING.md`) are ON for every benchmark; neither changes the claimed property (Theorem 3's
+statement) and both are sound for every benchmark. The ablation switches turn one off for a run:
+`RELCERT_NO_STUTTER=1`, `RELCERT_NO_PRELANDING=1`. The flags are recorded in the problem, so the
+emitted IR (`--emit-ir`) carries the run's values, which the kernel gates read (`Emitted.timeOK`,
+`Emitted.plOK`, `Emitted.nodeStage`). -/
+def withRunFeatures (p : PProblem) : IO PProblem := do
+  let noStutter := (← IO.getEnv "RELCERT_NO_STUTTER").isSome
+  let noPrelanding := (← IO.getEnv "RELCERT_NO_PRELANDING").isSome
+  return { p with stutter := !noStutter, prelanding := !noPrelanding }
+
+/-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). The problem's run
+features are set from the environment first (`withRunFeatures`). -/
 def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (p : PProblem) : IO (Outcome × Option CoverEmitE) := do
+  let p ← withRunFeatures p
   progressLog.set []
   choiceLog.set []
   prelandLog.set []
@@ -1259,17 +1276,19 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   else if covers.length != p.L.modes.length then
     return (.error s!"internal: {covers.length} cover(s) for {p.L.modes.length} left \
 mode(s) — a mode was certified without recording one", none)
-  -- GUARD (`docs/STUTTER.md`): a stretch-0 pairing (the stutter segment) is backed only for a
-  -- problem that opts in with `stutter = true` (`Emitted.timeOK` admits `lamN = 0` exactly
-  -- then); a window stretch is always positive. Defence in depth: `lambdaCandidates` never
-  -- offers `0` without the key. Strictly conservative (CERTIFIED to ERROR, never the reverse).
+  -- GUARD (`docs/STUTTER.md`): a stretch-0 pairing (the stutter segment) is backed only when
+  -- the stutter feature is enabled in this run (`p.stutter`, recorded in the emitted IR, which
+  -- `Emitted.timeOK` reads: it admits `lamN = 0` exactly then); a window stretch is always
+  -- positive. Defence in depth: `lambdaCandidates` never offers `0` with the feature off.
+  -- Strictly conservative (CERTIFIED to ERROR, never the reverse).
   else if covers.any (fun lc => lc.lamQ ≤ 0 || (!p.stutter && lc.strata.any (·.lamN == 0))) then
-    return (.error "internal: a stretch-0 pairing (or window) without `stutter = true`", none)
-  -- GUARD (`docs/PRELANDING.md`): a pre-landing right-only node is backed only for a problem
-  -- that opts in with `prelanding = true` (`Emitted.plOK` admits a nonempty record exactly
-  -- then). Defence in depth: `coverMode` finds none without the key. Strictly conservative.
+    return (.error "internal: a stretch-0 pairing (or window) with the stutter feature off", none)
+  -- GUARD (`docs/PRELANDING.md`): a pre-landing right-only node is backed only when the
+  -- pre-landing feature is enabled in this run (`p.prelanding`, recorded in the emitted IR, which
+  -- `Emitted.plOK` reads: it admits a nonempty record exactly then). Defence in depth:
+  -- `coverMode` finds none with the feature off. Strictly conservative.
   else if !p.prelanding && !(← prelandLog.get).isEmpty then
-    return (.error "internal: a pre-landing right-only node without `prelanding = true`", none)
+    return (.error "internal: a pre-landing right-only node with the pre-landing feature off", none)
   else return (.certified, some { name := p.name, pruned := prunedPairs, covers := covers })
 
 /-- Core cover (verdict only). -/

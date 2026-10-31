@@ -6,8 +6,8 @@
 # mechanisms: X (committed successor subsets: the partner run takes the secret run's acceleration
 #   at the start of every window)
 #
-# SOURCE. Liu and Zamani, "Verification of approximate opacity via barrier certificates", IEEE
-# Control Systems Letters 5(4) (2021), arXiv 2109.10993. Definition 2 (delta-approximate
+# SOURCE. Liu and Zamani, "Verification of approximate opacity via barrier certificates", Proc.
+# American Control Conference (ACC 2021), 764-769, arXiv 2109.10993. Definition 2 (delta-approximate
 # initial-state opacity: for every x0 in X0 and Xs and every finite run there are x0_hat in
 # X0 \ Xs and a run with max_i |h(x_i) - h(x_hat_i)| <= delta), assumption (2), sets (6)-(7),
 # Theorem 5; Section V-A, Eq. (17): an autonomous vehicle on a single-lane road (x1 position, x2

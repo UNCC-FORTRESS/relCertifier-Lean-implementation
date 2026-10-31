@@ -13,6 +13,7 @@ namespace RelCertifier.Choice
 def vehicle_accel_copy_coverV2_choice : RelCertifier.Choice.ChoiceEmitE :=
   ⟨"vehicle_accel_copy", [
     ⟨"Accel", "Brake", .repo, true, ["Accel"]⟩,
+    ⟨"Coast", "Brake", .repo, true, ["Coast"]⟩,
     ⟨"Brake", "Coast", .repo, true, ["Brake"]⟩]⟩
 
 end RelCertifier.Choice

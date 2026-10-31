@@ -14,6 +14,19 @@ unchanged and the feature is sound for every benchmark (below), so it is not a p
 The sections below describe the opt-in era (2026-10-29/30); read "with the key" as the default run
 and "without the key" as `RELCERT_NO_STUTTER=1`.
 
+**Status (2026-10-31, batch 13, `docs/BATCH13-2026-10-31.md`): only within the declared range.**
+Batch 12 appended `λ = 0` for every file, which bypassed each file's declared stretch range
+`[λ_min, λ_max]`, part of its stated timing tolerance (`lit_freedm_meter`, which declares `[1, 1]`
+because its source treats time as public, used stretch 0 in 8 of its 12 windows). Since batch 13
+stretch 0 is a candidate (still the last one, after every positive stretch, and per pairing in
+the fallback as before) only when the run feature is on AND the declared range includes 0, i.e.
+`lambda_min = 0` (`Run.stutterAllowed`). The positive grid is unchanged (built on the declared
+range, `0` removed). The CLI guard and the kernel gate `Emitted.timeOK` read the same predicate
+(the kernel decides it on the IR's `lambdaMin`); a bridge instance's `stutter_on` states
+`Run.stutterAllowed IR = true`. `RELCERT_NO_STUTTER=1` stays the ablation switch. The suite file
+`lit_nahs25_salt_tank` and the demo declare `[0, 1]` (the source's distance is time-abstract);
+every other file declares `λ_min > 0` and never tries stretch 0.
+
 ## Semantics
 
 A joint segment of a left mode `m_L` with a right mode `m_R` at stretch `λ` runs the product
@@ -121,7 +134,7 @@ Kernel: `scripts/gen_stutter_demo.py` emits the demo's leaves and the bridge ins
 salt tank); `lake env lean scripts/stutter_demo_verdicts.lean` discharges its query groups.
 
 Measured: the instance kernel-checks (`lake build RelCertifier.InstancesV2.Bridge.SaltTankStutter`,
-no `sorry`); `stutter_on` (`IR.stutter = true`) and `uses_stutter` (a pairing with `lamN = 0`)
+no `sorry`); `stutter_on` (`IR.stutter = true`; since batch 13 `Run.stutterAllowed IR = true`) and `uses_stutter` (a pairing with `lamN = 0`)
 are decided in the kernel; `[stutter demo] 54/54 groups, ALL DISCHARGED`. So
 `salt_tank_stutter_bridge_run` gives Theorem 3 at band 0 end to end; its axioms are
 `[propext, Classical.choice, Quot.sound, RelCertifier.z3_unsat_sound]`, as every bridge instance.

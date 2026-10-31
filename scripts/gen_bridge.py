@@ -19,8 +19,8 @@ is on for every benchmark since 2026-10-31, so every right-only node is a pre-la
 the pre-landing instance (`PL_TEMPLATE`): the structural bundles on the cover merged with its
 pre-landing record (`withPL`), the data gate `plOK`, Theorem 3 over the emitted cover
 (`theorem3_window_of_records_pl`, or `theorem3_keyed_of_records_pl` for per-mode rows). A cover
-with a stretch-0 pairing (the stutter feature, also always on) gets `stutter_on` and
-`uses_stutter`, decided in the kernel.
+with a stretch-0 pairing (the stutter feature: on, for a file whose declared stretch range
+includes 0) gets `stutter_on` and `uses_stutter`, decided in the kernel.
 
 Usage: python3 scripts/gen_bridge.py [bench ...]   (default: all of benchmarks/suite_v2)
 """
@@ -287,9 +287,10 @@ def uses_stutter(b):
 # by `repoProgress_one_down`, a two-stage certificate must be upward in both stages)
 SKIP = set()
 
-STUTTER_THMS = """/-- The run had the stutter feature on (`stutter = true`, the default), and its cover really
-uses a stretch-0 pairing (decided in the kernel). -/
-theorem stutter_on : IR.stutter = true := by decide +kernel
+STUTTER_THMS = """/-- Stretch 0 is admitted for this file: the run had the stutter feature on (`stutter = true`,
+the default) and the declared stretch range includes `0` (`lambda_min = 0`; `Run.stutterAllowed`,
+batch 13), and its cover really uses a stretch-0 pairing (decided in the kernel). -/
+theorem stutter_on : RelCertifier.Run.stutterAllowed IR = true := by decide +kernel
 theorem uses_stutter : (cov.covers.any fun lc => lc.strata.any (·.lamN == 0)) = true := by
   decide +kernel
 """

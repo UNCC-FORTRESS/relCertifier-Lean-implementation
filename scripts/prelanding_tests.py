@@ -19,8 +19,10 @@ RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a s
              temp <= 100 + o): band o CERTIFIED, band o - 0.01 DECLINED (o > 0); the tight band
              tracks the attack offset, and o = 0 is exact (band 0)
   adversarial synthetic (a frozen left, a right that climbs in Up and holds in Hold), with
-             stretch 0 off (RELCERT_NO_STUTTER=1; with it on the right may wait and every claim
-             below is true and CERTIFIED, listed as `stutter` cases):
+             stretch 0 off (RELCERT_NO_STUTTER=1; with it on and the declared range widened to
+             [0, 1] the right may wait and every claim below is true and CERTIFIED, listed as
+             `stutter` cases; the default run on their declared [1, 1] never tries stretch 0,
+             batch 13, listed as `default` cases):
              fails-after: the row y_R <= 0 breaks only after the landing threshold y = 0
              (CERTIFIED on, DECLINED off);
              fails-before: the row y_R <= 0.5 against the landing threshold y = 1 breaks before
@@ -75,11 +77,12 @@ def sub(text, old, new, count=-1):
 
 
 OFF = {"RELCERT_NO_PRELANDING": "1"}
-# The synthetic files and the strict demo have a HOLDING left (y' = 0): with stretch 0 on (the
-# default since 2026-10-31) the right may wait through every left cycle, so every one of their
-# claims is TRUE under Theorem 3 (a zero-duration right cycle is a run) and CERTIFIES by stutter.
-# Their pre-landing cases therefore run with stretch 0 off (RELCERT_NO_STUTTER=1), which isolates
-# the pre-landing certificate as in the opt-in era; the default run is listed separately.
+# The synthetic files and the strict demo have a HOLDING left (y' = 0): with stretch 0 a candidate
+# the right may wait through every left cycle, so every one of their claims is TRUE under
+# Theorem 3 (a zero-duration right cycle is a run) and CERTIFIES by stutter. They declare the range
+# [1, 1], so since batch 13 (stretch 0 only for a declared range including 0) the default run does
+# not try stretch 0; their pre-landing cases still run with RELCERT_NO_STUTTER=1 as well, which
+# isolates the pre-landing certificate whatever the range; the stutter cases widen it to [0, 1].
 NOSTUT = {"RELCERT_NO_STUTTER": "1"}
 OFF_NOSTUT = {"RELCERT_NO_PRELANDING": "1", "RELCERT_NO_STUTTER": "1"}
 
@@ -178,11 +181,23 @@ def main():
                   {"RELCERT_NO_REPO": "1", "RELCERT_NO_STUTTER": "1"}))
     cases.append(("adversarial strict-equality (row y_R < 0 reaches 0 at the landing), no stutter",
                   sequal, "DECLINED", NOSTUT))
-    # stretch 0 on (the default): the holding left lets the right wait, every claim is true
+    # the default run on the declared range [1, 1] (batch 13: stretch 0 is a candidate only when
+    # the declared range includes 0): the verdicts of the runs without stretch 0
+    cases.append(("default fails-after (range [1,1])", after, "CERTIFIED", None))
+    cases.append(("default fails-after off (range [1,1])", after, "DECLINED", OFF))
+    cases.append(("default fails-before (range [1,1])", before, "DECLINED", None))
+    cases.append(("default strict-target (range [1,1])", starget, "DECLINED", None))
+    cases.append(("default strict-equality (range [1,1])", sequal, "DECLINED", None))
+    cases.append(("default strict demo off (range [1,1])", strict, "DECLINED", OFF))
+    # stretch 0 on and the declared range [0, 1]: the holding left lets the right wait, every
+    # claim is true
+    lam0 = lambda t: sub(t, "lambda_min = 1.0", "lambda_min = 0.0")
     for nm, t in (("fails-after", after), ("fails-before", before), ("strict-target", starget),
                   ("strict-equality", sequal)):
-        cases.append((f"stutter: {nm} (the right waits; true claim)", t, "CERTIFIED", None))
-    cases.append(("stutter: strict demo off (the right waits; true claim)", strict, "CERTIFIED", OFF))
+        cases.append((f"stutter: {nm}, range [0,1] (the right waits; true claim)", lam0(t),
+                      "CERTIFIED", None))
+    cases.append(("stutter: strict demo off, range [0,1] (the right waits; true claim)", lam0(strict),
+                  "CERTIFIED", OFF))
     cases.append(("key: the retired key prelanding = true is refused",
                   sub(demo, "[problem]\n", "[problem]\nprelanding = true\n", 1), "ERROR", None))
     if not a.skip_negatives:

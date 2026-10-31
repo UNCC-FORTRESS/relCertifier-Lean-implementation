@@ -181,9 +181,9 @@ def routeQueries {n : ℕ} (domain : IForm n) (g gdot : ITerm n) : List (IForm n
 /-- λ candidates: `εR/εL` (the largest λ at which one right segment spans the left
 residence) and the 21-point grid `λmin + i·(λmax − λmin)/20`, kept inside
 `[λmin, λmax]`, duplicates removed. The stretch `0` (the stutter segment: the right waits while
-the left runs, `docs/STUTTER.md`) is never taken from the grid; with `stutter` (the run feature
-`PProblem.stutter`, on unless `RELCERT_NO_STUTTER=1`) it is appended as the LAST candidate, so a
-file that closes at some `λ > 0` keeps that cover. -/
+the left runs, `docs/STUTTER.md`) is never taken from the grid; with `stutter` (the caller passes
+`stutterAllowed p`: the run feature on and the declared range including `0`) it is appended as
+the LAST candidate, so a file that closes at some `λ > 0` keeps that cover. -/
 def lambdaCandidates (lmin lmax epsL epsR : ℚ) (stutter : Bool := false) : List ℚ :=
   let cover := if epsL == 0 then lmax else epsR / epsL
   let step := (lmax - lmin) / 20
@@ -192,6 +192,16 @@ def lambdaCandidates (lmin lmax epsL epsR : ℚ) (stutter : Bool := false) : Lis
     (fun l => if lmin ≤ l ∧ l ≤ lmax then some l else none) |>.eraseDups
   let pos := grid.filter (· != 0)
   if stutter then pos ++ [0] else pos
+
+/-- **Stretch 0 is a candidate for `p`** (since 2026-10-31, batch 13,
+`docs/BATCH13-2026-10-31.md`): the run feature is on (`PProblem.stutter`, off only under the
+ablation `RELCERT_NO_STUTTER=1`) AND the file's declared stretch range includes `0`, i.e.
+`lambda_min = 0`. The declared range `[λmin, λmax]` is part of the file's stated timing tolerance,
+so a file declaring `λmin > 0` (time matched at a positive rate) never gets a waiting right. Read
+by the candidate list, the CLI guard and the kernel gate `Emitted.timeOK` (decided there on the
+IR's `lambdaMin` string). -/
+def stutterAllowed (p : PProblem) : Bool :=
+  p.stutter && (parseRat p.lambdaMin).getD 1 == 0
 
 /-- The window stretch of a candidate `λ` and its left span `δ`: `(λ, εR/λ)` for `λ > 0`; for
 the stutter stretch `λ = 0` the window is `εR/εL` with span `δ = εL` (one segment covers the

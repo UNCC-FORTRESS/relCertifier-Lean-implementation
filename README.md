@@ -416,15 +416,17 @@ measurements:
 
 | switch | effect |
 |---|---|
-| `RELCERT_NO_STUTTER=1` | no stretch `λ = 0` (by default appended as the last candidate: a joint segment in which the right waits while the left runs; `docs/STUTTER.md`) |
+| `RELCERT_NO_STUTTER=1` | no stretch `λ = 0` (by default appended as the last candidate for a file whose declared range includes 0, `lambda_min = 0`, since batch 13: a joint segment in which the right waits while the left runs; `docs/STUTTER.md`) |
 | `RELCERT_NO_PRELANDING=1` | right-only (reposition) nodes need the whole-domain right-only certificate (by default the pre-landing one: the flow certificate only on the half-open region before the progress certificate's last threshold, routes A/B/C, strict components on the closed region, the witness right run stopped at its first entry into the closed target; `docs/PRELANDING.md`) |
 
 The run's feature flags are recorded in the problem (`PProblem.stutter` / `prelanding`, default
 `true`, set by `Oracle.withRunFeatures`), so the emitted IR carries them (printed only when off) and
-the kernel gates read them: `Emitted.timeOK` admits a stretch-0 pairing, and `Emitted.plOK` /
-`Emitted.nodeStage` a pre-landing record and region, exactly when the IR records the feature as on.
-The CLI guards are the same test (a stretch-0 pairing or a pre-landing node with its feature off is
-an ERROR). Pre-landing nodes are emitted in their own record (`RELCERT_PRELANDING_OUT`), never as
+the kernel gates read them: `Emitted.timeOK` admits a stretch-0 pairing exactly when the IR records
+the feature as on and declares `lambdaMin = 0` (`Run.stutterAllowed`; since batch 13,
+`docs/BATCH13-2026-10-31.md`: the declared stretch range is part of the file's timing tolerance),
+and `Emitted.plOK` / `Emitted.nodeStage` a pre-landing record and region exactly when the IR
+records that feature as on. The CLI guards are the same test (a stretch-0 pairing without
+`Run.stutterAllowed`, or a pre-landing node with its feature off, is an ERROR). Pre-landing nodes are emitted in their own record (`RELCERT_PRELANDING_OUT`), never as
 `dynPre`/`dynPost` flags; every bridge instance with right-only nodes is over the cover merged with
 it (`withPL`, `theorem3_window_of_records_pl` / `theorem3_keyed_of_records_pl`).
 

@@ -26,9 +26,12 @@
 # exactly: On (r = 10) is possible when some reading in [xp - 3, xp + 3] is >= 25, i.e. xp >= 22;
 # Off (r = 0) when some reading is < 25, i.e. xp < 28. Genuine: On iff xp >= 25, Off iff
 # xp < 25. Flows On xp' = 0.1 (25 - xp) (the source's 10/4 - 10 xp/100, written in set-point
-# form), Off xp' = 0. Stretch 1 (lambda_min = lambda_max = 1) plus stretch 0 (on for every
-# benchmark since 2026-10-31, docs/STUTTER.md): a joint segment at stretch 0 runs the attacked period
-# while the genuine tank takes a zero-duration cycle (it waits).
+# form), Off xp' = 0. Declared stretch range [0, 1] (lambda_min = 0, lambda_max = 1; since
+# 2026-10-31, batch 13): the source's distance (NAHS 2025 Def. 8) is time-abstract, a set distance
+# between reachable sets, so the declared timing tolerance admits waiting. Stretch 0 is a candidate
+# only for a file whose declared range includes 0 (docs/STUTTER.md): a joint segment at stretch 0
+# runs the attacked period while the genuine tank takes a zero-duration cycle (it waits). The
+# positive stretches of the range are tried first; the cover uses stretch 1 and stretch 0 only.
 #
 # CLAIM (both left modes): xp_L = xp_R (two rows, xp_L <= xp_R + 0 and xp_R <= xp_L + 0),
 # xp_L >= 25 and xp_R >= 25. The band 0 is the source's Def. 8 distance on H = {xp}; the lower
@@ -106,7 +109,7 @@
 [problem]
 name = lit_nahs25_salt_tank
 max_depth = 8
-lambda_min = 1.0
+lambda_min = 0.0
 lambda_max = 1.0
 bound_T = 40.0
 

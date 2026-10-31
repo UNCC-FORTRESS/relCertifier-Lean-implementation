@@ -981,7 +981,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       repoEnd := fun nm pre => IForm.and (leftFacts pre) (rightFacts nm)
       startReg := fun nm pre => IForm.and (IForm.and (leftFacts pre) (rightFacts nm))
         ((modeOf nm).map (fun m => lowR m.guard) |>.getD IForm.tt) } : ChoiceCtx n)
-  for lam in (if sync then [(1 : ℚ)] else lambdaCandidates lmin lmax epsL epsR p.stutter) do
+  for lam in (if sync then [(1 : ℚ)] else lambdaCandidates lmin lmax epsL epsR (stutterAllowed p)) do
     -- `winLam`: the window stretch (`lamQ`); `lam` itself is every pairing's stretch here, `0`
     -- only for the stutter candidate (`windowOf`, `docs/STUTTER.md`)
     let (winLam, deltaL) := windowOf lam epsL epsR
@@ -1277,12 +1277,14 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
     return (.error s!"internal: {covers.length} cover(s) for {p.L.modes.length} left \
 mode(s) — a mode was certified without recording one", none)
   -- GUARD (`docs/STUTTER.md`): a stretch-0 pairing (the stutter segment) is backed only when
-  -- the stutter feature is enabled in this run (`p.stutter`, recorded in the emitted IR, which
+  -- the stutter feature is enabled in this run (`p.stutter`, recorded in the emitted IR) AND the
+  -- file's declared stretch range includes `0` (`lambda_min = 0`; `Run.stutterAllowed`, which
   -- `Emitted.timeOK` reads: it admits `lamN = 0` exactly then); a window stretch is always
-  -- positive. Defence in depth: `lambdaCandidates` never offers `0` with the feature off.
+  -- positive. Defence in depth: `lambdaCandidates` never offers `0` otherwise.
   -- Strictly conservative (CERTIFIED to ERROR, never the reverse).
-  else if covers.any (fun lc => lc.lamQ ≤ 0 || (!p.stutter && lc.strata.any (·.lamN == 0))) then
-    return (.error "internal: a stretch-0 pairing (or window) with the stutter feature off", none)
+  else if covers.any (fun lc => lc.lamQ ≤ 0 || (!stutterAllowed p && lc.strata.any (·.lamN == 0))) then
+    return (.error "internal: a stretch-0 pairing (or window) without the stutter feature on \
+and a declared range including 0", none)
   -- GUARD (`docs/PRELANDING.md`): a pre-landing right-only node is backed only when the
   -- pre-landing feature is enabled in this run (`p.prelanding`, recorded in the emitted IR, which
   -- `Emitted.plOK` reads: it admits a nonempty record exactly then). Defence in depth:

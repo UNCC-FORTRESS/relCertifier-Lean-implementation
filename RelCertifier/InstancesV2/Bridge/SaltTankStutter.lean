@@ -7,7 +7,7 @@ Released under Apache 2.0 license.
 
 The attacked Off's pairings are stretch-0 (stutter) segments: the
 record's `lamN = 0`, admitted by `timeOK` because the IR records the stutter feature
-(`stutter = true`, the default).
+(`stutter = true`, the default) and the file declares `lambda_min = 0` (`Run.stutterAllowed`).
 
 The pre-landing certificate is on (`docs/PRELANDING.md`, always on since 2026-10-31; the IR
 records it, `prelanding = true`): the cover's right-only
@@ -55,9 +55,10 @@ theorem prog_ok : progOK IR 4 covM prog = true := by decide +kernel
 theorem covers_ok : coversOK IR 4 covM ce = true := by decide +kernel
 theorem pad_ok : padOK IR 3 = true := by decide +kernel
 theorem rows_same : rowsSame IR = true := by decide +kernel
-/-- The run had the stutter feature on (`stutter = true`, the default), and its cover really
-uses a stretch-0 pairing (decided in the kernel). -/
-theorem stutter_on : IR.stutter = true := by decide +kernel
+/-- Stretch 0 is admitted for this file: the run had the stutter feature on (`stutter = true`,
+the default) and the declared stretch range includes `0` (`lambda_min = 0`; `Run.stutterAllowed`,
+batch 13), and its cover really uses a stretch-0 pairing (decided in the kernel). -/
+theorem stutter_on : RelCertifier.Run.stutterAllowed IR = true := by decide +kernel
 theorem uses_stutter : (cov.covers.any fun lc => lc.strata.any (·.lamN == 0)) = true := by
   decide +kernel
 /-- Assumption 1 holds unconditionally: the region is `⊤`. -/

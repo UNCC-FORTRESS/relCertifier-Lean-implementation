@@ -14,14 +14,20 @@ appendix table: name, family, dimensions, modes, invariant kind, letters, time).
 
 Letters (the paper's legend), every one measured, never read off a header:
   S stretching       the certificate needs a stretch other than 1, a positive one or 0 (stutter:
-                     the right waits while the left runs a joint segment, docs/STUTTER.md; on for
-                     every benchmark since 2026-10-31; 2026-10-30 the former letter W is folded
+                     the right waits while the left runs a joint segment, docs/STUTTER.md; a
+                     candidate for a file whose declared range includes 0 since batch 13 of
+                     2026-10-31; 2026-10-30 the former letter W is folded
                      into S, as lambda = 0 is a special case of stretching). Credited when some
                      pairing of the cover runs at a stretch other than 1 (0 included) and
                      RELCERT_SYNC=1 (lambda = 1 only, which disables every other stretch, 0
                      included) DECLINES (2026-10-31; until then a stutter pairing was credited by
                      the file without the opt-in key, and a mixed file needed the lambda = 1 file
-                     with the key kept to decline too).
+                     with the key kept to decline too). USED: some pairing at a stretch other
+                     than 1, 0 included, read off the replayed covers; since batch 13 the covers
+                     Lean wraps over several lines are parsed too (`suite_v2_matrix.unwrap_cover`;
+                     before, lit_freedm_meter and lit_csf21_vehicle_bus parsed to no windows, so
+                     their stretch-0 pairings, right-only nodes and multi-step covers were not
+                     credited).
                      (diagnostics: S_lam1, the file with lambda_min = lambda_max = 1 under
                      RELCERT_NO_STUTTER=1, right-only segments still allowed, DECLINES;
                      S_nostutter_verdict, the file under RELCERT_NO_STUTTER=1)

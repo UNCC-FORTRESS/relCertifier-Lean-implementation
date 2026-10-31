@@ -40,7 +40,8 @@ TITLE = "# `{b}` (suite_v2) through the generic bridge (GENERATED — `scripts/g
 DEMO_TITLE = ("# `{b}` (stutter_demo) through the generic bridge (GENERATED —\n"
               "`scripts/gen_stutter_demo.py`)\n\nThe attacked Off's pairings are stretch-0 (stutter) "
               "segments: the\nrecord's `lamN = 0`, admitted by `timeOK` because the IR records the "
-              "stutter feature\n(`stutter = true`, the default).")
+              "stutter feature\n(`stutter = true`, the default) and the file declares `lambda_min = 0` "
+              "(`Run.stutterAllowed`).")
 for t in ("TEMPLATE", "PL_TEMPLATE"):
     assert TITLE in getattr(G, t), t
     setattr(G, t, getattr(G, t).replace(TITLE, DEMO_TITLE))

@@ -49,11 +49,6 @@ theorem prog_ok : progOK IR 3 covM prog = true := by decide +kernel
 theorem covers_ok : coversOK IR 3 covM ce = true := by decide +kernel
 theorem pad_ok : padOK IR 2 = true := by decide +kernel
 theorem rows_same : rowsSame IR = true := by decide +kernel
-/-- The run had the stutter feature on (`stutter = true`, the default), and its cover really
-uses a stretch-0 pairing (decided in the kernel). -/
-theorem stutter_on : IR.stutter = true := by decide +kernel
-theorem uses_stutter : (cov.covers.any fun lc => lc.strata.any (·.lamN == 0)) = true := by
-  decide +kernel
 theorem nR_eq : nR IR = ChoiceVehicleAccelCopy.Gr.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR ChoiceVehicleAccelCopy.Gr = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR ChoiceVehicleAccelCopy.Gr = true := by decide +kernel

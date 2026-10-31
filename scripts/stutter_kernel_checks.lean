@@ -5,7 +5,9 @@
   `[propext, Classical.choice, Quot.sound, RelCertifier.z3_unsat_sound]` each;
 * kernel negatives: the same IR with the key off (`stutter := false`) and the same cover
   (stretch-0 pairings) FAILS the structural gate `structOK` (`timeOK`), so no bridge instance of a
-  file without the key can accept a stretch-0 pairing. A green run prints only the six axiom lines. -/
+  file without the key can accept a stretch-0 pairing; since batch 13 the same holds for the IR
+  with the feature on and a declared range excluding 0 (`lambdaMin := "1.0"`). A green run prints
+  only the six axiom lines. -/
 import RelCertifier.InstancesV2.Bridge.SaltTankStutter
 import RelCertifier.InstancesV2.Bridge.LitNahs25SaltTank
 import RelCertifier.InstancesV2.Bridge.RoverLadder6to8
@@ -24,5 +26,15 @@ example : structOK { RelCertifier.Bridge.SaltTankStutter.IR with stutter := fals
   decide +kernel
 open RelCertifier RelCertifier.Emitted in
 example : structOK { RelCertifier.Bridge.LitNahs25SaltTank.IR with stutter := false } 4
+    RelCertifier.Bridge.LitNahs25SaltTank.cov RelCertifier.Bridge.LitNahs25SaltTank.cX = false := by
+  decide +kernel
+-- kernel negatives (batch 13, docs/BATCH13-2026-10-31.md): the same IR with the feature on but a
+-- declared range that excludes 0 (`lambdaMin := "1.0"`) must fail the structural gate as well
+open RelCertifier RelCertifier.Emitted in
+example : structOK { RelCertifier.Bridge.SaltTankStutter.IR with lambdaMin := "1.0" } 4
+    RelCertifier.Bridge.SaltTankStutter.cov RelCertifier.Bridge.SaltTankStutter.cX = false := by
+  decide +kernel
+open RelCertifier RelCertifier.Emitted in
+example : structOK { RelCertifier.Bridge.LitNahs25SaltTank.IR with lambdaMin := "1.0" } 4
     RelCertifier.Bridge.LitNahs25SaltTank.cov RelCertifier.Bridge.LitNahs25SaltTank.cX = false := by
   decide +kernel

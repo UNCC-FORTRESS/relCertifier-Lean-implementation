@@ -14,7 +14,7 @@ namespace RelCertifier.Parse
 def lit_nahs25_salt_tank_IRv2 : PProblem :=
   {
     name := "lit_nahs25_salt_tank"
-    lambdaMin := "1.0"
+    lambdaMin := "0.0"
     lambdaMax := "1.0"
     L := {
       stateVars := ["xp"]

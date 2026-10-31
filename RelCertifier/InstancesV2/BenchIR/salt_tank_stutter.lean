@@ -14,7 +14,7 @@ namespace RelCertifier.Parse
 def salt_tank_stutter_IRv2 : PProblem :=
   {
     name := "salt_tank_stutter"
-    lambdaMin := "1.0"
+    lambdaMin := "0.0"
     lambdaMax := "1.0"
     L := {
       stateVars := ["xp"]

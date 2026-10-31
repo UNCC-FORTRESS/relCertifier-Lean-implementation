@@ -3,8 +3,9 @@
 # benchmarks/suite_v2/lit_nahs25_salt_tank (the attacked brine tank against the genuine one,
 # Xiang, Lanotte, Tini, Chong, Merro, NAHS 2025) at the band 0 (xp_L = xp_R, with both lower
 # bounds); since 2026-10-29 the suite file is this file under another name. Stretch 0 was the
-# opt-in key `stutter = true` until 2026-10-31 and is now on for every benchmark (the ablation
-# RELCERT_NO_STUTTER=1 switches it off).
+# opt-in key `stutter = true` until 2026-10-31, then on for every benchmark, and since batch 13
+# (2026-10-31) a candidate for a file whose declared stretch range includes 0: this file declares
+# [0, 1] (lambda_min = 0), as the suite file (the ablation RELCERT_NO_STUTTER=1 switches it off).
 #
 # With stretch 0 the stretch candidates end with lambda = 0, the joint segment in which the
 # genuine tank (right) waits while the attacked tank (left) runs. The attacked Off holds its
@@ -19,7 +20,7 @@
 [problem]
 name = salt_tank_stutter
 max_depth = 8
-lambda_min = 1.0
+lambda_min = 0.0
 lambda_max = 1.0
 bound_T = 40.0
 

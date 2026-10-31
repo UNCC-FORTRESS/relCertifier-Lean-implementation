@@ -320,10 +320,28 @@ def verdict_of(stdout):
         return ("UNKNOWN", None, stdout.strip()[-200:])
     return (m.group(2), int(m.group(3)) if m.group(3) else None, m.group(4).strip())
 
+def unwrap_cover(text):
+    """The emitted literal with Lean's line wrapping undone: every indented line that does not start
+    a window (`    ⟨"<mL>", (`) or the cover header (`  ⟨"`) is joined to the previous one (lines
+    at column 0, such as `def`, `end` and comments, stay as they are). The
+    pretty-printer wraps a window wider than its line width (lit_freedm_meter's 12 x 12 windows,
+    lit_csf21_vehicle_bus), and the per-window pattern below is line-anchored: until 2026-10-31
+    (batch 13) such a cover parsed to NO windows, so every cover-derived cell and used letter of
+    those files was empty (a silent pass: their S, R, M, B used were never read)."""
+    out = []
+    for line in text.split("\n"):
+        if (not out or not line[:1].isspace() or re.match(r'    ⟨"\w+", \(', line)
+                or re.match(r'  ⟨"', line)):
+            out.append(line)
+        else:
+            out[-1] = out[-1].rstrip() + " " + line.lstrip()
+    return "\n".join(out)
+
 def parse_cover(text):
     """Parse the `--emit-cover` literal. Returns (pruned, covers) or None."""
     if "CoverEmitE" not in text:
         return None
+    text = unwrap_cover(text)
     name_m = re.search(r'⟨"([^"]+)", \[(.*?)\], \[\s*$', text, re.M)
     pruned = []
     pm = re.search(r'CoverEmitE :=\s*⟨"[^"]+", \[(.*?)\], \[', text, re.S)
@@ -518,6 +536,7 @@ def parse_preland(text):
     """The `PrelandEmitE` literal the tool writes to RELCERT_PRELANDING_OUT (docs/PRELANDING.md; the
     pre-landing certificate is on for every benchmark since 2026-10-31): one (mL, mR, pre) per
     pre-landing right-only node."""
+    text = re.sub(r"\s*\n\s*", " ", text)   # Lean's line wrapping undone (as `unwrap_cover`)
     return [(m.group(1), m.group(2), m.group(3) == "true")
             for m in re.finditer(r'⟨"(\w+)", "(\w+)", (true|false), \[[^\]]*\]⟩', text)]
 

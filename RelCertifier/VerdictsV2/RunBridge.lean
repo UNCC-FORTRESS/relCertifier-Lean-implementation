@@ -92,8 +92,9 @@ the cover merged with its pre-landing record) in for `fuelcell_chp_dos` and `rov
 right-only node a pre-landing node (its pack on its region, routes A/B/C per component), the
 progress certificates of `lit_drl_lane_control` and `lit_freedm_meter` now sent (they were left out
 of `progressTableV2`), every benchmark's groups built on its cover merged with its pre-landing
-record). -/
-def expectedBridgeGroupsV2 : Nat := 13132
+record); 13089 since batch 13 of 2026-10-31: stretch 0 only for a declared range including 0, so
+`lit_freedm_meter` (declared [1, 1]) is certified at stretch 1 in every window). -/
+def expectedBridgeGroupsV2 : Nat := 13089
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

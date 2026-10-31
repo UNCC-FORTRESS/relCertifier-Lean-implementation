@@ -61,10 +61,11 @@ def derive(b):
     pruned, covers = M.parse_cover(covtxt)
     pl = M.parse_preland(pltxt)
     plorder = {(m.group(1), m.group(2), m.group(3) == "true"): eval(m.group(4))
-               for m in re.finditer(r'⟨"(\w+)", "(\w+)", (true|false), (\[[^\]]*\])⟩', pltxt)}
+               for m in re.finditer(r'⟨"(\w+)", "(\w+)", (true|false), (\[[^\]]*\])⟩',
+                                    re.sub(r"\s*\n\s*", " ", pltxt))}
     M.merge_preland(covers, pl)
     entries = M.parse_choice(chtxt)
-    st = strata(covtxt)
+    st = strata(M.unwrap_cover(covtxt))   # Lean's line wrapping undone (batch 13)
     succ = {m: prob["R"]["modes"][m]["next"] for m in prob["R"]["order"]}
     Lord, Rord = prob["L"]["order"], prob["R"]["order"]
     joint, dyn = set(), set()
@@ -151,7 +152,7 @@ def main():
         if out:
             out[-1] = out[-1].rstrip(",")
         i = src.index("def dynPacksV2 : List DynPackV2 :=")
-        j = src.index("/-- Declared: the number of component queries the reposition packs owe. -/")
+        j = src.index("/-- Declared: the number of component groups the reposition packs owe")
         body = ("def dynPacksV2 : List DynPackV2 :=\n  [\n" + "\n".join(out) + " ]\n\n")
         src = src[:i] + body + src[j:]
         open(RUNV2, "w").write(src)

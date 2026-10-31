@@ -243,6 +243,8 @@ the paper numbers stay those of the key-off suite.
 
 ## Paper (draft wording; the paper repository is not edited)
 
+> **Superseded (2026-10-30).** The paper does not use `\preLand` / `\flowCrop`. It states Lemma 4 (Proving Right-Only Segments) with the ordinary right-only flow certificate for the restricted mode `\modeRestr{\modesymR}{\lnot\landTarget{\modesymR}}`, rendered m_R|¬tgt(m_R), where m|ψ is m with ψ conjoined to its evolution domain (defined at its first use, the mode-facts sentence of Section 4; mode facts use the same notation, m|I(m)). The draft below is kept for history.
+
 New macros, next to the progress-certificate family of `mymacros.sty` (Section 4.2):
 
 ```latex

@@ -11,7 +11,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 113,
+   "ms": 91,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -66,7 +66,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -79,11 +81,11 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "I X",
-   "ms": 121,
+   "mech": "I",
+   "ms": 161,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
-   "nochoice": "DECLINED",
+   "nochoice": "CERTIFIED",
    "noprune": "CERTIFIED",
    "norepo": "CERTIFIED",
    "nocut": "DECLINED",
@@ -101,7 +103,7 @@
     "P": false,
     "D": false,
     "I": true,
-    "X": true
+    "X": false
    },
    "needed": {
     "S": false,
@@ -111,24 +113,24 @@
     "P": false,
     "D": false,
     "I": true,
-    "X": true
+    "X": false
    },
    "used": {
     "S": false,
     "M": true,
-    "R": false,
+    "R": true,
     "B": true,
     "P": false,
     "D": false,
     "I": true,
-    "X": true
+    "X": false
    },
    "group": "Automotive",
-   "mech_used": "M B I X",
+   "mech_used": "M R B I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -136,7 +138,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -150,7 +154,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 53,
+   "ms": 37,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -205,7 +209,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -219,7 +225,7 @@
    "inv_shape": "conjunctive+linear",
    "dyn": "linear",
    "mech": "S D I",
-   "ms": 562,
+   "ms": 553,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -281,7 +287,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -295,7 +303,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 897,
+   "ms": 1111,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -358,7 +366,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -372,7 +382,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S R D",
-   "ms": 1346,
+   "ms": 1570,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -426,17 +436,19 @@
     "D_rows": true,
     "uniform_rows": {
      "HEAT/EQUIL": "DECLINED",
-     "EXPOSE/EXHAUST": "DECLINED"
+     "EXPOSE/EXHAUST": "CERTIFIED"
     },
     "uniform_keeps_all": {
      "HEAT/EQUIL": true,
      "EXPOSE/EXHAUST": false
     },
-    "D_strict": true,
+    "D_strict": false,
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -450,7 +462,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D",
-   "ms": 191,
+   "ms": 204,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -512,7 +524,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -526,7 +540,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S I",
-   "ms": 516,
+   "ms": 569,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -582,7 +596,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -596,7 +612,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 297,
+   "ms": 497,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -633,7 +649,7 @@
    "used": {
     "S": false,
     "M": false,
-    "R": false,
+    "R": true,
     "B": false,
     "P": false,
     "D": false,
@@ -641,11 +657,11 @@
     "X": true
    },
    "group": "Infrastructure",
-   "mech_used": "I X",
+   "mech_used": "R I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -653,7 +669,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -666,8 +684,8 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "R D",
-   "ms": 980,
+   "mech": "R",
+   "ms": 1444,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -688,7 +706,7 @@
     "R": true,
     "B": false,
     "P": false,
-    "D": true,
+    "D": false,
     "I": false,
     "X": false
    },
@@ -698,7 +716,7 @@
     "R": true,
     "B": false,
     "P": false,
-    "D": true,
+    "D": false,
     "I": false,
     "X": false
    },
@@ -720,18 +738,20 @@
     "R_cover": true,
     "D_rows": true,
     "uniform_rows": {
-     "LIFT": "DECLINED",
-     "UP/APP/STOP": "DECLINED"
+     "LIFT": "CERTIFIED",
+     "UP/APP/STOP": "CERTIFIED"
     },
     "uniform_keeps_all": {
      "LIFT": true,
      "UP/APP/STOP": false
     },
-    "D_strict": true,
+    "D_strict": false,
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -745,7 +765,7 @@
    "inv_shape": "conjunctive+linear",
    "dyn": "linear",
    "mech": "R D I",
-   "ms": 774,
+   "ms": 1000,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -813,7 +833,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -827,7 +849,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "P I",
-   "ms": 821,
+   "ms": 8699,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -885,7 +907,9 @@
     "P_noprune_declines": true,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -899,7 +923,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "S",
-   "ms": 246,
+   "ms": 265,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -955,7 +979,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -969,7 +995,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S I",
-   "ms": 1117,
+   "ms": 1352,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1026,7 +1052,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1040,7 +1068,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 1250,
+   "ms": 1263,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1097,7 +1125,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1111,14 +1141,14 @@
    "inv_shape": "linear",
    "dyn": "linear",
    "mech": "R D I",
-   "ms": 791,
+   "ms": 803,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
    "noprune": "CERTIFIED",
    "norepo": "DECLINED",
    "nocut": "DECLINED",
-   "noimplied": "DECLINED",
+   "noimplied": "CERTIFIED",
    "nolinear": "CERTIFIED",
    "lambdas": {
     "STAGE1": "1",
@@ -1178,7 +1208,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1192,7 +1224,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 317,
+   "ms": 306,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -1254,7 +1286,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1268,7 +1302,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 3532,
+   "ms": 4990,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1321,7 +1355,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1335,7 +1371,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 1797,
+   "ms": 3883,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1375,7 +1411,7 @@
    "used": {
     "S": false,
     "M": false,
-    "R": false,
+    "R": true,
     "B": false,
     "P": false,
     "D": false,
@@ -1383,11 +1419,11 @@
     "X": true
    },
    "group": "Literature",
-   "mech_used": "I X",
+   "mech_used": "R I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -1395,7 +1431,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1409,7 +1447,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S D I",
-   "ms": 202,
+   "ms": 200,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1473,7 +1511,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1487,7 +1527,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 2812,
+   "ms": 6267,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1527,7 +1567,7 @@
    "used": {
     "S": false,
     "M": false,
-    "R": false,
+    "R": true,
     "B": false,
     "P": false,
     "D": false,
@@ -1535,11 +1575,11 @@
     "X": true
    },
    "group": "Literature",
-   "mech_used": "I X",
+   "mech_used": "R I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -1547,7 +1587,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1561,7 +1603,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 2466,
+   "ms": 3213,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1614,7 +1656,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1628,7 +1672,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "linear",
    "mech": "X",
-   "ms": 57101,
+   "ms": 97474,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1668,7 +1712,7 @@
    "used": {
     "S": false,
     "M": false,
-    "R": false,
+    "R": true,
     "B": false,
     "P": false,
     "D": false,
@@ -1676,11 +1720,11 @@
     "X": true
    },
    "group": "Literature",
-   "mech_used": "I X",
+   "mech_used": "R I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -1688,7 +1732,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1702,7 +1748,7 @@
    "inv_shape": "quadratic",
    "dyn": "linear",
    "mech": "X",
-   "ms": 64424,
+   "ms": 48891,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1804,7 +1850,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1818,7 +1866,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "X",
-   "ms": 341,
+   "ms": 732,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -1855,7 +1903,7 @@
    "used": {
     "S": false,
     "M": false,
-    "R": false,
+    "R": true,
     "B": false,
     "P": false,
     "D": false,
@@ -1863,11 +1911,11 @@
     "X": true
    },
    "group": "Literature",
-   "mech_used": "I X",
+   "mech_used": "R I X",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -1875,7 +1923,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -1889,7 +1939,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R",
-   "ms": 138,
+   "ms": 133,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -1945,7 +1995,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "DECLINED"
    }
   },
   {
@@ -1959,7 +2011,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 120,
+   "ms": 89,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2005,8 +2057,8 @@
    "group": "Literature",
    "mech_used": "S I",
    "diagnostics": {
-    "S_lam1": false,
-    "lam1_verdict": "-",
+    "S_lam1": true,
+    "lam1_verdict": "DECLINED",
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
@@ -2017,7 +2069,7 @@
     "B_shape": false,
     "single_step": "CERTIFIED",
     "S_nostutter_verdict": "DECLINED",
-    "S_lam1key_verdict": "-"
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2031,7 +2083,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D",
-   "ms": 330,
+   "ms": 401,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2093,7 +2145,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2107,7 +2161,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "",
-   "ms": 218,
+   "ms": 112,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2163,7 +2217,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2177,7 +2233,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 122,
+   "ms": 70,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2232,7 +2288,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2246,7 +2304,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 66,
+   "ms": 46,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2301,7 +2359,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2315,7 +2375,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S X",
-   "ms": 11240,
+   "ms": 11395,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "DECLINED",
@@ -2352,7 +2412,7 @@
    "used": {
     "S": true,
     "M": true,
-    "R": false,
+    "R": true,
     "B": true,
     "P": false,
     "D": false,
@@ -2360,11 +2420,11 @@
     "X": true
    },
    "group": "Aerospace",
-   "mech_used": "S M B I X",
+   "mech_used": "S M R B I X",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -2372,7 +2432,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2386,7 +2448,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "",
-   "ms": 2229,
+   "ms": 12739,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2446,7 +2508,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2460,7 +2524,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "P",
-   "ms": 738,
+   "ms": 7907,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2518,7 +2582,9 @@
     "P_noprune_declines": true,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2532,7 +2598,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "",
-   "ms": 232,
+   "ms": 492,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2589,7 +2655,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2603,7 +2671,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "",
-   "ms": 767,
+   "ms": 1079,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2660,7 +2728,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2674,7 +2744,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "polynomial",
    "mech": "S I",
-   "ms": 16511,
+   "ms": 16221,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2731,7 +2801,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2745,7 +2817,7 @@
    "inv_shape": "quadratic+conj",
    "dyn": "polynomial",
    "mech": "S I",
-   "ms": 34124,
+   "ms": 33273,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -2802,7 +2874,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2816,7 +2890,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "I",
-   "ms": 516,
+   "ms": 773,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2873,7 +2947,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2887,7 +2963,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "I",
-   "ms": 1087,
+   "ms": 1963,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -2944,7 +3020,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -2958,7 +3036,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "I X",
-   "ms": 21067,
+   "ms": 20782,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -3014,7 +3092,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3028,7 +3108,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "I X",
-   "ms": 7481,
+   "ms": 7374,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "DECLINED",
@@ -3084,7 +3164,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3098,7 +3180,7 @@
    "inv_shape": "quadratic",
    "dyn": "polynomial",
    "mech": "S X",
-   "ms": 4183,
+   "ms": 4126,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "DECLINED",
@@ -3153,7 +3235,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3167,7 +3251,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "R D",
-   "ms": 1192,
+   "ms": 2013,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -3233,7 +3317,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3247,7 +3333,7 @@
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
    "mech": "I",
-   "ms": 938,
+   "ms": 1310,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -3305,7 +3391,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": false,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3319,7 +3407,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 2351,
+   "ms": 2477,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -3376,7 +3464,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3389,11 +3479,11 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "R D I X",
-   "ms": 1021,
+   "mech": "R D I",
+   "ms": 959,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
-   "nochoice": "DECLINED",
+   "nochoice": "CERTIFIED",
    "noprune": "CERTIFIED",
    "norepo": "DECLINED",
    "nocut": "DECLINED",
@@ -3414,7 +3504,7 @@
     "P": false,
     "D": true,
     "I": true,
-    "X": true
+    "X": false
    },
    "needed": {
     "S": false,
@@ -3424,7 +3514,7 @@
     "P": false,
     "D": true,
     "I": true,
-    "X": true
+    "X": false
    },
    "used": {
     "S": false,
@@ -3434,10 +3524,10 @@
     "P": false,
     "D": true,
     "I": true,
-    "X": true
+    "X": false
    },
    "group": "Energy",
-   "mech_used": "R D I X",
+   "mech_used": "R D I",
    "diagnostics": {
     "S_lam1": false,
     "lam1_verdict": "-",
@@ -3457,7 +3547,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3471,7 +3563,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "D I",
-   "ms": 235,
+   "ms": 164,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
    "nochoice": "CERTIFIED",
@@ -3535,7 +3627,9 @@
     "P_noprune_declines": false,
     "M_shape": false,
     "B_shape": false,
-    "single_step": "CERTIFIED"
+    "single_step": "CERTIFIED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3549,7 +3643,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 2240,
+   "ms": 1210,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -3560,7 +3654,7 @@
    "nolinear": "CERTIFIED",
    "lambdas": {
     "Low": "2",
-    "Mid": "2",
+    "Mid": "1",
     "High": "1"
    },
    "letters": {
@@ -3586,7 +3680,7 @@
    "used": {
     "S": true,
     "M": true,
-    "R": false,
+    "R": true,
     "B": true,
     "P": true,
     "D": false,
@@ -3594,11 +3688,11 @@
     "X": false
    },
    "group": "Water tank",
-   "mech_used": "S M B P I",
+   "mech_used": "S M R B P I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -3606,7 +3700,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   },
   {
@@ -3620,7 +3716,7 @@
    "inv_shape": "conjunctive",
    "dyn": "linear",
    "mech": "S",
-   "ms": 1978,
+   "ms": 1820,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
    "nochoice": "CERTIFIED",
@@ -3631,7 +3727,7 @@
    "nolinear": "CERTIFIED",
    "lambdas": {
     "Low": "2",
-    "Mid": "2",
+    "Mid": "1",
     "High": "1"
    },
    "letters": {
@@ -3657,7 +3753,7 @@
    "used": {
     "S": true,
     "M": true,
-    "R": false,
+    "R": true,
     "B": true,
     "P": false,
     "D": false,
@@ -3665,11 +3761,11 @@
     "X": false
    },
    "group": "Water tank",
-   "mech_used": "S M B I",
+   "mech_used": "S M R B I",
    "diagnostics": {
     "S_lam1": true,
     "lam1_verdict": "DECLINED",
-    "R_cover": false,
+    "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
     "uniform_keeps_all": {},
@@ -3677,7 +3773,9 @@
     "P_noprune_declines": false,
     "M_shape": true,
     "B_shape": true,
-    "single_step": "DECLINED"
+    "single_step": "DECLINED",
+    "S_nostutter_verdict": "CERTIFIED",
+    "R_noprelanding_verdict": "CERTIFIED"
    }
   }
  ],
@@ -3685,26 +3783,26 @@
   "S": 19,
   "R": 8,
   "P": 2,
-  "D": 13,
+  "D": 12,
   "I": 17,
-  "X": 14
+  "X": 12
  },
  "totals_needed": {
   "S": 19,
   "R": 8,
   "P": 2,
-  "D": 13,
+  "D": 12,
   "I": 17,
-  "X": 14
+  "X": 12
  },
  "totals_used": {
   "S": 19,
   "M": 21,
-  "R": 8,
+  "R": 17,
   "B": 9,
   "P": 8,
   "D": 13,
   "I": 49,
-  "X": 14
+  "X": 12
  }
 }

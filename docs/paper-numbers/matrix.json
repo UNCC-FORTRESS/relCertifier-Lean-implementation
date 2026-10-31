@@ -25,7 +25,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 62,
+   "ms": 59,
    "verdict_extra": "",
    "prune_line": "[prune] acc_spoof_lag: []",
    "admissible_lines": [
@@ -49,7 +49,7 @@
    "repo_lines": [
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.26,
+   "wall_s": 0.36,
    "choice_entries": 0,
    "covers": [
     {
@@ -88,20 +88,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 90,
+   "no_prune_ms": 103,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 80,
+   "no_cut_ms": 55,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 157,
+   "no_implied_ms": 147,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 62,
+   "no_linear_ms": 145,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 85
+    "ms": 84
    },
    "right_only_any": false,
    "cells": {
@@ -146,7 +146,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 219,
+   "ms": 265,
    "verdict_extra": "",
    "prune_line": "[prune] acc_spoof_limp: []",
    "admissible_lines": [
@@ -180,8 +180,9 @@
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] LIMP_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.48,
-   "choice_entries": 2,
+   "wall_s": 0.52,
+   "prelanding_nodes": 12,
+   "choice_entries": 0,
    "covers": [
     {
      "mL": "CRUISE",
@@ -196,9 +197,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "NORMAL": "j--",
-      "ECO": "j--",
-      "SPORT": "j--"
+      "NORMAL": "jdd",
+      "ECO": "jdd",
+      "SPORT": "jdd"
      },
      "kinds": [
       "base",
@@ -239,14 +240,14 @@
      ],
      "replay_ok": true,
      "flags": {
-      "NORMAL": "j--",
-      "ECO": "---",
-      "SPORT": "j--"
+      "NORMAL": "jdd",
+      "ECO": "-dd",
+      "SPORT": "jdd"
      },
      "kinds": [
       "base",
-      "hop",
-      "joint"
+      "joint",
+      "repoDyn"
      ],
      "modes_on_path": [
       "ECO",
@@ -257,28 +258,28 @@
       "NORMAL",
       "SPORT"
      ],
-     "ro_modes": [],
-     "branching": 2,
-     "right_only": false,
-     "joint_steps": 3,
-     "choice_steps": [
-      "ECO:hop"
+     "ro_modes": [
+      "ECO"
      ],
-     "choice_entries": 2,
+     "branching": 2,
+     "right_only": true,
+     "joint_steps": 3,
+     "choice_steps": [],
+     "choice_entries": 0,
      "paths": {
-      "NORMAL": "NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:hop(B=1,postJ)->[NORMAL@1]; SPORT:base(B=1)",
-      "ECO": "ECO:hop(B=2,preJ)->[NORMAL@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:hop(B=1,postJ)->[NORMAL@1]; SPORT:base(B=1)",
+      "NORMAL": "NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:repoDyn(B=1,postJ)->[NORMAL@1]; SPORT:base(B=1)",
+      "ECO": "ECO:repoDyn(B=2,preJ)->[NORMAL@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:repoDyn(B=1,postJ)->[NORMAL@1]; SPORT:base(B=1)",
       "SPORT": "SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; SPORT:base(B=1); NORMAL:base(B=1)"
      }
     }
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 229,
+   "no_prune_ms": 265,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 225,
+   "no_cut_ms": 369,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 196,
+   "no_implied_ms": 173,
    "no_linear_verdict": "CERTIFIED",
    "no_linear_ms": 171,
    "handoff": {
@@ -287,12 +288,12 @@
     "passed": 3,
     "failing": "-",
     "vacuous": true,
-    "ms": 89
+    "ms": 90
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
     "M1": "no (\u03bb=1 everywhere)",
-    "M2": "yes: CRUISE B=2 via ECO/NORMAL/SPORT, LIMP B=2 via NORMAL/SPORT +choice ECO:hop",
+    "M2": "yes: CRUISE B=2 via ECO/NORMAL/SPORT, LIMP B=2 via NORMAL/SPORT +RO",
     "M3": "yes: CRUISE branch=2, LIMP branch=2",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
@@ -356,7 +357,7 @@
    "repo_lines": [
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.39,
+   "wall_s": 0.43,
    "choice_entries": 0,
    "covers": [
     {
@@ -395,20 +396,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 82,
+   "no_prune_ms": 148,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 143,
+   "no_cut_ms": 115,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 112,
+   "no_implied_ms": 152,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 139,
+   "no_linear_ms": 97,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 98
+    "ms": 86
    },
    "right_only_any": false,
    "cells": {
@@ -453,7 +454,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 616,
+   "ms": 535,
    "verdict_extra": "",
    "prune_line": "[prune] acc_tune_limp: [NORMAL->DISENGAGE]",
    "admissible_lines": [
@@ -482,7 +483,7 @@
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] LIMP_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.89,
+   "wall_s": 0.73,
    "choice_entries": 0,
    "covers": [
     {
@@ -558,20 +559,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 611,
+   "no_prune_ms": 612,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 708,
+   "no_cut_ms": 750,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 577,
+   "no_implied_ms": 586,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 552,
+   "no_linear_ms": 617,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 66
+    "ms": 23
    },
    "right_only_any": false,
    "cells": {
@@ -619,7 +620,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 822,
+   "ms": 1276,
    "verdict_extra": "",
    "prune_line": "[prune] antenna_track_kvretune: []",
    "admissible_lines": [
@@ -663,11 +664,12 @@
     "[route] STOWED: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] TRACK_L: [STOWED] [repo-dyn-post]: [STOWED]",
-    "[repo-dyn-pre] STOW_L: [STOWED] [repo-dyn-post]: []",
+    "[repo-dyn-pre] TRACK_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] STOW_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] STOWED_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.1,
+   "wall_s": 1.52,
+   "prelanding_nodes": 7,
    "choice_entries": 0,
    "covers": [
     {
@@ -682,7 +684,7 @@
      "replay_ok": true,
      "flags": {
       "TRACK": "j--",
-      "STOW": "---",
+      "STOW": "-d-",
       "STOWED": "j--"
      },
      "kinds": [
@@ -713,7 +715,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "TRACK": "---",
+      "TRACK": "-dd",
       "STOW": "j--",
       "STOWED": "---"
      },
@@ -745,8 +747,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "TRACK": "j--",
-      "STOW": "---",
+      "TRACK": "jdd",
+      "STOW": "-dd",
       "STOWED": "j--"
      },
      "kinds": [
@@ -769,20 +771,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 819,
+   "no_prune_ms": 1185,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 834,
+   "no_cut_ms": 1222,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 850,
+   "no_implied_ms": 1178,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 910,
+   "no_linear_ms": 1192,
    "handoff": {
     "checked": 6,
     "declared": 6,
     "passed": 6,
     "failing": "-",
     "vacuous": false,
-    "ms": 65
+    "ms": 110
    },
    "right_only_any": false,
    "cells": {
@@ -828,7 +830,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1229,
+   "ms": 1613,
    "verdict_extra": "",
    "prune_line": "[prune] autoclave_liquid_steambank: []",
    "admissible_lines": [
@@ -892,12 +894,13 @@
     "[route] EXHAUST: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] HEAT_L: [EQUIL, EXPOSE, EXHAUST] [repo-dyn-post]: []",
-    "[repo-dyn-pre] EQUIL_L: [EXHAUST] [repo-dyn-post]: []",
-    "[repo-dyn-pre] EXPOSE_L: [EQUIL, EXHAUST] [repo-dyn-post]: [EQUIL]",
-    "[repo-dyn-pre] EXHAUST_L: [EQUIL] [repo-dyn-post]: [EQUIL]"
+    "[repo-dyn-pre] HEAT_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] EQUIL_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] EXPOSE_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] EXHAUST_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.41,
+   "wall_s": 1.88,
+   "prelanding_nodes": 14,
    "choice_entries": 0,
    "covers": [
     {
@@ -944,9 +947,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "HEAT": "---",
+      "HEAT": "-dd",
       "EQUIL": "j--",
-      "EXPOSE": "---",
+      "EXPOSE": "-d-",
       "EXHAUST": "---"
      },
      "kinds": [
@@ -978,7 +981,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "HEAT": "---",
+      "HEAT": "-dd",
       "EQUIL": "-d-",
       "EXPOSE": "j--",
       "EXHAUST": "---"
@@ -1016,9 +1019,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "HEAT": "---",
+      "HEAT": "-dd",
       "EQUIL": "-dd",
-      "EXPOSE": "---",
+      "EXPOSE": "-dd",
       "EXHAUST": "j--"
      },
      "kinds": [
@@ -1041,13 +1044,13 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1254,
+   "no_prune_ms": 1633,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 1251,
+   "no_cut_ms": 1636,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1280,
+   "no_implied_ms": 1622,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1316,
+   "no_linear_ms": 1621,
    "handoff": {
     "checked": 8,
     "declared": 8,
@@ -1099,7 +1102,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 290,
+   "ms": 246,
    "verdict_extra": "",
    "prune_line": "[prune] boiler_purge_vfd: []",
    "admissible_lines": [
@@ -1116,10 +1119,11 @@
     "[route] FIRE: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] PURGE_L: [FIRE] [repo-dyn-post]: []",
-    "[repo-dyn-pre] FIRE_L: [PURGE] [repo-dyn-post]: [PURGE]"
+    "[repo-dyn-pre] PURGE_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] FIRE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.56,
+   "wall_s": 0.42,
+   "prelanding_nodes": 2,
    "choice_entries": 0,
    "covers": [
     {
@@ -1193,20 +1197,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 269,
+   "no_prune_ms": 224,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 237,
+   "no_cut_ms": 204,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 195,
+   "no_implied_ms": 249,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 293,
+   "no_linear_ms": 236,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 105
+    "ms": 98
    },
    "right_only_any": true,
    "cells": {
@@ -1250,7 +1254,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 535,
+   "ms": 666,
    "verdict_extra": "",
    "prune_line": "[prune] bottling_fill_strainer: []",
    "admissible_lines": [
@@ -1286,7 +1290,8 @@
     "[repo-dyn-pre] FILL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] CLOSE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.78,
+   "wall_s": 0.86,
+   "prelanding_nodes": 2,
    "choice_entries": 0,
    "covers": [
     {
@@ -1331,7 +1336,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "FILL": "---",
+      "FILL": "-dd",
       "CLOSE": "j--"
      },
      "kinds": [
@@ -1354,20 +1359,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 560,
+   "no_prune_ms": 593,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 1304,
+   "no_cut_ms": 1725,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 566,
+   "no_implied_ms": 588,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 564,
+   "no_linear_ms": 666,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": true,
-    "ms": 66
+    "ms": 103
    },
    "right_only_any": false,
    "cells": {
@@ -1413,7 +1418,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 367,
+   "ms": 571,
    "verdict_extra": "",
    "prune_line": "[prune] canal_gate_notches: []",
    "admissible_lines": [
@@ -1458,8 +1463,9 @@
     "[repo-dyn-pre] HOLD_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] LOWER_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.61,
-   "choice_entries": 6,
+   "wall_s": 0.85,
+   "prelanding_nodes": 24,
+   "choice_entries": 5,
    "covers": [
     {
      "mL": "RAISE",
@@ -1474,34 +1480,40 @@
      ],
      "replay_ok": true,
      "flags": {
-      "N100": "j--",
-      "N75": "---",
-      "N50": "---",
-      "N25": "---"
+      "N100": "jdd",
+      "N75": "-dd",
+      "N50": "-dd",
+      "N25": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "N100",
+      "N25",
       "N50",
       "N75"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "N25",
+      "N50",
+      "N75"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "N50:hop",
-      "N75:hop"
+      "N25:repoChosen",
+      "N50:repoChosen"
      ],
      "choice_entries": 2,
      "paths": {
       "N100": "N100:base(B=1)",
-      "N75": "N75:hop(B=1,preJ)->[N100@1]; N100:base(B=1)",
-      "N50": "N50:hop(B=1,preJ)->[N100@1]; N100:base(B=1)"
+      "N75": "N75:repoDyn(B=1,preJ)->[N100@1, N50@1, N25@1]; N100:base(B=1); N50:repoDyn(B=1,preJ)->[N100@1, N75@1, N25@1]; N25:repoChosen(B=1,preJ)->[N100@1]; N25:repoDyn(B=1,preJ)->[N100@1, N75@1, N50@1]; N50:repoChosen(B=1,preJ)->[N100@1, N25@1]",
+      "N50": "N50:repoDyn(B=1,preJ)->[N100@1, N75@1, N25@1]; N100:base(B=1); N75:repoDyn(B=1,preJ)->[N100@1, N50@1, N25@1]; N50:repoChosen(B=1,preJ)->[N100@1, N25@1]; N25:repoChosen(B=1,preJ)->[N100@1]; N25:repoDyn(B=1,preJ)->[N100@1, N75@1, N50@1]"
      }
     },
     {
@@ -1518,14 +1530,15 @@
      ],
      "replay_ok": true,
      "flags": {
-      "N100": "---",
-      "N75": "j--",
-      "N50": "j--",
-      "N25": "---"
+      "N100": "-dd",
+      "N75": "jdd",
+      "N50": "jdd",
+      "N25": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "N100",
@@ -1534,20 +1547,22 @@
       "N75"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "N100",
+      "N25"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "N100:hop",
-      "N25:hop"
+      "N25:repoChosen"
      ],
-     "choice_entries": 2,
+     "choice_entries": 1,
      "paths": {
-      "N100": "N100:hop(B=1,preJ)->[N75@1, N50@1]; N75:base(B=1); N50:base(B=1)",
+      "N100": "N100:repoDyn(B=1,preJ)->[N75@1, N50@1, N25@1]; N75:base(B=1); N50:base(B=1); N25:repoDyn(B=1,preJ)->[N100@1, N75@1, N50@1]",
       "N75": "N75:base(B=1)",
       "N50": "N50:base(B=1)",
-      "N25": "N25:hop(B=1,preJ)->[N75@1, N50@1]; N75:base(B=1); N50:base(B=1)"
+      "N25": "N25:repoDyn(B=1,preJ)->[N100@1, N75@1, N50@1]; N100:repoDyn(B=1,preJ)->[N75@1, N50@1, N25@1]; N75:base(B=1); N50:base(B=1)"
      }
     },
     {
@@ -1563,58 +1578,64 @@
      ],
      "replay_ok": true,
      "flags": {
-      "N100": "---",
-      "N75": "---",
-      "N50": "---",
-      "N25": "j--"
+      "N100": "-dd",
+      "N75": "-dd",
+      "N50": "-dd",
+      "N25": "jdd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
+      "N100",
       "N25",
       "N50",
       "N75"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "N100",
+      "N50",
+      "N75"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "N50:hop",
-      "N75:hop"
+      "N100:repoChosen",
+      "N50:repoChosen"
      ],
      "choice_entries": 2,
      "paths": {
-      "N75": "N75:hop(B=1,preJ)->[N25@1]; N25:base(B=1)",
-      "N50": "N50:hop(B=1,preJ)->[N25@1]; N25:base(B=1)",
+      "N75": "N75:repoDyn(B=1,preJ)->[N100@1, N50@1, N25@1]; N100:repoDyn(B=1,preJ)->[N75@1, N50@1, N25@1]; N50:repoChosen(B=1,preJ)->[N25@1]; N25:base(B=1); N50:repoDyn(B=1,preJ)->[N100@1, N75@1, N25@1]; N100:repoChosen(B=1,preJ)->[N50@1, N25@1]",
+      "N50": "N50:repoDyn(B=1,preJ)->[N100@1, N75@1, N25@1]; N100:repoDyn(B=1,preJ)->[N75@1, N50@1, N25@1]; N75:repoDyn(B=1,preJ)->[N100@1, N50@1, N25@1]; N100:repoChosen(B=1,preJ)->[N50@1, N25@1]; N50:repoChosen(B=1,preJ)->[N25@1]; N25:base(B=1)",
       "N25": "N25:base(B=1)"
      }
     }
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 370,
+   "no_prune_ms": 575,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 330,
+   "no_cut_ms": 455,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 348,
+   "no_implied_ms": 653,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 329,
+   "no_linear_ms": 567,
    "handoff": {
     "checked": 7,
     "declared": 7,
     "passed": 7,
     "failing": "-",
     "vacuous": true,
-    "ms": 87
+    "ms": 111
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
     "M1": "no (\u03bb=1 everywhere)",
-    "M2": "no (single segment)",
+    "M2": "no (single segment, RO used)",
     "M3": "no (max non-self successors at a joint step = 0)",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
@@ -1653,7 +1674,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 982,
+   "ms": 1511,
    "verdict_extra": "",
    "prune_line": "[prune] elevator_start_discbrake: []",
    "admissible_lines": [
@@ -1726,12 +1747,13 @@
     "[route] STOP: DI-strict(B)"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] LIFT_L: [STOP] [repo-dyn-post]: [STOP]",
-    "[repo-dyn-pre] UP_L: [LIFT] [repo-dyn-post]: [LIFT]",
-    "[repo-dyn-pre] APP_L: [LIFT] [repo-dyn-post]: [LIFT]",
-    "[repo-dyn-pre] STOP_L: [LIFT] [repo-dyn-post]: [LIFT]"
+    "[repo-dyn-pre] LIFT_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] UP_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] APP_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] STOP_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.21,
+   "wall_s": 1.77,
+   "prelanding_nodes": 16,
    "choice_entries": 0,
    "covers": [
     {
@@ -1746,8 +1768,8 @@
      "replay_ok": true,
      "flags": {
       "LIFT": "j--",
-      "UP": "---",
-      "APP": "j--",
+      "UP": "-d-",
+      "APP": "jdd",
       "STOP": "j--"
      },
      "kinds": [
@@ -1781,7 +1803,7 @@
      "flags": {
       "LIFT": "-dd",
       "UP": "j--",
-      "APP": "---",
+      "APP": "-d-",
       "STOP": "---"
      },
      "kinds": [
@@ -1818,7 +1840,7 @@
      "replay_ok": true,
      "flags": {
       "LIFT": "jdd",
-      "UP": "---",
+      "UP": "-dd",
       "APP": "j--",
       "STOP": "---"
      },
@@ -1851,8 +1873,8 @@
      "replay_ok": true,
      "flags": {
       "LIFT": "jdd",
-      "UP": "---",
-      "APP": "---",
+      "UP": "-dd",
+      "APP": "-dd",
       "STOP": "j--"
      },
      "kinds": [
@@ -1875,20 +1897,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 972,
+   "no_prune_ms": 1542,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 977,
+   "no_cut_ms": 2068,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 932,
+   "no_implied_ms": 1561,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 980,
+   "no_linear_ms": 1591,
    "handoff": {
     "checked": 7,
     "declared": 7,
     "passed": 7,
     "failing": "-",
     "vacuous": false,
-    "ms": 87
+    "ms": 35
    },
    "right_only_any": true,
    "cells": {
@@ -1936,7 +1958,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 762,
+   "ms": 1039,
    "verdict_extra": "",
    "prune_line": "[prune] engine_start_highidle: []",
    "admissible_lines": [
@@ -2004,14 +2026,15 @@
     "[route] ABORT: closure n <= 25.0: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] STARTER_L: [LIGHTOFF, SELF, ABORT] [repo-dyn-post]: [LIGHTOFF, SELF, ABORT]",
-    "[repo-dyn-pre] STARTER_LOW_L: [STARTER, LIGHTOFF, SELF, ABORT] [repo-dyn-post]: [LIGHTOFF, SELF, ABORT]",
-    "[repo-dyn-pre] LIGHTOFF_L: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT] [repo-dyn-post]: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT]",
-    "[repo-dyn-pre] SELF_L: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT] [repo-dyn-post]: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT]",
-    "[repo-dyn-pre] IDLE_L: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT] [repo-dyn-post]: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT]",
-    "[repo-dyn-pre] ABORT_L: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT] [repo-dyn-post]: [STARTER, STARTER_LOW, LIGHTOFF, SELF, ABORT]"
+    "[repo-dyn-pre] STARTER_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] STARTER_LOW_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] LIGHTOFF_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] SELF_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] IDLE_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] ABORT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.99,
+   "wall_s": 1.21,
+   "prelanding_nodes": 41,
    "choice_entries": 0,
    "covers": [
     {
@@ -2281,20 +2304,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 776,
+   "no_prune_ms": 1064,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 249,
+   "no_cut_ms": 429,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 242,
+   "no_implied_ms": 1273,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 775,
+   "no_linear_ms": 1174,
    "handoff": {
     "checked": 12,
     "declared": 12,
     "passed": 12,
     "failing": "-",
     "vacuous": false,
-    "ms": 112
+    "ms": 186
    },
    "right_only_any": true,
    "cells": {
@@ -2342,7 +2365,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 829,
+   "ms": 9250,
    "verdict_extra": "",
    "prune_line": "[prune] extruder_pe100_manualstart: [N1->N4, N2->N4, N3->N1, N4->N1]",
    "admissible_lines": [
@@ -2402,7 +2425,8 @@
     "[repo-dyn-pre] N3_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] N4_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.1,
+   "wall_s": 9.4,
+   "prelanding_nodes": 6,
    "choice_entries": 0,
    "covers": [
     {
@@ -2419,8 +2443,8 @@
      "flags": {
       "N1": "j--",
       "N2": "j--",
-      "N3": "j--",
-      "N4": "---"
+      "N3": "jd-",
+      "N4": "-d-"
      },
      "kinds": [
       "base",
@@ -2462,7 +2486,7 @@
       "N1": "j--",
       "N2": "j--",
       "N3": "j--",
-      "N4": "j--"
+      "N4": "jd-"
      },
      "kinds": [
       "base",
@@ -2504,7 +2528,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "N1": "j--",
+      "N1": "jd-",
       "N2": "j--",
       "N3": "j--",
       "N4": "j--"
@@ -2548,8 +2572,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "N1": "---",
-      "N2": "j--",
+      "N1": "-d-",
+      "N2": "jd-",
       "N3": "j--",
       "N4": "j--"
      },
@@ -2597,20 +2621,20 @@
     ]
    ],
    "no_prune_verdict": "DECLINED",
-   "no_prune_ms": 353,
+   "no_prune_ms": 2011,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 264,
+   "no_cut_ms": 781,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 824,
+   "no_implied_ms": 9612,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 839,
+   "no_linear_ms": 9549,
    "handoff": {
     "checked": 16,
     "declared": 16,
     "passed": 16,
     "failing": "-",
     "vacuous": true,
-    "ms": 49
+    "ms": 65
    },
    "right_only_any": false,
    "cells": {
@@ -2657,7 +2681,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 314,
+   "ms": 307,
    "verdict_extra": "",
    "prune_line": "[prune] flaps_slow_approach: []",
    "admissible_lines": [
@@ -2690,10 +2714,11 @@
     "[route] CONF2: DI-strict(B)"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] EXT_L: [CONF2] [repo-dyn-post]: []",
+    "[repo-dyn-pre] EXT_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] CONF2_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.57,
+   "wall_s": 0.49,
+   "prelanding_nodes": 2,
    "choice_entries": 0,
    "covers": [
     {
@@ -2738,7 +2763,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "EXT": "---",
+      "EXT": "-dd",
       "CONF2": "j--"
      },
      "kinds": [
@@ -2761,20 +2786,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 297,
+   "no_prune_ms": 316,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 302,
+   "no_cut_ms": 314,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 318,
+   "no_implied_ms": 295,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 280,
+   "no_linear_ms": 309,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": true,
-    "ms": 92
+    "ms": 24
    },
    "right_only_any": false,
    "cells": {
@@ -2819,7 +2844,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1129,
+   "ms": 1336,
    "verdict_extra": "",
    "prune_line": "[prune] furnace_program_timebase: []",
    "admissible_lines": [
@@ -2868,9 +2893,10 @@
    "repo_lines": [
     "[repo-dyn-pre] PREHEAT_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] HEAT_L: [] [repo-dyn-post]: []",
-    "[repo-dyn-pre] SOAK_L: [PREHEAT] [repo-dyn-post]: [PREHEAT]"
+    "[repo-dyn-pre] SOAK_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.39,
+   "wall_s": 1.46,
+   "prelanding_nodes": 7,
    "choice_entries": 0,
    "covers": [
     {
@@ -2885,7 +2911,7 @@
      "replay_ok": true,
      "flags": {
       "PREHEAT": "j--",
-      "HEAT": "---",
+      "HEAT": "-d-",
       "SOAK": "j--"
      },
      "kinds": [
@@ -2916,7 +2942,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "PREHEAT": "---",
+      "PREHEAT": "-dd",
       "HEAT": "j--",
       "SOAK": "---"
      },
@@ -2949,7 +2975,7 @@
      "replay_ok": true,
      "flags": {
       "PREHEAT": "jdd",
-      "HEAT": "---",
+      "HEAT": "-dd",
       "SOAK": "j--"
      },
      "kinds": [
@@ -2972,20 +2998,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1041,
+   "no_prune_ms": 1425,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 3118,
+   "no_cut_ms": 3765,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 3680,
+   "no_implied_ms": 4558,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1121,
+   "no_linear_ms": 1409,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 63
+    "ms": 49
    },
    "right_only_any": false,
    "cells": {
@@ -3032,7 +3058,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1151,
+   "ms": 1396,
    "verdict_extra": "",
    "prune_line": "[prune] gantry_speed_zones: []",
    "admissible_lines": [
@@ -3073,7 +3099,7 @@
     "[repo-dyn-pre] APPROACH_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PLACE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.42,
+   "wall_s": 1.57,
    "choice_entries": 0,
    "covers": [
     {
@@ -3175,20 +3201,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1182,
+   "no_prune_ms": 1475,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 764,
+   "no_cut_ms": 952,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 731,
+   "no_implied_ms": 860,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1233,
+   "no_linear_ms": 1371,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 31
+    "ms": 56
    },
    "right_only_any": false,
    "cells": {
@@ -3238,7 +3264,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 779,
+   "ms": 913,
    "verdict_extra": "",
    "prune_line": "[prune] h2_refuel_ambientbias: []",
    "admissible_lines": [
@@ -3299,15 +3325,16 @@
     "[route] COMPLETE: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] STAGE1_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]",
-    "[repo-dyn-pre] STAGE2_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]",
-    "[repo-dyn-pre] STAGE3_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]",
-    "[repo-dyn-pre] STAGE3DRAWN_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]",
-    "[repo-dyn-pre] TOPOFFEARLY_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]",
-    "[repo-dyn-pre] TOPOFF_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]",
-    "[repo-dyn-pre] COMPLETE_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]"
+    "[repo-dyn-pre] STAGE1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] STAGE2_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] STAGE3_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] STAGE3DRAWN_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] TOPOFFEARLY_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] TOPOFF_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] COMPLETE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.03,
+   "wall_s": 1.09,
+   "prelanding_nodes": 56,
    "choice_entries": 0,
    "covers": [
     {
@@ -3605,20 +3632,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 831,
+   "no_prune_ms": 887,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 105,
-   "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 280,
+   "no_cut_ms": 227,
+   "no_implied_verdict": "CERTIFIED",
+   "no_implied_ms": 858,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 819,
+   "no_linear_ms": 957,
    "handoff": {
     "checked": 14,
     "declared": 14,
     "passed": 14,
     "failing": "-",
     "vacuous": false,
-    "ms": 97
+    "ms": 62
    },
    "right_only_any": true,
    "cells": {
@@ -3628,14 +3655,13 @@
     "M4": "no (nothing pruned)",
     "M5": "yes: 14/14 handoffs unsat, rows differ",
     "M6": "yes: L.STAGE1: 1 conjunct(s); L.STAGE2: 2 conjunct(s); L.STAGE3: 2 conjunct(s); L.STAGE3DRAWN: 2 conjunct(s); L.TOPOFFEARLY: 2 conjunct(s); L.TOPOFF: 2 conjunct(s); L.COMPLETE: 1 conjunct(s); R.STAGE1: 1 conjunct(s); R.STAGE2: 2 conjunct(s); R.STAGE3: 2 conjunct(s); R.TOPOFF: 2 conjunct(s); R.COMPLETE: 1 conjunct(s); NO_CUT=DECLINED",
-    "M6+": "yes: L.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape; L.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape; L.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape; L.STAGE3DRAWN: p <= 57.5 kind=implied-contraction entry=rational route=shape; L.TOPOFFEARLY: p <= 72.9 kind=implied-contraction entry=rational route=shape; L.TOPOFF: p <= 72.9 kind=implied-contraction entry=rational route=shape; R.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape; R.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape; R.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape; R.TOPOFF: p <= 70.5 kind=implied-contraction entry=rational route=shape; NO_IMPLIED=DECLINED",
+    "M6+": "vacuous: widened atoms kept (L.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape; L.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape; L.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape; L.STAGE3DRAWN: p <= 57.5 kind=implied-contraction entry=rational route=shape; L.TOPOFFEARLY: p <= 72.9 kind=implied-contraction entry=rational route=shape; L.TOPOFF: p <= 72.9 kind=implied-contraction entry=rational route=shape; R.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape; R.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape; R.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape; R.TOPOFF: p <= 70.5 kind=implied-contraction entry=rational route=shape) but NO_IMPLIED=CERTIFIED",
     "M6L": "no (no linear-form atom kept)",
     "M7": "sensor-fault (degraded sensor feeding the end-pressure table), under a station supply; dim 1; linear"
    },
    "exercised": [
     "M5",
-    "M6",
-    "M6+"
+    "M6"
    ]
   },
   {
@@ -3664,7 +3690,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 399,
+   "ms": 355,
    "verdict_extra": "",
    "prune_line": "[prune] hydro_rejection_gatecal: []",
    "admissible_lines": [
@@ -3706,7 +3732,8 @@
     "[repo-dyn-pre] ONGRID_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] REJECT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.66,
+   "wall_s": 0.51,
+   "prelanding_nodes": 2,
    "choice_entries": 0,
    "covers": [
     {
@@ -3751,7 +3778,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "ONGRID": "---",
+      "ONGRID": "-dd",
       "REJECT": "j--"
      },
      "kinds": [
@@ -3774,20 +3801,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 378,
+   "no_prune_ms": 394,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 326,
+   "no_cut_ms": 386,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 381,
+   "no_implied_ms": 415,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 351,
+   "no_linear_ms": 384,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 29
+    "ms": 45
    },
    "right_only_any": false,
    "cells": {
@@ -3835,7 +3862,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 3233,
+   "ms": 5318,
    "verdict_extra": "",
    "prune_line": "[prune] lit_csf21_vehicle_bus: []",
    "admissible_lines": [
@@ -3889,25 +3916,26 @@
     "[repo-dyn-pre] BrkCool_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] BrkHeat_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 3.46,
-   "choice_entries": 48,
+   "wall_s": 5.44,
+   "prelanding_nodes": 144,
+   "choice_entries": 36,
    "covers": [],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 3297,
+   "no_prune_ms": 5669,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 3138,
+   "no_cut_ms": 5227,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 3200,
+   "no_implied_ms": 5344,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 3276,
+   "no_linear_ms": 5057,
    "handoff": {
     "checked": 24,
     "declared": 24,
     "passed": 24,
     "failing": "-",
     "vacuous": true,
-    "ms": 32
+    "ms": 72
    },
    "right_only_any": false,
    "cells": {
@@ -3953,7 +3981,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1723,
+   "ms": 4353,
    "verdict_extra": "",
    "prune_line": "[prune] lit_csf21_vehicle_thermo: []",
    "admissible_lines": [
@@ -3997,8 +4025,9 @@
     "[repo-dyn-pre] BrkCool_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] BrkHeat_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.86,
-   "choice_entries": 24,
+   "wall_s": 4.54,
+   "prelanding_nodes": 44,
+   "choice_entries": 18,
    "covers": [
     {
      "mL": "AccCool",
@@ -4016,16 +4045,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccCool": "j--",
-      "AccHeat": "j--",
-      "CoastCool": "---",
-      "CoastHeat": "---",
-      "BrkCool": "---",
-      "BrkHeat": "---"
+      "AccCool": "jdd",
+      "AccHeat": "jdd",
+      "CoastCool": "-d-",
+      "CoastHeat": "-d-",
+      "BrkCool": "-d-",
+      "BrkHeat": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccCool",
@@ -4036,24 +4066,28 @@
       "CoastHeat"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "BrkCool",
+      "BrkHeat",
+      "CoastCool",
+      "CoastHeat"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "BrkCool:hop",
-      "BrkHeat:hop",
-      "CoastCool:hop",
-      "CoastHeat:hop"
+      "BrkCool:repoChosen",
+      "BrkHeat:repoChosen",
+      "CoastHeat:repoChosen"
      ],
-     "choice_entries": 4,
+     "choice_entries": 3,
      "paths": {
       "AccCool": "AccCool:base(B=1)",
       "AccHeat": "AccHeat:base(B=1)",
-      "CoastCool": "CoastCool:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)",
-      "CoastHeat": "CoastHeat:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)",
-      "BrkCool": "BrkCool:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)",
-      "BrkHeat": "BrkHeat:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)"
+      "CoastCool": "CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
+      "CoastHeat": "CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
+      "BrkCool": "BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]",
+      "BrkHeat": "BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]"
      }
     },
     {
@@ -4072,16 +4106,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccCool": "j--",
-      "AccHeat": "j--",
-      "CoastCool": "---",
-      "CoastHeat": "---",
-      "BrkCool": "---",
-      "BrkHeat": "---"
+      "AccCool": "jdd",
+      "AccHeat": "jdd",
+      "CoastCool": "-d-",
+      "CoastHeat": "-d-",
+      "BrkCool": "-d-",
+      "BrkHeat": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccCool",
@@ -4092,24 +4127,28 @@
       "CoastHeat"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "BrkCool",
+      "BrkHeat",
+      "CoastCool",
+      "CoastHeat"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "BrkCool:hop",
-      "BrkHeat:hop",
-      "CoastCool:hop",
-      "CoastHeat:hop"
+      "BrkCool:repoChosen",
+      "BrkHeat:repoChosen",
+      "CoastHeat:repoChosen"
      ],
-     "choice_entries": 4,
+     "choice_entries": 3,
      "paths": {
       "AccCool": "AccCool:base(B=1)",
       "AccHeat": "AccHeat:base(B=1)",
-      "CoastCool": "CoastCool:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)",
-      "CoastHeat": "CoastHeat:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)",
-      "BrkCool": "BrkCool:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)",
-      "BrkHeat": "BrkHeat:hop(B=1,preJ)->[AccCool@1, AccHeat@1]; AccCool:base(B=1); AccHeat:base(B=1)"
+      "CoastCool": "CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
+      "CoastHeat": "CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
+      "BrkCool": "BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]",
+      "BrkHeat": "BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; AccCool:base(B=1); AccHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[AccCool@1, AccHeat@1, BrkCool@1, BrkHeat@1]"
      }
     },
     {
@@ -4128,16 +4167,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccCool": "---",
-      "AccHeat": "---",
+      "AccCool": "-dd",
+      "AccHeat": "-dd",
       "CoastCool": "j--",
       "CoastHeat": "j--",
-      "BrkCool": "---",
-      "BrkHeat": "---"
+      "BrkCool": "-dd",
+      "BrkHeat": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccCool",
@@ -4148,24 +4188,28 @@
       "CoastHeat"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccCool",
+      "AccHeat",
+      "BrkCool",
+      "BrkHeat"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccCool:hop",
-      "AccHeat:hop",
-      "BrkCool:hop",
-      "BrkHeat:hop"
+      "AccHeat:repoChosen",
+      "BrkCool:repoChosen",
+      "BrkHeat:repoChosen"
      ],
-     "choice_entries": 4,
+     "choice_entries": 3,
      "paths": {
-      "AccCool": "AccCool:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)",
-      "AccHeat": "AccHeat:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)",
+      "AccCool": "AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
+      "AccHeat": "AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
       "CoastCool": "CoastCool:base(B=1)",
       "CoastHeat": "CoastHeat:base(B=1)",
-      "BrkCool": "BrkCool:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)",
-      "BrkHeat": "BrkHeat:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)"
+      "BrkCool": "BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]",
+      "BrkHeat": "BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]"
      }
     },
     {
@@ -4184,16 +4228,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccCool": "---",
-      "AccHeat": "---",
+      "AccCool": "-dd",
+      "AccHeat": "-dd",
       "CoastCool": "j--",
       "CoastHeat": "j--",
-      "BrkCool": "---",
-      "BrkHeat": "---"
+      "BrkCool": "-dd",
+      "BrkHeat": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccCool",
@@ -4204,24 +4249,28 @@
       "CoastHeat"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccCool",
+      "AccHeat",
+      "BrkCool",
+      "BrkHeat"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccCool:hop",
-      "AccHeat:hop",
-      "BrkCool:hop",
-      "BrkHeat:hop"
+      "AccHeat:repoChosen",
+      "BrkCool:repoChosen",
+      "BrkHeat:repoChosen"
      ],
-     "choice_entries": 4,
+     "choice_entries": 3,
      "paths": {
-      "AccCool": "AccCool:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)",
-      "AccHeat": "AccHeat:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)",
+      "AccCool": "AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
+      "AccHeat": "AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]",
       "CoastCool": "CoastCool:base(B=1)",
       "CoastHeat": "CoastHeat:base(B=1)",
-      "BrkCool": "BrkCool:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)",
-      "BrkHeat": "BrkHeat:hop(B=1,preJ)->[CoastCool@1, CoastHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1)"
+      "BrkCool": "BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]",
+      "BrkHeat": "BrkHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:base(B=1); CoastHeat:base(B=1); BrkCool:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkHeat@1]; BrkHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1]; BrkCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, CoastHeat@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]"
      }
     },
     {
@@ -4240,16 +4289,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccCool": "---",
-      "AccHeat": "---",
-      "CoastCool": "---",
-      "CoastHeat": "---",
+      "AccCool": "-dd",
+      "AccHeat": "-dd",
+      "CoastCool": "-d-",
+      "CoastHeat": "-d-",
       "BrkCool": "j--",
       "BrkHeat": "j--"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccCool",
@@ -4260,22 +4310,26 @@
       "CoastHeat"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccCool",
+      "AccHeat",
+      "CoastCool",
+      "CoastHeat"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccCool:hop",
-      "AccHeat:hop",
-      "CoastCool:hop",
-      "CoastHeat:hop"
+      "AccHeat:repoChosen",
+      "CoastCool:repoChosen",
+      "CoastHeat:repoChosen"
      ],
-     "choice_entries": 4,
+     "choice_entries": 3,
      "paths": {
-      "AccCool": "AccCool:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
-      "AccHeat": "AccHeat:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
-      "CoastCool": "CoastCool:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
-      "CoastHeat": "CoastHeat:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
+      "AccCool": "AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]",
+      "AccHeat": "AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]",
+      "CoastCool": "CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]",
+      "CoastHeat": "CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]",
       "BrkCool": "BrkCool:base(B=1)",
       "BrkHeat": "BrkHeat:base(B=1)"
      }
@@ -4296,16 +4350,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccCool": "---",
-      "AccHeat": "---",
-      "CoastCool": "---",
-      "CoastHeat": "---",
+      "AccCool": "-dd",
+      "AccHeat": "-dd",
+      "CoastCool": "-d-",
+      "CoastHeat": "-d-",
       "BrkCool": "j--",
       "BrkHeat": "j--"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccCool",
@@ -4316,22 +4371,26 @@
       "CoastHeat"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccCool",
+      "AccHeat",
+      "CoastCool",
+      "CoastHeat"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccCool:hop",
-      "AccHeat:hop",
-      "CoastCool:hop",
-      "CoastHeat:hop"
+      "AccHeat:repoChosen",
+      "CoastCool:repoChosen",
+      "CoastHeat:repoChosen"
      ],
-     "choice_entries": 4,
+     "choice_entries": 3,
      "paths": {
-      "AccCool": "AccCool:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
-      "AccHeat": "AccHeat:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
-      "CoastCool": "CoastCool:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
-      "CoastHeat": "CoastHeat:hop(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1)",
+      "AccCool": "AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]",
+      "AccHeat": "AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]",
+      "CoastCool": "CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]",
+      "CoastHeat": "CoastHeat:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastCool@1, BrkCool@1, BrkHeat@1]; AccCool:repoDyn(B=1,preJ)->[AccHeat@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoDyn(B=1,preJ)->[AccCool@1, CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastCool:repoChosen(B=1,preJ)->[CoastHeat@1, BrkCool@1, BrkHeat@1]; CoastHeat:repoChosen(B=1,preJ)->[BrkCool@1, BrkHeat@1]; BrkCool:base(B=1); BrkHeat:base(B=1); CoastCool:repoDyn(B=1,preJ)->[AccCool@1, AccHeat@1, CoastHeat@1, BrkCool@1, BrkHeat@1]; AccHeat:repoChosen(B=1,preJ)->[CoastCool@1, CoastHeat@1, BrkCool@1, BrkHeat@1]",
       "BrkCool": "BrkCool:base(B=1)",
       "BrkHeat": "BrkHeat:base(B=1)"
      }
@@ -4339,25 +4398,25 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1721,
+   "no_prune_ms": 4446,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 1645,
+   "no_cut_ms": 4317,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1640,
+   "no_implied_ms": 4283,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1736,
+   "no_linear_ms": 3996,
    "handoff": {
     "checked": 36,
     "declared": 36,
     "passed": 36,
     "failing": "-",
     "vacuous": true,
-    "ms": 121
+    "ms": 42
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
     "M1": "no (\u03bb=1 everywhere)",
-    "M2": "no (single segment)",
+    "M2": "no (single segment, RO used)",
     "M3": "no (max non-self successors at a joint step = 0)",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
@@ -4394,7 +4453,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 300,
+   "ms": 264,
    "verdict_extra": "",
    "prune_line": "[prune] lit_csf25_salt_tank_hold: []",
    "admissible_lines": [
@@ -4429,7 +4488,8 @@
     "[repo-dyn-pre] HoldInc_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] HoldDec_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.56,
+   "wall_s": 0.4,
+   "prelanding_nodes": 1,
    "choice_entries": 0,
    "covers": [
     {
@@ -4474,7 +4534,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "Inc": "---",
+      "Inc": "-d-",
       "Dec": "j--"
      },
      "kinds": [
@@ -4497,20 +4557,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 295,
+   "no_prune_ms": 319,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 1469,
+   "no_cut_ms": 1916,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 1387,
+   "no_implied_ms": 1821,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 215,
+   "no_linear_ms": 275,
    "handoff": {
     "checked": 2,
     "declared": 2,
     "passed": 2,
     "failing": "-",
     "vacuous": false,
-    "ms": 17
+    "ms": 50
    },
    "right_only_any": false,
    "cells": {
@@ -4561,7 +4621,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2617,
+   "ms": 6776,
    "verdict_extra": "",
    "prune_line": "[prune] lit_drl_lane_control: []",
    "admissible_lines": [
@@ -4625,8 +4685,9 @@
     "[repo-dyn-pre] BrakeLAccel_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] BrakeLBrake_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.86,
-   "choice_entries": 30,
+   "wall_s": 6.96,
+   "prelanding_nodes": 48,
+   "choice_entries": 24,
    "covers": [
     {
      "mL": "AccelLAccel",
@@ -4644,16 +4705,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccelLAccel": "j--",
-      "AccelLBrake": "---",
-      "CoastLAccel": "---",
-      "CoastLBrake": "---",
-      "BrakeLAccel": "---",
-      "BrakeLBrake": "---"
+      "AccelLAccel": "jdd",
+      "AccelLBrake": "-dd",
+      "CoastLAccel": "-d-",
+      "CoastLBrake": "-d-",
+      "BrakeLAccel": "-d-",
+      "BrakeLBrake": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccelLAccel",
@@ -4664,25 +4726,30 @@
       "CoastLBrake"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccelLBrake",
+      "BrakeLAccel",
+      "BrakeLBrake",
+      "CoastLAccel",
+      "CoastLBrake"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccelLBrake:hop",
-      "BrakeLAccel:hop",
-      "BrakeLBrake:hop",
-      "CoastLAccel:hop",
-      "CoastLBrake:hop"
+      "BrakeLAccel:repoChosen",
+      "BrakeLBrake:repoChosen",
+      "CoastLAccel:repoChosen",
+      "CoastLBrake:repoChosen"
      ],
-     "choice_entries": 5,
+     "choice_entries": 4,
      "paths": {
       "AccelLAccel": "AccelLAccel:base(B=1)",
-      "AccelLBrake": "AccelLBrake:hop(B=1,preJ)->[AccelLAccel@1]; AccelLAccel:base(B=1)",
-      "CoastLAccel": "CoastLAccel:hop(B=1,preJ)->[AccelLAccel@1]; AccelLAccel:base(B=1)",
-      "CoastLBrake": "CoastLBrake:hop(B=1,preJ)->[AccelLAccel@1]; AccelLAccel:base(B=1)",
-      "BrakeLAccel": "BrakeLAccel:hop(B=1,preJ)->[AccelLAccel@1]; AccelLAccel:base(B=1)",
-      "BrakeLBrake": "BrakeLBrake:hop(B=1,preJ)->[AccelLAccel@1]; AccelLAccel:base(B=1)"
+      "AccelLBrake": "AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:base(B=1); CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "CoastLAccel": "CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:base(B=1); AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "CoastLBrake": "CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:base(B=1); AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "BrakeLAccel": "BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; AccelLAccel:base(B=1); AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "BrakeLBrake": "BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]; AccelLAccel:base(B=1); AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLAccel@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]"
      }
     },
     {
@@ -4701,16 +4768,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccelLAccel": "---",
-      "AccelLBrake": "j--",
-      "CoastLAccel": "---",
-      "CoastLBrake": "---",
-      "BrakeLAccel": "---",
-      "BrakeLBrake": "---"
+      "AccelLAccel": "-dd",
+      "AccelLBrake": "jdd",
+      "CoastLAccel": "-d-",
+      "CoastLBrake": "-d-",
+      "BrakeLAccel": "-d-",
+      "BrakeLBrake": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccelLAccel",
@@ -4721,25 +4789,30 @@
       "CoastLBrake"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccelLAccel",
+      "BrakeLAccel",
+      "BrakeLBrake",
+      "CoastLAccel",
+      "CoastLBrake"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccelLAccel:hop",
-      "BrakeLAccel:hop",
-      "BrakeLBrake:hop",
-      "CoastLAccel:hop",
-      "CoastLBrake:hop"
+      "BrakeLAccel:repoChosen",
+      "BrakeLBrake:repoChosen",
+      "CoastLAccel:repoChosen",
+      "CoastLBrake:repoChosen"
      ],
-     "choice_entries": 5,
+     "choice_entries": 4,
      "paths": {
-      "AccelLAccel": "AccelLAccel:hop(B=1,preJ)->[AccelLBrake@1]; AccelLBrake:base(B=1)",
+      "AccelLAccel": "AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:base(B=1); CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
       "AccelLBrake": "AccelLBrake:base(B=1)",
-      "CoastLAccel": "CoastLAccel:hop(B=1,preJ)->[AccelLBrake@1]; AccelLBrake:base(B=1)",
-      "CoastLBrake": "CoastLBrake:hop(B=1,preJ)->[AccelLBrake@1]; AccelLBrake:base(B=1)",
-      "BrakeLAccel": "BrakeLAccel:hop(B=1,preJ)->[AccelLBrake@1]; AccelLBrake:base(B=1)",
-      "BrakeLBrake": "BrakeLBrake:hop(B=1,preJ)->[AccelLBrake@1]; AccelLBrake:base(B=1)"
+      "CoastLAccel": "CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:base(B=1); CoastLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "CoastLBrake": "CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:base(B=1); CoastLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "BrakeLAccel": "BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:base(B=1); CoastLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "BrakeLBrake": "BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:base(B=1); CoastLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[AccelLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[AccelLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]"
      }
     },
     {
@@ -4758,16 +4831,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccelLAccel": "---",
-      "AccelLBrake": "---",
+      "AccelLAccel": "-dd",
+      "AccelLBrake": "-dd",
       "CoastLAccel": "j--",
-      "CoastLBrake": "---",
-      "BrakeLAccel": "---",
-      "BrakeLBrake": "---"
+      "CoastLBrake": "-d-",
+      "BrakeLAccel": "-dd",
+      "BrakeLBrake": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccelLAccel",
@@ -4778,25 +4852,30 @@
       "CoastLBrake"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccelLAccel",
+      "AccelLBrake",
+      "BrakeLAccel",
+      "BrakeLBrake",
+      "CoastLBrake"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccelLAccel:hop",
-      "AccelLBrake:hop",
-      "BrakeLAccel:hop",
-      "BrakeLBrake:hop",
-      "CoastLBrake:hop"
+      "AccelLBrake:repoChosen",
+      "BrakeLAccel:repoChosen",
+      "BrakeLBrake:repoChosen",
+      "CoastLBrake:repoChosen"
      ],
-     "choice_entries": 5,
+     "choice_entries": 4,
      "paths": {
-      "AccelLAccel": "AccelLAccel:hop(B=1,preJ)->[CoastLAccel@1]; CoastLAccel:base(B=1)",
-      "AccelLBrake": "AccelLBrake:hop(B=1,preJ)->[CoastLAccel@1]; CoastLAccel:base(B=1)",
+      "AccelLAccel": "AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:base(B=1); CoastLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "AccelLBrake": "AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:base(B=1); CoastLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
       "CoastLAccel": "CoastLAccel:base(B=1)",
-      "CoastLBrake": "CoastLBrake:hop(B=1,preJ)->[CoastLAccel@1]; CoastLAccel:base(B=1)",
-      "BrakeLAccel": "BrakeLAccel:hop(B=1,preJ)->[CoastLAccel@1]; CoastLAccel:base(B=1)",
-      "BrakeLBrake": "BrakeLBrake:hop(B=1,preJ)->[CoastLAccel@1]; CoastLAccel:base(B=1)"
+      "CoastLBrake": "CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:base(B=1); CoastLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "BrakeLAccel": "BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:base(B=1); CoastLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "BrakeLBrake": "BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:base(B=1); CoastLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[CoastLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]"
      }
     },
     {
@@ -4815,16 +4894,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccelLAccel": "---",
-      "AccelLBrake": "---",
-      "CoastLAccel": "---",
+      "AccelLAccel": "-dd",
+      "AccelLBrake": "-dd",
+      "CoastLAccel": "-d-",
       "CoastLBrake": "j--",
-      "BrakeLAccel": "---",
-      "BrakeLBrake": "---"
+      "BrakeLAccel": "-dd",
+      "BrakeLBrake": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccelLAccel",
@@ -4835,25 +4915,30 @@
       "CoastLBrake"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccelLAccel",
+      "AccelLBrake",
+      "BrakeLAccel",
+      "BrakeLBrake",
+      "CoastLAccel"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccelLAccel:hop",
-      "AccelLBrake:hop",
-      "BrakeLAccel:hop",
-      "BrakeLBrake:hop",
-      "CoastLAccel:hop"
+      "AccelLBrake:repoChosen",
+      "BrakeLAccel:repoChosen",
+      "BrakeLBrake:repoChosen",
+      "CoastLAccel:repoChosen"
      ],
-     "choice_entries": 5,
+     "choice_entries": 4,
      "paths": {
-      "AccelLAccel": "AccelLAccel:hop(B=1,preJ)->[CoastLBrake@1]; CoastLBrake:base(B=1)",
-      "AccelLBrake": "AccelLBrake:hop(B=1,preJ)->[CoastLBrake@1]; CoastLBrake:base(B=1)",
-      "CoastLAccel": "CoastLAccel:hop(B=1,preJ)->[CoastLBrake@1]; CoastLBrake:base(B=1)",
+      "AccelLAccel": "AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:base(B=1); BrakeLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "AccelLBrake": "AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:base(B=1); BrakeLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "CoastLAccel": "CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:base(B=1); BrakeLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLBrake@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
       "CoastLBrake": "CoastLBrake:base(B=1)",
-      "BrakeLAccel": "BrakeLAccel:hop(B=1,preJ)->[CoastLBrake@1]; CoastLBrake:base(B=1)",
-      "BrakeLBrake": "BrakeLBrake:hop(B=1,preJ)->[CoastLBrake@1]; CoastLBrake:base(B=1)"
+      "BrakeLAccel": "BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:base(B=1); BrakeLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLBrake@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "BrakeLBrake": "BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:base(B=1); BrakeLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLBrake@1]; BrakeLBrake:repoChosen(B=1,preJ)->[CoastLBrake@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]"
      }
     },
     {
@@ -4872,16 +4957,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccelLAccel": "---",
-      "AccelLBrake": "---",
-      "CoastLAccel": "---",
-      "CoastLBrake": "---",
+      "AccelLAccel": "-dd",
+      "AccelLBrake": "-dd",
+      "CoastLAccel": "-d-",
+      "CoastLBrake": "-d-",
       "BrakeLAccel": "j--",
-      "BrakeLBrake": "---"
+      "BrakeLBrake": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccelLAccel",
@@ -4892,25 +4978,30 @@
       "CoastLBrake"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccelLAccel",
+      "AccelLBrake",
+      "BrakeLBrake",
+      "CoastLAccel",
+      "CoastLBrake"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccelLAccel:hop",
-      "AccelLBrake:hop",
-      "BrakeLBrake:hop",
-      "CoastLAccel:hop",
-      "CoastLBrake:hop"
+      "AccelLBrake:repoChosen",
+      "BrakeLBrake:repoChosen",
+      "CoastLAccel:repoChosen",
+      "CoastLBrake:repoChosen"
      ],
-     "choice_entries": 5,
+     "choice_entries": 4,
      "paths": {
-      "AccelLAccel": "AccelLAccel:hop(B=1,preJ)->[BrakeLAccel@1]; BrakeLAccel:base(B=1)",
-      "AccelLBrake": "AccelLBrake:hop(B=1,preJ)->[BrakeLAccel@1]; BrakeLAccel:base(B=1)",
-      "CoastLAccel": "CoastLAccel:hop(B=1,preJ)->[BrakeLAccel@1]; BrakeLAccel:base(B=1)",
-      "CoastLBrake": "CoastLBrake:hop(B=1,preJ)->[BrakeLAccel@1]; BrakeLAccel:base(B=1)",
+      "AccelLAccel": "AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:base(B=1); BrakeLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "AccelLBrake": "AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:base(B=1); BrakeLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "CoastLAccel": "CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:base(B=1); BrakeLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
+      "CoastLBrake": "CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:base(B=1); BrakeLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]",
       "BrakeLAccel": "BrakeLAccel:base(B=1)",
-      "BrakeLBrake": "BrakeLBrake:hop(B=1,preJ)->[BrakeLAccel@1]; BrakeLAccel:base(B=1)"
+      "BrakeLBrake": "BrakeLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:base(B=1); BrakeLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]"
      }
     },
     {
@@ -4929,16 +5020,17 @@
      ],
      "replay_ok": true,
      "flags": {
-      "AccelLAccel": "---",
-      "AccelLBrake": "---",
-      "CoastLAccel": "---",
-      "CoastLBrake": "---",
-      "BrakeLAccel": "---",
+      "AccelLAccel": "-dd",
+      "AccelLBrake": "-dd",
+      "CoastLAccel": "-d-",
+      "CoastLBrake": "-d-",
+      "BrakeLAccel": "-d-",
       "BrakeLBrake": "j--"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "AccelLAccel",
@@ -4949,49 +5041,54 @@
       "CoastLBrake"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "AccelLAccel",
+      "AccelLBrake",
+      "BrakeLAccel",
+      "CoastLAccel",
+      "CoastLBrake"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "AccelLAccel:hop",
-      "AccelLBrake:hop",
-      "BrakeLAccel:hop",
-      "CoastLAccel:hop",
-      "CoastLBrake:hop"
+      "AccelLBrake:repoChosen",
+      "BrakeLAccel:repoChosen",
+      "CoastLAccel:repoChosen",
+      "CoastLBrake:repoChosen"
      ],
-     "choice_entries": 5,
+     "choice_entries": 4,
      "paths": {
-      "AccelLAccel": "AccelLAccel:hop(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1)",
-      "AccelLBrake": "AccelLBrake:hop(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1)",
-      "CoastLAccel": "CoastLAccel:hop(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1)",
-      "CoastLBrake": "CoastLBrake:hop(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1)",
-      "BrakeLAccel": "BrakeLAccel:hop(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1)",
+      "AccelLAccel": "AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1); CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]",
+      "AccelLBrake": "AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1); CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]",
+      "CoastLAccel": "CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1); AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]",
+      "CoastLBrake": "CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1); AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]",
+      "BrakeLAccel": "BrakeLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLBrake@1]; AccelLAccel:repoDyn(B=1,preJ)->[AccelLBrake@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; AccelLBrake:repoChosen(B=1,preJ)->[CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoChosen(B=1,preJ)->[CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoChosen(B=1,preJ)->[BrakeLAccel@1, BrakeLBrake@1]; BrakeLAccel:repoChosen(B=1,preJ)->[BrakeLBrake@1]; BrakeLBrake:base(B=1); AccelLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, CoastLAccel@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLAccel:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLBrake@1, BrakeLAccel@1, BrakeLBrake@1]; CoastLBrake:repoDyn(B=1,preJ)->[AccelLAccel@1, AccelLBrake@1, CoastLAccel@1, BrakeLAccel@1, BrakeLBrake@1]",
       "BrakeLBrake": "BrakeLBrake:base(B=1)"
      }
     }
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2647,
+   "no_prune_ms": 6646,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2496,
+   "no_cut_ms": 7081,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2694,
+   "no_implied_ms": 6538,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2611,
+   "no_linear_ms": 6582,
    "handoff": {
     "checked": 36,
     "declared": 36,
     "passed": 36,
     "failing": "-",
     "vacuous": true,
-    "ms": 103
+    "ms": 43
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
     "M1": "no (\u03bb=1 everywhere)",
-    "M2": "no (single segment)",
+    "M2": "no (single segment, RO used)",
     "M3": "no (max non-self successors at a joint step = 0)",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
@@ -5038,7 +5135,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2302,
+   "ms": 3423,
    "verdict_extra": "",
    "prune_line": "[prune] lit_freedm_meter: []",
    "admissible_lines": [
@@ -5130,38 +5227,39 @@
     "[route] GridD2R1: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] BatD0R0_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] BatD0R1_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] BatD1R0_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] BatD1R1_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] BatD2R0_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] BatD2R1_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] GridD0R0_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] GridD0R1_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] GridD1R0_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] GridD1R1_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] GridD2R0_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
-    "[repo-dyn-pre] GridD2R1_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]"
+    "[repo-dyn-pre] BatD0R0_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] BatD0R1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] BatD1R0_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] BatD1R1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] BatD2R0_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] BatD2R1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GridD0R0_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GridD0R1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GridD1R0_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GridD1R1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GridD2R0_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GridD2R1_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.54,
-   "choice_entries": 102,
+   "wall_s": 3.56,
+   "prelanding_nodes": 288,
+   "choice_entries": 38,
    "covers": [],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2259,
+   "no_prune_ms": 3538,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2205,
+   "no_cut_ms": 3291,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2263,
+   "no_implied_ms": 4345,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2307,
+   "no_linear_ms": 3559,
    "handoff": {
     "checked": 144,
     "declared": 144,
     "passed": 144,
     "failing": "-",
     "vacuous": true,
-    "ms": 182
+    "ms": 148
    },
    "right_only_any": false,
    "cells": {
@@ -5207,7 +5305,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 53927,
+   "ms": 99742,
    "verdict_extra": "",
    "prune_line": "[prune] lit_girard08_robot: []",
    "admissible_lines": [
@@ -5245,8 +5343,9 @@
     "[repo-dyn-pre] M5_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] M6_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 54.17,
-   "choice_entries": 20,
+   "wall_s": 99.91,
+   "prelanding_nodes": 30,
+   "choice_entries": 29,
    "covers": [
     {
      "mL": "M1",
@@ -5264,41 +5363,49 @@
      "replay_ok": true,
      "flags": {
       "M1": "j--",
-      "M2": "---",
-      "M3": "---",
-      "M4": "---",
-      "M5": "---",
-      "M6": "---"
+      "M2": "-d-",
+      "M3": "-d-",
+      "M4": "-d-",
+      "M5": "-d-",
+      "M6": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "M1",
       "M2",
       "M3",
       "M4",
+      "M5",
       "M6"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M6"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "M2:hop",
-      "M3:hop",
-      "M4:hop",
-      "M6:hop"
+      "M3:repoChosen",
+      "M4:repoChosen",
+      "M5:repoChosen",
+      "M6:repoChosen"
      ],
      "choice_entries": 4,
      "paths": {
       "M1": "M1:base(B=1)",
-      "M2": "M2:hop(B=1,preJ)->[M1@1]; M1:base(B=1)",
-      "M3": "M3:hop(B=1,preJ)->[M1@1]; M1:base(B=1)",
-      "M4": "M4:hop(B=1,preJ)->[M1@1]; M1:base(B=1)",
-      "M6": "M6:hop(B=1,preJ)->[M1@1]; M1:base(B=1)"
+      "M2": "M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M1:base(B=1); M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M3:repoChosen(B=1,preJ)->[M1@1, M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M1@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M1@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]",
+      "M3": "M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M1:base(B=1); M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:repoChosen(B=1,preJ)->[M1@1, M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M1@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M1@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]",
+      "M4": "M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M1:base(B=1); M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:repoChosen(B=1,preJ)->[M1@1, M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M1@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M1@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]",
+      "M6": "M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M1:base(B=1); M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:repoChosen(B=1,preJ)->[M1@1, M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M1@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M1@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]"
      }
     },
     {
@@ -5314,36 +5421,49 @@
      ],
      "replay_ok": true,
      "flags": {
-      "M1": "---",
+      "M1": "-d-",
       "M2": "j--",
-      "M3": "---",
-      "M4": "---",
-      "M5": "---",
-      "M6": "---"
+      "M3": "-d-",
+      "M4": "-d-",
+      "M5": "-d-",
+      "M6": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "hop",
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "M1",
       "M2",
-      "M3"
+      "M3",
+      "M4",
+      "M5",
+      "M6"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "M1",
+      "M3",
+      "M4",
+      "M5",
+      "M6"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "M1:hop",
-      "M3:hop"
+      "M1:repoChosen",
+      "M3:repoChosen",
+      "M5:repoChosen",
+      "M6:hop"
      ],
-     "choice_entries": 2,
+     "choice_entries": 6,
      "paths": {
-      "M1": "M1:hop(B=1,preJ)->[M2@1]; M2:base(B=1)",
+      "M1": "M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:base(B=1); M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M1:repoChosen(B=1,preJ)->[M2@1]; M3:repoChosen(B=1,preJ)->[M2@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:hop(B=1,preJ)->[M1@1, M3@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]",
       "M2": "M2:base(B=1)",
-      "M3": "M3:hop(B=1,preJ)->[M2@1]; M2:base(B=1)"
+      "M3": "M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:base(B=1); M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M1:repoChosen(B=1,preJ)->[M2@1]; M3:repoChosen(B=1,preJ)->[M2@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:hop(B=1,preJ)->[M1@1, M3@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]"
      }
     },
     {
@@ -5361,42 +5481,50 @@
      ],
      "replay_ok": true,
      "flags": {
-      "M1": "---",
-      "M2": "---",
+      "M1": "-d-",
+      "M2": "-d-",
       "M3": "j--",
-      "M4": "---",
-      "M5": "---",
-      "M6": "---"
+      "M4": "-d-",
+      "M5": "-d-",
+      "M6": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "M1",
       "M2",
       "M3",
       "M4",
+      "M5",
       "M6"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "M1",
+      "M2",
+      "M4",
+      "M5",
+      "M6"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "M1:hop",
-      "M2:hop",
-      "M4:hop",
-      "M6:hop"
+      "M2:repoChosen",
+      "M4:repoChosen",
+      "M5:repoChosen",
+      "M6:repoChosen"
      ],
      "choice_entries": 4,
      "paths": {
-      "M1": "M1:hop(B=1,preJ)->[M3@1]; M3:base(B=1)",
-      "M2": "M2:hop(B=1,preJ)->[M3@1]; M3:base(B=1)",
+      "M1": "M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:base(B=1); M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M3@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M3@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]",
+      "M2": "M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M3:base(B=1); M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M3@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M3@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]",
       "M3": "M3:base(B=1)",
-      "M4": "M4:hop(B=1,preJ)->[M3@1]; M3:base(B=1)",
-      "M6": "M6:hop(B=1,preJ)->[M3@1]; M3:base(B=1)"
+      "M4": "M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:base(B=1); M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M4:repoChosen(B=1,preJ)->[M3@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M3@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]",
+      "M6": "M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:base(B=1); M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M3@1, M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M3@1]"
      }
     },
     {
@@ -5414,42 +5542,50 @@
      ],
      "replay_ok": true,
      "flags": {
-      "M1": "---",
-      "M2": "---",
-      "M3": "---",
+      "M1": "-d-",
+      "M2": "-d-",
+      "M3": "-d-",
       "M4": "j--",
-      "M5": "---",
-      "M6": "---"
+      "M5": "-d-",
+      "M6": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "M1",
+      "M2",
       "M3",
       "M4",
       "M5",
       "M6"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "M1",
+      "M2",
+      "M3",
+      "M5",
+      "M6"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "M1:hop",
-      "M3:hop",
-      "M5:hop",
-      "M6:hop"
+      "M2:repoChosen",
+      "M3:repoChosen",
+      "M5:repoChosen",
+      "M6:repoChosen"
      ],
      "choice_entries": 4,
      "paths": {
-      "M1": "M1:hop(B=1,preJ)->[M4@1]; M4:base(B=1)",
-      "M3": "M3:hop(B=1,preJ)->[M4@1]; M4:base(B=1)",
+      "M1": "M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M4:base(B=1); M6:repoChosen(B=1,preJ)->[M4@1, M5@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]",
+      "M3": "M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M4:base(B=1); M6:repoChosen(B=1,preJ)->[M4@1, M5@1]; M5:repoChosen(B=1,preJ)->[M4@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]",
       "M4": "M4:base(B=1)",
-      "M5": "M5:hop(B=1,preJ)->[M4@1]; M4:base(B=1)",
-      "M6": "M6:hop(B=1,preJ)->[M4@1]; M4:base(B=1)"
+      "M5": "M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M4:base(B=1); M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M6:repoChosen(B=1,preJ)->[M4@1, M5@1]; M5:repoChosen(B=1,preJ)->[M4@1]",
+      "M6": "M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M4:base(B=1); M6:repoChosen(B=1,preJ)->[M4@1, M5@1]; M5:repoChosen(B=1,preJ)->[M4@1]; M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]"
      }
     },
     {
@@ -5465,36 +5601,49 @@
      ],
      "replay_ok": true,
      "flags": {
-      "M1": "---",
-      "M2": "---",
-      "M3": "---",
-      "M4": "---",
+      "M1": "-d-",
+      "M2": "-d-",
+      "M3": "-d-",
+      "M4": "-d-",
       "M5": "j--",
-      "M6": "---"
+      "M6": "-d-"
      },
      "kinds": [
       "base",
-      "hop"
+      "hop",
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
+      "M1",
+      "M2",
+      "M3",
       "M4",
       "M5",
       "M6"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M6"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "M4:hop",
-      "M6:hop"
+      "M1:repoChosen",
+      "M3:hop",
+      "M4:repoChosen",
+      "M6:repoChosen"
      ],
-     "choice_entries": 2,
+     "choice_entries": 7,
      "paths": {
-      "M4": "M4:hop(B=1,preJ)->[M5@1]; M5:base(B=1)",
+      "M4": "M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M1:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M5@1]; M5:base(B=1); M3:hop(B=1,preJ)->[M1@1, M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M5@1, M6@1]; M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]",
       "M5": "M5:base(B=1)",
-      "M6": "M6:hop(B=1,preJ)->[M5@1]; M5:base(B=1)"
+      "M6": "M6:repoDyn(B=1,preJ)->[M1@1, M3@1, M4@1, M5@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M1:repoChosen(B=1,preJ)->[M6@1]; M6:repoChosen(B=1,preJ)->[M5@1]; M5:base(B=1); M3:hop(B=1,preJ)->[M1@1, M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M5@1, M6@1]; M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]"
      }
     },
     {
@@ -5512,66 +5661,74 @@
      ],
      "replay_ok": true,
      "flags": {
-      "M1": "---",
-      "M2": "---",
-      "M3": "---",
-      "M4": "---",
-      "M5": "---",
+      "M1": "-d-",
+      "M2": "-d-",
+      "M3": "-d-",
+      "M4": "-d-",
+      "M5": "-d-",
       "M6": "j--"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "M1",
+      "M2",
       "M3",
       "M4",
       "M5",
       "M6"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "M1:hop",
-      "M3:hop",
-      "M4:hop",
-      "M5:hop"
+      "M2:repoChosen",
+      "M3:repoChosen",
+      "M4:repoChosen",
+      "M5:repoChosen"
      ],
      "choice_entries": 4,
      "paths": {
-      "M1": "M1:hop(B=1,preJ)->[M6@1]; M6:base(B=1)",
-      "M3": "M3:hop(B=1,preJ)->[M6@1]; M6:base(B=1)",
-      "M4": "M4:hop(B=1,preJ)->[M6@1]; M6:base(B=1)",
-      "M5": "M5:hop(B=1,preJ)->[M6@1]; M6:base(B=1)",
+      "M1": "M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M5@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M6:base(B=1); M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]",
+      "M3": "M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:base(B=1); M2:repoDyn(B=1,preJ)->[M1@1, M3@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]",
+      "M4": "M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:base(B=1); M3:repoDyn(B=1,preJ)->[M1@1, M2@1, M4@1, M6@1]; M5:repoDyn(B=1,preJ)->[M4@1, M6@1]",
+      "M5": "M5:repoDyn(B=1,preJ)->[M4@1, M6@1]; M4:repoDyn(B=1,preJ)->[M1@1, M3@1, M5@1, M6@1]; M1:repoDyn(B=1,preJ)->[M2@1, M3@1, M4@1, M6@1]; M2:repoChosen(B=1,preJ)->[M3@1]; M3:repoChosen(B=1,preJ)->[M4@1, M6@1]; M4:repoChosen(B=1,preJ)->[M5@1, M6@1]; M5:repoChosen(B=1,preJ)->[M6@1]; M6:base(B=1)",
       "M6": "M6:base(B=1)"
      }
     }
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 53357,
+   "no_prune_ms": 98313,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 36026,
+   "no_cut_ms": 79331,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 53407,
+   "no_implied_ms": 98106,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 53322,
+   "no_linear_ms": 98305,
    "handoff": {
     "checked": 12,
     "declared": 12,
     "passed": 12,
     "failing": "-",
     "vacuous": true,
-    "ms": 516
+    "ms": 60
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
     "M1": "no (\u03bb=1 everywhere)",
-    "M2": "no (single segment)",
+    "M2": "no (single segment, RO used)",
     "M3": "no (max non-self successors at a joint step = 0)",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
@@ -5654,7 +5811,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 51508,
+   "ms": 61045,
    "verdict_extra": "",
    "prune_line": "[prune] lit_gpt10_boost_converter: []",
    "admissible_lines": [
@@ -5862,7 +6019,7 @@
     "[repo-dyn-pre] P2d22_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] P2d23_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 51.74,
+   "wall_s": 61.19,
    "choice_entries": 48,
    "covers": [
     {
@@ -7644,20 +7801,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 51371,
+   "no_prune_ms": 61032,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 52775,
+   "no_cut_ms": 60321,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 55180,
+   "no_implied_ms": 59957,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 54909,
+   "no_linear_ms": 59995,
    "handoff": {
     "checked": 2304,
     "declared": 2304,
     "passed": 2304,
     "failing": "-",
     "vacuous": true,
-    "ms": 1620
+    "ms": 1615
    },
    "right_only_any": false,
    "cells": {
@@ -7700,7 +7857,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 385,
+   "ms": 779,
    "verdict_extra": "",
    "prune_line": "[prune] lit_lz21_vehicle_position: []",
    "admissible_lines": [
@@ -7732,8 +7889,9 @@
     "[repo-dyn-pre] U0_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] Up_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.56,
-   "choice_entries": 6,
+   "wall_s": 0.98,
+   "prelanding_nodes": 18,
+   "choice_entries": 3,
    "covers": [
     {
      "mL": "Um",
@@ -7748,13 +7906,14 @@
      ],
      "replay_ok": true,
      "flags": {
-      "Um": "j--",
-      "U0": "---",
-      "Up": "---"
+      "Um": "jdd",
+      "U0": "-dd",
+      "Up": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "U0",
@@ -7762,19 +7921,21 @@
       "Up"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "U0",
+      "Up"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "U0:hop",
-      "Up:hop"
+      "Up:repoChosen"
      ],
-     "choice_entries": 2,
+     "choice_entries": 1,
      "paths": {
       "Um": "Um:base(B=1)",
-      "U0": "U0:hop(B=1,preJ)->[Um@1]; Um:base(B=1)",
-      "Up": "Up:hop(B=1,preJ)->[Um@1]; Um:base(B=1)"
+      "U0": "U0:repoDyn(B=1,preJ)->[Um@1, Up@1]; Um:base(B=1); Up:repoDyn(B=1,preJ)->[Um@1, U0@1]",
+      "Up": "Up:repoDyn(B=1,preJ)->[Um@1, U0@1]; Um:base(B=1); U0:repoDyn(B=1,preJ)->[Um@1, Up@1]; Up:repoChosen(B=1,preJ)->[Um@1]"
      }
     },
     {
@@ -7790,13 +7951,14 @@
      ],
      "replay_ok": true,
      "flags": {
-      "Um": "---",
-      "U0": "j--",
-      "Up": "---"
+      "Um": "-dd",
+      "U0": "jdd",
+      "Up": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "U0",
@@ -7804,19 +7966,21 @@
       "Up"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "Um",
+      "Up"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "Um:hop",
-      "Up:hop"
+      "Up:repoChosen"
      ],
-     "choice_entries": 2,
+     "choice_entries": 1,
      "paths": {
-      "Um": "Um:hop(B=1,preJ)->[U0@1]; U0:base(B=1)",
+      "Um": "Um:repoDyn(B=1,preJ)->[U0@1, Up@1]; U0:base(B=1); Up:repoDyn(B=1,preJ)->[Um@1, U0@1]",
       "U0": "U0:base(B=1)",
-      "Up": "Up:hop(B=1,preJ)->[U0@1]; U0:base(B=1)"
+      "Up": "Up:repoDyn(B=1,preJ)->[Um@1, U0@1]; Um:repoDyn(B=1,preJ)->[U0@1, Up@1]; U0:base(B=1); Up:repoChosen(B=1,preJ)->[U0@1]"
      }
     },
     {
@@ -7832,13 +7996,14 @@
      ],
      "replay_ok": true,
      "flags": {
-      "Um": "---",
-      "U0": "---",
-      "Up": "j--"
+      "Um": "-dd",
+      "U0": "-dd",
+      "Up": "jdd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "U0",
@@ -7846,43 +8011,45 @@
       "Up"
      ],
      "joint_modes": [],
-     "ro_modes": [],
+     "ro_modes": [
+      "U0",
+      "Um"
+     ],
      "branching": 0,
-     "right_only": false,
+     "right_only": true,
      "joint_steps": 0,
      "choice_steps": [
-      "U0:hop",
-      "Um:hop"
+      "U0:repoChosen"
      ],
-     "choice_entries": 2,
+     "choice_entries": 1,
      "paths": {
-      "Um": "Um:hop(B=1,preJ)->[Up@1]; Up:base(B=1)",
-      "U0": "U0:hop(B=1,preJ)->[Up@1]; Up:base(B=1)",
+      "Um": "Um:repoDyn(B=1,preJ)->[U0@1, Up@1]; U0:repoDyn(B=1,preJ)->[Um@1, Up@1]; Up:base(B=1)",
+      "U0": "U0:repoDyn(B=1,preJ)->[Um@1, Up@1]; Um:repoDyn(B=1,preJ)->[U0@1, Up@1]; U0:repoChosen(B=1,preJ)->[Up@1]; Up:base(B=1)",
       "Up": "Up:base(B=1)"
      }
     }
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 413,
+   "no_prune_ms": 771,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 477,
+   "no_cut_ms": 775,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 431,
+   "no_implied_ms": 759,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 548,
+   "no_linear_ms": 778,
    "handoff": {
     "checked": 9,
     "declared": 9,
     "passed": 9,
     "failing": "-",
     "vacuous": true,
-    "ms": 49
+    "ms": 64
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
     "M1": "no (\u03bb=1 everywhere)",
-    "M2": "no (single segment)",
+    "M2": "no (single segment, RO used)",
     "M3": "no (max non-self successors at a joint step = 0)",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
@@ -7911,15 +8078,15 @@
     "Cool": "temp[l] <= temp[r] + 0.3 and temp[r] <= temp[l] + 0.3",
     "Heat": "temp[l] <= temp[r] + 0.3 and temp[r] <= temp[l] + 0.3"
    },
-   "hash": "7de137fb63717f8e005da8ac266af079",
-   "tol_hash": "30a653749c0a48b76e598b4fab2a4626",
+   "hash": "a42918a0449cd43df944776e2f06a9b2",
+   "tol_hash": "0adfa05af3f784efd3f33deea3f2cc24",
    "rows_identical": true,
    "inv_shape": "conjunctive",
    "per_mode_evolve": false,
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 196,
+   "ms": 202,
    "verdict_extra": "",
    "prune_line": "[prune] lit_nahs25_engine_cooling: []",
    "admissible_lines": [
@@ -7933,7 +8100,7 @@
     "[repo-dyn-pre] Cool_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] Heat_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.32,
+   "wall_s": 0.42,
    "prelanding_nodes": 2,
    "choice_entries": 0,
    "covers": [
@@ -8014,20 +8181,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 176,
+   "no_prune_ms": 186,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 154,
+   "no_cut_ms": 208,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 193,
+   "no_implied_ms": 165,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 162,
+   "no_linear_ms": 200,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 56
+    "ms": 55
    },
    "right_only_any": true,
    "cells": {
@@ -8061,15 +8228,15 @@
     "On": "xp[l] <= xp[r] + 0.0 and xp[r] <= xp[l] + 0.0 and xp[l] >= 25.0 and xp[r] >= 25.0",
     "Off": "xp[l] <= xp[r] + 0.0 and xp[r] <= xp[l] + 0.0 and xp[l] >= 25.0 and xp[r] >= 25.0"
    },
-   "hash": "8e01810795c4f0399fcd7cbf69d077c1",
-   "tol_hash": "fceba12813ea5addac0f9cbbb8915245",
+   "hash": "01bda2013d62a6465ef9f525412af83c",
+   "tol_hash": "087ae6509b9857f066c25eeb94030aab",
    "rows_identical": true,
    "inv_shape": "conjunctive",
    "per_mode_evolve": false,
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 180,
+   "ms": 163,
    "verdict_extra": "",
    "prune_line": "[prune] lit_nahs25_salt_tank: []",
    "admissible_lines": [
@@ -8093,10 +8260,11 @@
     "[route] Off: closure xp <= 25.0: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] On_L: [Off] [repo-dyn-post]: [Off]",
-    "[repo-dyn-pre] Off_L: [Off] [repo-dyn-post]: [Off]"
+    "[repo-dyn-pre] On_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] Off_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.37,
+   "wall_s": 0.3,
+   "prelanding_nodes": 4,
    "choice_entries": 0,
    "covers": [
     {
@@ -8167,20 +8335,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 181,
+   "no_prune_ms": 144,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 211,
+   "no_cut_ms": 171,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 189,
+   "no_implied_ms": 158,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 177,
+   "no_linear_ms": 122,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 56
+    "ms": 25
    },
    "right_only_any": false,
    "cells": {
@@ -8224,7 +8392,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 388,
+   "ms": 429,
    "verdict_extra": "",
    "prune_line": "[prune] molding_pack_checkring: []",
    "admissible_lines": [
@@ -8258,7 +8426,8 @@
     "[repo-dyn-pre] HOLD_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] COOL_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.53,
+   "wall_s": 0.6,
+   "prelanding_nodes": 2,
    "choice_entries": 0,
    "covers": [
     {
@@ -8303,7 +8472,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "HOLD": "---",
+      "HOLD": "-dd",
       "COOL": "j--"
      },
      "kinds": [
@@ -8326,20 +8495,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 977,
+   "no_prune_ms": 427,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 372,
+   "no_cut_ms": 465,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 331,
+   "no_implied_ms": 446,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 368,
+   "no_linear_ms": 454,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 19
+    "ms": 37
    },
    "right_only_any": false,
    "cells": {
@@ -8383,7 +8552,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 285,
+   "ms": 163,
    "verdict_extra": "",
    "prune_line": "[prune] platoon_linkloss: []",
    "admissible_lines": [
@@ -8414,7 +8583,7 @@
     "[repo-dyn-pre] CACC_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] ACC_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.41,
+   "wall_s": 0.37,
    "choice_entries": 0,
    "covers": [
     {
@@ -8486,20 +8655,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 281,
+   "no_prune_ms": 168,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 257,
+   "no_cut_ms": 152,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 239,
+   "no_implied_ms": 166,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 243,
+   "no_linear_ms": 173,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 44
+    "ms": 23
    },
    "right_only_any": false,
    "cells": {
@@ -8542,7 +8711,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 187,
+   "ms": 125,
    "verdict_extra": "",
    "prune_line": "[prune] platoon_profiles: []",
    "admissible_lines": [
@@ -8566,7 +8735,7 @@
    "repo_lines": [
     "[repo-dyn-pre] SPORT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.31,
+   "wall_s": 0.27,
    "choice_entries": 0,
    "covers": [
     {
@@ -8605,20 +8774,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 177,
+   "no_prune_ms": 107,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 154,
+   "no_cut_ms": 99,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 156,
+   "no_implied_ms": 133,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 178,
+   "no_linear_ms": 130,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 21
+    "ms": 47
    },
    "right_only_any": false,
    "cells": {
@@ -8662,7 +8831,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 106,
+   "ms": 112,
    "verdict_extra": "",
    "prune_line": "[prune] quad_light_lag: []",
    "admissible_lines": [
@@ -8685,7 +8854,7 @@
    "repo_lines": [
     "[repo-dyn-pre] CLIMB_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.28,
+   "wall_s": 0.31,
    "choice_entries": 0,
    "covers": [
     {
@@ -8724,20 +8893,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 124,
+   "no_prune_ms": 97,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 64,
+   "no_cut_ms": 91,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 94,
+   "no_implied_ms": 95,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 92,
+   "no_linear_ms": 103,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 50
+    "ms": 59
    },
    "right_only_any": false,
    "cells": {
@@ -8783,7 +8952,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 11501,
+   "ms": 11255,
    "verdict_extra": "",
    "prune_line": "[prune] quad_light_profiles: []",
    "admissible_lines": [
@@ -8825,8 +8994,9 @@
     "[repo-dyn-pre] NORMAL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] SPORT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 11.71,
-   "choice_entries": 12,
+   "wall_s": 11.48,
+   "prelanding_nodes": 18,
+   "choice_entries": 6,
    "covers": [
     {
      "mL": "ECO",
@@ -8841,14 +9011,15 @@
      ],
      "replay_ok": true,
      "flags": {
-      "NORMAL": "---",
-      "ECO": "j--",
-      "SPORT": "---"
+      "NORMAL": "-dd",
+      "ECO": "jdd",
+      "SPORT": "-dd"
      },
      "kinds": [
       "base",
-      "hop",
-      "joint"
+      "joint",
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "ECO",
@@ -8858,19 +9029,21 @@
      "joint_modes": [
       "ECO"
      ],
-     "ro_modes": [],
-     "branching": 2,
-     "right_only": false,
-     "joint_steps": 3,
-     "choice_steps": [
-      "NORMAL:hop",
-      "SPORT:hop"
+     "ro_modes": [
+      "NORMAL",
+      "SPORT"
      ],
-     "choice_entries": 4,
+     "branching": 2,
+     "right_only": true,
+     "joint_steps": 10,
+     "choice_steps": [
+      "SPORT:repoChosen"
+     ],
+     "choice_entries": 2,
      "paths": {
-      "NORMAL": "NORMAL:hop(B=2,preJ)->[ECO@2]; ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1, SPORT@1]; ECO:base(B=1); NORMAL:hop(B=1,postJ)->[ECO@1]; SPORT:hop(B=1,postJ)->[ECO@1]",
-      "ECO": "ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1, SPORT@1]; ECO:base(B=1); NORMAL:hop(B=1,postJ)->[ECO@1]; SPORT:hop(B=1,postJ)->[ECO@1]",
-      "SPORT": "SPORT:hop(B=2,preJ)->[ECO@2]; ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1, SPORT@1]; ECO:base(B=1); NORMAL:hop(B=1,postJ)->[ECO@1]; SPORT:hop(B=1,postJ)->[ECO@1]"
+      "NORMAL": "NORMAL:repoDyn(B=2,preJ)->[ECO@2, SPORT@2]; ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1, SPORT@1]; ECO:base(B=1); NORMAL:repoDyn(B=1,postJ)->[ECO@1, SPORT@1]; SPORT:repoDyn(B=1,postJ)->[NORMAL@1, ECO@1]; SPORT:repoDyn(B=2,preJ)->[NORMAL@2, ECO@2]",
+      "ECO": "ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1, SPORT@1]; ECO:base(B=1); NORMAL:repoDyn(B=1,postJ)->[ECO@1, SPORT@1]; SPORT:repoDyn(B=1,postJ)->[NORMAL@1, ECO@1]",
+      "SPORT": "SPORT:repoDyn(B=2,preJ)->[NORMAL@2, ECO@2]; NORMAL:repoDyn(B=2,preJ)->[ECO@2, SPORT@2]; ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1, SPORT@1]; ECO:base(B=1); NORMAL:repoDyn(B=1,postJ)->[ECO@1, SPORT@1]; SPORT:repoDyn(B=1,postJ)->[NORMAL@1, ECO@1]"
      }
     },
     {
@@ -8886,14 +9059,15 @@
      ],
      "replay_ok": true,
      "flags": {
-      "NORMAL": "j--",
-      "ECO": "---",
-      "SPORT": "---"
+      "NORMAL": "jdd",
+      "ECO": "-dd",
+      "SPORT": "-dd"
      },
      "kinds": [
       "base",
-      "hop",
-      "joint"
+      "joint",
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "ECO",
@@ -8903,19 +9077,21 @@
      "joint_modes": [
       "NORMAL"
      ],
-     "ro_modes": [],
-     "branching": 2,
-     "right_only": false,
-     "joint_steps": 3,
-     "choice_steps": [
-      "ECO:hop",
-      "SPORT:hop"
+     "ro_modes": [
+      "ECO",
+      "SPORT"
      ],
-     "choice_entries": 4,
+     "branching": 2,
+     "right_only": true,
+     "joint_steps": 10,
+     "choice_steps": [
+      "SPORT:repoChosen"
+     ],
+     "choice_entries": 2,
      "paths": {
-      "NORMAL": "NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:hop(B=1,postJ)->[NORMAL@1]; SPORT:hop(B=1,postJ)->[NORMAL@1]",
-      "ECO": "ECO:hop(B=2,preJ)->[NORMAL@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:hop(B=1,postJ)->[NORMAL@1]; SPORT:hop(B=1,postJ)->[NORMAL@1]",
-      "SPORT": "SPORT:hop(B=2,preJ)->[NORMAL@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:hop(B=1,postJ)->[NORMAL@1]; SPORT:hop(B=1,postJ)->[NORMAL@1]"
+      "NORMAL": "NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:repoDyn(B=1,postJ)->[NORMAL@1, SPORT@1]; SPORT:repoDyn(B=1,postJ)->[NORMAL@1, ECO@1]",
+      "ECO": "ECO:repoDyn(B=2,preJ)->[NORMAL@2, SPORT@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:repoDyn(B=1,postJ)->[NORMAL@1, SPORT@1]; SPORT:repoDyn(B=1,postJ)->[NORMAL@1, ECO@1]; SPORT:repoDyn(B=2,preJ)->[NORMAL@2, ECO@2]",
+      "SPORT": "SPORT:repoDyn(B=2,preJ)->[NORMAL@2, ECO@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:repoDyn(B=1,postJ)->[NORMAL@1, SPORT@1]; SPORT:repoDyn(B=1,postJ)->[NORMAL@1, ECO@1]; ECO:repoDyn(B=2,preJ)->[NORMAL@2, SPORT@2]"
      }
     },
     {
@@ -8931,14 +9107,15 @@
      ],
      "replay_ok": true,
      "flags": {
-      "NORMAL": "---",
-      "ECO": "---",
-      "SPORT": "j--"
+      "NORMAL": "-dd",
+      "ECO": "-dd",
+      "SPORT": "jdd"
      },
      "kinds": [
       "base",
-      "hop",
-      "joint"
+      "joint",
+      "repoChosen",
+      "repoDyn"
      ],
      "modes_on_path": [
       "ECO",
@@ -8948,43 +9125,45 @@
      "joint_modes": [
       "SPORT"
      ],
-     "ro_modes": [],
-     "branching": 2,
-     "right_only": false,
-     "joint_steps": 3,
-     "choice_steps": [
-      "ECO:hop",
-      "NORMAL:hop"
+     "ro_modes": [
+      "ECO",
+      "NORMAL"
      ],
-     "choice_entries": 4,
+     "branching": 2,
+     "right_only": true,
+     "joint_steps": 10,
+     "choice_steps": [
+      "ECO:repoChosen"
+     ],
+     "choice_entries": 2,
      "paths": {
-      "NORMAL": "NORMAL:hop(B=2,preJ)->[SPORT@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1, ECO@1]; SPORT:base(B=1); NORMAL:hop(B=1,postJ)->[SPORT@1]; ECO:hop(B=1,postJ)->[SPORT@1]",
-      "ECO": "ECO:hop(B=2,preJ)->[SPORT@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1, ECO@1]; SPORT:base(B=1); NORMAL:hop(B=1,postJ)->[SPORT@1]; ECO:hop(B=1,postJ)->[SPORT@1]",
-      "SPORT": "SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1, ECO@1]; SPORT:base(B=1); NORMAL:hop(B=1,postJ)->[SPORT@1]; ECO:hop(B=1,postJ)->[SPORT@1]"
+      "NORMAL": "NORMAL:repoDyn(B=2,preJ)->[ECO@2, SPORT@2]; ECO:repoDyn(B=2,preJ)->[NORMAL@2, SPORT@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1, ECO@1]; SPORT:base(B=1); NORMAL:repoDyn(B=1,postJ)->[ECO@1, SPORT@1]; ECO:repoDyn(B=1,postJ)->[NORMAL@1, SPORT@1]",
+      "ECO": "ECO:repoDyn(B=2,preJ)->[NORMAL@2, SPORT@2]; NORMAL:repoDyn(B=2,preJ)->[ECO@2, SPORT@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1, ECO@1]; SPORT:base(B=1); NORMAL:repoDyn(B=1,postJ)->[ECO@1, SPORT@1]; ECO:repoDyn(B=1,postJ)->[NORMAL@1, SPORT@1]",
+      "SPORT": "SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1, ECO@1]; SPORT:base(B=1); NORMAL:repoDyn(B=1,postJ)->[ECO@1, SPORT@1]; ECO:repoDyn(B=1,postJ)->[NORMAL@1, SPORT@1]"
      }
     }
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 11322,
+   "no_prune_ms": 11418,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 11593,
+   "no_cut_ms": 11236,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 12074,
+   "no_implied_ms": 11473,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 12280,
+   "no_linear_ms": 11250,
    "handoff": {
     "checked": 9,
     "declared": 9,
     "passed": 9,
     "failing": "-",
     "vacuous": true,
-    "ms": 61
+    "ms": 59
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
     "M1": "yes: ECO \u03bb=5/4, NORMAL \u03bb=6/5, SPORT \u03bb=29/25 (affine dynamics)",
-    "M2": "yes: ECO B=2 via ECO +choice NORMAL:hop/SPORT:hop, NORMAL B=2 via NORMAL +choice ECO:hop/SPORT:hop, SPORT B=2 via SPORT +choice ECO:hop/NORMAL:hop",
+    "M2": "yes: ECO B=2 via ECO +RO +choice SPORT:repoChosen, NORMAL B=2 via NORMAL +RO +choice SPORT:repoChosen, SPORT B=2 via SPORT +RO +choice ECO:repoChosen",
     "M3": "yes: ECO branch=2, NORMAL branch=2, SPORT branch=2",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
@@ -9029,7 +9208,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2421,
+   "ms": 12570,
    "verdict_extra": "",
    "prune_line": "[prune] rampmeter_poll_2to1: [R1440->R1800]",
    "admissible_lines": [
@@ -9116,7 +9295,8 @@
     "[repo-dyn-pre] R720_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] R480_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.59,
+   "wall_s": 12.77,
+   "prelanding_nodes": 12,
    "choice_entries": 0,
    "covers": [
     {
@@ -9135,9 +9315,9 @@
       "R1800": "j--",
       "R1440": "j--",
       "R1200": "j--",
-      "R960": "j--",
-      "R720": "---",
-      "R480": "---"
+      "R960": "jd-",
+      "R720": "-d-",
+      "R480": "-d-"
      },
      "kinds": [
       "base",
@@ -9184,8 +9364,8 @@
       "R1440": "j--",
       "R1200": "j--",
       "R960": "j--",
-      "R720": "j--",
-      "R480": "j--"
+      "R720": "jd-",
+      "R480": "jd-"
      },
      "kinds": [
       "base",
@@ -9237,7 +9417,7 @@
       "R1200": "j--",
       "R960": "j--",
       "R720": "j--",
-      "R480": "j--"
+      "R480": "jd-"
      },
      "kinds": [
       "base",
@@ -9287,7 +9467,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "R1800": "j--",
+      "R1800": "jd-",
       "R1440": "j--",
       "R1200": "j--",
       "R960": "j--",
@@ -9340,8 +9520,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "R1800": "---",
-      "R1440": "j--",
+      "R1800": "-d-",
+      "R1440": "jd-",
       "R1200": "j--",
       "R960": "j--",
       "R720": "j--",
@@ -9390,9 +9570,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "R1800": "---",
-      "R1440": "j--",
-      "R1200": "j--",
+      "R1800": "-d-",
+      "R1440": "jd-",
+      "R1200": "jd-",
       "R960": "j--",
       "R720": "j--",
       "R480": "j--"
@@ -9432,20 +9612,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2289,
+   "no_prune_ms": 12635,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2042,
+   "no_cut_ms": 12163,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2246,
+   "no_implied_ms": 13006,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2245,
+   "no_linear_ms": 13396,
    "handoff": {
     "checked": 36,
     "declared": 36,
     "passed": 36,
     "failing": "-",
     "vacuous": true,
-    "ms": 67
+    "ms": 91
    },
    "right_only_any": false,
    "cells": {
@@ -9492,7 +9672,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 817,
+   "ms": 7787,
    "verdict_extra": "",
    "prune_line": "[prune] reactor_feed_wireless: [F1->F4, F2->F4, F3->F1, F4->F1]",
    "admissible_lines": [
@@ -9552,7 +9732,8 @@
     "[repo-dyn-pre] F3_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] F4_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.99,
+   "wall_s": 7.95,
+   "prelanding_nodes": 6,
    "choice_entries": 0,
    "covers": [
     {
@@ -9569,8 +9750,8 @@
      "flags": {
       "F1": "j--",
       "F2": "j--",
-      "F3": "j--",
-      "F4": "---"
+      "F3": "jd-",
+      "F4": "-d-"
      },
      "kinds": [
       "base",
@@ -9612,7 +9793,7 @@
       "F1": "j--",
       "F2": "j--",
       "F3": "j--",
-      "F4": "j--"
+      "F4": "jd-"
      },
      "kinds": [
       "base",
@@ -9654,7 +9835,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "F1": "j--",
+      "F1": "jd-",
       "F2": "j--",
       "F3": "j--",
       "F4": "j--"
@@ -9698,8 +9879,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "F1": "---",
-      "F2": "j--",
+      "F1": "-d-",
+      "F2": "jd-",
       "F3": "j--",
       "F4": "j--"
      },
@@ -9747,20 +9928,20 @@
     ]
    ],
    "no_prune_verdict": "DECLINED",
-   "no_prune_ms": 278,
+   "no_prune_ms": 2381,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 739,
+   "no_cut_ms": 7793,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 772,
+   "no_implied_ms": 7965,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 745,
+   "no_linear_ms": 7959,
    "handoff": {
     "checked": 16,
     "declared": 16,
     "passed": 16,
     "failing": "-",
     "vacuous": true,
-    "ms": 61
+    "ms": 52
    },
    "right_only_any": false,
    "cells": {
@@ -9807,7 +9988,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 297,
+   "ms": 626,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_2to3: []",
    "admissible_lines": [
@@ -9837,7 +10018,8 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.47,
+   "wall_s": 0.86,
+   "prelanding_nodes": 6,
    "choice_entries": 0,
    "covers": [
     {
@@ -9890,7 +10072,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
+      "STEEP": "-dd",
       "MODER": "j--",
       "FLAT": "j--"
      },
@@ -9924,8 +10106,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
-      "MODER": "---",
+      "STEEP": "-dd",
+      "MODER": "-dd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -9948,20 +10130,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 280,
+   "no_prune_ms": 609,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 229,
+   "no_cut_ms": 536,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 207,
+   "no_implied_ms": 557,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 294,
+   "no_linear_ms": 588,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 58
+    "ms": 105
    },
    "right_only_any": false,
    "cells": {
@@ -10004,7 +10186,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 788,
+   "ms": 1147,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_3to6: []",
    "admissible_lines": [
@@ -10034,7 +10216,8 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.95,
+   "wall_s": 1.42,
+   "prelanding_nodes": 6,
    "choice_entries": 0,
    "covers": [
     {
@@ -10087,7 +10270,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
+      "STEEP": "-dd",
       "MODER": "j--",
       "FLAT": "j--"
      },
@@ -10121,8 +10304,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
-      "MODER": "---",
+      "STEEP": "-dd",
+      "MODER": "-dd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -10145,20 +10328,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 794,
+   "no_prune_ms": 1145,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 733,
+   "no_cut_ms": 1215,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 734,
+   "no_implied_ms": 1038,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 803,
+   "no_linear_ms": 1131,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 53
+    "ms": 101
    },
    "right_only_any": false,
    "cells": {
@@ -10201,7 +10384,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 16410,
+   "ms": 15990,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_6to8: []",
    "admissible_lines": [
@@ -10234,7 +10417,8 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 16.62,
+   "wall_s": 16.22,
+   "prelanding_nodes": 12,
    "choice_entries": 0,
    "covers": [
     {
@@ -10250,8 +10434,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "j--",
-      "MODER": "j--",
+      "STEEP": "jdd",
+      "MODER": "jdd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -10292,8 +10476,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
-      "MODER": "j--",
+      "STEEP": "-dd",
+      "MODER": "jdd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -10330,8 +10514,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
-      "MODER": "---",
+      "STEEP": "-dd",
+      "MODER": "-dd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -10357,13 +10541,13 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 16958,
+   "no_prune_ms": 16129,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 14232,
+   "no_cut_ms": 23809,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 16492,
+   "no_implied_ms": 16306,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 18585,
+   "no_linear_ms": 16406,
    "handoff": {
     "checked": 5,
     "declared": 5,
@@ -10417,7 +10601,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 37562,
+   "ms": 33496,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_8to12: []",
    "admissible_lines": [
@@ -10450,7 +10634,8 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 37.7,
+   "wall_s": 33.66,
+   "prelanding_nodes": 12,
    "choice_entries": 0,
    "covers": [
     {
@@ -10466,8 +10651,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "j--",
-      "MODER": "j--",
+      "STEEP": "jdd",
+      "MODER": "jdd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -10508,8 +10693,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
-      "MODER": "j--",
+      "STEEP": "-dd",
+      "MODER": "jdd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -10546,8 +10731,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "STEEP": "---",
-      "MODER": "---",
+      "STEEP": "-dd",
+      "MODER": "-dd",
       "FLAT": "j--"
      },
      "kinds": [
@@ -10573,20 +10758,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 38132,
+   "no_prune_ms": 33244,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 36324,
+   "no_cut_ms": 34878,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 36115,
+   "no_implied_ms": 33583,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 36711,
+   "no_linear_ms": 33120,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 16
+    "ms": 72
    },
    "right_only_any": false,
    "cells": {
@@ -10633,7 +10818,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1210,
+   "ms": 935,
    "verdict_extra": "",
    "prune_line": "[prune] rover_terrain_2to4: []",
    "admissible_lines": [
@@ -10666,7 +10851,8 @@
     "[repo-dyn-pre] GRAVEL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PAVED_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.37,
+   "wall_s": 1.2,
+   "prelanding_nodes": 12,
    "choice_entries": 0,
    "covers": [
     {
@@ -10682,8 +10868,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "MUD": "j--",
-      "GRAVEL": "j--",
+      "MUD": "jdd",
+      "GRAVEL": "jdd",
       "PAVED": "j--"
      },
      "kinds": [
@@ -10719,8 +10905,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "MUD": "---",
-      "GRAVEL": "j--",
+      "MUD": "-dd",
+      "GRAVEL": "jdd",
       "PAVED": "j--"
      },
      "kinds": [
@@ -10753,8 +10939,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "MUD": "---",
-      "GRAVEL": "---",
+      "MUD": "-dd",
+      "GRAVEL": "-dd",
       "PAVED": "j--"
      },
      "kinds": [
@@ -10777,20 +10963,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 552,
+   "no_prune_ms": 875,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 217,
+   "no_cut_ms": 553,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 516,
+   "no_implied_ms": 778,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 610,
+   "no_linear_ms": 870,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 47
+    "ms": 106
    },
    "right_only_any": false,
    "cells": {
@@ -10835,7 +11021,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1288,
+   "ms": 2000,
    "verdict_extra": "",
    "prune_line": "[prune] rover_terrain_4to6: []",
    "admissible_lines": [
@@ -10871,7 +11057,8 @@
     "[repo-dyn-pre] GRAVEL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PAVED_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.42,
+   "wall_s": 2.28,
+   "prelanding_nodes": 6,
    "choice_entries": 0,
    "covers": [
     {
@@ -10924,7 +11111,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "MUD": "---",
+      "MUD": "-dd",
       "GRAVEL": "j--",
       "PAVED": "j--"
      },
@@ -10958,8 +11145,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "MUD": "---",
-      "GRAVEL": "---",
+      "MUD": "-dd",
+      "GRAVEL": "-dd",
       "PAVED": "j--"
      },
      "kinds": [
@@ -10982,20 +11169,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1117,
+   "no_prune_ms": 1946,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 463,
+   "no_cut_ms": 573,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1276,
+   "no_implied_ms": 2067,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1223,
+   "no_linear_ms": 1988,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 18
+    "ms": 22
    },
    "right_only_any": false,
    "cells": {
@@ -11039,7 +11226,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 21205,
+   "ms": 20704,
    "verdict_extra": "",
    "prune_line": "[prune] sat3w_detumble_phases: [DETUMBLE->SAFE]",
    "admissible_lines": [
@@ -11064,10 +11251,10 @@
     "[route] SAFE: closure ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] DETUMBLE_L: [SAFE] [repo-dyn-post]: [SAFE]",
-    "[repo-dyn-pre] FINE_L: [SAFE] [repo-dyn-post]: [SAFE]"
+    "[repo-dyn-pre] DETUMBLE_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] FINE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 21.37,
+   "wall_s": 20.94,
    "choice_entries": 4,
    "covers": [
     {
@@ -11160,20 +11347,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 21440,
+   "no_prune_ms": 20741,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 6998,
+   "no_cut_ms": 7025,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 21045,
+   "no_implied_ms": 20786,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 21675,
+   "no_linear_ms": 20906,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 35
+    "ms": 101
    },
    "right_only_any": false,
    "cells": {
@@ -11218,7 +11405,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 7476,
+   "ms": 7491,
    "verdict_extra": "",
    "prune_line": "[prune] sat_detumble_phases: [DETUMBLE->SAFE]",
    "admissible_lines": [
@@ -11243,10 +11430,10 @@
     "[route] SAFE: closure ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] DETUMBLE_L: [SAFE] [repo-dyn-post]: [SAFE]",
-    "[repo-dyn-pre] FINE_L: [SAFE] [repo-dyn-post]: [SAFE]"
+    "[repo-dyn-pre] DETUMBLE_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] FINE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 7.64,
+   "wall_s": 7.76,
    "choice_entries": 4,
    "covers": [
     {
@@ -11339,20 +11526,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 7750,
+   "no_prune_ms": 7624,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 3838,
+   "no_cut_ms": 3648,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 7501,
+   "no_implied_ms": 7378,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 7528,
+   "no_linear_ms": 7413,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 60
+    "ms": 30
    },
    "right_only_any": false,
    "cells": {
@@ -11396,7 +11583,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 4794,
+   "ms": 4120,
    "verdict_extra": "",
    "prune_line": "[prune] sat_detumble_weak: [NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE]",
    "admissible_lines": [
@@ -11420,9 +11607,9 @@
     "[route] SAFE: closure ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] DETUMBLE_L: [SAFE] [repo-dyn-post]: [SAFE]"
+    "[repo-dyn-pre] DETUMBLE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 4.99,
+   "wall_s": 4.29,
    "choice_entries": 4,
    "covers": [
     {
@@ -11487,20 +11674,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 4242,
+   "no_prune_ms": 4393,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 4493,
+   "no_cut_ms": 4153,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 4452,
+   "no_implied_ms": 4165,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 4338,
+   "no_linear_ms": 4234,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 42
+    "ms": 90
    },
    "right_only_any": false,
    "cells": {
@@ -11550,7 +11737,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1387,
+   "ms": 2087,
    "verdict_extra": "",
    "prune_line": "[prune] syringe_relay_prearm: []",
    "admissible_lines": [
@@ -11662,14 +11849,15 @@
     "[route] END: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] RUN1_L: [TAKEUP2, RUN2, END] [repo-dyn-post]: [END]",
-    "[repo-dyn-pre] PREARM_L: [TAKEUP2, RUN2, END] [repo-dyn-post]: [END]",
-    "[repo-dyn-pre] READY_L: [TAKEUP2, RUN2, END] [repo-dyn-post]: [END]",
-    "[repo-dyn-pre] TAKEUP2_L: [RUN2, END] [repo-dyn-post]: [END]",
-    "[repo-dyn-pre] RUN2_L: [TAKEUP2, END] [repo-dyn-post]: [TAKEUP2, END]",
-    "[repo-dyn-pre] END_L: [RUN1, TAKEUP2, END] [repo-dyn-post]: [RUN1, TAKEUP2, END]"
+    "[repo-dyn-pre] RUN1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] PREARM_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] READY_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] TAKEUP2_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] RUN2_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] END_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.56,
+   "wall_s": 2.36,
+   "prelanding_nodes": 19,
    "choice_entries": 0,
    "covers": [
     {
@@ -11782,7 +11970,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "RUN1": "---",
+      "RUN1": "-dd",
       "TAKEUP2": "j--",
       "RUN2": "-d-",
       "END": "j--"
@@ -11816,7 +12004,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "RUN1": "---",
+      "RUN1": "-dd",
       "TAKEUP2": "-dd",
       "RUN2": "j--",
       "END": "---"
@@ -11856,7 +12044,7 @@
      "flags": {
       "RUN1": "jdd",
       "TAKEUP2": "jdd",
-      "RUN2": "---",
+      "RUN2": "-dd",
       "END": "j--"
      },
      "kinds": [
@@ -11879,20 +12067,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1300,
+   "no_prune_ms": 2103,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 1255,
+   "no_cut_ms": 1916,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1388,
+   "no_implied_ms": 2015,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1389,
+   "no_linear_ms": 2088,
    "handoff": {
     "checked": 13,
     "declared": 13,
     "passed": 13,
     "failing": "-",
     "vacuous": false,
-    "ms": 25
+    "ms": 106
    },
    "right_only_any": true,
    "cells": {
@@ -11938,7 +12126,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 1233,
+   "ms": 1318,
    "verdict_extra": "",
    "prune_line": "[prune] tank_dos_3to1: []",
    "admissible_lines": [
@@ -11999,7 +12187,8 @@
     "[repo-dyn-pre] P4_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] P5_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.37,
+   "wall_s": 1.58,
+   "prelanding_nodes": 15,
    "choice_entries": 0,
    "covers": [
     {
@@ -12014,8 +12203,8 @@
      "replay_ok": true,
      "flags": {
       "P2": "j--",
-      "P3": "j--",
-      "P4": "j--",
+      "P3": "jd-",
+      "P4": "jd-",
       "P5": "---"
      },
      "kinds": [
@@ -12052,9 +12241,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "P2": "---",
+      "P2": "-dd",
       "P3": "j--",
-      "P4": "j--",
+      "P4": "jd-",
       "P5": "j--"
      },
      "kinds": [
@@ -12091,8 +12280,8 @@
      ],
      "replay_ok": true,
      "flags": {
-      "P2": "---",
-      "P3": "---",
+      "P2": "-dd",
+      "P3": "-dd",
       "P4": "j--",
       "P5": "j--"
      },
@@ -12129,9 +12318,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "P2": "---",
-      "P3": "---",
-      "P4": "---",
+      "P2": "-dd",
+      "P3": "-dd",
+      "P4": "-dd",
       "P5": "j--"
      },
      "kinds": [
@@ -12157,20 +12346,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1328,
+   "no_prune_ms": 1446,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 317,
+   "no_cut_ms": 698,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1106,
+   "no_implied_ms": 1362,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1037,
+   "no_linear_ms": 1372,
    "handoff": {
     "checked": 10,
     "declared": 10,
     "passed": 10,
     "failing": "-",
     "vacuous": true,
-    "ms": 60
+    "ms": 35
    },
    "right_only_any": false,
    "cells": {
@@ -12216,7 +12405,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2656,
+   "ms": 2515,
    "verdict_extra": "",
    "prune_line": "[prune] train_ato_odometry: []",
    "admissible_lines": [
@@ -12252,7 +12441,8 @@
     "[repo-dyn-pre] PL2_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PL3_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.85,
+   "wall_s": 2.77,
+   "prelanding_nodes": 18,
    "choice_entries": 0,
    "covers": [
     {
@@ -12271,9 +12461,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "PL1": "j--",
-      "PL2": "j--",
-      "PL3": "j--"
+      "PL1": "jdd",
+      "PL2": "jdd",
+      "PL3": "jdd"
      },
      "kinds": [
       "base",
@@ -12317,9 +12507,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "PL1": "j--",
-      "PL2": "j--",
-      "PL3": "j--"
+      "PL1": "jdd",
+      "PL2": "jdd",
+      "PL3": "jdd"
      },
      "kinds": [
       "base",
@@ -12363,9 +12553,9 @@
      ],
      "replay_ok": true,
      "flags": {
-      "PL1": "j--",
-      "PL2": "j--",
-      "PL3": "j--"
+      "PL1": "jdd",
+      "PL2": "jdd",
+      "PL3": "jdd"
      },
      "kinds": [
       "base"
@@ -12391,20 +12581,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2657,
+   "no_prune_ms": 2526,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2482,
+   "no_cut_ms": 2465,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2643,
+   "no_implied_ms": 2475,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2525,
+   "no_linear_ms": 2472,
    "handoff": {
     "checked": 9,
     "declared": 9,
     "passed": 9,
     "failing": "-",
     "vacuous": true,
-    "ms": 61
+    "ms": 106
    },
    "right_only_any": false,
    "cells": {
@@ -12453,7 +12643,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1101,
+   "ms": 1001,
    "verdict_extra": "",
    "prune_line": "[prune] turbine_startup_gearratio: []",
    "admissible_lines": [
@@ -12502,14 +12692,15 @@
     "[route] GUST: DI-strict(B)"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] SPINUP_L: [SPINUP, RAMP, GEN] [repo-dyn-post]: [SPINUP, RAMP, GEN]",
-    "[repo-dyn-pre] RAMP_L: [SPINUP, RAMP, GEN] [repo-dyn-post]: [SPINUP, RAMP, GEN]",
-    "[repo-dyn-pre] GEN_L: [SPINUP, RAMP, GEN] [repo-dyn-post]: [SPINUP, RAMP, GEN]",
-    "[repo-dyn-pre] REG_L: [SPINUP, RAMP, GEN] [repo-dyn-post]: [SPINUP, RAMP, GEN]",
-    "[repo-dyn-pre] GUST_L: [SPINUP, RAMP, GEN] [repo-dyn-post]: [SPINUP, RAMP, GEN]"
+    "[repo-dyn-pre] SPINUP_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] RAMP_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GEN_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] REG_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] GUST_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.31,
-   "choice_entries": 5,
+   "wall_s": 1.16,
+   "prelanding_nodes": 44,
+   "choice_entries": 0,
    "covers": [
     {
      "mL": "SPINUP",
@@ -12529,12 +12720,11 @@
       "SPINUP": "jdd",
       "RAMP": "-dd",
       "GEN": "j--",
-      "REG": "j--",
-      "GUST": "---"
+      "REG": "jdd",
+      "GUST": "-dd"
      },
      "kinds": [
       "base",
-      "hop",
       "repoDyn"
      ],
      "modes_on_path": [
@@ -12546,21 +12736,20 @@
      ],
      "joint_modes": [],
      "ro_modes": [
+      "GUST",
       "RAMP"
      ],
      "branching": 0,
      "right_only": true,
      "joint_steps": 0,
-     "choice_steps": [
-      "GUST:hop"
-     ],
-     "choice_entries": 1,
+     "choice_steps": [],
+     "choice_entries": 0,
      "paths": {
       "SPINUP": "SPINUP:base(B=1)",
       "RAMP": "RAMP:repoDyn(B=1,preJ)->[GEN@1]; GEN:base(B=1)",
       "GEN": "GEN:base(B=1)",
       "REG": "REG:base(B=1)",
-      "GUST": "GUST:hop(B=1,preJ)->[REG@1]; REG:base(B=1)"
+      "GUST": "GUST:repoDyn(B=1,preJ)->[REG@1]; REG:base(B=1)"
      }
     },
     {
@@ -12580,12 +12769,12 @@
       "SPINUP": "jdd",
       "RAMP": "jdd",
       "GEN": "j--",
-      "REG": "j--",
-      "GUST": "---"
+      "REG": "jdd",
+      "GUST": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoDyn"
      ],
      "modes_on_path": [
       "GEN",
@@ -12594,19 +12783,19 @@
       "REG"
      ],
      "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [
-      "GUST:hop"
+     "ro_modes": [
+      "GUST"
      ],
-     "choice_entries": 1,
+     "branching": 0,
+     "right_only": true,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
      "paths": {
       "RAMP": "RAMP:base(B=1)",
       "GEN": "GEN:base(B=1)",
       "REG": "REG:base(B=1)",
-      "GUST": "GUST:hop(B=1,preJ)->[REG@1]; REG:base(B=1)"
+      "GUST": "GUST:repoDyn(B=1,preJ)->[REG@1]; REG:base(B=1)"
      }
     },
     {
@@ -12625,12 +12814,12 @@
       "SPINUP": "-dd",
       "RAMP": "-dd",
       "GEN": "j--",
-      "REG": "j--",
-      "GUST": "---"
+      "REG": "jdd",
+      "GUST": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoDyn"
      ],
      "modes_on_path": [
       "GEN",
@@ -12638,18 +12827,18 @@
       "REG"
      ],
      "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [
-      "GUST:hop"
+     "ro_modes": [
+      "GUST"
      ],
-     "choice_entries": 1,
+     "branching": 0,
+     "right_only": true,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
      "paths": {
       "GEN": "GEN:base(B=1)",
       "REG": "REG:base(B=1)",
-      "GUST": "GUST:hop(B=1,preJ)->[REG@1]; REG:base(B=1)"
+      "GUST": "GUST:repoDyn(B=1,preJ)->[REG@1]; REG:base(B=1)"
      }
     },
     {
@@ -12667,29 +12856,29 @@
       "SPINUP": "jdd",
       "RAMP": "jdd",
       "GEN": "-dd",
-      "REG": "j--",
-      "GUST": "---"
+      "REG": "jdd",
+      "GUST": "-dd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoDyn"
      ],
      "modes_on_path": [
       "GUST",
       "REG"
      ],
      "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [
-      "GUST:hop"
+     "ro_modes": [
+      "GUST"
      ],
-     "choice_entries": 1,
+     "branching": 0,
+     "right_only": true,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
      "paths": {
       "REG": "REG:base(B=1)",
-      "GUST": "GUST:hop(B=1,preJ)->[REG@1]; REG:base(B=1)"
+      "GUST": "GUST:repoDyn(B=1,preJ)->[REG@1]; REG:base(B=1)"
      }
     },
     {
@@ -12707,48 +12896,48 @@
       "SPINUP": "jdd",
       "RAMP": "jdd",
       "GEN": "-dd",
-      "REG": "---",
-      "GUST": "j--"
+      "REG": "-dd",
+      "GUST": "jdd"
      },
      "kinds": [
       "base",
-      "hop"
+      "repoDyn"
      ],
      "modes_on_path": [
       "GUST",
       "REG"
      ],
      "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [
-      "REG:hop"
+     "ro_modes": [
+      "REG"
      ],
-     "choice_entries": 1,
+     "branching": 0,
+     "right_only": true,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
      "paths": {
-      "REG": "REG:hop(B=1,preJ)->[GUST@1]; GUST:base(B=1)",
+      "REG": "REG:repoDyn(B=1,preJ)->[GUST@1]; GUST:base(B=1)",
       "GUST": "GUST:base(B=1)"
      }
     }
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1109,
+   "no_prune_ms": 1067,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 205,
+   "no_cut_ms": 433,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 197,
+   "no_implied_ms": 902,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1098,
+   "no_linear_ms": 1085,
    "handoff": {
     "checked": 10,
     "declared": 10,
     "passed": 10,
     "failing": "-",
     "vacuous": false,
-    "ms": 62
+    "ms": 55
    },
    "right_only_any": true,
    "cells": {
@@ -12794,7 +12983,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 300,
+   "ms": 218,
    "verdict_extra": "",
    "prune_line": "[prune] ventilator_vc_cuffleak: []",
    "admissible_lines": [
@@ -12825,7 +13014,8 @@
     "[repo-dyn-pre] INSP_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] EXP_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.49,
+   "wall_s": 0.43,
+   "prelanding_nodes": 1,
    "choice_entries": 0,
    "covers": [
     {
@@ -12870,7 +13060,7 @@
      ],
      "replay_ok": true,
      "flags": {
-      "INSP": "---",
+      "INSP": "-d-",
       "EXP": "j--"
      },
      "kinds": [
@@ -12893,20 +13083,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 302,
+   "no_prune_ms": 229,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 296,
+   "no_cut_ms": 354,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 286,
+   "no_implied_ms": 377,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 291,
+   "no_linear_ms": 208,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 25
+    "ms": 26
    },
    "right_only_any": false,
    "cells": {
@@ -12953,7 +13143,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2319,
+   "ms": 1310,
    "verdict_extra": "",
    "prune_line": "[prune] watertank: [Low->PumpOff]",
    "admissible_lines": [
@@ -12995,11 +13185,12 @@
     "[route] PumpOff: closure x <= 2.0: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] Low_L: [High, PumpOff] [repo-dyn-post]: [PumpOff]",
-    "[repo-dyn-pre] Mid_L: [PumpOff] [repo-dyn-post]: [PumpOff]",
-    "[repo-dyn-pre] High_L: [Low, MidEco, MidBoost, PumpOff] [repo-dyn-post]: [Low, MidEco, MidBoost, PumpOff]"
+    "[repo-dyn-pre] Low_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] Mid_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] High_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.47,
+   "wall_s": 1.55,
+   "prelanding_nodes": 17,
    "choice_entries": 0,
    "covers": [
     {
@@ -13016,8 +13207,8 @@
      "replay_ok": true,
      "flags": {
       "Low": "j--",
-      "MidEco": "j--",
-      "MidBoost": "j--",
+      "MidEco": "jdd",
+      "MidBoost": "jdd",
       "High": "jd-",
       "PumpOff": "---"
      },
@@ -13050,9 +13241,9 @@
     },
     {
      "mL": "Mid",
-     "lam": "2",
-     "lam_float": 2.0,
-     "budget": 2,
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
      "lam_pairs": {},
      "admissible": [
       "MidEco",
@@ -13061,36 +13252,34 @@
      ],
      "replay_ok": true,
      "flags": {
-      "Low": "---",
-      "MidEco": "j--",
-      "MidBoost": "j--",
+      "Low": "-dd",
+      "MidEco": "-dd",
+      "MidBoost": "jdd",
       "High": "j--",
       "PumpOff": "j--"
      },
      "kinds": [
       "base",
-      "joint"
+      "repoDyn"
      ],
      "modes_on_path": [
       "High",
       "MidBoost",
       "MidEco"
      ],
-     "joint_modes": [
-      "High",
-      "MidBoost",
+     "joint_modes": [],
+     "ro_modes": [
       "MidEco"
      ],
-     "ro_modes": [],
-     "branching": 2,
-     "right_only": false,
-     "joint_steps": 3,
+     "branching": 0,
+     "right_only": true,
+     "joint_steps": 0,
      "choice_steps": [],
      "choice_entries": 0,
      "paths": {
-      "MidEco": "MidEco:joint(B=2)->[MidEco@1, MidEco@1, MidBoost@1, High@1]; MidEco:base(B=1); MidBoost:base(B=1); High:base(B=1)",
-      "MidBoost": "MidBoost:joint(B=2)->[MidBoost@1, MidBoost@1, MidEco@1, High@1]; MidBoost:base(B=1); MidEco:base(B=1); High:base(B=1)",
-      "High": "High:joint(B=2)->[High@1, High@1, MidEco@1, MidBoost@1]; High:base(B=1); MidEco:base(B=1); MidBoost:base(B=1)"
+      "MidEco": "MidEco:repoDyn(B=1,preJ)->[MidBoost@1, High@1]; MidBoost:base(B=1); High:base(B=1)",
+      "MidBoost": "MidBoost:base(B=1)",
+      "High": "High:base(B=1)"
      }
     },
     {
@@ -13135,26 +13324,26 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2779,
+   "no_prune_ms": 1503,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2904,
+   "no_cut_ms": 1789,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 3104,
+   "no_implied_ms": 1620,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2370,
+   "no_linear_ms": 1339,
    "handoff": {
     "checked": 6,
     "declared": 6,
     "passed": 6,
     "failing": "-",
     "vacuous": true,
-    "ms": 54
+    "ms": 105
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
-    "M1": "yes: Low \u03bb=2, Mid \u03bb=2 (affine dynamics)",
-    "M2": "yes: Low B=2 via Low/MidBoost/MidEco, Mid B=2 via High/MidBoost/MidEco",
-    "M3": "yes: Low branch=2, Mid branch=2",
+    "M1": "yes: Low \u03bb=2 (affine dynamics)",
+    "M2": "yes: Low B=2 via Low/MidBoost/MidEco",
+    "M3": "yes: Low branch=2",
     "M4": "vacuous: pruned Low->PumpOff but NO_PRUNE=CERTIFIED",
     "M5": "no (rows identical; handoff vacuous)",
     "M6": "vacuous: cuts kept (L.Low: 2 conjunct(s); L.Mid: 2 conjunct(s); L.High: 1 conjunct(s); R.Low: 2 conjunct(s); R.MidEco: 2 conjunct(s); R.MidBoost: 2 conjunct(s); R.High: 1 conjunct(s); R.PumpOff: 1 conjunct(s)) but NO_CUT=CERTIFIED",
@@ -13195,7 +13384,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2202,
+   "ms": 1944,
    "verdict_extra": "",
    "prune_line": "[prune] watertank_twospeed: []",
    "admissible_lines": [
@@ -13241,11 +13430,12 @@
     "[route] PumpOff: closure x <= 2.0: frozen"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] Low_L: [High, PumpOff] [repo-dyn-post]: [High, PumpOff]",
-    "[repo-dyn-pre] Mid_L: [PumpOff] [repo-dyn-post]: [PumpOff]",
-    "[repo-dyn-pre] High_L: [Fast, Slow, MidEco, MidBoost, PumpOff] [repo-dyn-post]: [Fast, Slow, MidEco, MidBoost, PumpOff]"
+    "[repo-dyn-pre] Low_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] Mid_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] High_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.38,
+   "wall_s": 2.21,
+   "prelanding_nodes": 21,
    "choice_entries": 0,
    "covers": [
     {
@@ -13269,8 +13459,8 @@
      "flags": {
       "Fast": "j--",
       "Slow": "j--",
-      "MidEco": "j--",
-      "MidBoost": "j--",
+      "MidEco": "jdd",
+      "MidBoost": "jdd",
       "High": "jd-",
       "PumpOff": "---"
      },
@@ -13306,9 +13496,9 @@
     },
     {
      "mL": "Mid",
-     "lam": "2",
-     "lam_float": 2.0,
-     "budget": 2,
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
      "lam_pairs": {},
      "admissible": [
       "MidEco",
@@ -13317,37 +13507,35 @@
      ],
      "replay_ok": true,
      "flags": {
-      "Fast": "---",
-      "Slow": "---",
-      "MidEco": "j--",
-      "MidBoost": "j--",
+      "Fast": "-dd",
+      "Slow": "-dd",
+      "MidEco": "-dd",
+      "MidBoost": "jdd",
       "High": "j--",
       "PumpOff": "j--"
      },
      "kinds": [
       "base",
-      "joint"
+      "repoDyn"
      ],
      "modes_on_path": [
       "High",
       "MidBoost",
       "MidEco"
      ],
-     "joint_modes": [
-      "High",
-      "MidBoost",
+     "joint_modes": [],
+     "ro_modes": [
       "MidEco"
      ],
-     "ro_modes": [],
-     "branching": 2,
-     "right_only": false,
-     "joint_steps": 3,
+     "branching": 0,
+     "right_only": true,
+     "joint_steps": 0,
      "choice_steps": [],
      "choice_entries": 0,
      "paths": {
-      "MidEco": "MidEco:joint(B=2)->[MidEco@1, MidEco@1, MidBoost@1, High@1]; MidEco:base(B=1); MidBoost:base(B=1); High:base(B=1)",
-      "MidBoost": "MidBoost:joint(B=2)->[MidBoost@1, MidBoost@1, MidEco@1, High@1]; MidBoost:base(B=1); MidEco:base(B=1); High:base(B=1)",
-      "High": "High:joint(B=2)->[High@1, High@1, MidEco@1, MidBoost@1]; High:base(B=1); MidEco:base(B=1); MidBoost:base(B=1)"
+      "MidEco": "MidEco:repoDyn(B=1,preJ)->[MidBoost@1, High@1]; MidBoost:base(B=1); High:base(B=1)",
+      "MidBoost": "MidBoost:base(B=1)",
+      "High": "High:base(B=1)"
      }
     },
     {
@@ -13388,26 +13576,26 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2126,
+   "no_prune_ms": 1858,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 3016,
+   "no_cut_ms": 2051,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 3407,
+   "no_implied_ms": 1962,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 3242,
+   "no_linear_ms": 1946,
    "handoff": {
     "checked": 6,
     "declared": 6,
     "passed": 6,
     "failing": "-",
     "vacuous": true,
-    "ms": 22
+    "ms": 107
    },
-   "right_only_any": false,
+   "right_only_any": true,
    "cells": {
-    "M1": "yes: Low \u03bb=2 (per pairing: {'Fast': '1', 'MidEco': '3/2', 'MidBoost': '1', 'High': '1'}), Mid \u03bb=2 (affine dynamics)",
-    "M2": "yes: Low B=2 via Fast/MidBoost/MidEco/Slow, Mid B=2 via High/MidBoost/MidEco",
-    "M3": "yes: Low branch=3, Mid branch=2",
+    "M1": "yes: Low \u03bb=2 (per pairing: {'Fast': '1', 'MidEco': '3/2', 'MidBoost': '1', 'High': '1'}) (affine dynamics)",
+    "M2": "yes: Low B=2 via Fast/MidBoost/MidEco/Slow",
+    "M3": "yes: Low branch=3",
     "M4": "no (nothing pruned)",
     "M5": "no (rows identical; handoff vacuous)",
     "M6": "vacuous: cuts kept (L.Low: 2 conjunct(s); L.Mid: 2 conjunct(s); L.High: 1 conjunct(s); R.Fast: 2 conjunct(s); R.Slow: 2 conjunct(s); R.MidEco: 2 conjunct(s); R.MidBoost: 2 conjunct(s); R.High: 1 conjunct(s); R.PumpOff: 1 conjunct(s)) but NO_CUT=CERTIFIED",

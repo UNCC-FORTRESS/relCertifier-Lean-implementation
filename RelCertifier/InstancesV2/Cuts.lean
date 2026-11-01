@@ -27,10 +27,6 @@ import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
-import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
-import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
-import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
-import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_patrol_lag
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
@@ -39,6 +35,10 @@ import RelCertifier.InstancesV2.Cuts.salt_tank_sensor
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
+import RelCertifier.InstancesV2.Cuts.stopline_rover_11to15
+import RelCertifier.InstancesV2.Cuts.stopline_rover_2to5
+import RelCertifier.InstancesV2.Cuts.stopline_rover_5to8
+import RelCertifier.InstancesV2.Cuts.stopline_rover_8to11
 import RelCertifier.InstancesV2.Cuts.syringe_relay_prearm
 import RelCertifier.InstancesV2.Cuts.tank_dos_3to1
 import RelCertifier.InstancesV2.Cuts.train_ato_odometry
@@ -81,10 +81,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
-  ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
-  ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
-  ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
-  ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
   ("rover_patrol_lag", rover_patrol_lag_cutsV2, rover_patrol_lag_cutsV2X),
   ("rover_terrain_2to4", rover_terrain_2to4_cutsV2, rover_terrain_2to4_cutsV2X),
   ("rover_terrain_4to6", rover_terrain_4to6_cutsV2, rover_terrain_4to6_cutsV2X),
@@ -93,6 +89,10 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("sat3w_detumble_phases", sat3w_detumble_phases_cutsV2, sat3w_detumble_phases_cutsV2X),
   ("sat_detumble_phases", sat_detumble_phases_cutsV2, sat_detumble_phases_cutsV2X),
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),
+  ("stopline_rover_11to15", stopline_rover_11to15_cutsV2, stopline_rover_11to15_cutsV2X),
+  ("stopline_rover_2to5", stopline_rover_2to5_cutsV2, stopline_rover_2to5_cutsV2X),
+  ("stopline_rover_5to8", stopline_rover_5to8_cutsV2, stopline_rover_5to8_cutsV2X),
+  ("stopline_rover_8to11", stopline_rover_8to11_cutsV2, stopline_rover_8to11_cutsV2X),
   ("syringe_relay_prearm", syringe_relay_prearm_cutsV2, syringe_relay_prearm_cutsV2X),
   ("tank_dos_3to1", tank_dos_3to1_cutsV2, tank_dos_3to1_cutsV2X),
   ("train_ato_odometry", train_ato_odometry_cutsV2, train_ato_odometry_cutsV2X),

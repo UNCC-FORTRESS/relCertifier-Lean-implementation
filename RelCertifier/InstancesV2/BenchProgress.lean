@@ -24,10 +24,6 @@ import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
-import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
-import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchProgress.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_4to6
@@ -36,6 +32,10 @@ import RelCertifier.InstancesV2.BenchProgress.salt_tank_sensor
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchProgress.stopline_rover_11to15
+import RelCertifier.InstancesV2.BenchProgress.stopline_rover_2to5
+import RelCertifier.InstancesV2.BenchProgress.stopline_rover_5to8
+import RelCertifier.InstancesV2.BenchProgress.stopline_rover_8to11
 import RelCertifier.InstancesV2.BenchProgress.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.train_ato_odometry
@@ -75,10 +75,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("platoon_profiles", platoon_profiles_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
-   ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
-   ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
-   ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
-   ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
    ("rover_patrol_lag", rover_patrol_lag_coverV2_progress),
    ("rover_terrain_2to4", rover_terrain_2to4_coverV2_progress),
    ("rover_terrain_4to6", rover_terrain_4to6_coverV2_progress),
@@ -87,6 +83,10 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_progress),
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),
+   ("stopline_rover_11to15", stopline_rover_11to15_coverV2_progress),
+   ("stopline_rover_2to5", stopline_rover_2to5_coverV2_progress),
+   ("stopline_rover_5to8", stopline_rover_5to8_coverV2_progress),
+   ("stopline_rover_8to11", stopline_rover_8to11_coverV2_progress),
    ("syringe_relay_prearm", syringe_relay_prearm_coverV2_progress),
    ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),
    ("train_ato_odometry", train_ato_odometry_coverV2_progress),

@@ -19,6 +19,12 @@ import os, subprocess, sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 os.chdir(ROOT)
 RELCERT = "./.lake/build/bin/relcert"
+# Benchmarks whose records are emitted in the joint-step form (`RELCERT_NO_REPO=1`, which also
+# certifies them): the default cover of the stop-line rover rungs uses a right-only reposition
+# whose progress certificate has one upward and one downward stage (the brake state builds up,
+# then the speed falls to the standstill threshold), a two-stage form the bridge's progress
+# lemmas do not cover (`Emitted/Progress.lean`, `certOK`: one stage, or two upward stages).
+NO_REPO_EMIT = {"stopline_rover_2to5", "stopline_rover_5to8", "stopline_rover_8to11", "stopline_rover_11to15"}
 PROGRESS_TABLE_SKIP = {"drl_car_stop", "drl_lane_control", "freedm_meter", "vehicle_hypercert"}
 SUITE = "benchmarks/suite_v2"
 OUT = "RelCertifier/InstancesV2"
@@ -55,10 +61,12 @@ def emit_leaves(b):
         f.write(ir.rstrip() + "\n\nend RelCertifier.Parse\n")
     # the cover is searched with the progress certificates required of every reposition node
     # (the tool's default); the certificates found are written to the BenchProgress leaf
-    cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"],
-              {"RELCERT_IMPLIED_CUT": "1",
-               "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean",
-               "RELCERT_CHOICE_OUT": f"{OUT}/BenchChoice/{b}.lean"})
+    extra = {"RELCERT_IMPLIED_CUT": "1",
+             "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean",
+             "RELCERT_CHOICE_OUT": f"{OUT}/BenchChoice/{b}.lean"}
+    if b in NO_REPO_EMIT:
+        extra["RELCERT_NO_REPO"] = "1"
+    cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"], extra)
     with open(f"{OUT}/BenchCovers/{b}.lean", "w") as f:
         f.write(HDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default"))
         f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")

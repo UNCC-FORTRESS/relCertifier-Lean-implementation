@@ -137,8 +137,16 @@
 > Batch I10 (2026-10-28): `bms_chiller_undercharge` (8 witness lines, no refutation) left the suite and
 > `zone_lightmass_schedule` came in (the finder with `--only`: 8 mutants, no witness). Witness lines 949 -> 949;
 > instances 77 -> 77; groups 228 -> 228.
-> Current instance set: **77 refutations, 228 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 949 mutants in
+> Batch I11 (2026-11-01, the stop-line rover ladder replaces the rover refinement ladder): `rover_ladder_2to3`,
+> `_3to6`, `_6to8` and `_8to12` left the suite with their 9 refutations (`rover_ladder_6to8` m006, m009;
+> `rover_ladder_8to12` m005, m006, m008, m009, m010, m019, m026) and 66 witness lines; the finder ran on the four
+> rungs (`--only`): `stopline_rover_2to5` 34 mutants, 5 witnesses (the heading rows and `s_L <= p_L` flipped, kind B;
+> `p_R >= 100` and the loss row flipped, kind C: a flipped loss row is refuted outright), `stopline_rover_5to8` 51
+> mutants, 9 witnesses (7 B, 2 C), `stopline_rover_8to11` 75 mutants, 17 witnesses (15 B, 2 C), `stopline_rover_11to15`
+> 99 mutants, 40 witnesses (39 B, 1 A: the lateral requirement rows of the 15-dimensional level, flipped or dropped),
+> each DECLINED by relcert. Witness lines 949 -> 1142; instances 77 -> 139; groups 228 -> 414.
+> Current instance set: **139 refutations, 414 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1142 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I10
 > (`scripts/refute_experiment.py`, 2 parallel jobs in a 4-core cloud container, the 300 s default budget; the verdicts of the
 > mutants of the benchmarks batches I9 and I10 changed, swapped or added were re-measured, the others kept from the 2026-10-27

@@ -36,10 +36,6 @@ import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
@@ -48,6 +44,10 @@ import RelCertifier.InstancesV2.BenchIR.salt_tank_sensor
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchIR.stopline_rover_11to15
+import RelCertifier.InstancesV2.BenchIR.stopline_rover_2to5
+import RelCertifier.InstancesV2.BenchIR.stopline_rover_5to8
+import RelCertifier.InstancesV2.BenchIR.stopline_rover_8to11
 import RelCertifier.InstancesV2.BenchIR.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.train_ato_odometry
@@ -90,10 +90,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("platoon_profiles", platoon_profiles_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
-  ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
-  ("rover_ladder_3to6", rover_ladder_3to6_IRv2),
-  ("rover_ladder_6to8", rover_ladder_6to8_IRv2),
-  ("rover_ladder_8to12", rover_ladder_8to12_IRv2),
   ("rover_patrol_lag", rover_patrol_lag_IRv2),
   ("rover_terrain_2to4", rover_terrain_2to4_IRv2),
   ("rover_terrain_4to6", rover_terrain_4to6_IRv2),
@@ -102,6 +98,10 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
+  ("stopline_rover_11to15", stopline_rover_11to15_IRv2),
+  ("stopline_rover_2to5", stopline_rover_2to5_IRv2),
+  ("stopline_rover_5to8", stopline_rover_5to8_IRv2),
+  ("stopline_rover_8to11", stopline_rover_8to11_IRv2),
   ("syringe_relay_prearm", syringe_relay_prearm_IRv2),
   ("tank_dos_3to1", tank_dos_3to1_IRv2),
   ("train_ato_odometry", train_ato_odometry_IRv2),

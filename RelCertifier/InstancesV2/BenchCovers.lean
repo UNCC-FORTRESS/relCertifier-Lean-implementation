@@ -27,10 +27,6 @@ import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_4to6
@@ -39,6 +35,10 @@ import RelCertifier.InstancesV2.BenchCovers.salt_tank_sensor
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchCovers.stopline_rover_11to15
+import RelCertifier.InstancesV2.BenchCovers.stopline_rover_2to5
+import RelCertifier.InstancesV2.BenchCovers.stopline_rover_5to8
+import RelCertifier.InstancesV2.BenchCovers.stopline_rover_8to11
 import RelCertifier.InstancesV2.BenchCovers.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
@@ -81,10 +81,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
-  ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
-  ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
-  ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
-  ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
   ("rover_patrol_lag", rover_patrol_lag_coverV2),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2),
@@ -93,6 +89,10 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
+  ("stopline_rover_11to15", stopline_rover_11to15_coverV2),
+  ("stopline_rover_2to5", stopline_rover_2to5_coverV2),
+  ("stopline_rover_5to8", stopline_rover_5to8_coverV2),
+  ("stopline_rover_8to11", stopline_rover_8to11_coverV2),
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2),
   ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("train_ato_odometry", train_ato_odometry_coverV2),

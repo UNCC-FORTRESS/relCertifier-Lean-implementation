@@ -29,10 +29,6 @@ import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchChoice.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
@@ -41,6 +37,10 @@ import RelCertifier.InstancesV2.BenchChoice.salt_tank_sensor
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchChoice.stopline_rover_11to15
+import RelCertifier.InstancesV2.BenchChoice.stopline_rover_2to5
+import RelCertifier.InstancesV2.BenchChoice.stopline_rover_5to8
+import RelCertifier.InstancesV2.BenchChoice.stopline_rover_8to11
 import RelCertifier.InstancesV2.BenchChoice.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.train_ato_odometry
@@ -83,10 +83,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("platoon_profiles", platoon_profiles_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
-  ("rover_ladder_2to3", rover_ladder_2to3_coverV2_choice),
-  ("rover_ladder_3to6", rover_ladder_3to6_coverV2_choice),
-  ("rover_ladder_6to8", rover_ladder_6to8_coverV2_choice),
-  ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
   ("rover_patrol_lag", rover_patrol_lag_coverV2_choice),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
@@ -95,6 +91,10 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
+  ("stopline_rover_11to15", stopline_rover_11to15_coverV2_choice),
+  ("stopline_rover_2to5", stopline_rover_2to5_coverV2_choice),
+  ("stopline_rover_5to8", stopline_rover_5to8_coverV2_choice),
+  ("stopline_rover_8to11", stopline_rover_8to11_coverV2_choice),
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2_choice),
   ("tank_dos_3to1", tank_dos_3to1_coverV2_choice),
   ("train_ato_odometry", train_ato_odometry_coverV2_choice),

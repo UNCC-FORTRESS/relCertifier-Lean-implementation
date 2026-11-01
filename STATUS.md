@@ -102,12 +102,13 @@ certificates (261) and the refutations' groups (188) have their own runners. `re
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-10-28, branch `claude/brave-albattani-ylktc0` (batch I10), a 4-core Linux container, Lean 4.31.0 with
-Mathlib built from source, Z3 4.15.3: `lake build` exit 0 (18150 jobs with the five exes); `--check-quick-v2` 50/50, modal 944,
+**Last verified run.** 2026-11-01, branch `claude/brave-albattani-ylktc0` (batch I11), a 4-core Linux container, Lean 4.31.0 with
+Mathlib built from source, Z3 4.15.3: `lake build` exit 0 (18274 jobs with the five exes); `--check-quick-v2` 50/50, modal 876,
 handoff 511, non-connection 50, pruned 25, reposition 75, STRICT 180/180, PASSED; `relcert-test` `ALL PASS`;
-`relcert-bridge-verdicts` 4580/4580; `relcert-progress-verdicts` 151/151; `relcert-refute-verdicts` 228/228 and the 77
+`relcert-bridge-verdicts` 4592/4592; `relcert-progress-verdicts` 167/167; `relcert-refute-verdicts` 414/414 and the 139
 refutation instances built; `WellFormedBattery` 66 axiom lines, all standard; `AxiomCheck` 9 lines; `benchmarks/negative/*`
 both DECLINED; `vehicle_hypercert_s8` 5 right modes BLOCKING, DECLINED under the strict switch. Previous: 2026-10-28, the same
+container (batch I10): modal 944, bridge 4580/4580, progress 151/151, refute 228/228 (77 instances). Previous: 2026-10-28, the same
 container (batch I9): modal 940, handoff 511, STRICT 180/180 (86 invariant, 94 exit), `relcert-bridge-verdicts` 4576/4576, the
 other counts as above. Previous: 2026-10-27, branch
 `benchmark-fixes` (commit `aedcd61`), Apple M2 Max, Z3 4.15.1:

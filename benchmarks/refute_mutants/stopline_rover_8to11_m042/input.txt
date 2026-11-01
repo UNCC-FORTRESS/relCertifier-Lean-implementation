@@ -1,0 +1,127 @@
+# stopline_rover_8to11: stop-line rover ladder, rung 3 (L8 -> L11): the tyre relaxation lag behind the pressure
+# build-up and the yaw and pitch inertia; potential safety loss delta_3 = 0.05 V = 0.4 m against the single-lag
+# model; heading, pitch and roll margins under inertia (0.13 of the pitch range consumed), LTR 0.8 (0.4 consumed).
+# scenario: model-refinement
+# mechanisms: D (mode-dependent rows: equalities while cruising, the loss row while braking)
+#
+# System (the stop-line rover ladder, stated in full here and shared by stopline_rover_2to5, _5to8, _8to11 and
+# _11to15; SI units, time in s, angles in rad). The canonical four-wheel UGV of the suite (track 1.8 m, centre of
+# gravity 0.9 m high, LTR = a_b/g + phi_r, top speed V = 8 m/s) approaches a stop line along a level, straight
+# corridor (grade 0, cross-slope 0). Its brake controller reads the wheel odometer p [m] and the speed v [m/s]
+# every 0.1 s (the brake ECU's cycle, both sides): it holds the approach speed while p < 100 (CRUISE: p' = v,
+# v' = 0), commands the service brake once p >= 100 (BRAKE; the planner's brake point) and reports standstill once
+# v <= 0.35 m/s (1.3 km/h; STOP: every state frozen, the residual creep is below the odometer resolution). The
+# planner's deceleration is a = 3 m/s^2. Along-track position s [m] (distance to the stop line is measured along
+# the corridor): s' = v (1 - psi^2/2 - 0.2 phi_r^2), the heading and crabbing losses of the rover hierarchy
+# (pitch is body pitch on level ground and does not enter s'); the planner identifies s with p. The levels (each
+# rung adds one longitudinal effect the planner's model leaves out and one attitude block of the hierarchy; the
+# right of every rung is the left of the previous one, verbatim):
+#   L2 (p, v): the planner's point model, BRAKE v' = -3.
+#   L5 + s, b, psi: the brake actuator (valve and line pressure) is a first-order lag, tau = 0.3 s, b the realised
+#      deceleration [m/s^2] (BRAKE b' = (3 - b)/0.3, v' = -b; CRUISE b' = -b/0.3, released); the heading error
+#      psi with the steering loop psi' = -psi (1 rad/s); r = psi' the yaw-rate error, a = v r the lateral
+#      acceleration of the heading corrections.
+#   L8 + theta_p, z, phi_r: the tyre-road friction limit of the corridor's surface (mu = 0.275) caps the realised
+#      deceleration at 2.7 m/s^2 (BRAKE b' = (2.7 - b)/0.3; b <= 2.7 is a domain fact of the derated levels);
+#      pitch theta_p, heave z and roll phi_r of the terrain-following suspension (time constant 1 s) with the
+#      brake-induced pitch (load transfer, 0.02 rad per m/s^2 of realised deceleration): theta_p' = -theta_p +
+#      0.5 z + 0.02 b, z' = -z, phi_r' = -phi_r + 0.015 a.
+#   L11 + c, omega_psi, omega_theta: the hub (pressure) deceleration c builds through the valve (0.3 s) and the tyre
+#      force b follows c through the tyre relaxation (relaxation length 0.4 m at 8 m/s: 0.05 s): c' = (2.7 - c)/0.3,
+#      b' = 20 (c - b), v' = -b; yaw and pitch inertia (critically damped at 1 rad/s, cascade chart): psi' =
+#      omega_psi - psi, omega_psi' = -omega_psi, theta_p' = omega_theta - theta_p, omega_theta' = -omega_theta +
+#      0.5 z + 0.02 b; r = omega_psi - psi.
+#   L15 + omega_z, omega_phi, y, omega_y: aerodynamic and rolling drag the planner ignores (BRAKE v' = -b -
+#      0.003 v^2 - 0.2: rho C_d A / 2m for a 300 kg UGV with C_d A = 1.5 m^2, rolling resistance 0.02 g; CRUISE
+#      v' = 0, the drive compensates); heave and roll inertia and tyre slip: z' = omega_z - z, omega_z' = -omega_z,
+#      phi_r' = omega_phi - phi_r, omega_phi' = -omega_phi + 0.015 a_b with a_b = a + y'', y' = omega_y - y,
+#      omega_y' = -omega_y + 0.03 (a + g phi_r), y'' = y - 2 omega_y + 0.03 (a + g phi_r).
+# Guards (both sides, every level): CRUISE p < 100 and v >= 0.35; BRAKE p >= 100 and v >= 0.35; STOP p >= 100 and
+# v <= 0.35. Domains: p, s >= 0; 0 <= v <= 8; 0 <= b <= 3 (L5) or <= 2.7 (L8 up); 0 <= c <= 2.7; psi, omega_psi,
+# theta_p, omega_theta in [-0.6, 0.6]; z, omega_z in [-0.15, 0.15]; phi_r, omega_phi, y, omega_y in [-0.5, 0.5]
+# (the hierarchy's validity boxes); forward invariant mode by mode (a BRAKE window from v >= 0.35 ends at v >=
+# 0.04; the attitude boxes are inflowing). relcert --wellformed: CRUISE, BRAKE ok (exit), STOP ok (invariant).
+#
+# Safety transfer along the ladder. The planner proves, on L2, that its stop point P* = p + v^2/6 (conserved by
+# L2's braking flow: its standstill odometer reading) stays at least m = 5 m short of the stop line (at 8 m/s
+# P* = 110.67 m, the line at 115.67 m; m is the planner's safety margin). Each level k has its own stop-point
+# functional Z_k on the odometer, a polynomial its braking flow conserves exactly (L5 to L11) or decreases (L15),
+# with Z_k >= p at every standstill state (L2 to L8 exactly; L11, L15 up to 0.04 m). Each rung certifies
+# Z_L <= Z_R + delta_k, its potential safety loss delta_k the exact worst case over the approach speeds v <= 8
+# (delta = 2.4, 1.185, 0.4 and 0 m: lag tau V; derating (V^2/2a)(1/kappa - 1); the second lag 0.05 V; drag only
+# shortens the stop, and the ladder never credits an unmodelled benefit), and the rungs compose by transitivity:
+# Z_15 <= P* + 3.985, so the L15 rover's odometer stands still at most P* + 4.03 m, and its along-track position
+# s <= p is at most that: inside the planner's 5 m margin with 0.97 m left. The attitude blocks are zero-loss for
+# the clearance (heading and crabbing only shorten the along-track progress: s <= p is a row) and carry the
+# hierarchy's lateral margins as requirement rows on the refined level, read as the margin each channel consumes
+# against the plan's level, straight model: heading 0.35 rad (half field of view of the navigation camera), pitch
+# 0.25 (mast camera tilt stabilizer), roll 0.2 (suspension roll stop), LTR 0.8 (20 % to wheel lift), lane 0.25 m
+# (corridor half-width 1.25 minus vehicle half-width 1.0). Simulated at 8 m/s from the worst admitted attitude:
+# odometer standstill 110.66 (L2), 112.93, 114.13, 114.51, 112.98 m (L15), along-track 112.74 m; the certified
+# chain bound is 114.66.
+# Rows per left mode (mode-dependent, D): CRUISE, p_L = p_R, v_L = v_R, b = c = 0 on both sides (identical
+# approach, both brakes released: the two sides trigger at the same decision); BRAKE and STOP, p_R >= 100 (the
+# reference has triggered) and Z_L <= Z_R + delta_k scaled by a constant so that no division appears; in every
+# mode the level's lateral requirement rows and s_L <= p_L. The uniform-rows test declines every uniform set that
+# keeps a stated row. Every rung certifies under every counter-run (RELCERT_SYNC=1, NO_PRUNE, NO_CHOICE,
+# NO_PRUNE+NO_CHOICE, NO_CUT, NO_REPO, OPREGION, WELLFORMED_STRICT; lambda 1, budget 1): the certified content is
+# the loss bound and the lateral margins, not a cover mechanism. Composes with the previous rung: its right is
+# that rung's left, and the odometer functionals chain; the requirement rows of the previous level are not
+# needed on the right (the odometer does not depend on the attitude).
+#
+# Rung 3. Left L11 (p, s, v, b, c, psi, omega_psi, theta_p, omega_theta, z, phi_r), right L8. Z_11 = p +
+# 0.35 v - 0.015 b + u^2/5.4 with u = v - 0.05 b - 0.3 c (u falls at exactly 2.7 m/s^2 under L11's braking flow,
+# w = p + 0.35 v - 0.015 b has w' = u); Z_8 as in rung 2. At the common trigger (b = c = 0) Z_11 - Z_8 = 0.05 v
+# <= 0.4. Row (times 5.4): 5.4 p_L + 1.89 v_L - 0.081 b_L + u_L^2 <= 5.4 p_R + 1.62 v_R + (v_R - 0.3 b_R)^2 + 2.16
+# (exact: 2.15 DECLINES). Lateral rows (cascade chart: a rate state carries its angle's tolerance): abs(psi),
+# abs(omega_psi) <= 0.35; abs(theta_p), abs(omega_theta) <= 0.25, tightest 0.13 with the rate (0.12 declines);
+# abs(phi_r) <= 0.2, tightest at most 0.10 (0.05 declines); LTR abs(v r/g + phi_r) <= 0.8 with r = omega_psi - psi
+# (certifies down to 0.4: the heading corrections' 8 x 0.7 / 9.81 = 0.571 plus the roll).
+# Verdicts (RELCERT_IMPLIED_CUT=1, measured 2026-11-01): CERTIFIED (3.8 s) and under every counter-run; --handoff
+# 5/5; relcert --wellformed: 3 right modes ok, 0 UNKNOWN, 0 BLOCKING.
+[problem]
+name = stopline_rover_8to11
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [p, s, v, b, c, psi, omega_psi, theta_p, omega_theta, z, phi_r]
+epsilon = 0.1
+[Lsys.mode.CRUISE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:0.0; b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 0.0 c)); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(- 0.0 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (- 0.0 omega_theta) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- 0.0 z); phi_r' = smt2:(+ (- 0.0 phi_r) (* 0.015 (* v (- omega_psi psi))));
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 2.7 and c >= 0.0 and c <= 2.7 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5
+next = [CRUISE, BRAKE]
+[Lsys.mode.BRAKE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:(- 0.0 b); b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 2.7 c)); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(- 0.0 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (- 0.0 omega_theta) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- 0.0 z); phi_r' = smt2:(+ (- 0.0 phi_r) (* 0.015 (* v (- omega_psi psi))));
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 2.7 and c >= 0.0 and c <= 2.7 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5
+next = [BRAKE, STOP]
+[Lsys.mode.STOP]
+ode = p' = smt2:0.0; s' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0; c' = smt2:0.0; psi' = smt2:0.0; omega_psi' = smt2:0.0; theta_p' = smt2:0.0; omega_theta' = smt2:0.0; z' = smt2:0.0; phi_r' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 2.7 and c >= 0.0 and c <= 2.7 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5
+next = [STOP]
+[Rsys]
+state_vars = [p, s, v, b, psi, theta_p, z, phi_r]
+epsilon = 0.1
+[Rsys.mode.CRUISE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:0.0; b' = smt2:(* (/ 1.0 0.3) (- 0.0 b)); psi' = smt2:(- 0.0 psi); theta_p' = smt2:(+ (+ (- 0.0 theta_p) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- 0.0 z); phi_r' = smt2:(+ (- 0.0 phi_r) (* 0.015 (* v (- 0.0 psi))));
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 2.7 and psi >= -0.6 and psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and z >= -0.15 and z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5
+next = [CRUISE, BRAKE]
+[Rsys.mode.BRAKE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:(- 0.0 b); b' = smt2:(* (/ 1.0 0.3) (- 2.7 b)); psi' = smt2:(- 0.0 psi); theta_p' = smt2:(+ (+ (- 0.0 theta_p) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- 0.0 z); phi_r' = smt2:(+ (- 0.0 phi_r) (* 0.015 (* v (- 0.0 psi))));
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 2.7 and psi >= -0.6 and psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and z >= -0.15 and z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5
+next = [BRAKE, STOP]
+[Rsys.mode.STOP]
+ode = p' = smt2:0.0; s' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0; psi' = smt2:0.0; theta_p' = smt2:0.0; z' = smt2:0.0; phi_r' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 2.7 and psi >= -0.6 and psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and z >= -0.15 and z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5
+next = [STOP]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_p R_p) (<= R_p L_p) (<= L_v R_v) (<= R_v L_v) (<= L_b 0.0) (<= L_c 0.0) (<= R_b 0.0) (<= L_psi 0.35) (<= (- 0.0 0.35) L_psi) (<= L_theta_p 0.25) (<= (- 0.0 0.25) L_theta_p) (<= L_phi_r 0.2) (<= (- 0.0 0.2) L_phi_r) (>= L_omega_psi 0.35) (<= (- 0.0 0.35) L_omega_psi) (<= L_omega_theta 0.25) (<= (- 0.0 0.25) L_omega_theta) (<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) (<= L_s L_p))
+BRAKE = smt2:(and (>= R_p 100.0) (<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) (<= L_psi 0.35) (<= (- 0.0 0.35) L_psi) (<= L_theta_p 0.25) (<= (- 0.0 0.25) L_theta_p) (<= L_phi_r 0.2) (<= (- 0.0 0.2) L_phi_r) (>= L_omega_psi 0.35) (<= (- 0.0 0.35) L_omega_psi) (<= L_omega_theta 0.25) (<= (- 0.0 0.25) L_omega_theta) (<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) (<= L_s L_p))
+STOP = smt2:(and (>= R_p 100.0) (<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) (<= L_psi 0.35) (<= (- 0.0 0.35) L_psi) (<= L_theta_p 0.25) (<= (- 0.0 0.25) L_theta_p) (<= L_phi_r 0.2) (<= (- 0.0 0.2) L_phi_r) (>= L_omega_psi 0.35) (<= (- 0.0 0.35) L_omega_psi) (<= L_omega_theta 0.25) (<= (- 0.0 0.25) L_omega_theta) (<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) (<= L_s L_p))

@@ -37,6 +37,31 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Batch I11 (2026-11-01): the stop-line rover ladder replaces the rover refinement ladder
+
+Owner request (2026-11-01): a four-rung refinement ladder that shows the safety-transfer story with a
+planner's safety margin and a certified potential safety loss per rung (zero-loss rungs allowed), to
+replace `rover_ladder_{2to3,3to6,6to8,8to12}`, whose clearance rows carried no notion of a margin.
+The stop-line rover ladder (`stopline_rover_2to5`, `_5to8`, `_8to11`, `_11to15`; the system is stated
+in full in each header) puts the canonical rover hierarchy on a stop-line approach: the planner's point
+model L2 brakes at 3 m/s^2 from the brake point and proves its stop point P* = p + v^2/6 stays 5 m
+short of the line (the safety margin). Each rung adds one longitudinal effect with an exact potential
+safety loss (brake actuator lag 2.4 m, friction-limited deceleration 1.185 m, tyre relaxation lag
+0.4 m, drag 0 m; lowering any of them declines) and one attitude block of the hierarchy, zero-loss for
+the clearance (the brake point and the stop-point functionals live on the wheel odometer, the
+along-track position only loses progress to heading and crabbing) and carrying the hierarchy's lateral
+margins as requirement rows (heading 0.35, pitch 0.25 with the brake-induced pitch consuming 0.13,
+roll 0.2, LTR 0.8 with 0.4 consumed, lane 0.25 with 0.23 consumed by the slip). The rungs compose by
+transitivity: the fully refined rover stands still within P* + 4.03 m, 0.97 m of the margin left.
+Dimensions 5, 8, 11, 15 (the suite's largest model, was 12). Letters D on every rung; every rung
+certifies under every counter-run (the certified content is the loss bound and the margins, not a
+cover mechanism). The replaced rungs are in `benchmarks/reserve/` with their reason; the letter
+totals change S 19 -> 17, M 24 -> 22, I 17 -> 15, D 12 -> 16, benchmarks certifying under
+`RELCERT_SYNC=1` 26 -> 28 (the old ladder's S M I came from its timetable re-timing, a construct the
+new ladder does not need). Assumption 1 of the four right models is proved once through the shared
+`CRUISE -> BRAKE -> STOP` lemma (`Proofs/Encoding/WellFormedStopline.lean`) with explicit runs. The
+suite stays at 50 (41 designed, 9 from the literature).
+
 ## Batch I10 (2026-10-28): one time-scaled design in, one single-letter file out
 
 Second round of the owner's 2026-10-27 request (more Table 1 mechanisms, every benchmark physically
@@ -503,10 +528,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | back from the reserve 2026-10-27 (batch I9) as the time-scaled design: SPORT = the CACC at 1.2 x bandwidth, exact re-timed SPORT rows at 6/5, the AEB at 1 (`lambda in [1, 1.2]`); mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate; batch I9: conformance to the reference's NORMAL profile at the stated scaling 6/5 (the rows of `quad_light_airframe_20`), multi-step and branching covers, mode choice |
-| `rover_ladder_2to3` | 3 / 3 | 3 / 3 | model-refinement | reinstalled 2026-10-27 on the canonical rover hierarchy (L3 / L2): clearance and heading rows, lambda 1 |
-| `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L6 / L3): clearance, heading and pitch rows, lambda 1 |
-| `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header) |
-| `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L12 / L8): heading, roll, rollover (LTR) and lane rows; lambda [1, 1.25] (S M I from the re-timed claim form, header) |
 | `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
 | `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan; batch I9: the plan's speed loop at the wheel loop's 3 /s again, progress against the plan re-timed within `lambda in [1, 3]` (S M I) |
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T`; lambda pinned to 1 (batch I6) |
@@ -515,6 +536,10 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: both sides at the design-model level (one cause: the weakened gain); batch I9: the exact re-timed claim at the derating ratio 4/5 and the power-saving 2 s period (S M B X) |
+| `stopline_rover_2to5` | 5 / 5 | 3 / 3 | model-refinement | new 2026-11-01 (batch I11, rung 1 of the stop-line rover ladder, L5 / L2): mode-keyed (equalities while cruising, the loss row after the brake point); brake actuator lag, loss 2.4 m; heading margin |
+| `stopline_rover_5to8` | 8 / 8 | 3 / 3 | model-refinement | new 2026-11-01 (batch I11, rung 2, L8 / L5): mode-keyed; friction-limited deceleration, loss 1.185 m; pitch (brake-induced), heave and roll margins |
+| `stopline_rover_8to11` | 11 / 11 | 3 / 3 | model-refinement | new 2026-11-01 (batch I11, rung 3, L11 / L8): mode-keyed; tyre relaxation lag, loss 0.4 m; yaw and pitch inertia, rollover margin |
+| `stopline_rover_11to15` | 15 / 15 | 3 / 3 | model-refinement | new 2026-11-01 (batch I11, rung 4, L15 / L11): mode-keyed; aerodynamic and rolling drag, loss 0 (the zero-loss rung); heave and roll inertia, tyre slip, lane and rollover margins |
 | `syringe_relay_prearm` | 4 / 4 | 6 / 4 | controller-change | new 2026-10-27 (batch I5): mode-keyed, right-only repositioning (the validated relay's take-up) |
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |

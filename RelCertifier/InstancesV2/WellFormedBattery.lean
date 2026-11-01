@@ -72,11 +72,11 @@ import RelCertifier.InstancesV2.WellFormed.AccTuneLimp
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
 import RelCertifier.InstancesV2.WellFormed.RoverPatrolLag
 import RelCertifier.InstancesV2.WellFormed.GantrySpeedZones
-import RelCertifier.InstancesV2.WellFormed.RoverLadder2to3
-import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
-import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
-import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
+import RelCertifier.InstancesV2.WellFormed.StoplineRover2to5
+import RelCertifier.InstancesV2.WellFormed.StoplineRover5to8
+import RelCertifier.InstancesV2.WellFormed.StoplineRover8to11
+import RelCertifier.InstancesV2.WellFormed.StoplineRover11to15
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain6to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
 import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
@@ -115,9 +115,9 @@ def wfProved : List String :=
    "charger_fast_tapers", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
-   "rover_ladder_2to3",
-   "rover_ladder_3to6", "rover_ladder_6to8",
-   "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
+   "stopline_rover_2to5",
+   "stopline_rover_5to8", "stopline_rover_8to11",
+   "stopline_rover_11to15", "rover_terrain_2to4", "rover_terrain_6to12",
    "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
    "zone_lightmass_schedule", "turbine_startup_gearratio",
    "molding_pack_checkring", "fuelcell_chp_dos", "elevator_start_discbrake",
@@ -190,10 +190,10 @@ def suiteNames : List String :=
    "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones", "girard_robot",
    "grid_ffr_dos", "hydro_rejection_gatecal", "lz_vehicle_position",
    "molding_pack_checkring", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
-   "quad_light_profiles", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
-   "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6",
+   "quad_light_profiles", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6",
    "rover_terrain_6to12", "salt_tank_sensor", "sat3w_detumble_phases", "sat_detumble_phases",
-   "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
+   "sat_detumble_weak", "stopline_rover_11to15", "stopline_rover_2to5", "stopline_rover_5to8",
+   "stopline_rover_8to11", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
    "tunnel_jetfan_pairout", "turbine_startup_gearratio", "vehicle_hypercert",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed", "zone_lightmass_schedule"]
 
@@ -232,11 +232,11 @@ end WellFormedBattery
 #print axioms V2QuadLightLag.quad_light_lag_wellFormedR
 #print axioms V2RoverPatrolLagGuarded.rover_patrol_lag_wellFormedR
 #print axioms V2GantrySpeedZones.gantry_speed_zones_wellFormedR
-#print axioms RoverLadder2to3Guarded.rover_ladder_2to3_wellFormedR
-#print axioms RoverLadder3to6Guarded.rover_ladder_3to6_wellFormedR
-#print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR
-#print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
 #print axioms RoverTerrain2to4Guarded.rover_terrain_2to4_wellFormedR
+#print axioms StoplineRover2to5.stopline_rover_2to5_wellFormedR
+#print axioms StoplineRover5to8.stopline_rover_5to8_wellFormedR
+#print axioms StoplineRover8to11.stopline_rover_8to11_wellFormedR
+#print axioms StoplineRover11to15.stopline_rover_11to15_wellFormedR
 #print axioms RoverTerrain6to12Guarded.rover_terrain_6to12_wellFormedR
 #print axioms RoverTerrain4to6Guarded.rover_terrain_4to6_wellFormedR
 

@@ -152,18 +152,19 @@
 > each DECLINED by relcert. Witness lines 954 -> 1147; instances 67 -> 129; groups 199 -> 385.
 > Current instance set: **129 refutations, 385 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1147 mutants in
-> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11
-> (`scripts/refute_experiment.py`, 4 parallel jobs on the owner's Apple M2 Max, Z3 4.15.1, the 300 s default budget; the
-> verdicts of the mutants of the three incoming benchmarks were measured, the others kept from the batch I10 run in the
-> cloud container; `docs/refute/relcert.json`, `results.json`, `runner.log`): 954 mutants, 366 certified, 67 kernel-refuted,
-> 521 open (9 of them relcert ERRORs by the time budget, kept from the container run: `rover_ladder_6to8_m021`,
-> `rover_ladder_8to12_m005`, `_m010`, `_m016`, `_m024`, `sat3w_detumble_phases_m011`, `_m012`, `_m014`, `_m015`, the same
-> nine as on 2026-10-27); by operator RRO/SNO 38/27/141, MCO 107/10/99, ORO 221/30/281 (certified/refuted/open); by kind
-> B 61, C 6; kernel-refuted and certified: none. (Batch I10, 2026-10-28: 949 mutants, 343 certified, 77 kernel-refuted,
-> 529 open; RRO/SNO 38/30/139, MCO 101/13/105, ORO 204/34/285. 2026-10-27, 983 mutants: 342 certified, 77 kernel-refuted,
-> 564 open; RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298.) All 67 are DECLINED by relcert at the default time budget
-> (300 s since 2026-10-27; decline check of `benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, 4 parallel jobs on the
-> owner's machine: 67/67 DECLINED, the slowest `rover_ladder_8to12_m005` in 48 s; `docs/refute/decline_default_budget.tsv`).
+> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-11-01 after batch I12
+> (`scripts/refute_experiment.py`, 2 parallel jobs in a 4-core cloud container, Z3 4.15.3, the 300 s default budget; the
+> verdicts of the 259 mutants of the four stop-line rungs were measured, the others kept from the batch I11 and I10 runs;
+> `docs/refute/relcert.json`, `results.json`, `runner.log` from the current tip): 1147 mutants, 404 certified, 129
+> kernel-refuted, 614 open (4 of them relcert ERRORs by the time budget, kept from the container run of batch I10:
+> `sat3w_detumble_phases_m011`, `_m012`, `_m014`, `_m015`; the five `rover_ladder_*` ERRORs left with the old ladder); by
+> operator RRO/SNO 44/74/164, MCO 130/24/121, ORO 230/31/329 (certified/refuted/open); by kind B 116, C 12, A 1;
+> kernel-refuted and certified: none. (Batch I11, 2026-10-28, on the owner's laptop: 954 mutants, 366 certified, 67
+> kernel-refuted, 521 open; RRO/SNO 38/27/141, MCO 107/10/99, ORO 221/30/281. Batch I10, 2026-10-28: 949 mutants, 343
+> certified, 77 kernel-refuted, 529 open. 2026-10-27, 983 mutants: 342 certified, 77 kernel-refuted, 564 open.) All 129 are
+> DECLINED by relcert at the default time budget (300 s since 2026-10-27; decline check of `benchmarks/refute_mutants/*`,
+> `RELCERT_IMPLIED_CUT=1`, 2 parallel jobs in the container: 129/129 DECLINED, the slowest `platoon_profiles_m027` in 8 s;
+> `docs/refute/decline_default_budget.tsv`).
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 

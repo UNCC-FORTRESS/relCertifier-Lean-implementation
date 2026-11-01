@@ -211,17 +211,27 @@ stop-line ladder; their 67 witness lines and nine refutation instances (`rover_l
 finder with `--only` on the four stop-line rungs: `stopline_lag` 32 mutants, 2 witnesses; `stopline_friction` 43,
 2; `stopline_tyre` 46, 2; `stopline_drag` 59, 11. **76 refutation instances, `relcert-refute-verdicts`
 220/220**, every instance builds, every mutant input DECLINED by relcert (`stutter_tests.py`,
-`prelanding_tests.py`); witness lines 1094. The operator table and the certified / open counts below were not
-recomputed (`refute_experiment.py`).
+`prelanding_tests.py`); witness lines 1094. **Experiment recomputed 2026-11-01** at d483594
+(`scripts/refute_experiment.py --jobs 6` on the owner's Apple M2 Max, Z3 4.15.1, the 300 s default budget; fresh:
+the verdict cache `docs/refute/relcert.json` cleared, so every one of the 1094 mutants was run with the batch-14
+binary; `docs/refute/runner.log` re-run, 220/220): 1094 mutants, **351 certified, 76 kernel-refuted, 667 open**
+(one of them a relcert ERROR, `lit_girard08_robot_m019`); by operator RRO/SNO 38/37/188, MCO 112/9/138, ORO
+201/30/341 (certified/refuted/open); by kind C 36, B 39, A 1; kernel-refuted and certified: none; witness found
+but not kernel-refuted: none. The stop-line rungs: `stopline_lag` 11/2/19, `stopline_friction` 12/2/29,
+`stopline_tyre` 13/2/31, `stopline_drag` 13/11/35. Decline check of the 76 mutant inputs
+(`benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, default budget, 4 parallel jobs): **76/76 DECLINED**, the
+slowest `stopline_drag_m040` in 22 s (`docs/refute/decline_default_budget.tsv`); the three negatives
+(`benchmarks/negative/*`) DECLINED.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim
 
-> Of the 954 Black-Okun-Yesha mutants of the 50 suite benchmarks, **67 are proved false in the
-> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 366 are certified
-> by relcert, and 521 are open. **relcert certifies none of the 67.** Current set (Batch 11, 2026-10-30): 68 refutation instances, all 68 DECLINED (decline check 2026-10-31). (2026-10-28, batch I11;
-> the 2026-10-21 run: 776 mutants, 67 refuted, 303 certified, 406 open.)
+> Of the 1094 Black-Okun-Yesha mutants of the 50 suite benchmarks, **76 are proved false in the
+> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 351 are certified
+> by relcert, and 667 are open. **relcert certifies none of the 76** (decline check 2026-11-01:
+> 76/76 DECLINED). (2026-11-01, batch 14; 2026-10-28, batch I11: 954 mutants, 67 refuted, 366
+> certified, 521 open; the 2026-10-21 run: 776 mutants, 67 refuted, 303 certified, 406 open.)
 
 The trust base of a refutation is the trust base of a certificate: the parser and lowering
 (the instance quotes the parser-emitted IR of the mutant file), the query printer and Z3's
@@ -305,6 +315,21 @@ A mutant counts as kernel-refuted only if its instance builds (`lake build
 RelCertifier.InstancesV2.Refute`: all 67 build) and the runner discharges all its groups.
 
 ## Results
+
+Current (2026-11-01, batch 14, `docs/refute/results.json`):
+
+| Operator | Certified | Kernel-refuted | Open | Total |
+|---|---|---|---|---|
+| RRO/SNO | 38 | 37 | 188 | 263 |
+| MCO | 112 | 9 | 138 | 259 |
+| ORO | 201 | 30 | 341 | 572 |
+| **all** | **351** | **76** | **667** | **1094** |
+
+Kernel-refuted by kind: C 36, B 39, A 1. By operator: RRO/SNO C 23, B 13, A 1; ORO B 23, C 7;
+MCO C 6, B 3. **Kernel-refuted and certified: none.** relcert's verdicts on the 1094 mutants:
+742 DECLINED, 351 CERTIFIED, 1 ERROR (counted open); every kernel-refuted mutant is DECLINED.
+
+The 2026-10-21 run (kept for the comparison with the mutation run below):
 
 | Operator | Certified | Kernel-refuted | Open | Total |
 |---|---|---|---|---|

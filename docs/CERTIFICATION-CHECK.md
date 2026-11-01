@@ -66,7 +66,7 @@ theorems consume is in the repository.
 | 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
 | 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 13132 over the 50 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:74`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
 | 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (991 certificates) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
-| 8 | the 81 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 227, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
+| 8 | the 76 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 220, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
 
 The totals 4457 and 188 are unchanged by the dimension change of 2026-10-21 (branch
 `clocked-right`): the padded coordinate is unbound in every lowered formula, so no query reads
@@ -238,7 +238,7 @@ node (`BenchPrelanding/<b>.lean` for every benchmark); every bridge instance wit
 over the cover merged with its record (`theorem3_window_of_records_pl`,
 `theorem3_keyed_of_records_pl`). Tests: `python3 scripts/stutter_tests.py` (97/97: the salt tank
 demo's tight band 0 by default and 3 under `RELCERT_NO_STUTTER=1`, the adversarial claims of
-`docs/STUTTER-SOUNDNESS.md`, the retired key refused, the 68 refutation mutants and 3 negatives
+`docs/STUTTER-SOUNDNESS.md`, the retired key refused, the 76 refutation mutants and 3 negatives
 DECLINED by default) and `python3 scripts/prelanding_tests.py` (99/99: the engine cooling demo's
 tight band 0.3, the cause test, the strict-row demo, the adversarial synthetic files with stretch 0
 off (their left holds, so with stretch 0 on the right may wait and every one of their claims is

@@ -33,15 +33,15 @@ import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
 import RelCertifier.InstancesV2.Cuts.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.Cuts.reactor_feed_wireless
-import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
-import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
-import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
-import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
+import RelCertifier.InstancesV2.Cuts.stopline_drag
+import RelCertifier.InstancesV2.Cuts.stopline_friction
+import RelCertifier.InstancesV2.Cuts.stopline_lag
+import RelCertifier.InstancesV2.Cuts.stopline_tyre
 import RelCertifier.InstancesV2.Cuts.syringe_relay_prearm
 import RelCertifier.InstancesV2.Cuts.tank_dos_3to1
 import RelCertifier.InstancesV2.Cuts.train_ato_odometry
@@ -87,15 +87,15 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_cutsV2, rampmeter_poll_2to1_cutsV2X),
   ("reactor_feed_wireless", reactor_feed_wireless_cutsV2, reactor_feed_wireless_cutsV2X),
-  ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
-  ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
-  ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
-  ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
   ("rover_terrain_2to4", rover_terrain_2to4_cutsV2, rover_terrain_2to4_cutsV2X),
   ("rover_terrain_4to6", rover_terrain_4to6_cutsV2, rover_terrain_4to6_cutsV2X),
   ("sat3w_detumble_phases", sat3w_detumble_phases_cutsV2, sat3w_detumble_phases_cutsV2X),
   ("sat_detumble_phases", sat_detumble_phases_cutsV2, sat_detumble_phases_cutsV2X),
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),
+  ("stopline_drag", stopline_drag_cutsV2, stopline_drag_cutsV2X),
+  ("stopline_friction", stopline_friction_cutsV2, stopline_friction_cutsV2X),
+  ("stopline_lag", stopline_lag_cutsV2, stopline_lag_cutsV2X),
+  ("stopline_tyre", stopline_tyre_cutsV2, stopline_tyre_cutsV2X),
   ("syringe_relay_prearm", syringe_relay_prearm_cutsV2, syringe_relay_prearm_cutsV2X),
   ("tank_dos_3to1", tank_dos_3to1_cutsV2, tank_dos_3to1_cutsV2X),
   ("train_ato_odometry", train_ato_odometry_cutsV2, train_ato_odometry_cutsV2X),

@@ -205,6 +205,15 @@
 > 529 open; RRO/SNO 38/30/139, MCO 101/13/105, ORO 204/34/285. 2026-10-27, 983 mutants: 342 certified, 77 kernel-refuted,
 > 564 open; RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298.) The 67 of that run were all DECLINED by relcert at the default time budget. Decline check of the current set (2026-10-31, after Batch 11): all **68** mutant inputs of `benchmarks/refute_mutants/*` (`RELCERT_IMPLIED_CUT=1`, default 300 s budget, 4 parallel jobs on the owner's machine) are DECLINED, 68/68, the slowest `rover_ladder_8to12_m005` in 50 s (`docs/refute/decline_default_budget.tsv`).
 
+Batch 14 (2026-11-01, `docs/BATCH14-2026-11-01.md`): the four `rover_ladder_*` rungs left the suite for the
+stop-line ladder; their 67 witness lines and nine refutation instances (`rover_ladder_6to8` m006, m009;
+`_8to12` m005, m006, m008, m009, m010, m019, m026) with their mutant inputs were removed (git history). The
+finder with `--only` on the four stop-line rungs: `stopline_lag` 32 mutants, 2 witnesses; `stopline_friction` 43,
+2; `stopline_tyre` 46, 2; `stopline_drag` 59, 11. **76 refutation instances, `relcert-refute-verdicts`
+220/220**, every instance builds, every mutant input DECLINED by relcert (`stutter_tests.py`,
+`prelanding_tests.py`); witness lines 1094. The operator table and the certified / open counts below were not
+recomputed (`refute_experiment.py`).
+
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim

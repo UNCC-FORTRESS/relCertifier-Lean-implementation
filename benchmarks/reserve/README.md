@@ -105,3 +105,21 @@ no leak the exact rows certify) in place of `charger_fast_tapers`, skipped
 
 Batch 11 (2026-10-30, `docs/BATCH11-2026-10-30.md`) moved `rover_terrain_6to12` here from the suite (valid, displaced
 for letter balance; not skipped) in place of `extruder_pe100_manualstart`. The reserve is 24 files.
+
+Batch 14 (2026-11-01, `docs/BATCH14-2026-11-01.md`) replaced the rover refinement ladder by the
+pure stop-line ladder (`stopline_lag`, `stopline_friction`, `stopline_tyre`, `stopline_drag`: one
+longitudinal model per level, a closed-form stop-distance loss per rung, a chained claim against the
+planner's 5 m margin). The four rungs `rover_ladder_2to3`, `rover_ladder_3to6`, `rover_ladder_6to8`
+and `rover_ladder_8to12` came here as the suite files; their Lean integration (IR literals, covers,
+progress, choice and pre-landing records, cuts, bridge instances, Assumption 1 proofs, the nine
+refutation instances of `_6to8` and `_8to12` with their mutant inputs and witnesses) is in git
+history (last at commit d9f0223). They certify as before (letters needed --, --, S I, S I; used I, I,
+S M I, S M I); they left for a ladder whose rungs compose verbatim and whose relational content is a
+stop-distance loss with a closed form, not for a defect.
+
+| benchmark | from | declines under | letters | reason it is in reserve |
+|---|---|---|---|---|
+| `rover_ladder_2to3` | suite_v2 (2026-11-01, batch 14) | none | none needed (used I) | replaced by the stop-line ladder (`docs/BATCH14-2026-11-01.md`) |
+| `rover_ladder_3to6` | suite_v2 (2026-11-01, batch 14) | none | none needed (used I) | as `rover_ladder_2to3` |
+| `rover_ladder_6to8` | suite_v2 (2026-11-01, batch 14) | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_CUT` | S I (used S M I) | as `rover_ladder_2to3` |
+| `rover_ladder_8to12` | suite_v2 (2026-11-01, batch 14) | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_CUT` | S I (used S M I) | as `rover_ladder_2to3` |

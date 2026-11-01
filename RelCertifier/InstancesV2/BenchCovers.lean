@@ -33,15 +33,15 @@ import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
 import RelCertifier.InstancesV2.BenchCovers.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchCovers.reactor_feed_wireless
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchCovers.stopline_drag
+import RelCertifier.InstancesV2.BenchCovers.stopline_friction
+import RelCertifier.InstancesV2.BenchCovers.stopline_lag
+import RelCertifier.InstancesV2.BenchCovers.stopline_tyre
 import RelCertifier.InstancesV2.BenchCovers.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
@@ -87,15 +87,15 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("quad_light_profiles", quad_light_profiles_coverV2),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2),
   ("reactor_feed_wireless", reactor_feed_wireless_coverV2),
-  ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
-  ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
-  ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
-  ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
+  ("stopline_drag", stopline_drag_coverV2),
+  ("stopline_friction", stopline_friction_coverV2),
+  ("stopline_lag", stopline_lag_coverV2),
+  ("stopline_tyre", stopline_tyre_coverV2),
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2),
   ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("train_ato_odometry", train_ato_odometry_coverV2),

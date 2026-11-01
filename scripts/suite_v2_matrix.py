@@ -79,6 +79,7 @@ FAMILIES = [
     ("platoon_", "Platoon follower (CACC: link loss, latency, profiles)"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("gantry_", "Gantry speed zones (multi-cycle matching)"),
+    ("stopline_", "Rover ladder"),
     ("rover_ladder_", "Rover ladder"),
     ("rover_terrain_", "Terrain chain"),
     ("watertank", "Watertank"),

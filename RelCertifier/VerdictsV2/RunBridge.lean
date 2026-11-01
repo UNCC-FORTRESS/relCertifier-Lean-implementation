@@ -93,8 +93,10 @@ right-only node a pre-landing node (its pack on its region, routes A/B/C per com
 progress certificates of `lit_drl_lane_control` and `lit_freedm_meter` now sent (they were left out
 of `progressTableV2`), every benchmark's groups built on its cover merged with its pre-landing
 record); 13089 since batch 13 of 2026-10-31: stretch 0 only for a declared range including 0, so
-`lit_freedm_meter` (declared [1, 1]) is certified at stretch 1 in every window). -/
-def expectedBridgeGroupsV2 : Nat := 13089
+`lit_freedm_meter` (declared [1, 1]) is certified at stretch 1 in every window); 12317 since batch 14
+of 2026-11-01: the stop-line ladder (`stopline_lag` 84, `stopline_friction` 86, `stopline_tyre` 96,
+`stopline_drag` 80 groups) for the rover refinement ladder (`rover_ladder_*`). -/
+def expectedBridgeGroupsV2 : Nat := 12317
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

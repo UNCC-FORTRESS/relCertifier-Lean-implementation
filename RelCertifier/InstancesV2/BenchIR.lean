@@ -42,15 +42,15 @@ import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
 import RelCertifier.InstancesV2.BenchIR.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchIR.reactor_feed_wireless
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchIR.stopline_drag
+import RelCertifier.InstancesV2.BenchIR.stopline_friction
+import RelCertifier.InstancesV2.BenchIR.stopline_lag
+import RelCertifier.InstancesV2.BenchIR.stopline_tyre
 import RelCertifier.InstancesV2.BenchIR.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.train_ato_odometry
@@ -96,15 +96,15 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("quad_light_profiles", quad_light_profiles_IRv2),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_IRv2),
   ("reactor_feed_wireless", reactor_feed_wireless_IRv2),
-  ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
-  ("rover_ladder_3to6", rover_ladder_3to6_IRv2),
-  ("rover_ladder_6to8", rover_ladder_6to8_IRv2),
-  ("rover_ladder_8to12", rover_ladder_8to12_IRv2),
   ("rover_terrain_2to4", rover_terrain_2to4_IRv2),
   ("rover_terrain_4to6", rover_terrain_4to6_IRv2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
+  ("stopline_drag", stopline_drag_IRv2),
+  ("stopline_friction", stopline_friction_IRv2),
+  ("stopline_lag", stopline_lag_IRv2),
+  ("stopline_tyre", stopline_tyre_IRv2),
   ("syringe_relay_prearm", syringe_relay_prearm_IRv2),
   ("tank_dos_3to1", tank_dos_3to1_IRv2),
   ("train_ato_odometry", train_ato_odometry_IRv2),

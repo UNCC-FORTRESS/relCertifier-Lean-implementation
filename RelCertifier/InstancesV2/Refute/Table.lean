@@ -33,15 +33,6 @@ import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m035
 import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m021
 import RelCertifier.InstancesV2.Refute.Data.quad_light_profiles_m018
 import RelCertifier.InstancesV2.Refute.Data.quad_light_profiles_m026
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m006
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m009
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m005
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m006
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m008
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m009
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m010
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m019
-import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m026
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m008
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m011
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m012
@@ -73,6 +64,23 @@ import RelCertifier.InstancesV2.Refute.Data.turbine_startup_gearratio_m020
 import RelCertifier.InstancesV2.Refute.Data.turbine_startup_gearratio_m024
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m016
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m028
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m016
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m017
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m018
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m019
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m020
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m021
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m040
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m053
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m056
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m057
+import RelCertifier.InstancesV2.Refute.Data.stopline_drag_m058
+import RelCertifier.InstancesV2.Refute.Data.stopline_friction_m028
+import RelCertifier.InstancesV2.Refute.Data.stopline_friction_m031
+import RelCertifier.InstancesV2.Refute.Data.stopline_lag_m022
+import RelCertifier.InstancesV2.Refute.Data.stopline_lag_m025
+import RelCertifier.InstancesV2.Refute.Data.stopline_tyre_m034
+import RelCertifier.InstancesV2.Refute.Data.stopline_tyre_m037
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.boiler_purge_vfd
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
@@ -82,13 +90,15 @@ import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
-import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
-import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
+import RelCertifier.InstancesV2.Cuts.stopline_drag
+import RelCertifier.InstancesV2.Cuts.stopline_friction
+import RelCertifier.InstancesV2.Cuts.stopline_lag
+import RelCertifier.InstancesV2.Cuts.stopline_tyre
 import RelCertifier.InstancesV2.Cuts.turbine_startup_gearratio
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.Checker.EvolStrengtheningX
@@ -134,15 +144,6 @@ def refuteTable : List RefRec := [
   ⟨"quad_light_lag_m021", 3 + 1, quad_light_lag_m021_IRm, quad_light_lag_cutsV2X, quad_light_lag_m021_wit⟩,
   ⟨"quad_light_profiles_m018", 3 + 1, quad_light_profiles_m018_IRm, quad_light_profiles_cutsV2X, quad_light_profiles_m018_wit⟩,
   ⟨"quad_light_profiles_m026", 3 + 1, quad_light_profiles_m026_IRm, quad_light_profiles_cutsV2X, quad_light_profiles_m026_wit⟩,
-  ⟨"rover_ladder_6to8_m006", 8 + 1, rover_ladder_6to8_m006_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m006_wit⟩,
-  ⟨"rover_ladder_6to8_m009", 8 + 1, rover_ladder_6to8_m009_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m009_wit⟩,
-  ⟨"rover_ladder_8to12_m005", 12 + 1, rover_ladder_8to12_m005_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m005_wit⟩,
-  ⟨"rover_ladder_8to12_m006", 12 + 1, rover_ladder_8to12_m006_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m006_wit⟩,
-  ⟨"rover_ladder_8to12_m008", 12 + 1, rover_ladder_8to12_m008_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m008_wit⟩,
-  ⟨"rover_ladder_8to12_m009", 12 + 1, rover_ladder_8to12_m009_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m009_wit⟩,
-  ⟨"rover_ladder_8to12_m010", 12 + 1, rover_ladder_8to12_m010_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m010_wit⟩,
-  ⟨"rover_ladder_8to12_m019", 12 + 1, rover_ladder_8to12_m019_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m019_wit⟩,
-  ⟨"rover_ladder_8to12_m026", 12 + 1, rover_ladder_8to12_m026_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m026_wit⟩,
   ⟨"rover_terrain_2to4_m008", 4 + 1, rover_terrain_2to4_m008_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m008_wit⟩,
   ⟨"rover_terrain_2to4_m011", 4 + 1, rover_terrain_2to4_m011_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m011_wit⟩,
   ⟨"rover_terrain_2to4_m012", 4 + 1, rover_terrain_2to4_m012_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m012_wit⟩,
@@ -173,9 +174,26 @@ def refuteTable : List RefRec := [
   ⟨"turbine_startup_gearratio_m020", 3 + 1, turbine_startup_gearratio_m020_IRm, turbine_startup_gearratio_cutsV2X, turbine_startup_gearratio_m020_wit⟩,
   ⟨"turbine_startup_gearratio_m024", 3 + 1, turbine_startup_gearratio_m024_IRm, turbine_startup_gearratio_cutsV2X, turbine_startup_gearratio_m024_wit⟩,
   ⟨"ventilator_vc_cuffleak_m016", 3 + 1, ventilator_vc_cuffleak_m016_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m016_wit⟩,
-  ⟨"ventilator_vc_cuffleak_m028", 3 + 1, ventilator_vc_cuffleak_m028_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m028_wit⟩ ]
+  ⟨"ventilator_vc_cuffleak_m028", 3 + 1, ventilator_vc_cuffleak_m028_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m028_wit⟩,
+  ⟨"stopline_drag_m016", 4 + 1, stopline_drag_m016_IRm, stopline_drag_cutsV2X, stopline_drag_m016_wit⟩,
+  ⟨"stopline_drag_m017", 4 + 1, stopline_drag_m017_IRm, stopline_drag_cutsV2X, stopline_drag_m017_wit⟩,
+  ⟨"stopline_drag_m018", 4 + 1, stopline_drag_m018_IRm, stopline_drag_cutsV2X, stopline_drag_m018_wit⟩,
+  ⟨"stopline_drag_m019", 4 + 1, stopline_drag_m019_IRm, stopline_drag_cutsV2X, stopline_drag_m019_wit⟩,
+  ⟨"stopline_drag_m020", 4 + 1, stopline_drag_m020_IRm, stopline_drag_cutsV2X, stopline_drag_m020_wit⟩,
+  ⟨"stopline_drag_m021", 4 + 1, stopline_drag_m021_IRm, stopline_drag_cutsV2X, stopline_drag_m021_wit⟩,
+  ⟨"stopline_drag_m040", 4 + 1, stopline_drag_m040_IRm, stopline_drag_cutsV2X, stopline_drag_m040_wit⟩,
+  ⟨"stopline_drag_m053", 4 + 1, stopline_drag_m053_IRm, stopline_drag_cutsV2X, stopline_drag_m053_wit⟩,
+  ⟨"stopline_drag_m056", 4 + 1, stopline_drag_m056_IRm, stopline_drag_cutsV2X, stopline_drag_m056_wit⟩,
+  ⟨"stopline_drag_m057", 4 + 1, stopline_drag_m057_IRm, stopline_drag_cutsV2X, stopline_drag_m057_wit⟩,
+  ⟨"stopline_drag_m058", 4 + 1, stopline_drag_m058_IRm, stopline_drag_cutsV2X, stopline_drag_m058_wit⟩,
+  ⟨"stopline_friction_m028", 3 + 1, stopline_friction_m028_IRm, stopline_friction_cutsV2X, stopline_friction_m028_wit⟩,
+  ⟨"stopline_friction_m031", 3 + 1, stopline_friction_m031_IRm, stopline_friction_cutsV2X, stopline_friction_m031_wit⟩,
+  ⟨"stopline_lag_m022", 3 + 1, stopline_lag_m022_IRm, stopline_lag_cutsV2X, stopline_lag_m022_wit⟩,
+  ⟨"stopline_lag_m025", 3 + 1, stopline_lag_m025_IRm, stopline_lag_cutsV2X, stopline_lag_m025_wit⟩,
+  ⟨"stopline_tyre_m034", 4 + 1, stopline_tyre_m034_IRm, stopline_tyre_cutsV2X, stopline_tyre_m034_wit⟩,
+  ⟨"stopline_tyre_m037", 4 + 1, stopline_tyre_m037_IRm, stopline_tyre_cutsV2X, stopline_tyre_m037_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 196
+def expectedRefuteGroups : Nat := 220
 
 end RelCertifier.Refute

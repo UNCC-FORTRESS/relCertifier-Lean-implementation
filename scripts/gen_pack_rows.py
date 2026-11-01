@@ -20,6 +20,9 @@ benchmark with per-mode rows (`gen_bridge.KEYED`) and row 0 otherwise (its rows 
 Usage:
   python3 scripts/gen_pack_rows.py --dyn             rewrite the whole `dynPacksV2` table
   python3 scripts/gen_pack_rows.py --joint b1,b2     rewrite the `packsV2` rows of b1, b2
+  python3 scripts/gen_pack_rows.py --joint-swap o1,o2 n1,n2
+                                                     replace the `packsV2` rows of o1, o2 (left
+                                                     the suite) by the derived rows of n1, n2
   python3 scripts/gen_pack_rows.py --check           print, per benchmark, whether the derived
                                                      joint rows equal the table's (no write)
 The rows are derived from InstancesV2/{BenchCovers,BenchPrelanding,BenchChoice}/<b>.lean; run
@@ -177,6 +180,39 @@ def main():
             src = "\n".join(lines)
             print(f"packsV2 {b}: {last - first + 1} -> {len(rows)} rows")
         open(RUNV2, "w").write(src)
+    elif len(args) == 3 and args[0] == "--joint-swap":
+        # replace the packsV2 rows (and their `-- b ...` comment lines) of the benchmarks that
+        # left the suite by the derived rows of the benchmarks that took their place, at the
+        # position of the first removed line (the new benchmarks have no rows yet, so `--joint`
+        # cannot place them)
+        olds, news = args[1].split(","), args[2].split(",")
+        for b in news:
+            if not os.path.isfile(f"{SUITE}/{b}/input.txt"):
+                sys.exit(f"{b}: not a suite benchmark")
+        for b in olds:
+            if os.path.isfile(f"{SUITE}/{b}/input.txt"):
+                sys.exit(f"{b}: still a suite benchmark")
+        lines = src.split("\n")
+        end = src[:src.index("def expectedModalV2")].count("\n")
+        drop = [k for k, ln in enumerate(lines) if k < end and any(
+            re.match(rf'\s*(\[ )?⟨"{b}", ', ln) or re.match(rf'\s*-- {b} ', ln) for b in olds)]
+        if not drop:
+            sys.exit(f"{olds}: no packsV2 rows to replace")
+        first, last = drop[0], drop[-1]
+        if drop != list(range(first, last + 1)):
+            sys.exit(f"{olds}: their packsV2 rows are not contiguous")
+        if lines[first].lstrip().startswith("[ ") or lines[last].rstrip().endswith("⟩ ]"):
+            sys.exit(f"{olds}: the block is at an end of the table (not supported)")
+        new = []
+        for b in news:
+            rows, _ = derive(b)
+            d = dim_of(b, dims)
+            new.append(f"    -- {b} (rows derived from the emitted cover: the joint pairings reached in each window)")
+            new += [f"    {joint_line(b, d, r)}," for r in rows]
+            print(f"packsV2 {b}: {len(rows)} rows")
+        lines[first:last + 1] = new
+        open(RUNV2, "w").write("\n".join(lines))
+        print(f"packsV2: {last - first + 1} lines of {', '.join(olds)} replaced")
     elif args == ["--check"]:
         pk = src[src.index("def packsV2"):src.index("def expectedModalV2")]
         tab = {}

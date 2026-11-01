@@ -1,0 +1,93 @@
+# stopline_drag: stop-line ladder, rung 4 (P4d / P4): aerodynamic and rolling drag.
+# scenario: model-refinement
+# mechanisms: D (mode-dependent rows); used D I
+#
+# System (the stop-line ladder, shared by stopline_lag, _friction, _tyre and _drag; SI units, time
+# in s). A rover approaches a stop line on a level, straight corridor at up to V = 8 m/s; both sides
+# decide every 0.1 s from the wheel odometer p [m] (the along-track position: no heading or grade
+# on this corridor) and the speed v [m/s]. Modes on every level: CRUISE (p < 100, v >= 0.35, speed
+# held), BRAKE (p >= 100, v >= 0.35), STOP (p >= 100, v <= 0.35, every state frozen). One physical
+# domain on every rung and both sides: p >= 0, 0 <= v <= 8, and the actuator states b, c in [0, 3]
+# (the right declares the left's extra states, frozen). The levels (each rung's right model is the
+# previous rung's left verbatim, up to the frozen extra states):
+#   P2  (p, v)        the planner's point model: BRAKE v' = -3.
+#   P3  (p, v, b)     + brake actuator lag: the realised deceleration b follows the command
+#                     (3 m/s^2 braking, 0 released) with time constant tau = 0.3 s; v' = -b.
+#   P3f (p, v, b)     + friction-limited deceleration on gravel: b relaxes to aL = 2.7 m/s^2.
+#   P4  (p, v, b, c)  + tyre relaxation lag: the hub command c lags as b did (tau, target 2.7),
+#                     and b follows c with T = 0.05 s (b' = 20 (c - b)).
+#   P4d (p, v, b, c)  + aerodynamic and rolling drag: v' = -b - 0.003 v^2 - 0.2.
+# Constants are representative values, not taken from a cited source: brake actuator lag 0.3 s
+# (a hydraulic/electromechanical brake build-up time of a few tenths of a second); gravel friction
+# limit 2.7 m/s^2 (mu about 0.275); tyre relaxation length 0.4 m, i.e. 0.05 s at 8 m/s;
+# aerodynamic term 0.003 v^2 (rho C_dA / 2m for C_dA 1.5 m^2 and a 300 kg rover) and rolling
+# resistance 0.2 m/s^2 (about 0.02 g).
+# Stop point. On each level the braking flow conserves (P4d: does not increase) the stop-point
+# functional Z: Z_P2 = p + v^2/6; Z_P3 = p + tau v + (v - tau b)^2/6; Z_P3f = p + tau v +
+# (v - tau b)^2/5.4; Z_P4 = p + (T + tau) v - tau T b + (v - T b - tau c)^2/5.4. The planner's
+# margin: its stop point P* = Z_P2 at the brake point stays 5 m short of the line (110.67 m
+# against 115.67 m at 8 m/s).
+# Rows. CRUISE: p_L = p_R, v_L = v_R and every brake state 0 on both sides (both trigger at the
+# same decision; the two-sided form keeps the brake states at 0 while cruising). BRAKE and STOP:
+# R_p >= 100 and the loss row Z(left) <= Z(right) + delta, scaled to integer-friendly
+# coefficients. The CRUISE brake rows are not needed for the loss (a pre-charged brake only
+# shortens the stop; the mutants that drop them certify, true claims).
+#
+# This rung: left P4d (v' = -b - 0.003 v^2 - 0.2 while braking), right P4.
+# Loss row (BRAKE, STOP): 5.4 Z_P4(L) <= 5.4 Z_P4(R) + 0: drag only shortens the stop, so the
+# loss is 0, the TIGHTEST constant (-0.01 DECLINED). The functional Z_P4 is non-increasing under
+# drag only while u = v - 0.05 b - 0.3 c >= -0.945, which holds when b, c <= 2.7 at v = 0: the
+# BRAKE row therefore also states b_L <= 2.7 and c_L <= 2.7 (both inductive: their targets are
+# 2.7; without them the file DECLINES). Cause test: with the drag removed from the left delta 0
+# CERTIFIES and -0.01 DECLINES; with the drag sign flipped (a tailwind) delta 0 and 0.4 DECLINE.
+# Composition: the right is stopline_tyre's left.
+# Letters: needed D; used D I. Lock step; one segment per window.
+# Chained claim (the four rungs): Z_P4d(L) <= Z_P4 + 0 <= Z_P3f + 0.4 <= Z_P3 + 1.585 <= P* +
+# 3.985; with the standstill residual of Z_P4 at most 0.0371 (v <= 0.35, b, c in [0, 2.7]) the
+# refined rover stands still within P* + 4.022 m: 0.978 m of the planner's 5 m margin remains.
+[problem]
+name = stopline_drag
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [p, v, b, c]
+epsilon = 0.1
+[Lsys.mode.CRUISE]
+ode = p' = v; v' = smt2:0.0; b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 0.0 c));
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0
+next = [CRUISE, BRAKE]
+[Lsys.mode.BRAKE]
+ode = p' = v; v' = smt2:(- (- (- 0.0 b) (* 0.003 (* v v))) 0.2); b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 2.7 c));
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0
+next = [BRAKE, STOP]
+[Lsys.mode.STOP]
+ode = p' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0; c' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0
+next = [STOP]
+[Rsys]
+state_vars = [p, v, b, c]
+epsilon = 0.1
+[Rsys.mode.CRUISE]
+ode = p' = v; v' = smt2:0.0; b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 0.0 c));
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0
+next = [CRUISE, BRAKE]
+[Rsys.mode.BRAKE]
+ode = p' = v; v' = smt2:(- 0.0 b); b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 2.7 c));
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0
+next = [BRAKE, STOP]
+[Rsys.mode.STOP]
+ode = p' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0; c' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0
+next = [STOP]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_p R_p) (<= R_p L_p) (<= L_v R_v) (<= R_v L_v) (<= L_b 0.0) (<= L_c 0.0) (<= R_b 0.0) (<= R_c 0.0) (>= L_b 0.0) (>= L_c 0.0) (>= R_b 0.0) (>= R_c 0.0))
+BRAKE = smt2:(and (>= R_p 100.0) (<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) (<= L_b 2.7) (<= L_c 2.7))
+STOP = smt2:(and (>= R_p 100.0) (<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)))

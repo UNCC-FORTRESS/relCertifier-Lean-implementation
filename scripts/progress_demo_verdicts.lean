@@ -14,6 +14,7 @@ docs/PRELANDING.md "Two-stage certificates in every direction").
    hypothesis `GroupsOK` of the bridge theorem is not available), while the mutant still passes
    the kernel's shape gate (`certOK`, so the decline is the queries', not the shape's).
 3. The shape gate itself: a three-stage certificate fails `certOK` (decided by `#eval`).
+4. The axioms of the demo's Theorem 3 and of the new closers and pins (8 lines).
 
 Run: lake env lean scripts/progress_demo_verdicts.lean
 -/
@@ -113,3 +114,14 @@ def runDemo : IO Unit := do
 end ProgressDemo
 
 #eval ProgressDemo.runDemo
+
+-- the axioms: the demo's Theorem 3 (expected: the three standard axioms and `z3_unsat_sound`) and
+-- the new closers and pins (closers: the three standard axioms; pins: with `z3_unsat_sound`)
+#print axioms RelCertifier.Bridge.StoplineFrictionMixed.stopline_friction_mixed_bridge
+#print axioms RelCertifier.repoProgress_two_ud_reg
+#print axioms RelCertifier.repoProgress_two_du_reg
+#print axioms RelCertifier.repoProgress_two_dd_reg
+#print axioms RelCertifier.Progress.progressVerd_two_ud
+#print axioms RelCertifier.Progress.progressVerd_two_du
+#print axioms RelCertifier.Progress.progressVerd_two_dd
+#print axioms RelCertifier.Emitted.hrepoProg_of

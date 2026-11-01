@@ -75,10 +75,10 @@ import RelCertifier.InstancesV2.WellFormed.AccTuneLag
 import RelCertifier.InstancesV2.WellFormed.AccTuneLimp
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
 import RelCertifier.InstancesV2.WellFormed.GantrySpeedZones
-import RelCertifier.InstancesV2.WellFormed.RoverLadder2to3
-import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
-import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
-import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
+import RelCertifier.InstancesV2.WellFormed.StoplineLag
+import RelCertifier.InstancesV2.WellFormed.StoplineFriction
+import RelCertifier.InstancesV2.WellFormed.StoplineTyre
+import RelCertifier.InstancesV2.WellFormed.StoplineDrag
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
 import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
@@ -119,9 +119,9 @@ def wfProved : List String :=
    "molding_pack_checkring", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "quad_light_lag", "autoclave_liquid_steambank", "gantry_speed_zones",
-   "rover_ladder_2to3",
-   "rover_ladder_3to6", "rover_ladder_6to8",
-   "rover_ladder_8to12", "rover_terrain_2to4",
+   "stopline_lag",
+   "stopline_friction", "stopline_tyre",
+   "stopline_drag", "rover_terrain_2to4",
    "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
    "turbine_startup_gearratio", "rampmeter_poll_2to1",
    "h2_refuel_ambientbias", "extruder_pe100_manualstart", "elevator_start_discbrake",
@@ -200,7 +200,9 @@ proofs, affine runs of every length via `Proofs/Flow/LipschitzRun.lean`, for `li
 `insulin_basal_cgmloss`); unchanged by batch 11 (2026-10-30: `lit_nahs25_engine_cooling`, the
 pre-landing demo's direct proof under the suite name, and `extruder_pe100_manualstart`, four
 exponential runs at dimension 2 as `reactor_feed_wireless` with the recipe range from the guards, for
-`fuelcell_chp_dos` and `rover_terrain_6to12`). -/
+`fuelcell_chp_dos` and `rover_terrain_6to12`); unchanged by batch 14 (2026-11-01: the stop-line
+ladder `stopline_{lag,friction,tyre,drag}`, four explicit-run proofs through the shared
+`wellFormedR_stopline`, for `rover_ladder_{2to3,3to6,6to8,8to12}`). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
@@ -214,10 +216,9 @@ def suiteNames : List String :=
    "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot", "lit_gpt10_boost_converter",
    "lit_lz21_vehicle_position", "lit_nahs25_engine_cooling", "lit_nahs25_salt_tank",
    "molding_pack_checkring", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
-   "quad_light_profiles", "rampmeter_poll_2to1", "reactor_feed_wireless", "rover_ladder_2to3",
-   "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12", "rover_terrain_2to4",
+   "quad_light_profiles", "rampmeter_poll_2to1", "reactor_feed_wireless", "rover_terrain_2to4",
    "rover_terrain_4to6", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
-   "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry", "turbine_startup_gearratio",
+   "stopline_drag", "stopline_friction", "stopline_lag", "stopline_tyre", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry", "turbine_startup_gearratio",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
@@ -255,10 +256,10 @@ end WellFormedBattery
 #print axioms V2AccTuneLimp.acc_tune_limp_wellFormedR
 #print axioms V2QuadLightLag.quad_light_lag_wellFormedR
 #print axioms V2GantrySpeedZones.gantry_speed_zones_wellFormedR
-#print axioms RoverLadder2to3Guarded.rover_ladder_2to3_wellFormedR
-#print axioms RoverLadder3to6Guarded.rover_ladder_3to6_wellFormedR
-#print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR
-#print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
+#print axioms StoplineLag.stopline_lag_wellFormedR
+#print axioms StoplineFriction.stopline_friction_wellFormedR
+#print axioms StoplineTyre.stopline_tyre_wellFormedR
+#print axioms StoplineDrag.stopline_drag_wellFormedR
 #print axioms RoverTerrain2to4Guarded.rover_terrain_2to4_wellFormedR
 #print axioms RoverTerrain4to6Guarded.rover_terrain_4to6_wellFormedR
 
@@ -304,6 +305,7 @@ invariant as a model fact -/
 /-! ## The generic layer -/
 
 #print axioms wellFormedR_terrain
+#print axioms wellFormedR_stopline
 #print axioms not_wellFormedR_of_run
 #print axioms not_wellFormedR_of_noRun
 #print axioms wellFormedR_switchLegal

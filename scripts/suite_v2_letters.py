@@ -100,8 +100,8 @@ NO_ABLATION = ("M", "B")
 AREAS = [
     ("Automotive", ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
                              "platoon_linkloss", "platoon_profiles", "train_ato_odometry"]),
-    ("Rovers", ["rover_terrain_2to4", "rover_terrain_4to6", "rover_ladder_2to3", "rover_ladder_3to6",
-                "rover_ladder_6to8", "rover_ladder_8to12"]),
+    ("Rovers", ["rover_terrain_2to4", "rover_terrain_4to6", "stopline_lag", "stopline_friction",
+                "stopline_tyre", "stopline_drag"]),
     ("Aerospace", ["quad_light_lag", "quad_light_profiles", "sat_detumble_phases", "sat_detumble_weak",
                    "sat3w_detumble_phases", "flaps_slow_approach", "engine_start_highidle"]),
     ("Process", ["reactor_feed_wireless", "extruder_pe100_manualstart", "boiler_purge_vfd",

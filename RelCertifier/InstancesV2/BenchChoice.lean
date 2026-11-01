@@ -35,15 +35,15 @@ import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
 import RelCertifier.InstancesV2.BenchChoice.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchChoice.reactor_feed_wireless
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchChoice.stopline_drag
+import RelCertifier.InstancesV2.BenchChoice.stopline_friction
+import RelCertifier.InstancesV2.BenchChoice.stopline_lag
+import RelCertifier.InstancesV2.BenchChoice.stopline_tyre
 import RelCertifier.InstancesV2.BenchChoice.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.train_ato_odometry
@@ -89,15 +89,15 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_choice),
   ("reactor_feed_wireless", reactor_feed_wireless_coverV2_choice),
-  ("rover_ladder_2to3", rover_ladder_2to3_coverV2_choice),
-  ("rover_ladder_3to6", rover_ladder_3to6_coverV2_choice),
-  ("rover_ladder_6to8", rover_ladder_6to8_coverV2_choice),
-  ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
+  ("stopline_drag", stopline_drag_coverV2_choice),
+  ("stopline_friction", stopline_friction_coverV2_choice),
+  ("stopline_lag", stopline_lag_coverV2_choice),
+  ("stopline_tyre", stopline_tyre_coverV2_choice),
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2_choice),
   ("tank_dos_3to1", tank_dos_3to1_coverV2_choice),
   ("train_ato_odometry", train_ato_odometry_coverV2_choice),

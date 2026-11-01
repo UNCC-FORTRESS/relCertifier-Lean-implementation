@@ -33,6 +33,8 @@
 # most the period; the damping and pointing laws are continuous in the ODEs, the period is that of
 # the phase decision only. The claim compares the two at equal times (lambda 1), so one flight
 # decision is matched by two design-model cycles (M).
+# The M window: any left decision period strictly above the right's gives M, with budget
+# ceil(left period / right period) (2 at the stated 2:1); the stated periods are not at an edge.
 #
 # PHASE LOGIC (the same on both sides). DETUMBLE (rate damping, k = 0.5 /s) engages with the
 # body energy inside its authority envelope, E <= 1 (e.g. |w1| <= 0.71 rad/s about x alone).

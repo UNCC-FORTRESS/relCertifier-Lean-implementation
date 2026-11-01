@@ -25,7 +25,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 103,
+   "ms": 106,
    "verdict_extra": "",
    "prune_line": "[prune] acc_spoof_lag: []",
    "admissible_lines": [
@@ -49,7 +49,7 @@
    "repo_lines": [
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.17,
+   "wall_s": 0.32,
    "choice_entries": 0,
    "covers": [
     {
@@ -88,20 +88,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 110,
+   "no_prune_ms": 105,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 89,
+   "no_cut_ms": 83,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 97,
+   "no_implied_ms": 96,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 112,
+   "no_linear_ms": 107,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 12
+    "ms": 55
    },
    "right_only_any": false,
    "cells": {
@@ -146,7 +146,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 414,
+   "ms": 232,
    "verdict_extra": "",
    "prune_line": "[prune] acc_spoof_limp: [NORMAL->DISENGAGE, ECO->DISENGAGE, SPORT->DISENGAGE]",
    "admissible_lines": [
@@ -182,7 +182,7 @@
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] LIMP_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.48,
+   "wall_s": 0.43,
    "choice_entries": 0,
    "covers": [
     {
@@ -289,20 +289,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 362,
+   "no_prune_ms": 196,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 384,
+   "no_cut_ms": 241,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 339,
+   "no_implied_ms": 216,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 371,
+   "no_linear_ms": 230,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": true,
-    "ms": 32
+    "ms": 50
    },
    "right_only_any": false,
    "cells": {
@@ -347,7 +347,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 217,
+   "ms": 143,
    "verdict_extra": "",
    "prune_line": "[prune] acc_tune_lag: []",
    "admissible_lines": [
@@ -371,7 +371,7 @@
    "repo_lines": [
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.31,
+   "wall_s": 0.33,
    "choice_entries": 0,
    "covers": [
     {
@@ -410,20 +410,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 210,
+   "no_prune_ms": 133,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 161,
+   "no_cut_ms": 130,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 180,
+   "no_implied_ms": 155,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 210,
+   "no_linear_ms": 155,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 11
+    "ms": 56
    },
    "right_only_any": false,
    "cells": {
@@ -468,7 +468,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2292,
+   "ms": 1119,
    "verdict_extra": "",
    "prune_line": "[prune] acc_tune_limp: [NORMAL->DISENGAGE, COMFORT->DISENGAGE, SPORT->DISENGAGE]",
    "admissible_lines": [
@@ -503,7 +503,7 @@
     "[repo-dyn-pre] CRUISE_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] LIMP_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.35,
+   "wall_s": 1.32,
    "choice_entries": 4,
    "covers": [
     {
@@ -607,20 +607,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2256,
+   "no_prune_ms": 1070,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 2979,
+   "no_cut_ms": 1459,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2297,
+   "no_implied_ms": 1072,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2369,
+   "no_linear_ms": 1103,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 31
+    "ms": 62
    },
    "right_only_any": false,
    "cells": {
@@ -640,214 +640,6 @@
     "M3",
     "M5",
     "M6"
-   ]
-  },
-  {
-   "name": "antenna_track_kvretune",
-   "path": "benchmarks/suite_v2/antenna_track_kvretune/input.txt",
-   "scenario": "controller-change",
-   "family": "Ground-station antenna (servo retune)",
-   "declared_mechanisms": "D (mode-dependent rows: while tracking the pointing row is held to a tenth of the beamwidth, during",
-   "dimL": 3,
-   "dimR": 3,
-   "modesL": 3,
-   "modesR": 3,
-   "epsL": "0.05",
-   "epsR": "0.05",
-   "lambda_min": "1.0",
-   "lambda_max": "1.0",
-   "rows": {
-    "TRACK": "t[l] <= t[r] and t[r] <= t[l] and c[l] <= c[r] and c[r] <= c[l] and x[l] <= x[r] + 0.035 and x[r] <= x[l] + 0.035 and x[r] - c[r] <= 0.025 and c[r] - x[r] <= 0",
-    "STOW": "t[l] <= t[r] and t[r] <= t[l] and c[l] <= c[r] and c[r] <= c[l] and x[l] <= x[r] + 0.25 and x[r] <= x[l] + 0.25 and x[r] - c[r] <= 0.025 and c[r] - x[r] <= 0.17",
-    "STOWED": "t[l] <= t[r] and t[r] <= t[l] and c[l] <= c[r] and c[r] <= c[l] and x[l] <= x[r] + 0.25 and x[r] <= x[l] + 0.25 and x[r] - c[r] <= 0.025 and c[r] - x[r] <= 0.17"
-   },
-   "hash": "4d52fbfcc28304622d580b713361b05b",
-   "tol_hash": "3acfb193375f9dee1a2ce0656cecc40f",
-   "rows_identical": false,
-   "inv_shape": "conjunctive",
-   "per_mode_evolve": false,
-   "nonlinear_L": false,
-   "nonlinear_R": false,
-   "verdict": "CERTIFIED",
-   "ms": 1880,
-   "verdict_extra": "",
-   "prune_line": "[prune] antenna_track_kvretune: []",
-   "admissible_lines": [
-    "[admissible] TRACK_L: [TRACK]",
-    "[admissible] STOW_L: [STOW]",
-    "[admissible] STOWED_L: [STOWED]"
-   ],
-   "cut_lines": [
-    "[cut] L.TRACK: 4 conjunct(s)",
-    "[cut] L.STOW: 3 conjunct(s)",
-    "[cut] L.STOWED: 5 conjunct(s)",
-    "[cut] R.TRACK: 4 conjunct(s)",
-    "[cut] R.STOW: 3 conjunct(s)",
-    "[cut] R.STOWED: 5 conjunct(s)"
-   ],
-   "cutx_lines": [],
-   "route_lines": [
-    "[route] TRACK: DI-nonstrict(A)",
-    "[route] TRACK: DI-nonstrict(A)",
-    "[route] TRACK: DI-strict(B)",
-    "[route] TRACK: DI-strict(B)",
-    "[route] STOW: DI-strict(B)",
-    "[route] STOW: DI-strict(B)",
-    "[route] STOW: DI-strict(B)",
-    "[route] STOWED: DI-strict(B)",
-    "[route] STOWED: frozen",
-    "[route] STOWED: DI-strict(B)",
-    "[route] STOWED: frozen",
-    "[route] STOWED: frozen",
-    "[route] TRACK: DI-nonstrict(A)",
-    "[route] TRACK: DI-nonstrict(A)",
-    "[route] TRACK: DI-strict(B)",
-    "[route] TRACK: DI-strict(B)",
-    "[route] STOW: DI-strict(B)",
-    "[route] STOW: DI-strict(B)",
-    "[route] STOW: DI-strict(B)",
-    "[route] STOWED: DI-strict(B)",
-    "[route] STOWED: frozen",
-    "[route] STOWED: DI-strict(B)",
-    "[route] STOWED: frozen",
-    "[route] STOWED: frozen"
-   ],
-   "repo_lines": [
-    "[repo-dyn-pre] TRACK_L: [STOWED] [repo-dyn-post]: [STOWED]",
-    "[repo-dyn-pre] STOW_L: [STOWED] [repo-dyn-post]: []",
-    "[repo-dyn-pre] STOWED_L: [] [repo-dyn-post]: []"
-   ],
-   "wall_s": 1.96,
-   "choice_entries": 0,
-   "covers": [
-    {
-     "mL": "TRACK",
-     "lam": "1",
-     "lam_float": 1.0,
-     "budget": 1,
-     "lam_pairs": {},
-     "admissible": [
-      "TRACK"
-     ],
-     "replay_ok": true,
-     "flags": {
-      "TRACK": "j--",
-      "STOW": "---",
-      "STOWED": "j--"
-     },
-     "kinds": [
-      "base"
-     ],
-     "modes_on_path": [
-      "TRACK"
-     ],
-     "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [],
-     "choice_entries": 0,
-     "paths": {
-      "TRACK": "TRACK:base(B=1)"
-     }
-    },
-    {
-     "mL": "STOW",
-     "lam": "1",
-     "lam_float": 1.0,
-     "budget": 1,
-     "lam_pairs": {},
-     "admissible": [
-      "STOW"
-     ],
-     "replay_ok": true,
-     "flags": {
-      "TRACK": "---",
-      "STOW": "j--",
-      "STOWED": "---"
-     },
-     "kinds": [
-      "base"
-     ],
-     "modes_on_path": [
-      "STOW"
-     ],
-     "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [],
-     "choice_entries": 0,
-     "paths": {
-      "STOW": "STOW:base(B=1)"
-     }
-    },
-    {
-     "mL": "STOWED",
-     "lam": "1",
-     "lam_float": 1.0,
-     "budget": 1,
-     "lam_pairs": {},
-     "admissible": [
-      "STOWED"
-     ],
-     "replay_ok": true,
-     "flags": {
-      "TRACK": "j--",
-      "STOW": "---",
-      "STOWED": "j--"
-     },
-     "kinds": [
-      "base"
-     ],
-     "modes_on_path": [
-      "STOWED"
-     ],
-     "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [],
-     "choice_entries": 0,
-     "paths": {
-      "STOWED": "STOWED:base(B=1)"
-     }
-    }
-   ],
-   "pruned": [],
-   "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1863,
-   "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 1791,
-   "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2022,
-   "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1864,
-   "handoff": {
-    "checked": 6,
-    "declared": 6,
-    "passed": 6,
-    "failing": "-",
-    "vacuous": false,
-    "ms": 41
-   },
-   "right_only_any": false,
-   "cells": {
-    "M1": "no (\u03bb=1 everywhere)",
-    "M2": "no (single segment)",
-    "M3": "no (max non-self successors at a joint step = 0)",
-    "M4": "no (nothing pruned)",
-    "M5": "yes: 6/6 handoffs unsat, rows differ",
-    "M6": "vacuous: cuts kept (L.TRACK: 4 conjunct(s); L.STOW: 3 conjunct(s); L.STOWED: 5 conjunct(s); R.TRACK: 4 conjunct(s); R.STOW: 3 conjunct(s); R.STOWED: 5 conjunct(s)) but NO_CUT=CERTIFIED",
-    "M6+": "no (no widened atom kept)",
-    "M6L": "no (no linear-form atom kept)",
-    "M7": "controller-change; dim 3; conjunctive"
-   },
-   "exercised": [
-    "M5"
    ]
   },
   {
@@ -876,7 +668,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1402,
+   "ms": 667,
    "verdict_extra": "",
    "prune_line": "[prune] bottling_fill_strainer: []",
    "admissible_lines": [
@@ -912,7 +704,7 @@
     "[repo-dyn-pre] FILL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] CLOSE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.48,
+   "wall_s": 0.87,
    "choice_entries": 0,
    "covers": [
     {
@@ -980,20 +772,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1317,
+   "no_prune_ms": 666,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 3772,
+   "no_cut_ms": 1824,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1304,
+   "no_implied_ms": 624,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1231,
+   "no_linear_ms": 667,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": true,
-    "ms": 23
+    "ms": 50
    },
    "right_only_any": false,
    "cells": {
@@ -1041,7 +833,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1285,
+   "ms": 630,
    "verdict_extra": "",
    "prune_line": "[prune] charger_fast_tapers: [PRECHARGE->FAULT, BULK->FAULT]",
    "admissible_lines": [
@@ -1102,7 +894,7 @@
     "[repo-dyn-pre] FULL_L: [PRECHARGE, BULK, ABSORB_SLOW, ABSORB_FAST, FULL] [repo-dyn-post]: [PRECHARGE, BULK, ABSORB_SLOW, ABSORB_FAST, FULL]",
     "[repo-dyn-pre] FAULT_L: [PRECHARGE, BULK, ABSORB_SLOW, ABSORB_FAST, FULL] [repo-dyn-post]: [PRECHARGE, BULK, ABSORB_SLOW, ABSORB_FAST, FULL]"
    ],
-   "wall_s": 1.34,
+   "wall_s": 0.84,
    "choice_entries": 0,
    "covers": [
     {
@@ -1385,20 +1177,20 @@
     ]
    ],
    "no_prune_verdict": "DECLINED",
-   "no_prune_ms": 4007,
+   "no_prune_ms": 1860,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 1634,
+   "no_cut_ms": 750,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 1758,
+   "no_implied_ms": 800,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1417,
+   "no_linear_ms": 613,
    "handoff": {
     "checked": 10,
     "declared": 10,
     "passed": 10,
     "failing": "-",
     "vacuous": false,
-    "ms": 91
+    "ms": 52
    },
    "right_only_any": true,
    "cells": {
@@ -1420,246 +1212,6 @@
     "M6",
     "M6+"
    ]
-  },
-  {
-   "name": "compressor_station_recycle",
-   "path": "benchmarks/suite_v2/compressor_station_recycle/input.txt",
-   "scenario": "degraded-actuator",
-   "family": "Gas compressor station",
-   "declared_mechanisms": "X (committed existential choice: the reference hops into a permitted level that is not",
-   "dimL": 2,
-   "dimR": 2,
-   "modesL": 3,
-   "modesR": 3,
-   "epsL": "1.0",
-   "epsR": "1.0",
-   "lambda_min": "1.0",
-   "lambda_max": "1.0",
-   "rows": {
-    "HIGH": "ps[l] <= ps[r] + 0 and ps[r] <= ps[l] + 0 and pd[l] <= pd[r] + 0 and pd[r] <= pd[l] + 0",
-    "MED": "ps[l] <= ps[r] + 0 and ps[r] <= ps[l] + 0 and pd[l] <= pd[r] + 0 and pd[r] <= pd[l] + 0",
-    "LOW": "ps[l] <= ps[r] + 0 and ps[r] <= ps[l] + 0 and pd[l] <= pd[r] + 0 and pd[r] <= pd[l] + 0"
-   },
-   "hash": "88f3a5ce86ee3af3636c89b780264073",
-   "tol_hash": "d70b40c73023ea28cf51466e9d6f3871",
-   "rows_identical": true,
-   "inv_shape": "conjunctive",
-   "per_mode_evolve": false,
-   "nonlinear_L": false,
-   "nonlinear_R": false,
-   "verdict": "CERTIFIED",
-   "ms": 941,
-   "verdict_extra": "",
-   "prune_line": "[prune] compressor_station_recycle: []",
-   "admissible_lines": [
-    "[admissible] HIGH_L: [LOW, MED, HIGH]",
-    "[admissible] MED_L: [LOW, MED, HIGH]",
-    "[admissible] LOW_L: [LOW, MED, HIGH]"
-   ],
-   "cut_lines": [
-    "[cut] L.HIGH: 5 conjunct(s)",
-    "[cut] L.MED: 5 conjunct(s)",
-    "[cut] L.LOW: 4 conjunct(s)",
-    "[cut] R.LOW: 4 conjunct(s)",
-    "[cut] R.MED: 4 conjunct(s)",
-    "[cut] R.HIGH: 4 conjunct(s)"
-   ],
-   "cutx_lines": [
-    "[cut-x] L.HIGH: pd <= 61.0 kind=closure entry=weakening route=diB"
-   ],
-   "route_lines": [
-    "[route] HIGH: DI-strict(B)",
-    "[route] HIGH: DI-strict(B)",
-    "[route] HIGH: DI-strict(B)",
-    "[route] HIGH: DI-strict(B)",
-    "[route] HIGH: closure pd <= 61.0: diB",
-    "[route] MED: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] LOW: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] MED: DI-strict(B)",
-    "[route] HIGH: DI-strict(B)",
-    "[route] HIGH: DI-strict(B)",
-    "[route] HIGH: DI-strict(B)",
-    "[route] HIGH: DI-strict(B)"
-   ],
-   "repo_lines": [
-    "[repo-dyn-pre] HIGH_L: [] [repo-dyn-post]: []",
-    "[repo-dyn-pre] MED_L: [] [repo-dyn-post]: []",
-    "[repo-dyn-pre] LOW_L: [] [repo-dyn-post]: []"
-   ],
-   "wall_s": 1.01,
-   "choice_entries": 6,
-   "covers": [
-    {
-     "mL": "HIGH",
-     "lam": "1",
-     "lam_float": 1.0,
-     "budget": 1,
-     "lam_pairs": {},
-     "admissible": [
-      "LOW",
-      "MED",
-      "HIGH"
-     ],
-     "replay_ok": true,
-     "flags": {
-      "LOW": "---",
-      "MED": "j--",
-      "HIGH": "---"
-     },
-     "kinds": [
-      "base",
-      "hop"
-     ],
-     "modes_on_path": [
-      "HIGH",
-      "LOW",
-      "MED"
-     ],
-     "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [
-      "HIGH:hop",
-      "LOW:hop"
-     ],
-     "choice_entries": 2,
-     "paths": {
-      "LOW": "LOW:hop(B=1,preJ)->[MED@1]; MED:base(B=1)",
-      "MED": "MED:base(B=1)",
-      "HIGH": "HIGH:hop(B=1,preJ)->[MED@1]; MED:base(B=1)"
-     }
-    },
-    {
-     "mL": "MED",
-     "lam": "1",
-     "lam_float": 1.0,
-     "budget": 1,
-     "lam_pairs": {},
-     "admissible": [
-      "LOW",
-      "MED",
-      "HIGH"
-     ],
-     "replay_ok": true,
-     "flags": {
-      "LOW": "---",
-      "MED": "j--",
-      "HIGH": "---"
-     },
-     "kinds": [
-      "base",
-      "hop"
-     ],
-     "modes_on_path": [
-      "HIGH",
-      "LOW",
-      "MED"
-     ],
-     "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [
-      "HIGH:hop",
-      "LOW:hop"
-     ],
-     "choice_entries": 2,
-     "paths": {
-      "LOW": "LOW:hop(B=1,preJ)->[MED@1]; MED:base(B=1)",
-      "MED": "MED:base(B=1)",
-      "HIGH": "HIGH:hop(B=1,preJ)->[MED@1]; MED:base(B=1)"
-     }
-    },
-    {
-     "mL": "LOW",
-     "lam": "1",
-     "lam_float": 1.0,
-     "budget": 1,
-     "lam_pairs": {},
-     "admissible": [
-      "LOW",
-      "MED",
-      "HIGH"
-     ],
-     "replay_ok": true,
-     "flags": {
-      "LOW": "j--",
-      "MED": "---",
-      "HIGH": "---"
-     },
-     "kinds": [
-      "base",
-      "hop"
-     ],
-     "modes_on_path": [
-      "HIGH",
-      "LOW",
-      "MED"
-     ],
-     "joint_modes": [],
-     "ro_modes": [],
-     "branching": 0,
-     "right_only": false,
-     "joint_steps": 0,
-     "choice_steps": [
-      "HIGH:hop",
-      "MED:hop"
-     ],
-     "choice_entries": 2,
-     "paths": {
-      "LOW": "LOW:base(B=1)",
-      "MED": "MED:hop(B=1,preJ)->[LOW@1]; LOW:base(B=1)",
-      "HIGH": "HIGH:hop(B=1,preJ)->[LOW@1]; LOW:base(B=1)"
-     }
-    }
-   ],
-   "pruned": [],
-   "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 912,
-   "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 932,
-   "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1019,
-   "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1036,
-   "handoff": {
-    "checked": 9,
-    "declared": 9,
-    "passed": 9,
-    "failing": "-",
-    "vacuous": true,
-    "ms": 54
-   },
-   "right_only_any": false,
-   "cells": {
-    "M1": "no (\u03bb=1 everywhere)",
-    "M2": "no (single segment)",
-    "M3": "no (max non-self successors at a joint step = 0)",
-    "M4": "no (nothing pruned)",
-    "M5": "no (rows identical; handoff vacuous)",
-    "M6": "vacuous: cuts kept (L.HIGH: 5 conjunct(s); L.MED: 5 conjunct(s); L.LOW: 4 conjunct(s); R.LOW: 4 conjunct(s); R.MED: 4 conjunct(s); R.HIGH: 4 conjunct(s)) but NO_CUT=CERTIFIED",
-    "M6+": "vacuous: widened atoms kept (L.HIGH: pd <= 61.0 kind=closure entry=weakening route=diB) but NO_IMPLIED=CERTIFIED",
-    "M6L": "no (no linear-form atom kept)",
-    "M7": "degraded-actuator; dim 2; conjunctive"
-   },
-   "exercised": []
   },
   {
    "name": "csf21_vehicle_bus",
@@ -1691,7 +1243,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 8123,
+   "ms": 3581,
    "verdict_extra": "",
    "prune_line": "[prune] csf21_vehicle_bus: []",
    "admissible_lines": [
@@ -1739,25 +1291,25 @@
     "[repo-dyn-pre] BrkCool_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] BrkHeat_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 8.22,
+   "wall_s": 3.78,
    "choice_entries": 48,
    "covers": [],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 8635,
+   "no_prune_ms": 3568,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 7942,
+   "no_cut_ms": 3507,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 8211,
+   "no_implied_ms": 3572,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 8570,
+   "no_linear_ms": 3559,
    "handoff": {
     "checked": 24,
     "declared": 24,
     "passed": 24,
     "failing": "-",
     "vacuous": true,
-    "ms": 95
+    "ms": 118
    },
    "right_only_any": false,
    "cells": {
@@ -1803,7 +1355,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 4402,
+   "ms": 1900,
    "verdict_extra": "",
    "prune_line": "[prune] csf21_vehicle_thermo: []",
    "admissible_lines": [
@@ -1843,7 +1395,7 @@
     "[repo-dyn-pre] BrkCool_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] BrkHeat_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 4.46,
+   "wall_s": 2.11,
    "choice_entries": 24,
    "covers": [
     {
@@ -2185,20 +1737,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 4311,
+   "no_prune_ms": 1848,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 3939,
+   "no_cut_ms": 1816,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 4169,
+   "no_implied_ms": 1878,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 4148,
+   "no_linear_ms": 1893,
    "handoff": {
     "checked": 36,
     "declared": 36,
     "passed": 36,
     "failing": "-",
     "vacuous": true,
-    "ms": 80
+    "ms": 141
    },
    "right_only_any": false,
    "cells": {
@@ -2241,7 +1793,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1113,
+   "ms": 519,
    "verdict_extra": "",
    "prune_line": "[prune] drl_car_stop: []",
    "admissible_lines": [
@@ -2273,7 +1825,7 @@
     "[repo-dyn-pre] Coast_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] Brake_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.18,
+   "wall_s": 0.79,
    "choice_entries": 6,
    "covers": [
     {
@@ -2405,20 +1957,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1179,
+   "no_prune_ms": 542,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 954,
+   "no_cut_ms": 505,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1037,
+   "no_implied_ms": 545,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1080,
+   "no_linear_ms": 502,
    "handoff": {
     "checked": 9,
     "declared": 9,
     "passed": 9,
     "failing": "-",
     "vacuous": true,
-    "ms": 76
+    "ms": 109
    },
    "right_only_any": false,
    "cells": {
@@ -2464,7 +2016,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 6268,
+   "ms": 2926,
    "verdict_extra": "",
    "prune_line": "[prune] drl_lane_control: []",
    "admissible_lines": [
@@ -2528,7 +2080,7 @@
     "[repo-dyn-pre] BrakeLAccel_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] BrakeLBrake_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 6.33,
+   "wall_s": 3.19,
    "choice_entries": 30,
    "covers": [
     {
@@ -2876,20 +2428,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 6367,
+   "no_prune_ms": 2889,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 6188,
+   "no_cut_ms": 2786,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 6370,
+   "no_implied_ms": 2834,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 6527,
+   "no_linear_ms": 2911,
    "handoff": {
     "checked": 36,
     "declared": 36,
     "passed": 36,
     "failing": "-",
     "vacuous": true,
-    "ms": 121
+    "ms": 97
    },
    "right_only_any": false,
    "cells": {
@@ -2933,7 +2485,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2099,
+   "ms": 1074,
    "verdict_extra": "",
    "prune_line": "[prune] elevator_start_discbrake: []",
    "admissible_lines": [
@@ -3011,7 +2563,7 @@
     "[repo-dyn-pre] APP_L: [LIFT] [repo-dyn-post]: [LIFT]",
     "[repo-dyn-pre] STOP_L: [LIFT] [repo-dyn-post]: [LIFT]"
    ],
-   "wall_s": 2.17,
+   "wall_s": 1.29,
    "choice_entries": 0,
    "covers": [
     {
@@ -3155,20 +2707,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2160,
+   "no_prune_ms": 1083,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2171,
+   "no_cut_ms": 1021,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2075,
+   "no_implied_ms": 1032,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2188,
+   "no_linear_ms": 1086,
    "handoff": {
     "checked": 7,
     "declared": 7,
     "passed": 7,
     "failing": "-",
     "vacuous": false,
-    "ms": 36
+    "ms": 90
    },
    "right_only_any": true,
    "cells": {
@@ -3215,7 +2767,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1016,
+   "ms": 565,
    "verdict_extra": "",
    "prune_line": "[prune] engine_start_highidle: [STARTER->ABORT, LIGHTOFF->ABORT]",
    "admissible_lines": [
@@ -3272,7 +2824,7 @@
     "[repo-dyn-pre] IDLE_L: [STARTER, LIGHTOFF, SELF] [repo-dyn-post]: [STARTER, LIGHTOFF, SELF]",
     "[repo-dyn-pre] ABORT_L: [STARTER, LIGHTOFF, SELF] [repo-dyn-post]: [STARTER, LIGHTOFF, SELF]"
    ],
-   "wall_s": 1.08,
+   "wall_s": 0.84,
    "choice_entries": 0,
    "covers": [
     {
@@ -3499,20 +3051,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1061,
+   "no_prune_ms": 501,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 140,
+   "no_cut_ms": 121,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 158,
+   "no_implied_ms": 108,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 951,
+   "no_linear_ms": 470,
    "handoff": {
     "checked": 10,
     "declared": 10,
     "passed": 10,
     "failing": "-",
     "vacuous": false,
-    "ms": 58
+    "ms": 71
    },
    "right_only_any": true,
    "cells": {
@@ -3558,7 +3110,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 578,
+   "ms": 260,
    "verdict_extra": "",
    "prune_line": "[prune] flaps_slow_approach: []",
    "admissible_lines": [
@@ -3590,7 +3142,7 @@
     "[repo-dyn-pre] EXT_L: [CONF2] [repo-dyn-post]: []",
     "[repo-dyn-pre] CONF2_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.64,
+   "wall_s": 0.45,
    "choice_entries": 0,
    "covers": [
     {
@@ -3658,20 +3210,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 566,
+   "no_prune_ms": 293,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 508,
+   "no_cut_ms": 248,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 556,
+   "no_implied_ms": 292,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 598,
+   "no_linear_ms": 304,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": true,
-    "ms": 30
+    "ms": 54
    },
    "right_only_any": false,
    "cells": {
@@ -3725,7 +3277,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 6037,
+   "ms": 2549,
    "verdict_extra": "",
    "prune_line": "[prune] freedm_meter: []",
    "admissible_lines": [
@@ -3825,25 +3377,25 @@
     "[repo-dyn-pre] GridD2R0_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]",
     "[repo-dyn-pre] GridD2R1_L: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1] [repo-dyn-post]: [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD1R1]"
    ],
-   "wall_s": 6.1,
+   "wall_s": 2.74,
    "choice_entries": 102,
    "covers": [],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 6440,
+   "no_prune_ms": 2532,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 6199,
+   "no_cut_ms": 2528,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 6145,
+   "no_implied_ms": 2497,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 6234,
+   "no_linear_ms": 2512,
    "handoff": {
     "checked": 144,
     "declared": 144,
     "passed": 144,
     "failing": "-",
     "vacuous": true,
-    "ms": 294
+    "ms": 162
    },
    "right_only_any": false,
    "cells": {
@@ -3886,7 +3438,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1086,
+   "ms": 505,
    "verdict_extra": "",
    "prune_line": "[prune] fuelcell_chp_dos: [LOW->HIGH, HIGH->LOW]",
    "admissible_lines": [
@@ -3941,7 +3493,7 @@
     "[repo-dyn-pre] MED_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] HIGH_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.15,
+   "wall_s": 0.68,
    "choice_entries": 2,
    "covers": [
     {
@@ -4081,20 +3633,20 @@
     ]
    ],
    "no_prune_verdict": "DECLINED",
-   "no_prune_ms": 446,
+   "no_prune_ms": 222,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 958,
+   "no_cut_ms": 469,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 956,
+   "no_implied_ms": 515,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 962,
+   "no_linear_ms": 543,
    "handoff": {
     "checked": 9,
     "declared": 9,
     "passed": 9,
     "failing": "-",
     "vacuous": true,
-    "ms": 52
+    "ms": 44
    },
    "right_only_any": false,
    "cells": {
@@ -4141,7 +3693,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2356,
+   "ms": 1229,
    "verdict_extra": "",
    "prune_line": "[prune] furnace_program_timebase: []",
    "admissible_lines": [
@@ -4192,7 +3744,7 @@
     "[repo-dyn-pre] HEAT_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] SOAK_L: [PREHEAT] [repo-dyn-post]: [PREHEAT]"
    ],
-   "wall_s": 2.47,
+   "wall_s": 1.39,
    "choice_entries": 0,
    "covers": [
     {
@@ -4294,20 +3846,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2352,
+   "no_prune_ms": 1185,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 7312,
+   "no_cut_ms": 3307,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 8905,
+   "no_implied_ms": 4116,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2614,
+   "no_linear_ms": 1190,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 26
+    "ms": 60
    },
    "right_only_any": false,
    "cells": {
@@ -4354,7 +3906,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2857,
+   "ms": 1314,
    "verdict_extra": "",
    "prune_line": "[prune] gantry_speed_zones: []",
    "admissible_lines": [
@@ -4395,7 +3947,7 @@
     "[repo-dyn-pre] APPROACH_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PLACE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.91,
+   "wall_s": 1.51,
    "choice_entries": 0,
    "covers": [
     {
@@ -4497,20 +4049,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2818,
+   "no_prune_ms": 1338,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 1683,
+   "no_cut_ms": 839,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1687,
+   "no_implied_ms": 850,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2904,
+   "no_linear_ms": 1282,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 45
+    "ms": 55
    },
    "right_only_any": false,
    "cells": {
@@ -4559,7 +4111,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 6701,
+   "ms": 3746,
    "verdict_extra": "",
    "prune_line": "[prune] girard_robot: []",
    "admissible_lines": [
@@ -4597,7 +4149,7 @@
     "[repo-dyn-pre] M5_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] M6_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 6.77,
+   "wall_s": 3.96,
    "choice_entries": 20,
    "covers": [
     {
@@ -4905,20 +4457,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 7336,
+   "no_prune_ms": 3756,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 6876,
+   "no_cut_ms": 3623,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 7102,
+   "no_implied_ms": 3750,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 7198,
+   "no_linear_ms": 3728,
    "handoff": {
     "checked": 12,
     "declared": 12,
     "passed": 12,
     "failing": "-",
     "vacuous": true,
-    "ms": 67
+    "ms": 30
    },
    "right_only_any": false,
    "cells": {
@@ -4960,7 +4512,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 919,
+   "ms": 418,
    "verdict_extra": "",
    "prune_line": "[prune] grid_ffr_dos: [NORMAL->TRIP, FFR->TRIP]",
    "admissible_lines": [
@@ -5019,7 +4571,7 @@
     "[repo-dyn-pre] NORMAL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FFR_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.02,
+   "wall_s": 0.58,
    "choice_entries": 0,
    "covers": [
     {
@@ -5108,20 +4660,20 @@
     ]
    ],
    "no_prune_verdict": "DECLINED",
-   "no_prune_ms": 477,
+   "no_prune_ms": 235,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 773,
+   "no_cut_ms": 421,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 913,
+   "no_implied_ms": 435,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 832,
+   "no_linear_ms": 419,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": true,
-    "ms": 28
+    "ms": 59
    },
    "right_only_any": false,
    "cells": {
@@ -5138,6 +4690,415 @@
    "exercised": [
     "M2",
     "M4"
+   ]
+  },
+  {
+   "name": "h2_refuel_ambientbias",
+   "path": "benchmarks/suite_v2/h2_refuel_ambientbias/input.txt",
+   "scenario": "sensor-fault (degraded sensor feeding the end-pressure table)",
+   "family": "Hydrogen refuelling (sensor bias)",
+   "declared_mechanisms": "R D I (right-only repositioning; mode-dependent rows, uniform rows decline; checked",
+   "dimL": 1,
+   "dimR": 1,
+   "modesL": 6,
+   "modesR": 6,
+   "epsL": "1.0",
+   "epsR": "1.0",
+   "lambda_min": "1.0",
+   "lambda_max": "6.0",
+   "rows": {
+    "STAGE1": "p[l] <= p[r]",
+    "STAGE2": "p[l] <= p[r]",
+    "STAGE3": "p[l] <= p[r]",
+    "TOPOFF": "p[l] <= p[r] + 2.9",
+    "COMPLETE": "p[l] <= p[r] + 2.9",
+    "ABORT": "p[l] <= p[r] + 2.9"
+   },
+   "hash": "c01ac84f2a2b5c12c5e566bdd9d10ea7",
+   "tol_hash": "ccd658973e081b9493d92963f4009102",
+   "rows_identical": false,
+   "inv_shape": "linear",
+   "per_mode_evolve": false,
+   "nonlinear_L": false,
+   "nonlinear_R": false,
+   "verdict": "CERTIFIED",
+   "ms": 924,
+   "verdict_extra": "",
+   "prune_line": "[prune] h2_refuel_ambientbias: [STAGE1->ABORT, STAGE2->ABORT]",
+   "admissible_lines": [
+    "[admissible] STAGE1_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE]",
+    "[admissible] STAGE2_L: [STAGE2, STAGE3, TOPOFF, COMPLETE]",
+    "[admissible] STAGE3_L: [STAGE3, TOPOFF, COMPLETE]",
+    "[admissible] TOPOFF_L: [STAGE3, TOPOFF, COMPLETE]",
+    "[admissible] COMPLETE_L: [TOPOFF, COMPLETE]",
+    "[admissible] ABORT_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT]"
+   ],
+   "cut_lines": [
+    "[cut] L.STAGE1: 2 conjunct(s)",
+    "[cut] L.STAGE2: 2 conjunct(s)",
+    "[cut] L.STAGE3: 2 conjunct(s)",
+    "[cut] L.TOPOFF: 2 conjunct(s)",
+    "[cut] L.COMPLETE: 1 conjunct(s)",
+    "[cut] L.ABORT: 1 conjunct(s)",
+    "[cut] R.STAGE1: 2 conjunct(s)",
+    "[cut] R.STAGE2: 2 conjunct(s)",
+    "[cut] R.STAGE3: 2 conjunct(s)",
+    "[cut] R.TOPOFF: 2 conjunct(s)",
+    "[cut] R.COMPLETE: 1 conjunct(s)",
+    "[cut] R.ABORT: 1 conjunct(s)"
+   ],
+   "cutx_lines": [
+    "[cut-x] L.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] L.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] L.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] L.TOPOFF: p <= 72.9 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] L.ABORT: p <= 0.5 kind=closure entry=weakening route=frozen",
+    "[cut-x] R.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] R.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] R.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] R.TOPOFF: p <= 70.5 kind=implied-contraction entry=rational route=shape",
+    "[cut-x] R.ABORT: p <= 0.5 kind=closure entry=weakening route=frozen"
+   ],
+   "route_lines": [
+    "[route] STAGE1: shape",
+    "[route] STAGE1: implied p <= 20: O1 rational, O2 shape",
+    "[route] STAGE2: shape",
+    "[route] STAGE2: implied p <= 40: O1 rational, O2 shape",
+    "[route] STAGE3: shape",
+    "[route] STAGE3: implied p <= 60: O1 rational, O2 shape",
+    "[route] TOPOFF: shape",
+    "[route] TOPOFF: implied p <= 72.9: O1 rational, O2 shape",
+    "[route] COMPLETE: frozen",
+    "[route] ABORT: closure p <= 0.5: frozen",
+    "[route] STAGE1: shape",
+    "[route] STAGE1: implied p <= 20: O1 rational, O2 shape",
+    "[route] STAGE2: shape",
+    "[route] STAGE2: implied p <= 40: O1 rational, O2 shape",
+    "[route] STAGE3: shape",
+    "[route] STAGE3: implied p <= 60: O1 rational, O2 shape",
+    "[route] TOPOFF: shape",
+    "[route] TOPOFF: implied p <= 70.5: O1 rational, O2 shape",
+    "[route] COMPLETE: frozen",
+    "[route] ABORT: closure p <= 0.5: frozen"
+   ],
+   "repo_lines": [
+    "[repo-dyn-pre] STAGE1_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT]",
+    "[repo-dyn-pre] STAGE2_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT]",
+    "[repo-dyn-pre] STAGE3_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT]",
+    "[repo-dyn-pre] TOPOFF_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT]",
+    "[repo-dyn-pre] COMPLETE_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT]",
+    "[repo-dyn-pre] ABORT_L: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT] [repo-dyn-post]: [STAGE1, STAGE2, STAGE3, TOPOFF, COMPLETE, ABORT]"
+   ],
+   "wall_s": 1.12,
+   "choice_entries": 0,
+   "covers": [
+    {
+     "mL": "STAGE1",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
+     "lam_pairs": {},
+     "admissible": [
+      "STAGE1",
+      "STAGE2",
+      "STAGE3",
+      "TOPOFF",
+      "COMPLETE"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "STAGE1": "jdd",
+      "STAGE2": "jdd",
+      "STAGE3": "jdd",
+      "TOPOFF": "jdd",
+      "COMPLETE": "j--",
+      "ABORT": "---"
+     },
+     "kinds": [
+      "base"
+     ],
+     "modes_on_path": [
+      "COMPLETE",
+      "STAGE1",
+      "STAGE2",
+      "STAGE3",
+      "TOPOFF"
+     ],
+     "joint_modes": [],
+     "ro_modes": [],
+     "branching": 0,
+     "right_only": false,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "STAGE1": "STAGE1:base(B=1)",
+      "STAGE2": "STAGE2:base(B=1)",
+      "STAGE3": "STAGE3:base(B=1)",
+      "TOPOFF": "TOPOFF:base(B=1)",
+      "COMPLETE": "COMPLETE:base(B=1)"
+     }
+    },
+    {
+     "mL": "STAGE2",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
+     "lam_pairs": {},
+     "admissible": [
+      "STAGE2",
+      "STAGE3",
+      "TOPOFF",
+      "COMPLETE"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "STAGE1": "-dd",
+      "STAGE2": "jdd",
+      "STAGE3": "jdd",
+      "TOPOFF": "jdd",
+      "COMPLETE": "j--",
+      "ABORT": "j--"
+     },
+     "kinds": [
+      "base"
+     ],
+     "modes_on_path": [
+      "COMPLETE",
+      "STAGE2",
+      "STAGE3",
+      "TOPOFF"
+     ],
+     "joint_modes": [],
+     "ro_modes": [],
+     "branching": 0,
+     "right_only": false,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "STAGE2": "STAGE2:base(B=1)",
+      "STAGE3": "STAGE3:base(B=1)",
+      "TOPOFF": "TOPOFF:base(B=1)",
+      "COMPLETE": "COMPLETE:base(B=1)"
+     }
+    },
+    {
+     "mL": "STAGE3",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
+     "lam_pairs": {},
+     "admissible": [
+      "STAGE3",
+      "TOPOFF",
+      "COMPLETE"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "STAGE1": "jdd",
+      "STAGE2": "-dd",
+      "STAGE3": "jdd",
+      "TOPOFF": "jdd",
+      "COMPLETE": "j--",
+      "ABORT": "j--"
+     },
+     "kinds": [
+      "base"
+     ],
+     "modes_on_path": [
+      "COMPLETE",
+      "STAGE3",
+      "TOPOFF"
+     ],
+     "joint_modes": [],
+     "ro_modes": [],
+     "branching": 0,
+     "right_only": false,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "STAGE3": "STAGE3:base(B=1)",
+      "TOPOFF": "TOPOFF:base(B=1)",
+      "COMPLETE": "COMPLETE:base(B=1)"
+     }
+    },
+    {
+     "mL": "TOPOFF",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
+     "lam_pairs": {},
+     "admissible": [
+      "STAGE3",
+      "TOPOFF",
+      "COMPLETE"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "STAGE1": "jdd",
+      "STAGE2": "jdd",
+      "STAGE3": "-dd",
+      "TOPOFF": "jdd",
+      "COMPLETE": "j--",
+      "ABORT": "j--"
+     },
+     "kinds": [
+      "base",
+      "repoDyn"
+     ],
+     "modes_on_path": [
+      "COMPLETE",
+      "STAGE3",
+      "TOPOFF"
+     ],
+     "joint_modes": [],
+     "ro_modes": [
+      "STAGE3"
+     ],
+     "branching": 0,
+     "right_only": true,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "STAGE3": "STAGE3:repoDyn(B=1,preJ)->[TOPOFF@1]; TOPOFF:base(B=1)",
+      "TOPOFF": "TOPOFF:base(B=1)",
+      "COMPLETE": "COMPLETE:base(B=1)"
+     }
+    },
+    {
+     "mL": "COMPLETE",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
+     "lam_pairs": {},
+     "admissible": [
+      "TOPOFF",
+      "COMPLETE"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "STAGE1": "jdd",
+      "STAGE2": "jdd",
+      "STAGE3": "jdd",
+      "TOPOFF": "jdd",
+      "COMPLETE": "j--",
+      "ABORT": "j--"
+     },
+     "kinds": [
+      "base"
+     ],
+     "modes_on_path": [
+      "COMPLETE",
+      "TOPOFF"
+     ],
+     "joint_modes": [],
+     "ro_modes": [],
+     "branching": 0,
+     "right_only": false,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "TOPOFF": "TOPOFF:base(B=1)",
+      "COMPLETE": "COMPLETE:base(B=1)"
+     }
+    },
+    {
+     "mL": "ABORT",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
+     "lam_pairs": {},
+     "admissible": [
+      "STAGE1",
+      "STAGE2",
+      "STAGE3",
+      "TOPOFF",
+      "COMPLETE",
+      "ABORT"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "STAGE1": "jdd",
+      "STAGE2": "jdd",
+      "STAGE3": "jdd",
+      "TOPOFF": "jdd",
+      "COMPLETE": "j--",
+      "ABORT": "j--"
+     },
+     "kinds": [
+      "base"
+     ],
+     "modes_on_path": [
+      "ABORT",
+      "COMPLETE",
+      "STAGE1",
+      "STAGE2",
+      "STAGE3",
+      "TOPOFF"
+     ],
+     "joint_modes": [],
+     "ro_modes": [],
+     "branching": 0,
+     "right_only": false,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "STAGE1": "STAGE1:base(B=1)",
+      "STAGE2": "STAGE2:base(B=1)",
+      "STAGE3": "STAGE3:base(B=1)",
+      "TOPOFF": "TOPOFF:base(B=1)",
+      "COMPLETE": "COMPLETE:base(B=1)",
+      "ABORT": "ABORT:base(B=1)"
+     }
+    }
+   ],
+   "pruned": [
+    [
+     "STAGE1",
+     "ABORT"
+    ],
+    [
+     "STAGE2",
+     "ABORT"
+    ]
+   ],
+   "no_prune_verdict": "CERTIFIED",
+   "no_prune_ms": 800,
+   "no_cut_verdict": "DECLINED",
+   "no_cut_ms": 671,
+   "no_implied_verdict": "DECLINED",
+   "no_implied_ms": 916,
+   "no_linear_verdict": "CERTIFIED",
+   "no_linear_ms": 881,
+   "handoff": {
+    "checked": 12,
+    "declared": 12,
+    "passed": 12,
+    "failing": "-",
+    "vacuous": false,
+    "ms": 67
+   },
+   "right_only_any": true,
+   "cells": {
+    "M1": "no (\u03bb=1 everywhere)",
+    "M2": "no (single segment, RO used)",
+    "M3": "no (max non-self successors at a joint step = 0)",
+    "M4": "vacuous: pruned STAGE1->ABORT, STAGE2->ABORT but NO_PRUNE=CERTIFIED",
+    "M5": "yes: 12/12 handoffs unsat, rows differ",
+    "M6": "yes: L.STAGE1: 2 conjunct(s); L.STAGE2: 2 conjunct(s); L.STAGE3: 2 conjunct(s); L.TOPOFF: 2 conjunct(s); L.COMPLETE: 1 conjunct(s); L.ABORT: 1 conjunct(s); R.STAGE1: 2 conjunct(s); R.STAGE2: 2 conjunct(s); R.STAGE3: 2 conjunct(s); R.TOPOFF: 2 conjunct(s); R.COMPLETE: 1 conjunct(s); R.ABORT: 1 conjunct(s); NO_CUT=DECLINED",
+    "M6+": "yes: L.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape; L.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape; L.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape; L.TOPOFF: p <= 72.9 kind=implied-contraction entry=rational route=shape; L.ABORT: p <= 0.5 kind=closure entry=weakening route=frozen; R.STAGE1: p <= 20 kind=implied-contraction entry=rational route=shape; R.STAGE2: p <= 40 kind=implied-contraction entry=rational route=shape; R.STAGE3: p <= 60 kind=implied-contraction entry=rational route=shape; R.TOPOFF: p <= 70.5 kind=implied-contraction entry=rational route=shape; R.ABORT: p <= 0.5 kind=closure entry=weakening route=frozen; NO_IMPLIED=DECLINED",
+    "M6L": "no (no linear-form atom kept)",
+    "M7": "sensor-fault (degraded sensor feeding the end-pressure table); dim 1; linear"
+   },
+   "exercised": [
+    "M5",
+    "M6",
+    "M6+"
    ]
   },
   {
@@ -5166,7 +5127,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 842,
+   "ms": 389,
    "verdict_extra": "",
    "prune_line": "[prune] hydro_rejection_gatecal: []",
    "admissible_lines": [
@@ -5208,7 +5169,7 @@
     "[repo-dyn-pre] ONGRID_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] REJECT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.93,
+   "wall_s": 0.55,
    "choice_entries": 0,
    "covers": [
     {
@@ -5276,20 +5237,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 840,
+   "no_prune_ms": 344,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 720,
+   "no_cut_ms": 328,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 721,
+   "no_implied_ms": 364,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 776,
+   "no_linear_ms": 352,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 26
+    "ms": 57
    },
    "right_only_any": false,
    "cells": {
@@ -5334,7 +5295,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 784,
+   "ms": 408,
    "verdict_extra": "",
    "prune_line": "[prune] lz_vehicle_position: []",
    "admissible_lines": [
@@ -5366,7 +5327,7 @@
     "[repo-dyn-pre] U0_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] Up_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.88,
+   "wall_s": 0.54,
    "choice_entries": 6,
    "covers": [
     {
@@ -5498,20 +5459,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 808,
+   "no_prune_ms": 387,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 724,
+   "no_cut_ms": 385,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 824,
+   "no_implied_ms": 412,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 840,
+   "no_linear_ms": 402,
    "handoff": {
     "checked": 9,
     "declared": 9,
     "passed": 9,
     "failing": "-",
     "vacuous": true,
-    "ms": 54
+    "ms": 53
    },
    "right_only_any": false,
    "cells": {
@@ -5528,86 +5489,96 @@
    "exercised": []
   },
   {
-   "name": "molding_pack_checkring",
-   "path": "benchmarks/suite_v2/molding_pack_checkring/input.txt",
-   "scenario": "degraded-actuator",
-   "family": "Injection molding pack and hold",
-   "declared_mechanisms": "D (mode-dependent rows: the hold row bounds the nozzle and the cavity pressure, the",
+   "name": "platoon_latency",
+   "path": "benchmarks/suite_v2/platoon_latency/input.txt",
+   "scenario": "degraded-network",
+   "family": "Platoon follower (CACC: link loss, latency, profiles)",
+   "declared_mechanisms": "D (mode-dependent rows: the AEB row differs from the CACC row, the 7 handoffs unsat",
    "dimL": 3,
-   "dimR": 3,
-   "modesL": 2,
+   "dimR": 2,
+   "modesL": 3,
    "modesR": 2,
-   "epsL": "0.05",
-   "epsR": "0.05",
+   "epsL": "0.1",
+   "epsR": "0.1",
    "lambda_min": "1.0",
    "lambda_max": "1.0",
    "rows": {
-    "HOLD": "t[l] <= t[r] and t[r] <= t[l] and x[l] <= x[r] + 25 and x[r] <= x[l] + 25 and y[l] <= y[r] + 25 and y[r] <= y[l] + 25",
-    "COOL": "t[l] <= t[r] and t[r] <= t[l] and y[l] <= y[r] + 25 and y[r] <= y[l] + 25"
+    "CACC_UP": "smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) (>= (- L_g R_g) (- 0.0 4.0)) (<= (- L_g R_g) 4.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (<= (+ R_g (* 2.0 R_r)) 60.0) (>= L_g 5.0) (>= (+ L_g (* 2.0 L_r)) 5.0))",
+    "CACC_DN": "smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) (>= (- L_g R_g) (- 0.0 4.0)) (<= (- L_g R_g) 4.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (<= (+ R_g (* 2.0 R_r)) 60.0) (>= L_g 5.0) (>= (+ L_g (* 2.0 L_r)) 5.0))",
+    "AEB": "smt2:(and (>= (- L_r R_r) 0.0) (<= (- L_r R_r) 0.0) (>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) (<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0))"
    },
-   "hash": "b4a4569f28beee9591a02dfef39c80c1",
-   "tol_hash": "c4a029abbc2cca21c963d4dd81fd2b70",
+   "hash": "b2ce758edc037a5d8ad4bb4e74dd15d9",
+   "tol_hash": "4f995acfb97d9e9aadd99405047c8717",
    "rows_identical": false,
    "inv_shape": "conjunctive",
    "per_mode_evolve": false,
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 634,
+   "ms": 747,
    "verdict_extra": "",
-   "prune_line": "[prune] molding_pack_checkring: []",
+   "prune_line": "[prune] platoon_latency: [CACC->AEB]",
    "admissible_lines": [
-    "[admissible] HOLD_L: [HOLD]",
-    "[admissible] COOL_L: [COOL]"
+    "[admissible] CACC_UP_L: [CACC]",
+    "[admissible] CACC_DN_L: [CACC]",
+    "[admissible] AEB_L: [AEB]"
    ],
    "cut_lines": [
-    "[cut] L.HOLD: 3 conjunct(s)",
-    "[cut] L.COOL: 4 conjunct(s)",
-    "[cut] R.HOLD: 2 conjunct(s)",
-    "[cut] R.COOL: 4 conjunct(s)"
+    "[cut] L.CACC_UP: 4 conjunct(s)",
+    "[cut] L.CACC_DN: 4 conjunct(s)",
+    "[cut] L.AEB: 2 conjunct(s)",
+    "[cut] R.CACC: 4 conjunct(s)",
+    "[cut] R.AEB: 2 conjunct(s)"
    ],
-   "cutx_lines": [],
+   "cutx_lines": [
+    "[cut-x] L.AEB: (g + (2.0 * r)) <= 5.0 kind=closure entry=weakening route=diA",
+    "[cut-x] R.AEB: (g + (2.0 * r)) <= 5.0 kind=closure entry=weakening route=diA"
+   ],
    "route_lines": [
-    "[route] HOLD: DI-strict(B)",
-    "[route] HOLD: DI-strict(B)",
-    "[route] HOLD: DI-strict(B)",
-    "[route] COOL: DI-strict(B)",
-    "[route] COOL: DI-strict(B)",
-    "[route] COOL: DI-strict(B)",
-    "[route] COOL: DI-strict(B)",
-    "[route] HOLD: DI-strict(B)",
-    "[route] HOLD: DI-strict(B)",
-    "[route] COOL: DI-strict(B)",
-    "[route] COOL: DI-strict(B)",
-    "[route] COOL: DI-strict(B)",
-    "[route] COOL: DI-strict(B)"
+    "[route] CACC_UP: DI-strict(B)",
+    "[route] CACC_UP: DI-strict(B)",
+    "[route] CACC_UP: DI-strict(B)",
+    "[route] CACC_UP: DI-strict(B)",
+    "[route] CACC_DN: DI-strict(B)",
+    "[route] CACC_DN: DI-strict(B)",
+    "[route] CACC_DN: DI-strict(B)",
+    "[route] CACC_DN: DI-strict(B)",
+    "[route] AEB: DI-nonstrict(A)",
+    "[route] AEB: closure (g + (2.0 * r)) <= 5.0: diA",
+    "[route] CACC: DI-strict(B)",
+    "[route] CACC: DI-strict(B)",
+    "[route] CACC: DI-strict(B)",
+    "[route] CACC: DI-strict(B)",
+    "[route] AEB: DI-nonstrict(A)",
+    "[route] AEB: closure (g + (2.0 * r)) <= 5.0: diA"
    ],
    "repo_lines": [
-    "[repo-dyn-pre] HOLD_L: [] [repo-dyn-post]: []",
-    "[repo-dyn-pre] COOL_L: [] [repo-dyn-post]: []"
+    "[repo-dyn-pre] CACC_UP_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] CACC_DN_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] AEB_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.69,
+   "wall_s": 0.92,
    "choice_entries": 0,
    "covers": [
     {
-     "mL": "HOLD",
+     "mL": "CACC_UP",
      "lam": "1",
      "lam_float": 1.0,
      "budget": 1,
      "lam_pairs": {},
      "admissible": [
-      "HOLD"
+      "CACC"
      ],
      "replay_ok": true,
      "flags": {
-      "HOLD": "j--",
-      "COOL": "---"
+      "CACC": "j--",
+      "AEB": "---"
      },
      "kinds": [
       "base"
      ],
      "modes_on_path": [
-      "HOLD"
+      "CACC"
      ],
      "joint_modes": [],
      "ro_modes": [],
@@ -5617,28 +5588,28 @@
      "choice_steps": [],
      "choice_entries": 0,
      "paths": {
-      "HOLD": "HOLD:base(B=1)"
+      "CACC": "CACC:base(B=1)"
      }
     },
     {
-     "mL": "COOL",
+     "mL": "CACC_DN",
      "lam": "1",
      "lam_float": 1.0,
      "budget": 1,
      "lam_pairs": {},
      "admissible": [
-      "COOL"
+      "CACC"
      ],
      "replay_ok": true,
      "flags": {
-      "HOLD": "---",
-      "COOL": "j--"
+      "CACC": "j--",
+      "AEB": "---"
      },
      "kinds": [
       "base"
      ],
      "modes_on_path": [
-      "COOL"
+      "CACC"
      ],
      "joint_modes": [],
      "ro_modes": [],
@@ -5648,38 +5619,74 @@
      "choice_steps": [],
      "choice_entries": 0,
      "paths": {
-      "COOL": "COOL:base(B=1)"
+      "CACC": "CACC:base(B=1)"
+     }
+    },
+    {
+     "mL": "AEB",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 1,
+     "lam_pairs": {},
+     "admissible": [
+      "AEB"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "CACC": "---",
+      "AEB": "j--"
+     },
+     "kinds": [
+      "base"
+     ],
+     "modes_on_path": [
+      "AEB"
+     ],
+     "joint_modes": [],
+     "ro_modes": [],
+     "branching": 0,
+     "right_only": false,
+     "joint_steps": 0,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "AEB": "AEB:base(B=1)"
      }
     }
    ],
-   "pruned": [],
+   "pruned": [
+    [
+     "CACC",
+     "AEB"
+    ]
+   ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 592,
+   "no_prune_ms": 716,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 498,
+   "no_cut_ms": 777,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 489,
+   "no_implied_ms": 721,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 640,
+   "no_linear_ms": 722,
    "handoff": {
-    "checked": 3,
-    "declared": 3,
-    "passed": 3,
+    "checked": 7,
+    "declared": 7,
+    "passed": 7,
     "failing": "-",
     "vacuous": false,
-    "ms": 25
+    "ms": 35
    },
    "right_only_any": false,
    "cells": {
     "M1": "no (\u03bb=1 everywhere)",
     "M2": "no (single segment)",
     "M3": "no (max non-self successors at a joint step = 0)",
-    "M4": "no (nothing pruned)",
-    "M5": "yes: 3/3 handoffs unsat, rows differ",
-    "M6": "vacuous: cuts kept (L.HOLD: 3 conjunct(s); L.COOL: 4 conjunct(s); R.HOLD: 2 conjunct(s); R.COOL: 4 conjunct(s)) but NO_CUT=CERTIFIED",
-    "M6+": "no (no widened atom kept)",
+    "M4": "vacuous: pruned CACC->AEB but NO_PRUNE=CERTIFIED",
+    "M5": "yes: 7/7 handoffs unsat, rows differ",
+    "M6": "vacuous: cuts kept (L.CACC_UP: 4 conjunct(s); L.CACC_DN: 4 conjunct(s); L.AEB: 2 conjunct(s); R.CACC: 4 conjunct(s); R.AEB: 2 conjunct(s)) but NO_CUT=CERTIFIED",
+    "M6+": "vacuous: widened atoms kept (L.AEB: (g + (2.0 * r)) <= 5.0 kind=closure entry=weakening route=diA; R.AEB: (g + (2.0 * r)) <= 5.0 kind=closure entry=weakening route=diA) but NO_IMPLIED=CERTIFIED",
     "M6L": "no (no linear-form atom kept)",
-    "M7": "degraded-actuator; dim 3; conjunctive"
+    "M7": "degraded-network; dim 3+-1; conjunctive"
    },
    "exercised": [
     "M5"
@@ -5689,7 +5696,7 @@
    "name": "platoon_linkloss",
    "path": "benchmarks/suite_v2/platoon_linkloss/input.txt",
    "scenario": "dos-attack",
-   "family": "Platoon follower (CACC, link loss / latency)",
+   "family": "Platoon follower (CACC: link loss, latency, profiles)",
    "declared_mechanisms": "M D (multi-cycle matching: one 0.2 s deployed decision against two 0.1 s design",
    "dimL": 2,
    "dimR": 2,
@@ -5712,7 +5719,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1226,
+   "ms": 695,
    "verdict_extra": "",
    "prune_line": "[prune] platoon_linkloss: [CACC->AEB]",
    "admissible_lines": [
@@ -5754,7 +5761,7 @@
     "[repo-dyn-pre] ACC_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] AEB_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.29,
+   "wall_s": 0.87,
    "choice_entries": 0,
    "covers": [
     {
@@ -5867,20 +5874,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1171,
+   "no_prune_ms": 677,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 1362,
+   "no_cut_ms": 649,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1423,
+   "no_implied_ms": 643,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1339,
+   "no_linear_ms": 739,
    "handoff": {
     "checked": 7,
     "declared": 7,
     "passed": 7,
     "failing": "-",
     "vacuous": false,
-    "ms": 42
+    "ms": 62
    },
    "right_only_any": false,
    "cells": {
@@ -5903,7 +5910,7 @@
    "name": "platoon_profiles",
    "path": "benchmarks/suite_v2/platoon_profiles/input.txt",
    "scenario": "controller-refinement",
-   "family": "Platoon follower (CACC, link loss / latency)",
+   "family": "Platoon follower (CACC: link loss, latency, profiles)",
    "declared_mechanisms": "S M D (time stretch, lambda = 6/5 for the SPORT pairing and 1 for the AEB pairing,",
    "dimL": 2,
    "dimR": 2,
@@ -5925,7 +5932,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 5249,
+   "ms": 2609,
    "verdict_extra": "",
    "prune_line": "[prune] platoon_profiles: [CACC->AEB]",
    "admissible_lines": [
@@ -5960,7 +5967,7 @@
     "[repo-dyn-pre] SPORT_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] AEB_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 5.32,
+   "wall_s": 2.78,
    "choice_entries": 0,
    "covers": [
     {
@@ -6036,20 +6043,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 4913,
+   "no_prune_ms": 2342,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 8063,
+   "no_cut_ms": 3583,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 5616,
+   "no_implied_ms": 2596,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 5159,
+   "no_linear_ms": 2344,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 25
+    "ms": 59
    },
    "right_only_any": false,
    "cells": {
@@ -6094,7 +6101,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 201,
+   "ms": 132,
    "verdict_extra": "",
    "prune_line": "[prune] quad_light_lag: []",
    "admissible_lines": [
@@ -6116,7 +6123,7 @@
    "repo_lines": [
     "[repo-dyn-pre] CLIMB_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.26,
+   "wall_s": 0.35,
    "choice_entries": 0,
    "covers": [
     {
@@ -6155,20 +6162,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 158,
+   "no_prune_ms": 112,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 139,
+   "no_cut_ms": 109,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 159,
+   "no_implied_ms": 125,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 167,
+   "no_linear_ms": 123,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 10
+    "ms": 50
    },
    "right_only_any": false,
    "cells": {
@@ -6212,7 +6219,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 459,
+   "ms": 253,
    "verdict_extra": "",
    "prune_line": "[prune] quad_light_profiles: []",
    "admissible_lines": [
@@ -6240,7 +6247,7 @@
    "repo_lines": [
     "[repo-dyn-pre] CLIMB_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.53,
+   "wall_s": 0.48,
    "choice_entries": 4,
    "covers": [
     {
@@ -6291,20 +6298,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 474,
+   "no_prune_ms": 241,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 443,
+   "no_cut_ms": 216,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 481,
+   "no_implied_ms": 234,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 513,
+   "no_linear_ms": 249,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 10
+    "ms": 52
    },
    "right_only_any": false,
    "cells": {
@@ -6322,6 +6329,322 @@
     "M1",
     "M2",
     "M3"
+   ]
+  },
+  {
+   "name": "reactor_feed_wireless",
+   "path": "benchmarks/suite_v2/reactor_feed_wireless/input.txt",
+   "scenario": "degraded-sensor",
+   "family": "Exothermic reactor feed interlock",
+   "declared_mechanisms": "M B P (multi-cycle matching: one deployed reading against two design readings;",
+   "dimL": 2,
+   "dimR": 2,
+   "modesL": 4,
+   "modesR": 4,
+   "epsL": "2.0",
+   "epsR": "1.0",
+   "lambda_min": "1.0",
+   "lambda_max": "1.0",
+   "rows": {
+    "F1": "T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]",
+    "F2": "T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]",
+    "F3": "T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]",
+    "F4": "T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]"
+   },
+   "hash": "2ea3ed4ab4bbd760a9e2a955513219f9",
+   "tol_hash": "9a18a6fda676af91036b7d9df9a9c311",
+   "rows_identical": true,
+   "inv_shape": "conjunctive",
+   "per_mode_evolve": false,
+   "nonlinear_L": false,
+   "nonlinear_R": false,
+   "verdict": "CERTIFIED",
+   "ms": 745,
+   "verdict_extra": "",
+   "prune_line": "[prune] reactor_feed_wireless: [F1->F4, F2->F4, F3->F1, F4->F1]",
+   "admissible_lines": [
+    "[admissible] F1_L: [F1, F2]",
+    "[admissible] F2_L: [F1, F2, F3]",
+    "[admissible] F3_L: [F2, F3, F4]",
+    "[admissible] F4_L: [F3, F4]"
+   ],
+   "cut_lines": [
+    "[cut] L.F1: 4 conjunct(s)",
+    "[cut] L.F2: 4 conjunct(s)",
+    "[cut] L.F3: 4 conjunct(s)",
+    "[cut] L.F4: 4 conjunct(s)",
+    "[cut] R.F1: 4 conjunct(s)",
+    "[cut] R.F2: 4 conjunct(s)",
+    "[cut] R.F3: 4 conjunct(s)",
+    "[cut] R.F4: 4 conjunct(s)"
+   ],
+   "cutx_lines": [],
+   "route_lines": [
+    "[route] F1: DI-strict(B)",
+    "[route] F1: DI-strict(B)",
+    "[route] F1: frozen",
+    "[route] F1: frozen",
+    "[route] F2: DI-strict(B)",
+    "[route] F2: DI-strict(B)",
+    "[route] F2: frozen",
+    "[route] F2: frozen",
+    "[route] F3: DI-strict(B)",
+    "[route] F3: DI-strict(B)",
+    "[route] F3: frozen",
+    "[route] F3: frozen",
+    "[route] F4: DI-strict(B)",
+    "[route] F4: DI-strict(B)",
+    "[route] F4: frozen",
+    "[route] F4: frozen",
+    "[route] F1: DI-strict(B)",
+    "[route] F1: DI-strict(B)",
+    "[route] F1: frozen",
+    "[route] F1: frozen",
+    "[route] F2: DI-strict(B)",
+    "[route] F2: DI-strict(B)",
+    "[route] F2: frozen",
+    "[route] F2: frozen",
+    "[route] F3: DI-strict(B)",
+    "[route] F3: DI-strict(B)",
+    "[route] F3: frozen",
+    "[route] F3: frozen",
+    "[route] F4: DI-strict(B)",
+    "[route] F4: DI-strict(B)",
+    "[route] F4: frozen",
+    "[route] F4: frozen"
+   ],
+   "repo_lines": [
+    "[repo-dyn-pre] F1_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] F2_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] F3_L: [] [repo-dyn-post]: []",
+    "[repo-dyn-pre] F4_L: [] [repo-dyn-post]: []"
+   ],
+   "wall_s": 0.93,
+   "choice_entries": 0,
+   "covers": [
+    {
+     "mL": "F1",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 2,
+     "lam_pairs": {},
+     "admissible": [
+      "F1",
+      "F2"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "F1": "j--",
+      "F2": "j--",
+      "F3": "j--",
+      "F4": "---"
+     },
+     "kinds": [
+      "base",
+      "joint"
+     ],
+     "modes_on_path": [
+      "F1",
+      "F2",
+      "F3"
+     ],
+     "joint_modes": [
+      "F1",
+      "F2"
+     ],
+     "ro_modes": [],
+     "branching": 2,
+     "right_only": false,
+     "joint_steps": 2,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "F1": "F1:joint(B=2)->[F1@1, F1@1, F2@1, F3@1]; F1:base(B=1); F2:base(B=1); F3:base(B=1)",
+      "F2": "F2:joint(B=2)->[F2@1, F1@1, F2@1, F3@1]; F2:base(B=1); F1:base(B=1); F3:base(B=1)"
+     }
+    },
+    {
+     "mL": "F2",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 2,
+     "lam_pairs": {},
+     "admissible": [
+      "F1",
+      "F2",
+      "F3"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "F1": "j--",
+      "F2": "j--",
+      "F3": "j--",
+      "F4": "j--"
+     },
+     "kinds": [
+      "base",
+      "joint"
+     ],
+     "modes_on_path": [
+      "F1",
+      "F2",
+      "F3",
+      "F4"
+     ],
+     "joint_modes": [
+      "F1",
+      "F2",
+      "F3"
+     ],
+     "ro_modes": [],
+     "branching": 2,
+     "right_only": false,
+     "joint_steps": 3,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "F1": "F1:joint(B=2)->[F1@1, F1@1, F2@1, F3@1]; F1:base(B=1); F2:base(B=1); F3:base(B=1)",
+      "F2": "F2:joint(B=2)->[F2@1, F1@1, F2@1, F3@1]; F2:base(B=1); F1:base(B=1); F3:base(B=1)",
+      "F3": "F3:joint(B=2)->[F3@1, F2@1, F3@1, F4@1]; F3:base(B=1); F2:base(B=1); F4:base(B=1)"
+     }
+    },
+    {
+     "mL": "F3",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 2,
+     "lam_pairs": {},
+     "admissible": [
+      "F2",
+      "F3",
+      "F4"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "F1": "j--",
+      "F2": "j--",
+      "F3": "j--",
+      "F4": "j--"
+     },
+     "kinds": [
+      "base",
+      "joint"
+     ],
+     "modes_on_path": [
+      "F1",
+      "F2",
+      "F3",
+      "F4"
+     ],
+     "joint_modes": [
+      "F2",
+      "F3",
+      "F4"
+     ],
+     "ro_modes": [],
+     "branching": 2,
+     "right_only": false,
+     "joint_steps": 3,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "F2": "F2:joint(B=2)->[F2@1, F1@1, F2@1, F3@1]; F2:base(B=1); F1:base(B=1); F3:base(B=1)",
+      "F3": "F3:joint(B=2)->[F3@1, F2@1, F3@1, F4@1]; F3:base(B=1); F2:base(B=1); F4:base(B=1)",
+      "F4": "F4:joint(B=2)->[F4@1, F2@1, F3@1, F4@1]; F4:base(B=1); F2:base(B=1); F3:base(B=1)"
+     }
+    },
+    {
+     "mL": "F4",
+     "lam": "1",
+     "lam_float": 1.0,
+     "budget": 2,
+     "lam_pairs": {},
+     "admissible": [
+      "F3",
+      "F4"
+     ],
+     "replay_ok": true,
+     "flags": {
+      "F1": "---",
+      "F2": "j--",
+      "F3": "j--",
+      "F4": "j--"
+     },
+     "kinds": [
+      "base",
+      "joint"
+     ],
+     "modes_on_path": [
+      "F2",
+      "F3",
+      "F4"
+     ],
+     "joint_modes": [
+      "F3",
+      "F4"
+     ],
+     "ro_modes": [],
+     "branching": 2,
+     "right_only": false,
+     "joint_steps": 2,
+     "choice_steps": [],
+     "choice_entries": 0,
+     "paths": {
+      "F3": "F3:joint(B=2)->[F3@1, F2@1, F3@1, F4@1]; F3:base(B=1); F2:base(B=1); F4:base(B=1)",
+      "F4": "F4:joint(B=2)->[F4@1, F2@1, F3@1, F4@1]; F4:base(B=1); F2:base(B=1); F3:base(B=1)"
+     }
+    }
+   ],
+   "pruned": [
+    [
+     "F1",
+     "F4"
+    ],
+    [
+     "F2",
+     "F4"
+    ],
+    [
+     "F3",
+     "F1"
+    ],
+    [
+     "F4",
+     "F1"
+    ]
+   ],
+   "no_prune_verdict": "DECLINED",
+   "no_prune_ms": 267,
+   "no_cut_verdict": "CERTIFIED",
+   "no_cut_ms": 645,
+   "no_implied_verdict": "CERTIFIED",
+   "no_implied_ms": 720,
+   "no_linear_verdict": "CERTIFIED",
+   "no_linear_ms": 748,
+   "handoff": {
+    "checked": 16,
+    "declared": 16,
+    "passed": 16,
+    "failing": "-",
+    "vacuous": true,
+    "ms": 59
+   },
+   "right_only_any": false,
+   "cells": {
+    "M1": "no (\u03bb=1 everywhere)",
+    "M2": "yes: F1 B=2 via F1/F2, F2 B=2 via F1/F2/F3, F3 B=2 via F2/F3/F4, F4 B=2 via F3/F4",
+    "M3": "yes: F1 branch=2, F2 branch=2, F3 branch=2, F4 branch=2",
+    "M4": "yes: pruned F1->F4, F2->F4, F3->F1, F4->F1; NO_PRUNE=DECLINED",
+    "M5": "no (rows identical; handoff vacuous)",
+    "M6": "vacuous: cuts kept (L.F1: 4 conjunct(s); L.F2: 4 conjunct(s); L.F3: 4 conjunct(s); L.F4: 4 conjunct(s); R.F1: 4 conjunct(s); R.F2: 4 conjunct(s); R.F3: 4 conjunct(s); R.F4: 4 conjunct(s)) but NO_CUT=CERTIFIED",
+    "M6+": "no (no widened atom kept)",
+    "M6L": "no (no linear-form atom kept)",
+    "M7": "degraded-sensor; dim 2; conjunctive"
+   },
+   "exercised": [
+    "M2",
+    "M3",
+    "M4"
    ]
   },
   {
@@ -6351,7 +6674,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 837,
+   "ms": 381,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_2to3: []",
    "admissible_lines": [
@@ -6381,7 +6704,7 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.9,
+   "wall_s": 0.57,
    "choice_entries": 0,
    "covers": [
     {
@@ -6492,13 +6815,13 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 821,
+   "no_prune_ms": 385,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 619,
+   "no_cut_ms": 332,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 718,
+   "no_implied_ms": 334,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 840,
+   "no_linear_ms": 386,
    "handoff": {
     "checked": 5,
     "declared": 5,
@@ -6548,7 +6871,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 1628,
+   "ms": 799,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_3to6: []",
    "admissible_lines": [
@@ -6578,7 +6901,7 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 1.69,
+   "wall_s": 0.99,
    "choice_entries": 0,
    "covers": [
     {
@@ -6689,20 +7012,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 1631,
+   "no_prune_ms": 818,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 1456,
+   "no_cut_ms": 756,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 1592,
+   "no_implied_ms": 738,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1708,
+   "no_linear_ms": 790,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 30
+    "ms": 53
    },
    "right_only_any": false,
    "cells": {
@@ -6745,7 +7068,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 34955,
+   "ms": 19281,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_6to8: []",
    "admissible_lines": [
@@ -6778,7 +7101,7 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 35.03,
+   "wall_s": 19.49,
    "choice_entries": 0,
    "covers": [
     {
@@ -6901,20 +7224,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 35966,
+   "no_prune_ms": 18605,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 29795,
+   "no_cut_ms": 15169,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 37116,
+   "no_implied_ms": 19154,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 36640,
+   "no_linear_ms": 18805,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 50
+    "ms": 46
    },
    "right_only_any": false,
    "cells": {
@@ -6961,7 +7284,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 65380,
+   "ms": 33557,
    "verdict_extra": "",
    "prune_line": "[prune] rover_ladder_8to12: []",
    "admissible_lines": [
@@ -6994,7 +7317,7 @@
     "[repo-dyn-pre] MODER_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FLAT_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 65.45,
+   "wall_s": 33.76,
    "choice_entries": 0,
    "covers": [
     {
@@ -7117,20 +7440,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 66535,
+   "no_prune_ms": 33847,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 70659,
+   "no_cut_ms": 33558,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 68167,
+   "no_implied_ms": 35849,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 69849,
+   "no_linear_ms": 33207,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 34
+    "ms": 39
    },
    "right_only_any": false,
    "cells": {
@@ -7178,7 +7501,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 3183,
+   "ms": 1392,
    "verdict_extra": "",
    "prune_line": "[prune] rover_patrol_lag: []",
    "admissible_lines": [
@@ -7214,7 +7537,7 @@
     "[repo-dyn-pre] MEDIUM_BRISK_L: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST] [repo-dyn-post]: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST]",
     "[repo-dyn-pre] FAST_L: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST] [repo-dyn-post]: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST]"
    ],
-   "wall_s": 3.25,
+   "wall_s": 1.57,
    "choice_entries": 0,
    "covers": [
     {
@@ -7399,20 +7722,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2963,
+   "no_prune_ms": 1333,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 4005,
+   "no_cut_ms": 1699,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2893,
+   "no_implied_ms": 1292,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 3097,
+   "no_linear_ms": 1324,
    "handoff": {
     "checked": 10,
     "declared": 10,
     "passed": 10,
     "failing": "-",
     "vacuous": true,
-    "ms": 43
+    "ms": 33
    },
    "right_only_any": true,
    "cells": {
@@ -7459,7 +7782,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 5169,
+   "ms": 2301,
    "verdict_extra": "",
    "prune_line": "[prune] rover_terrain_2to4: []",
    "admissible_lines": [
@@ -7492,7 +7815,7 @@
     "[repo-dyn-pre] GRAVEL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PAVED_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 5.23,
+   "wall_s": 2.45,
    "choice_entries": 0,
    "covers": [
     {
@@ -7610,20 +7933,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 5255,
+   "no_prune_ms": 2443,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 6088,
+   "no_cut_ms": 2708,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 5057,
+   "no_implied_ms": 2308,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 5693,
+   "no_linear_ms": 2364,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 34
+    "ms": 53
    },
    "right_only_any": false,
    "cells": {
@@ -7670,7 +7993,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2455,
+   "ms": 1155,
    "verdict_extra": "",
    "prune_line": "[prune] rover_terrain_4to6: []",
    "admissible_lines": [
@@ -7706,7 +8029,7 @@
     "[repo-dyn-pre] GRAVEL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PAVED_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.53,
+   "wall_s": 1.35,
    "choice_entries": 0,
    "covers": [
     {
@@ -7817,20 +8140,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2239,
+   "no_prune_ms": 1152,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 891,
+   "no_cut_ms": 473,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2224,
+   "no_implied_ms": 1052,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2400,
+   "no_linear_ms": 1122,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 30
+    "ms": 41
    },
    "right_only_any": false,
    "cells": {
@@ -7875,7 +8198,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 4699,
+   "ms": 2170,
    "verdict_extra": "",
    "prune_line": "[prune] rover_terrain_6to12: []",
    "admissible_lines": [
@@ -7912,7 +8235,7 @@
     "[repo-dyn-pre] GRAVEL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PAVED_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 4.76,
+   "wall_s": 2.32,
    "choice_entries": 0,
    "covers": [
     {
@@ -8023,20 +8346,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 5035,
+   "no_prune_ms": 2196,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 1849,
+   "no_cut_ms": 916,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 5303,
+   "no_implied_ms": 2192,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 4812,
+   "no_linear_ms": 2272,
    "handoff": {
     "checked": 5,
     "declared": 5,
     "passed": 5,
     "failing": "-",
     "vacuous": true,
-    "ms": 55
+    "ms": 51
    },
    "right_only_any": false,
    "cells": {
@@ -8080,7 +8403,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 322,
+   "ms": 173,
    "verdict_extra": "",
    "prune_line": "[prune] salt_tank_sensor: []",
    "admissible_lines": [
@@ -8109,7 +8432,7 @@
     "[repo-dyn-pre] On_L: [Off] [repo-dyn-post]: [Off]",
     "[repo-dyn-pre] Off_L: [Off] [repo-dyn-post]: [Off]"
    ],
-   "wall_s": 0.43,
+   "wall_s": 0.36,
    "choice_entries": 0,
    "covers": [
     {
@@ -8177,20 +8500,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 324,
+   "no_prune_ms": 150,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 396,
+   "no_cut_ms": 185,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 376,
+   "no_implied_ms": 146,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 317,
+   "no_linear_ms": 176,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 30
+    "ms": 58
    },
    "right_only_any": false,
    "cells": {
@@ -8235,7 +8558,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 3853,
+   "ms": 2947,
    "verdict_extra": "",
    "prune_line": "[prune] sat3w_detumble_phases: [DETUMBLE->SAFE]",
    "admissible_lines": [
@@ -8263,7 +8586,7 @@
     "[repo-dyn-pre] DETUMBLE_L: [SAFE] [repo-dyn-post]: [SAFE]",
     "[repo-dyn-pre] FINE_L: [SAFE] [repo-dyn-post]: [SAFE]"
    ],
-   "wall_s": 3.92,
+   "wall_s": 3.14,
    "choice_entries": 4,
    "covers": [
     {
@@ -8356,20 +8679,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 3734,
+   "no_prune_ms": 2874,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 2081,
+   "no_cut_ms": 1543,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 3525,
+   "no_implied_ms": 2719,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 3626,
+   "no_linear_ms": 2839,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 34
+    "ms": 52
    },
    "right_only_any": false,
    "cells": {
@@ -8414,7 +8737,7 @@
    "nonlinear_L": true,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 5851,
+   "ms": 4660,
    "verdict_extra": "",
    "prune_line": "[prune] sat_detumble_phases: [DETUMBLE->SAFE]",
    "admissible_lines": [
@@ -8442,7 +8765,7 @@
     "[repo-dyn-pre] DETUMBLE_L: [SAFE] [repo-dyn-post]: [SAFE]",
     "[repo-dyn-pre] FINE_L: [SAFE] [repo-dyn-post]: [SAFE]"
    ],
-   "wall_s": 5.92,
+   "wall_s": 4.86,
    "choice_entries": 4,
    "covers": [
     {
@@ -8535,20 +8858,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 5847,
+   "no_prune_ms": 4716,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 3177,
+   "no_cut_ms": 2465,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 5520,
+   "no_implied_ms": 4629,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 5776,
+   "no_linear_ms": 4960,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 25
+    "ms": 50
    },
    "right_only_any": false,
    "cells": {
@@ -8592,7 +8915,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2645,
+   "ms": 2042,
    "verdict_extra": "",
    "prune_line": "[prune] sat_detumble_weak: [NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE]",
    "admissible_lines": [
@@ -8618,7 +8941,7 @@
    "repo_lines": [
     "[repo-dyn-pre] DETUMBLE_L: [SAFE] [repo-dyn-post]: [SAFE]"
    ],
-   "wall_s": 2.71,
+   "wall_s": 2.23,
    "choice_entries": 4,
    "covers": [
     {
@@ -8683,20 +9006,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2583,
+   "no_prune_ms": 2067,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2507,
+   "no_cut_ms": 1940,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2654,
+   "no_implied_ms": 2063,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2552,
+   "no_linear_ms": 2080,
    "handoff": {
     "checked": 1,
     "declared": 1,
     "passed": 1,
     "failing": "-",
     "vacuous": true,
-    "ms": 11
+    "ms": 38
    },
    "right_only_any": false,
    "cells": {
@@ -8746,7 +9069,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2661,
+   "ms": 1356,
    "verdict_extra": "",
    "prune_line": "[prune] syringe_relay_prearm: []",
    "admissible_lines": [
@@ -8865,7 +9188,7 @@
     "[repo-dyn-pre] RUN2_L: [TAKEUP2, END] [repo-dyn-post]: [TAKEUP2, END]",
     "[repo-dyn-pre] END_L: [RUN1, TAKEUP2, END] [repo-dyn-post]: [RUN1, TAKEUP2, END]"
    ],
-   "wall_s": 2.76,
+   "wall_s": 1.53,
    "choice_entries": 0,
    "covers": [
     {
@@ -9075,20 +9398,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2671,
+   "no_prune_ms": 1253,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2707,
+   "no_cut_ms": 1169,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2745,
+   "no_implied_ms": 1261,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2918,
+   "no_linear_ms": 1264,
    "handoff": {
     "checked": 13,
     "declared": 13,
     "passed": 13,
     "failing": "-",
     "vacuous": false,
-    "ms": 63
+    "ms": 36
    },
    "right_only_any": true,
    "cells": {
@@ -9134,7 +9457,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 2104,
+   "ms": 1044,
    "verdict_extra": "",
    "prune_line": "[prune] tank_dos_3to1: []",
    "admissible_lines": [
@@ -9195,7 +9518,7 @@
     "[repo-dyn-pre] P4_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] P5_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.16,
+   "wall_s": 1.21,
    "choice_entries": 0,
    "covers": [
     {
@@ -9353,20 +9676,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2139,
+   "no_prune_ms": 1011,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 527,
+   "no_cut_ms": 286,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2079,
+   "no_implied_ms": 884,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2077,
+   "no_linear_ms": 946,
    "handoff": {
     "checked": 10,
     "declared": 10,
     "passed": 10,
     "failing": "-",
     "vacuous": true,
-    "ms": 73
+    "ms": 63
    },
    "right_only_any": false,
    "cells": {
@@ -9412,7 +9735,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 5458,
+   "ms": 2337,
    "verdict_extra": "",
    "prune_line": "[prune] train_ato_odometry: []",
    "admissible_lines": [
@@ -9448,7 +9771,7 @@
     "[repo-dyn-pre] PL2_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] PL3_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 5.52,
+   "wall_s": 2.55,
    "choice_entries": 0,
    "covers": [
     {
@@ -9587,20 +9910,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 5497,
+   "no_prune_ms": 2285,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 5675,
+   "no_cut_ms": 2278,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 5276,
+   "no_implied_ms": 2297,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 5313,
+   "no_linear_ms": 2285,
    "handoff": {
     "checked": 9,
     "declared": 9,
     "passed": 9,
     "failing": "-",
     "vacuous": true,
-    "ms": 36
+    "ms": 64
    },
    "right_only_any": false,
    "cells": {
@@ -9646,7 +9969,7 @@
    "nonlinear_L": true,
    "nonlinear_R": true,
    "verdict": "CERTIFIED",
-   "ms": 505,
+   "ms": 281,
    "verdict_extra": "",
    "prune_line": "[prune] tunnel_jetfan_pairout: []",
    "admissible_lines": [
@@ -9690,7 +10013,7 @@
     "[repo-dyn-pre] NORMAL_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] FIRE_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.58,
+   "wall_s": 0.48,
    "choice_entries": 0,
    "covers": [
     {
@@ -9758,20 +10081,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 524,
+   "no_prune_ms": 282,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 409,
+   "no_cut_ms": 201,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 530,
+   "no_implied_ms": 274,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 576,
+   "no_linear_ms": 284,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 27
+    "ms": 52
    },
    "right_only_any": false,
    "cells": {
@@ -9818,7 +10141,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 747,
+   "ms": 369,
    "verdict_extra": "",
    "prune_line": "[prune] turbine_startup_gearratio: [SPINUP->STOP, RAMP->STOP]",
    "admissible_lines": [
@@ -9865,7 +10188,7 @@
     "[repo-dyn-pre] GEN_L: [SPINUP, RAMP] [repo-dyn-post]: [SPINUP, RAMP]",
     "[repo-dyn-pre] STOP_L: [SPINUP, RAMP] [repo-dyn-post]: [SPINUP, RAMP]"
    ],
-   "wall_s": 0.84,
+   "wall_s": 0.57,
    "choice_entries": 0,
    "covers": [
     {
@@ -10033,20 +10356,20 @@
     ]
    ],
    "no_prune_verdict": "DECLINED",
-   "no_prune_ms": 307,
+   "no_prune_ms": 170,
    "no_cut_verdict": "DECLINED",
-   "no_cut_ms": 118,
+   "no_cut_ms": 99,
    "no_implied_verdict": "DECLINED",
-   "no_implied_ms": 123,
+   "no_implied_ms": 107,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 751,
+   "no_linear_ms": 325,
    "handoff": {
     "checked": 8,
     "declared": 8,
     "passed": 8,
     "failing": "-",
     "vacuous": true,
-    "ms": 52
+    "ms": 48
    },
    "right_only_any": true,
    "cells": {
@@ -10095,7 +10418,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 2467,
+   "ms": 1045,
    "verdict_extra": "",
    "prune_line": "[prune] vehicle_hypercert: []",
    "admissible_lines": [
@@ -10139,7 +10462,7 @@
     "[repo-dyn-pre] Ap2_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] Ap4_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 2.54,
+   "wall_s": 1.23,
    "choice_entries": 20,
    "covers": [
     {
@@ -10405,20 +10728,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 2118,
+   "no_prune_ms": 1032,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 2222,
+   "no_cut_ms": 1037,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 2301,
+   "no_implied_ms": 1086,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 2276,
+   "no_linear_ms": 1113,
    "handoff": {
     "checked": 25,
     "declared": 25,
     "passed": 25,
     "failing": "-",
     "vacuous": true,
-    "ms": 84
+    "ms": 72
    },
    "right_only_any": false,
    "cells": {
@@ -10460,7 +10783,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 420,
+   "ms": 256,
    "verdict_extra": "",
    "prune_line": "[prune] ventilator_vc_cuffleak: []",
    "admissible_lines": [
@@ -10496,7 +10819,7 @@
     "[repo-dyn-pre] INSP_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] EXP_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.48,
+   "wall_s": 0.43,
    "choice_entries": 0,
    "covers": [
     {
@@ -10564,20 +10887,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 414,
+   "no_prune_ms": 232,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 396,
+   "no_cut_ms": 227,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 472,
+   "no_implied_ms": 573,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 439,
+   "no_linear_ms": 236,
    "handoff": {
     "checked": 3,
     "declared": 3,
     "passed": 3,
     "failing": "-",
     "vacuous": false,
-    "ms": 28
+    "ms": 50
    },
    "right_only_any": false,
    "cells": {
@@ -10622,7 +10945,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 1508,
+   "ms": 701,
    "verdict_extra": "",
    "prune_line": "[prune] watertank: [Low->PumpOff]",
    "admissible_lines": [
@@ -10668,7 +10991,7 @@
     "[repo-dyn-pre] Mid_L: [PumpOff] [repo-dyn-post]: [PumpOff]",
     "[repo-dyn-pre] High_L: [Low, MidEco, MidBoost, PumpOff] [repo-dyn-post]: [Low, MidEco, MidBoost, PumpOff]"
    ],
-   "wall_s": 1.57,
+   "wall_s": 0.9,
    "choice_entries": 0,
    "covers": [
     {
@@ -10804,20 +11127,20 @@
     ]
    ],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 3189,
+   "no_prune_ms": 1569,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 5437,
+   "no_cut_ms": 2469,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 6124,
+   "no_implied_ms": 2599,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 1402,
+   "no_linear_ms": 655,
    "handoff": {
     "checked": 6,
     "declared": 6,
     "passed": 6,
     "failing": "-",
     "vacuous": true,
-    "ms": 39
+    "ms": 55
    },
    "right_only_any": false,
    "cells": {
@@ -10864,7 +11187,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 4250,
+   "ms": 1865,
    "verdict_extra": "",
    "prune_line": "[prune] watertank_twospeed: [Fast->PumpOff]",
    "admissible_lines": [
@@ -10914,7 +11237,7 @@
     "[repo-dyn-pre] Mid_L: [PumpOff] [repo-dyn-post]: [PumpOff]",
     "[repo-dyn-pre] High_L: [Fast, Slow, MidEco, MidBoost, PumpOff] [repo-dyn-post]: [Fast, Slow, MidEco, MidBoost, PumpOff]"
    ],
-   "wall_s": 4.32,
+   "wall_s": 2.08,
    "choice_entries": 0,
    "covers": [
     {
@@ -11062,20 +11385,20 @@
     ]
    ],
    "no_prune_verdict": "DECLINED",
-   "no_prune_ms": 3245,
+   "no_prune_ms": 1473,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 6313,
+   "no_cut_ms": 2770,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 7535,
+   "no_implied_ms": 3080,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 4368,
+   "no_linear_ms": 1830,
    "handoff": {
     "checked": 6,
     "declared": 6,
     "passed": 6,
     "failing": "-",
     "vacuous": true,
-    "ms": 56
+    "ms": 42
    },
    "right_only_any": false,
    "cells": {
@@ -11122,7 +11445,7 @@
    "nonlinear_L": false,
    "nonlinear_R": false,
    "verdict": "CERTIFIED",
-   "ms": 338,
+   "ms": 177,
    "verdict_extra": "",
    "prune_line": "[prune] zone_lightmass_schedule: []",
    "admissible_lines": [
@@ -11153,7 +11476,7 @@
     "[repo-dyn-pre] COMFORT_L: [] [repo-dyn-post]: []",
     "[repo-dyn-pre] ECONOMY_L: [] [repo-dyn-post]: []"
    ],
-   "wall_s": 0.44,
+   "wall_s": 0.35,
    "choice_entries": 8,
    "covers": [
     {
@@ -11249,20 +11572,20 @@
    ],
    "pruned": [],
    "no_prune_verdict": "CERTIFIED",
-   "no_prune_ms": 330,
+   "no_prune_ms": 193,
    "no_cut_verdict": "CERTIFIED",
-   "no_cut_ms": 328,
+   "no_cut_ms": 183,
    "no_implied_verdict": "CERTIFIED",
-   "no_implied_ms": 321,
+   "no_implied_ms": 182,
    "no_linear_verdict": "CERTIFIED",
-   "no_linear_ms": 336,
+   "no_linear_ms": 151,
    "handoff": {
     "checked": 4,
     "declared": 4,
     "passed": 4,
     "failing": "-",
     "vacuous": true,
-    "ms": 39
+    "ms": 40
    },
    "right_only_any": false,
    "cells": {

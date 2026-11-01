@@ -1,5 +1,5 @@
-z3 = /usr/local/bin/z3
-== refutation verdicts : 77 mutants ==
+z3 = /opt/homebrew/bin/z3
+== refutation verdicts : 67 mutants ==
   UNSAT quad_light_lag_m021  (kind B, 1 groups, dim 4)
   UNSAT quad_light_lag_m023  (kind B, 1 groups, dim 4)
   UNSAT rover_ladder_6to8_m006  (kind B, 3 groups, dim 9)
@@ -60,22 +60,12 @@ z3 = /usr/local/bin/z3
   UNSAT hydro_rejection_gatecal_m024  (kind C, 2 groups, dim 4)
   UNSAT hydro_rejection_gatecal_m028  (kind C, 2 groups, dim 4)
   UNSAT ventilator_vc_cuffleak_m020  (kind C, 2 groups, dim 4)
-  UNSAT antenna_track_kvretune_m016  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m017  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m018  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m019  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m020  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m021  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m022  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m023  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m028  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m029  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m032  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m036  (kind C, 3 groups, dim 4)
-  UNSAT antenna_track_kvretune_m040  (kind C, 3 groups, dim 4)
   UNSAT charger_fast_tapers_m003  (kind C, 6 groups, dim 4)
   UNSAT girard_robot_m016  (kind B, 6 groups, dim 7)
   UNSAT platoon_profiles_m024  (kind B, 2 groups, dim 4)
   UNSAT platoon_profiles_m027  (kind B, 2 groups, dim 4)
-  [refute] 228 groups over the refutations
-  [coverage] refute: 228/228 hypotheses discharged
+  UNSAT h2_refuel_ambientbias_m003  (kind C, 6 groups, dim 4)
+  UNSAT platoon_latency_m040  (kind B, 2 groups, dim 4)
+  UNSAT platoon_latency_m043  (kind B, 2 groups, dim 4)
+  [refute] 199 groups over the refutations
+  [coverage] refute: 199/199 hypotheses discharged

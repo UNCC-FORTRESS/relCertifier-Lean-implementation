@@ -29,7 +29,9 @@
 # (epsilon = 2.0): with the bus under-voltage the ADCS runs its power-saving duty cycle and
 # evaluates the mode decision every other sensor cycle (a design value of this file, the same 2 s
 # the round-2 file used). Every decision interval is at most the period; the damping law is
-# continuous in the ODEs.
+# continuous in the ODEs. The M window: any left decision period strictly above the right's gives M,
+# with budget ceil(lambda x left period / right period) (2 at the stated 2:1 and lambda 4/5); the
+# stated periods are not at an edge.
 # Guards (entry conditions): the detumble controller engages with the body energy inside
 # its authority envelope, E <= 1 (e.g. |w1| <= 0.71 rad/s about x alone). The design
 # model declares the FDIR SAFE mode on an ENERGY threshold, E > 1 (actuators inhibited,

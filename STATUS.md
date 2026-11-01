@@ -102,15 +102,24 @@ certificates (261) and the refutations' groups (188) have their own runners. `re
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-11-01, branch `claude/brave-albattani-ylktc0` (batch I11), a 4-core Linux container, Lean 4.31.0 with
-Mathlib built from source, Z3 4.15.3: `lake build` exit 0 (18274 jobs with the five exes); `--check-quick-v2` 50/50, modal 876,
-handoff 511, non-connection 50, pruned 25, reposition 75, STRICT 180/180, PASSED; `relcert-test` `ALL PASS`;
-`relcert-bridge-verdicts` 4592/4592; `relcert-progress-verdicts` 167/167; `relcert-refute-verdicts` 414/414 and the 139
-refutation instances built; `WellFormedBattery` 66 axiom lines, all standard; `AxiomCheck` 9 lines; `benchmarks/negative/*`
-both DECLINED; `vehicle_hypercert_s8` 5 right modes BLOCKING, DECLINED under the strict switch. Previous: 2026-10-28, the same
-container (batch I10): modal 944, bridge 4580/4580, progress 151/151, refute 228/228 (77 instances). Previous: 2026-10-28, the same
-container (batch I9): modal 940, handoff 511, STRICT 180/180 (86 invariant, 94 exit), `relcert-bridge-verdicts` 4576/4576, the
-other counts as above. Previous: 2026-10-27, branch
+**Last verified run.** 2026-11-01, branch `claude/brave-albattani-ylktc0` (batch I12: the stop-line rover ladder for the rover
+refinement ladder, on top of batch I11), a 4-core Linux container, Lean 4.31.0 with Mathlib built from source, Z3 4.15.3:
+`lake build` exit 0 (18340 jobs with the five exes); `--check-quick-v2` 50/50, modal 936, handoff 528,
+non-connection 64, pruned 32, reposition 76, STRICT 184/184 (88 invariant, 96 exit), PASSED; `relcert-test`
+`ALL PASS`; `relcert-bridge-verdicts` 4878/4878; `relcert-progress-verdicts` 215/215; `relcert-refute-verdicts`
+385/385 and the 129 refutation instances built; `WellFormedBattery` 66 axiom lines, all standard; `AxiomCheck` 9 lines;
+`benchmarks/negative/*` both DECLINED; `vehicle_hypercert_s8` 5 right modes BLOCKING, DECLINED under the strict switch. Previous: 2026-10-28, branch `claude/brave-albattani-ylktc0` (batch I11: the three swaps of the reserve scan),
+Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (18130 jobs with the five exes); `--check-quick-v2` 50/50, modal 1004,
+handoff 528, non-connection 64, pruned 32, reposition 76, STRICT 184/184 (88 invariant, 96 exit), PASSED; `relcert-test`
+`ALL PASS`; `relcert-bridge-verdicts` 4866/4866; `relcert-progress-verdicts` 199/199; `relcert-refute-verdicts` 199/199 and
+the 67 refutation instances built; `WellFormedBattery` 66 axiom lines, all standard; `AxiomCheck` 9 lines;
+`benchmarks/negative/*` both DECLINED; `vehicle_hypercert_s8` 5 right modes BLOCKING, DECLINED under the strict switch.
+Previous: 2026-10-28, the same branch (batch I10), a 4-core Linux container, Lean 4.31.0 with Mathlib built from source,
+Z3 4.15.3: `lake build` exit 0 (18150 jobs with the five exes); `--check-quick-v2` 50/50, modal 944, handoff 511,
+non-connection 50, pruned 25, reposition 75, STRICT 180/180 (86 invariant, 94 exit), PASSED; `relcert-bridge-verdicts`
+4580/4580; `relcert-progress-verdicts` 151/151; `relcert-refute-verdicts` 228/228 and the 77 refutation instances built; the
+other counts as above. Previous: 2026-10-28, the same container (batch I9): modal 940, handoff 511, STRICT 180/180 (86
+invariant, 94 exit), `relcert-bridge-verdicts` 4576/4576. Previous: 2026-10-27, branch
 `benchmark-fixes` (commit `aedcd61`), Apple M2 Max, Z3 4.15.1:
 `lake build` exit 0 (9273 jobs); `--check-quick-v2` 50/50, modal 1182, handoff 551, non-connection 50, pruned 25,
 reposition 75, STRICT 187/187, PASSED (a first run that day ERRORed `rover_ladder_8to12` after 260 s, against its usual

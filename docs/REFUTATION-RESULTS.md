@@ -137,36 +137,42 @@
 > Batch I10 (2026-10-28): `bms_chiller_undercharge` (8 witness lines, no refutation) left the suite and
 > `zone_lightmass_schedule` came in (the finder with `--only`: 8 mutants, no witness). Witness lines 949 -> 949;
 > instances 77 -> 77; groups 228 -> 228.
-> Batch I11 (2026-11-01, the stop-line rover ladder replaces the rover refinement ladder): `rover_ladder_2to3`,
+> Batch I11 (2026-10-28, the reserve scan): `antenna_track_kvretune` (44 witness lines, 13 refutations, 39 groups),
+> `compressor_station_recycle` (16 lines, none) and `molding_pack_checkring` (24 lines, none) left the suite;
+> `platoon_latency` came back (the finder with `--only`: 67 mutants, m040 and m043 refuted again, kind B, 2 groups each),
+> `h2_refuel_ambientbias` (6 mutants, m003 refuted, kind C, 6 groups) and `reactor_feed_wireless` (16 mutants, no witness)
+> came in; each refuted mutant DECLINED by relcert. Witness lines 949 -> 954; instances 77 -> 67; groups 228 -> 199.
+> Batch I12 (2026-11-01, the stop-line rover ladder replaces the rover refinement ladder): `rover_ladder_2to3`,
 > `_3to6`, `_6to8` and `_8to12` left the suite with their 9 refutations (`rover_ladder_6to8` m006, m009;
 > `rover_ladder_8to12` m005, m006, m008, m009, m010, m019, m026) and 66 witness lines; the finder ran on the four
 > rungs (`--only`): `stopline_rover_2to5` 34 mutants, 5 witnesses (the heading rows and `s_L <= p_L` flipped, kind B;
 > `p_R >= 100` and the loss row flipped, kind C: a flipped loss row is refuted outright), `stopline_rover_5to8` 51
 > mutants, 9 witnesses (7 B, 2 C), `stopline_rover_8to11` 75 mutants, 17 witnesses (15 B, 2 C), `stopline_rover_11to15`
 > 99 mutants, 40 witnesses (39 B, 1 A: the lateral requirement rows of the 15-dimensional level, flipped or dropped),
-> each DECLINED by relcert. Witness lines 949 -> 1142; instances 77 -> 139; groups 228 -> 414.
-> Current instance set: **139 refutations, 414 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1142 mutants in
-> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I10
-> (`scripts/refute_experiment.py`, 2 parallel jobs in a 4-core cloud container, the 300 s default budget; the verdicts of the
-> mutants of the benchmarks batches I9 and I10 changed, swapped or added were re-measured, the others kept from the 2026-10-27
-> run; `docs/refute/relcert.json`, `results.json`, `runner.log`): 949 mutants, 343 certified, 77 kernel-refuted, 529 open
-> (9 of them relcert ERRORs by the time budget: `rover_ladder_6to8_m021`, `rover_ladder_8to12_m005`, `_m010`, `_m016`,
-> `_m024`, `sat3w_detumble_phases_m011`, `_m012`, `_m014`, `_m015`, the same nine as on 2026-10-27); by operator RRO/SNO
-> 38/30/139, MCO 101/13/105, ORO 204/34/285 (certified/refuted/open); by kind B 59, C 18; kernel-refuted and certified:
-> none. (2026-10-27, 983 mutants: 342 certified, 77 kernel-refuted, 564 open, the same nine ERRORs; RRO/SNO 31/30/154,
-> MCO 102/13/112, ORO 209/34/298.) All 77 are DECLINED by relcert at the default time budget (300 s since 2026-10-27;
-> decline check of `benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, 2 parallel jobs in the container: 77/77 DECLINED,
-> the slowest `rover_ladder_8to12_m005` in 94 s, 46 s on the owner's machine with 4 jobs on 2026-10-27;
-> `docs/refute/decline_default_budget.tsv`).
+> each DECLINED by relcert. Witness lines 954 -> 1147; instances 67 -> 129; groups 199 -> 385.
+> Current instance set: **129 refutations, 385 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1147 mutants in
+> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11
+> (`scripts/refute_experiment.py`, 4 parallel jobs on the owner's Apple M2 Max, Z3 4.15.1, the 300 s default budget; the
+> verdicts of the mutants of the three incoming benchmarks were measured, the others kept from the batch I10 run in the
+> cloud container; `docs/refute/relcert.json`, `results.json`, `runner.log`): 954 mutants, 366 certified, 67 kernel-refuted,
+> 521 open (9 of them relcert ERRORs by the time budget, kept from the container run: `rover_ladder_6to8_m021`,
+> `rover_ladder_8to12_m005`, `_m010`, `_m016`, `_m024`, `sat3w_detumble_phases_m011`, `_m012`, `_m014`, `_m015`, the same
+> nine as on 2026-10-27); by operator RRO/SNO 38/27/141, MCO 107/10/99, ORO 221/30/281 (certified/refuted/open); by kind
+> B 61, C 6; kernel-refuted and certified: none. (Batch I10, 2026-10-28: 949 mutants, 343 certified, 77 kernel-refuted,
+> 529 open; RRO/SNO 38/30/139, MCO 101/13/105, ORO 204/34/285. 2026-10-27, 983 mutants: 342 certified, 77 kernel-refuted,
+> 564 open; RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298.) All 67 are DECLINED by relcert at the default time budget
+> (300 s since 2026-10-27; decline check of `benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, 4 parallel jobs on the
+> owner's machine: 67/67 DECLINED, the slowest `rover_ladder_8to12_m005` in 48 s; `docs/refute/decline_default_budget.tsv`).
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim
 
-> Of the 776 Black-Okun-Yesha mutants of the 50 suite benchmarks, **67 are proved false in the
-> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 303 are certified
-> by relcert, and 406 are open. **relcert certifies none of the 67.**
+> Of the 954 Black-Okun-Yesha mutants of the 50 suite benchmarks, **67 are proved false in the
+> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 366 are certified
+> by relcert, and 521 are open. **relcert certifies none of the 67.** (2026-10-28, batch I11;
+> the 2026-10-21 run: 776 mutants, 67 refuted, 303 certified, 406 open.)
 
 The trust base of a refutation is the trust base of a certificate: the parser and lowering
 (the instance quotes the parser-emitted IR of the mutant file), the query printer and Z3's

@@ -1,12 +1,11 @@
-commit 7f533af8141af77914954cb56e64fa7444859c4c clean
-z3 Z3 version 4.15.3 - 64 bit
-os Linux 6.18.44-fc-v180 x86_64
-date 2026-10-28T02:35:45Z
+commit 84ce7d5c4d510adb0819a1558e1301590e1a0e97 DIRTY
+z3 Z3 version 4.15.1 - 64 bit
+os Darwin 25.5.0 arm64
+date 2026-10-28T19:26:19Z
 flags RELCERT_IMPLIED_CUT=1 (all runs); per-run switches in the run names
 covers identical
 
-batch I10 run (2026-10-28): scripts/paper_numbers.sh re-run on the batch I10 tip (its bash port, same steps and outputs; zsh is not installed on the machine) in a 4-core cloud container with no other job running. Verdicts, covers and letters are machine-independent; letters S 19, M 24, R 6, B 11, P 5, D 12, I 17, X 16 (frozen 2026-10-27: S 12, M 15, R 6, B 8, P 5, D 12, I 17, X 16); benchmarks certifying under RELCERT_SYNC=1 26 (frozen 33; batch I9 27).
-timing numbers: the container is slower than the laptop of the 2026-10-27 frozen run (control-run total 215 s against 115 s; slowest 65 s against 35 s; 17 files under 1 s against 29); \totaltimes, \numunderonesec, \slowesttime and the per-file times in letters.md / matrix.md should be re-taken on the owner's machine before they are quoted. No file hit the 300 s time budget.
+batch I11 run (2026-10-28): scripts/paper_numbers.sh re-run on the batch I11 tip (84ce7d5: platoon_latency, reactor_feed_wireless and h2_refuel_ambientbias in; antenna_track_kvretune, compressor_station_recycle and molding_pack_checkring to the reserve) on the owner's Apple M2 Max (12 cores), Z3 4.15.1, nothing else running. "DIRTY" above: the only uncommitted files were docs (STATUS.md, docs/CERTIFICATION-CHECK.md, docs/REFUTATION-RESULTS.md) and the refutation experiment's outputs under docs/refute/, committed with this run; no benchmark, script, binary or Lean file differed from 84ce7d5. Letters S 19, M 25, R 7, B 12, P 6, D 12, I 18, X 15 (batch I10: S 19, M 24, R 6, B 11, P 5, D 12, I 17, X 16; frozen 2026-10-27: S 12, M 15, R 6, B 8, P 5, D 12, I 17, X 16); benchmarks certifying under RELCERT_SYNC=1 25 (batch I10 26; frozen 33).
+timing numbers (this machine): control-run total 108 s, 28 files under 1 s, slowest rover_ladder_8to12 34 s; no file hit the 300 s time budget (RELCERT_TIME_BUDGET_MS at its default). These are the numbers to quote (\totaltimes, \numunderonesec, \slowesttime and the per-file times in letters.md / matrix.md); the batch I10 run in the cloud container was slower (215 s total, slowest 65 s).
 D rule (owner, 2026-10-27): D counts where the stated requirement differs per mode, so the claim needs mode-dependent rows, even if a weaker uniform row that drops a stated requirement certifies (matrix M5 AND every uniform row set from the file's own rows that keeps every stated requirement DECLINES; "keeps" = implies every mode's row, Z3 over the reals; the conjunction of the rows when no single row implies all). The earlier strict rule (every uniform row set declines) is kept as diagnostic D_strict.
 \numnolinear (certified without decoupling forms, 50) is informational, not a paper number (no benchmark needs a decoupling form); numbers.tex marks it.
-time budget: the default RELCERT_TIME_BUDGET_MS is 300 s; this run used the default (no budget ERROR in any run).

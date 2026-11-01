@@ -32,11 +32,11 @@ CHOICE = {
     "watertank_choice": dict(ns="ChoiceWatertank", G="GrP", n=2),
 }
 
-KEYED = {"acc_tune_limp", "antenna_track_kvretune", "charger_fast_tapers", "elevator_start_discbrake",
-         "engine_start_highidle", "hydro_rejection_gatecal", "molding_pack_checkring",
-         "platoon_linkloss", "platoon_profiles", "stopline_rover_11to15", "stopline_rover_2to5",
-         "stopline_rover_5to8", "stopline_rover_8to11", "syringe_relay_prearm",
-         "tunnel_jetfan_pairout", "ventilator_vc_cuffleak"}
+KEYED = {"acc_tune_limp", "charger_fast_tapers", "elevator_start_discbrake",
+         "engine_start_highidle", "h2_refuel_ambientbias", "hydro_rejection_gatecal",
+         "platoon_latency", "platoon_linkloss", "platoon_profiles", "syringe_relay_prearm",
+         "tunnel_jetfan_pairout", "ventilator_vc_cuffleak",
+         "stopline_rover_11to15", "stopline_rover_2to5", "stopline_rover_5to8", "stopline_rover_8to11"}
 
 
 def all_benches():

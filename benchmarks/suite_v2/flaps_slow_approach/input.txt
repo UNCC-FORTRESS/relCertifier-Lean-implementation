@@ -82,8 +82,9 @@
 # the integrator-stretch template of furnace_program_timebase and bottling_fill_strainer). It is the
 # suite's cleanest per-mode stretch: the ratio 1/2 is a hardware fact (one of two hydraulic motors
 # on the flap drive), the stretch applies while the flaps move and not once they are set, and the
-# speed row is a tolerance claim; it takes the place of tank_dos_3to1 (M I, the chain-depth
-# template carried by insulin_basal_cgmloss, fuelcell_chp_dos, grid_ffr_dos and the satellites).
+# speed row is a tolerance claim; it took the place of insulin_basal_cgmloss (M B, in the reserve
+# since batch I9; the chain-depth template stays in the suite with tank_dos_3to1 (M I),
+# fuelcell_chp_dos, grid_ffr_dos and the satellites).
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
 # 0.6 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,

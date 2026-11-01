@@ -1,0 +1,175 @@
+# reactor_feed_wireless: an exothermic continuous stirred-tank reactor whose feed rate is interlocked
+# to the reactor temperature (feed only as fast as the reaction can consume it), after its wired
+# temperature transmitter was replaced by a wireless one publishing every 2 min, against the
+# validated interlock reading the temperature every minute. The same interlock law on both sides.
+# scenario: degraded-sensor
+# mechanisms: M B P (multi-cycle matching: one deployed reading against two design readings;
+#   branching from STATE-DEPENDENT successors, the design's interlock is a deterministic partition;
+#   non-connection pruning of four edges into LIVE levels, RELCERT_NO_PRUNE=1 declines; matrix codes
+#   M2 M3 M4)
+#
+# System (both sides). Reactor temperature T and cooling-water supply temperature p in degC, time in
+# min. Reaction heat removed through the jacket, thermal time constant 10 min; at feed level F_k the
+# reactor settles 4 k K above the cooling water (reaction heat proportional to the feed rate, 4 K per
+# 25 % feed): T' = 0.1 (p + 4 k - T), k = 1..4 (25, 50, 75, 100 % feed). p is set by the plant's
+# cooling tower and is constant over the event, p in [15, 35] degC (winter to summer).
+# Interlock (identical on both sides): the reaction consumes feed faster the hotter it is, so the
+# permitted feed rises with temperature (feed accumulation, a runaway precursor, is prevented by
+# never feeding faster than the reaction at the measured temperature can consume):
+#   F1 (25 %) for T < 25, F2 (50 %) on [25, 35), F3 (75 %) on [35, 45], F4 (100 %) for T > 45.
+# The level is a function of the reading (a static map), so every level may follow every level
+# (next = all four on both sides; relcert --wellformed: F1 ok (exit->F2), F2 ok (exit->F1,F3),
+# F3 ok (exit->F2,F4), F4 ok (exit->F3)).
+# Right (validated design, epsilon 1 min): the batch sequencer evaluates the interlock every minute
+#   on a wired RTD.
+# Left (deployed, epsilon 2 min): the same sequencer and interlock; the RTD was replaced by a
+#   WirelessHART transmitter publishing every 120 s (battery-life setting), so each feed level is
+#   held for up to 2 min. The publish period is the only difference (same reactor, feed levels,
+#   thresholds, cooling water). lambda_min = lambda_max = 1: the claim compares the two reactors at
+#   equal times, one deployed reading matched by two design readings.
+#
+# Property (every left mode): |T_L - T_R| <= 9, p_L = p_R. Requirement (two process-safety limits, each
+# 9 K from the validated envelope): the reaction mass boils at 60 degC, and the validated interlock
+# never takes the reactor above 51 degC (F4 at the warmest cooling water, 35 + 16); below 10 degC the
+# reaction stops and feed accumulates, and the validated interlock never takes the reactor below
+# 19 degC (F1 at the coldest cooling water, 15 + 4). A deployed run within 9 K of a validated run
+# therefore neither boils nor accumulates feed. Tightest 8.00 (7.99 declines) = two feed levels
+# (2 x 4 K); certified window [8.00, 10.00] (from 10.01 the admissible starts span two bands, the
+# band width is 10 K, and a three-level pairing appears; 10.01 to 11.99 DECLINE, 12.00 = three
+# levels certifies, with nothing load-bearing). Not implied by the domains (they allow 45 K).
+#
+# Why branching (B), from the state. The design's interlock is deterministic: which level follows F2
+# depends on where its temperature goes, and that depends on the cooling water: F2 settles at p + 8,
+# below 25 (successor F1) for p < 17 and above 35 (successor F3) for p > 27; F3 settles at p + 12,
+# below 35 (F2) for p < 23 and above 45 (F4) for p > 33. In each deployed window the design takes
+# one joint step (budget 2) from the level it starts in, and both neighbours are retained successors
+# (branching 2 in every left mode). No choice is involved (RELCERT_NO_CHOICE=1 CERTIFIES with the
+# same cover).
+# Why pruning is needed (P), from edges into live levels. Pruned: F1 -> F4 and F2 -> F4 (F1 and F2
+# settle at most at 35 + 4 = 39 and 35 + 8 = 43 < 45: at T = 45 their flow is negative for every
+# p), F3 -> F1 and F4 -> F1 (they settle at least at 15 + 12 = 27 and 15 + 16 = 31 > 25: at T = 25
+# their flow is positive). The targets are live levels, not sinks: F3 reaches F4 for p > 33 and F2
+# reaches F1 for p < 17, and F4 and F1 return to F3 and F2. In a deployed F1 window the design may
+# start in F2 (within 9 K of a reading below 25) and step once; without the pruning its successors
+# include F4, three levels (12 K) above the deployed's F1, and the choice cannot drop F4 (no cut
+# bounds the temperature at the segment end: every level's settling point moves with p, so no guard
+# atom is kept by its flow, and above 45 only F4 is enabled). Symmetrically for F4 windows.
+# RELCERT_NO_PRUNE=1 DECLINES (it needs 12.00 = three levels). Window (measured, coolant range): the
+# pruning holds for p_lo > 13 and p_hi < 37 ([13, 35] and [15, 37] DECLINE); the targets are live
+# only for p_lo < 17 and p_hi > 33; the stated range is inside both.
+# Multi-cycle matching (M): budget 2 in every left mode, one joint step.
+# How the claim depends on the cause (measured, tightest tolerance by bisection): publish period 1 min
+# (no cause): the exact claim (constant 0) CERTIFIES (one segment, nothing pruned or branched);
+# 2 min (this file): 8.00; 3 min: 12.00, above the 9 K requirement (the design may be three levels
+# away). Simulated worst gap |T_L - T_R| from equal starts (p on a 0.5 K grid, T0 on a 1 K grid,
+# 180 min): 0.87 K at 2 min, 1.33 K at 3 min: the certificate is an inductive envelope over
+# unbounded segment durations, which grows with the number of design readings per deployed reading
+# as the reachable levels do. Law dependence: an arbitrary deployed level schedule (every left
+# guard the whole domain) needs 12.00 and DECLINES at 9.
+#
+# Not modeled, stated: an independent high-temperature feed stop (a latched protective function set
+# above the operating envelope) and the cooling-water loop's own control; within the modeled coolant
+# range the validated interlock never exceeds 51 degC, 9 K below the boiling point, which is what the
+# 9 K band transfers to the deployed reactor. The thermal constants (10 min time constant, 4 K per
+# 25 % feed) and the four-level interlock are design values of this file; the 120 s publish period is
+# a WirelessHART burst-rate setting.
+# Letter windows. M: budget 2 at every publish period in (1, 2] min (one deployed reading against two
+# design readings); B: branching 2 at every left level for every coolant range that contains the
+# switch points (p_lo < 17 and p_hi > 33); P: the pruning holds for p_lo > 13 and p_hi < 37, the
+# stated [15, 35] is inside both; tolerance window [8.00, 10.00] around the stated 9.
+#
+# Template note: this is the positive-association schedule of fuelcell_chp_dos (the selected level
+# drives the selecting variable the same way, so far levels are unreachable), here with a
+# deterministic reference (state-dependent branching, no commanded alternatives, no choice), four
+# levels and a sensor-rate cause.
+#
+# Domains. T in [15, 60] degC: 15 = the coldest cooling water (every flow is >= 4 K x 0.1 /min > 0
+# there), 60 = the boiling point (every flow is <= -0.9 K/min there); forward invariant at every
+# level. p in [15, 35] degC, constant. The right guards partition [15, 60] (no coverage gap); the
+# left guards partition it; every left mode has a satisfiable start (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, copied binary): CERTIFIED (0.8 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1,
+# RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_NO_PRUNE=1 and
+# NO_PRUNE+NO_CHOICE. Cover: every left mode at lambda 1, budget 2; F1_L admissible [F1, F2], path
+# F1 F2 F3; F2_L [F1, F2, F3], path F1..F4; F3_L [F2, F3, F4], path F1..F4; F4_L [F3, F4], path
+# F2 F3 F4; branching 2 in every left mode. Pruned F1->F4, F2->F4, F3->F1, F4->F1. Rows identical
+# (--handoff vacuous, 16/16). relcert --wellformed: 4 ok (exit), 0 UNKNOWN. Letters: M B P.
+# Re-measured 2026-10-28 (reserve scan; the branch binary built from fb55b6e;
+# RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED (0.7 s); CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and
+# RELCERT_WELLFORMED_STRICT=1 (--wellformed: 4 right modes ok (exit), 0 UNKNOWN, 0 BLOCKING);
+# DECLINED under RELCERT_NO_PRUNE=1 and NO_PRUNE+NO_CHOICE. --handoff 16/16 checked, 16 passed
+# (vacuous, identical rows). Letters measured by scripts/suite_v2_letters.py: M B P (matrix M2 M3
+# M4).
+#
+[problem]
+name = reactor_feed_wireless
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 120.0
+
+[Lsys]
+state_vars = [T, p]
+epsilon = 2.0
+
+[Lsys.mode.F1]
+ode = T' = smt2:(* 0.1 (- (+ p 4.0) T)); p' = 0.0;
+guard = T < 25.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[Lsys.mode.F2]
+ode = T' = smt2:(* 0.1 (- (+ p 8.0) T)); p' = 0.0;
+guard = T >= 25.0 and T < 35.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[Lsys.mode.F3]
+ode = T' = smt2:(* 0.1 (- (+ p 12.0) T)); p' = 0.0;
+guard = T >= 35.0 and T <= 45.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[Lsys.mode.F4]
+ode = T' = smt2:(* 0.1 (- (+ p 16.0) T)); p' = 0.0;
+guard = T > 45.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[Rsys]
+state_vars = [T, p]
+epsilon = 1.0
+
+[Rsys.mode.F1]
+ode = T' = smt2:(* 0.1 (- (+ p 4.0) T)); p' = 0.0;
+guard = T < 25.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[Rsys.mode.F2]
+ode = T' = smt2:(* 0.1 (- (+ p 8.0) T)); p' = 0.0;
+guard = T >= 25.0 and T < 35.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[Rsys.mode.F3]
+ode = T' = smt2:(* 0.1 (- (+ p 12.0) T)); p' = 0.0;
+guard = T >= 35.0 and T <= 45.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[Rsys.mode.F4]
+ode = T' = smt2:(* 0.1 (- (+ p 16.0) T)); p' = 0.0;
+guard = T > 45.0 and T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
+next = [F1, F2, F3, F4]
+
+[relational_invariant]
+F1 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]
+F2 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]
+F3 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]
+F4 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]

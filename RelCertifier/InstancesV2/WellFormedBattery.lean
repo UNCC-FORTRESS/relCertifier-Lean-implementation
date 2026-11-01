@@ -71,7 +71,6 @@ import RelCertifier.InstancesV2.WellFormed.LitCsf25SaltTankHold
 import RelCertifier.InstancesV2.WellFormed.Watertank
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLag
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLimp
-import RelCertifier.InstancesV2.WellFormed.AccTuneLag
 import RelCertifier.InstancesV2.WellFormed.AccTuneLimp
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
 import RelCertifier.InstancesV2.WellFormed.GantrySpeedZones
@@ -79,9 +78,10 @@ import RelCertifier.InstancesV2.WellFormed.StoplineLag
 import RelCertifier.InstancesV2.WellFormed.StoplineFriction
 import RelCertifier.InstancesV2.WellFormed.StoplineTyre
 import RelCertifier.InstancesV2.WellFormed.StoplineDrag
-import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
-import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
-import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
+import RelCertifier.InstancesV2.WellFormed.RoverLadder2to3
+import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
+import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
+import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
 import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
 import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
 import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
@@ -115,14 +115,14 @@ namespace WellFormedBattery
 
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
-  ["platoon_linkloss", "platoon_profiles", "boiler_purge_vfd",
+  ["platoon_profiles", "boiler_purge_vfd",
    "molding_pack_checkring", "quad_light_profiles",
-   "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
+   "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_limp",
    "quad_light_lag", "autoclave_liquid_steambank", "gantry_speed_zones",
    "stopline_lag",
    "stopline_friction", "stopline_tyre",
-   "stopline_drag", "rover_terrain_2to4",
-   "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
+   "stopline_drag", "rover_ladder_2to3",
+   "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
    "turbine_startup_gearratio", "rampmeter_poll_2to1",
    "h2_refuel_ambientbias", "extruder_pe100_manualstart", "elevator_start_discbrake",
    "furnace_program_timebase", "reactor_feed_wireless", "syringe_relay_prearm",
@@ -202,12 +202,15 @@ pre-landing demo's direct proof under the suite name, and `extruder_pe100_manual
 exponential runs at dimension 2 as `reactor_feed_wireless` with the recipe range from the guards, for
 `fuelcell_chp_dos` and `rover_terrain_6to12`); unchanged by batch 14 (2026-11-01: the stop-line
 ladder `stopline_{lag,friction,tyre,drag}`, four explicit-run proofs through the shared
-`wellFormedR_stopline`, for `rover_ladder_{2to3,3to6,6to8,8to12}`). -/
+`wellFormedR_stopline`, for `rover_ladder_{2to3,3to6,6to8,8to12}`); unchanged by batch 15
+(2026-11-01: `rover_ladder_{2to3,3to6,6to8,8to12}` back, their proofs of d9f0223 through the shared
+`wellFormedR_terrain`, for `rover_terrain_{2to4,4to6}`, `platoon_linkloss` and `acc_tune_lag`;
+the four `stopline_*` proofs now the full-fidelity rungs', from cd7499f adapted to the shared box). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
-  ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
+  ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_limp", "antenna_track_kvretune",
    "autoclave_liquid_steambank", "boiler_purge_vfd", "bottling_fill_strainer",
    "canal_gate_notches", "elevator_start_discbrake", "engine_start_highidle",
    "extruder_pe100_manualstart", "flaps_slow_approach", "furnace_program_timebase",
@@ -215,9 +218,9 @@ def suiteNames : List String :=
    "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo", "lit_csf25_salt_tank_hold",
    "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot", "lit_gpt10_boost_converter",
    "lit_lz21_vehicle_position", "lit_nahs25_engine_cooling", "lit_nahs25_salt_tank",
-   "molding_pack_checkring", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
-   "quad_light_profiles", "rampmeter_poll_2to1", "reactor_feed_wireless", "rover_terrain_2to4",
-   "rover_terrain_4to6", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
+   "molding_pack_checkring", "platoon_profiles", "quad_light_lag",
+   "quad_light_profiles", "rampmeter_poll_2to1", "reactor_feed_wireless", "rover_ladder_2to3",
+   "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
    "stopline_drag", "stopline_friction", "stopline_lag", "stopline_tyre", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry", "turbine_startup_gearratio",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
 
@@ -252,7 +255,6 @@ end WellFormedBattery
 #print axioms V2FlapsSlowApproach.flaps_slow_approach_wellFormedR
 #print axioms V2AccSpoofLag.acc_spoof_lag_wellFormedR
 #print axioms V2AccSpoofLimp.acc_spoof_limp_wellFormedR
-#print axioms V2AccTuneLag.acc_tune_lag_wellFormedR
 #print axioms V2AccTuneLimp.acc_tune_limp_wellFormedR
 #print axioms V2QuadLightLag.quad_light_lag_wellFormedR
 #print axioms V2GantrySpeedZones.gantry_speed_zones_wellFormedR
@@ -260,12 +262,13 @@ end WellFormedBattery
 #print axioms StoplineFriction.stopline_friction_wellFormedR
 #print axioms StoplineTyre.stopline_tyre_wellFormedR
 #print axioms StoplineDrag.stopline_drag_wellFormedR
-#print axioms RoverTerrain2to4Guarded.rover_terrain_2to4_wellFormedR
-#print axioms RoverTerrain4to6Guarded.rover_terrain_4to6_wellFormedR
+#print axioms RoverLadder2to3Guarded.rover_ladder_2to3_wellFormedR
+#print axioms RoverLadder3to6Guarded.rover_ladder_3to6_wellFormedR
+#print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR
+#print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
 
 /-! ## The later additions: Assumption 1 at every mode -/
 
-#print axioms V2PlatoonLinkloss.platoon_linkloss_wellFormedR
 #print axioms V2PlatoonProfiles.platoon_profiles_wellFormedR
 #print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
 #print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR

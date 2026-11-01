@@ -1,0 +1,20 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# `rover_ladder_8to12` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+
+Regenerate with `scripts/gen_v2_data.py rover_ladder_8to12`.
+-/
+import RelCertifier.Checker.CoverEmit
+
+namespace RelCertifier
+
+/-- `rover_ladder_8to12` (emitted, suite_v2, widened cut channel on). -/
+def rover_ladder_8to12_coverV2 : CoverEmitE :=
+  ⟨"rover_ladder_8to12", [], [
+    ⟨"STEEP", (11 : ℚ) / 10, 2, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 24, 1], [], [], 11, 10⟩, ⟨"MODER", [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], [], [], 11, 10⟩, ⟨"FLAT", [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], [], [], 11, 10⟩]⟩,
+    ⟨"MODER", (11 : ℚ) / 10, 2, [⟨"STEEP", false, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 24, 12, 13], [], [], 11, 10⟩, ⟨"MODER", [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], [], [], 11, 10⟩, ⟨"FLAT", [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], [], [], 11, 10⟩]⟩,
+    ⟨"FLAT", (11 : ℚ) / 10, 2, [⟨"STEEP", false, false, false⟩, ⟨"MODER", false, false, false⟩, ⟨"FLAT", true, false, false⟩], ["FLAT"], [⟨"STEEP", [4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 24, 12, 13], [], [], 11, 10⟩, ⟨"MODER", [4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 12, 13], [], [], 11, 10⟩, ⟨"FLAT", [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], [], [], 11, 10⟩]⟩]⟩
+
+end RelCertifier

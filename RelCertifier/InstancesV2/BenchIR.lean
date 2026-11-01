@@ -10,7 +10,6 @@ compares it with the literal of the same name in `benchIRTableV2`.
 -/
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
-import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
 import RelCertifier.InstancesV2.BenchIR.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchIR.autoclave_liquid_steambank
@@ -36,14 +35,15 @@ import RelCertifier.InstancesV2.BenchIR.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchIR.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.BenchIR.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchIR.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
 import RelCertifier.InstancesV2.BenchIR.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchIR.reactor_feed_wireless
-import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to4
-import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
+import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
+import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
+import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
+import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
@@ -64,7 +64,6 @@ namespace RelCertifier.Parse
 def benchIRTableV2 : List (String × PProblem) := [
   ("acc_spoof_lag", acc_spoof_lag_IRv2),
   ("acc_spoof_limp", acc_spoof_limp_IRv2),
-  ("acc_tune_lag", acc_tune_lag_IRv2),
   ("acc_tune_limp", acc_tune_limp_IRv2),
   ("antenna_track_kvretune", antenna_track_kvretune_IRv2),
   ("autoclave_liquid_steambank", autoclave_liquid_steambank_IRv2),
@@ -90,14 +89,15 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("lit_nahs25_engine_cooling", lit_nahs25_engine_cooling_IRv2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_IRv2),
   ("molding_pack_checkring", molding_pack_checkring_IRv2),
-  ("platoon_linkloss", platoon_linkloss_IRv2),
   ("platoon_profiles", platoon_profiles_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_IRv2),
   ("reactor_feed_wireless", reactor_feed_wireless_IRv2),
-  ("rover_terrain_2to4", rover_terrain_2to4_IRv2),
-  ("rover_terrain_4to6", rover_terrain_4to6_IRv2),
+  ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
+  ("rover_ladder_3to6", rover_ladder_3to6_IRv2),
+  ("rover_ladder_6to8", rover_ladder_6to8_IRv2),
+  ("rover_ladder_8to12", rover_ladder_8to12_IRv2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),

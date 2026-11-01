@@ -76,55 +76,64 @@ def packsV2 : List PackV2 :=
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 0⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    -- platoon_linkloss (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"platoon_linkloss", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 0, 0⟩,
-    ⟨"platoon_linkloss", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 1, 0⟩,
+    -- rover_ladder_2to3 (rows derived from the emitted cover: the joint pairings reached in each window)
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
     -- at λ = 1 (budget 2 since batch I9: the 0.2 s link-loss decision)
     -- pruned): the CACC_UP/CACC_DN windows against CACC, AEB against AEB, at λ = 1, budget 1
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
-    -- acc_tune_lag (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"acc_tune_lag", 2, 0, [0, 1, 2, 3], 2, 1, 0, 0⟩,
+    -- rover_ladder_3to6 (rows derived from the emitted cover: the joint pairings reached in each window)
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 2, 2⟩,
     -- acc_spoof_lag (cover replay at λ = 3/2, budget 2: the dominant-mode claim, batch I9)
     ⟨"acc_spoof_lag", 2, 0, [1, 0], 3, 2, 0, 0⟩,
-    -- rover_terrain_2to4 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3, 4], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 4, 0, 1], 1, 1, 2, 2⟩,
-    -- rover_terrain_4to6 (cover replay)
-    ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 7, 0, 1, 4], 1, 1, 2, 2⟩,
+    -- rover_ladder_6to8 (rows derived from the emitted cover: the joint pairings reached in each window)
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 0, 0⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 0, 1⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 0, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 1, 1⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 1, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 2, 2⟩,
+    -- rover_ladder_8to12 (rows derived from the emitted cover: the joint pairings reached in each window)
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 24, 1], 11, 10, 0, 0⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], 11, 10, 0, 1⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], 11, 10, 0, 2⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 1, 1⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 1, 2⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 2, 2⟩,
     -- stopline_drag (rows derived from the emitted cover: the joint pairings reached in each window)
-    ⟨"stopline_drag", 4, 0, [2, 3, 5, 7, 8, 9, 10, 11, 0, 1, 4, 6], 1, 1, 0, 0⟩,
-    ⟨"stopline_drag", 4, 1, [0, 3, 2, 1], 1, 1, 1, 1⟩,
-    ⟨"stopline_drag", 4, 1, [0, 3, 2, 1], 1, 1, 1, 2⟩,
-    ⟨"stopline_drag", 4, 2, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"stopline_drag", 4, 2, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"stopline_drag", 15, 0, [2, 3, 5, 7, 8, 9, 10, 11, 18, 19, 20, 21, 22, 23, 28, 29, 30, 0, 1, 4, 6, 12, 13, 14, 15, 16, 17, 26, 27, 24, 25], 1, 1, 0, 0⟩,
+    ⟨"stopline_drag", 15, 1, [0, 3, 10, 11, 12, 13, 14, 15, 20, 21, 22, 2, 4, 5, 6, 7, 8, 9, 18, 19, 1, 16, 17], 1, 1, 1, 1⟩,
+    ⟨"stopline_drag", 15, 1, [0, 3, 10, 11, 12, 13, 14, 15, 20, 21, 22, 2, 4, 5, 6, 7, 8, 9, 18, 19, 1, 16, 17], 1, 1, 1, 2⟩,
+    ⟨"stopline_drag", 15, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 1, 1, 2, 1⟩,
+    ⟨"stopline_drag", 15, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 1, 1, 2, 2⟩,
     -- stopline_friction (rows derived from the emitted cover: the joint pairings reached in each window)
-    ⟨"stopline_friction", 3, 0, [2, 3, 4, 5, 6, 7, 0, 1], 1, 1, 0, 0⟩,
-    ⟨"stopline_friction", 3, 1, [0, 1, 3, 2], 9, 10, 1, 1⟩,
-    ⟨"stopline_friction", 3, 1, [0, 1, 2, 3], 9, 10, 1, 2⟩,
-    ⟨"stopline_friction", 3, 2, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"stopline_friction", 3, 2, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"stopline_friction", 8, 0, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 0, 1], 1, 1, 0, 0⟩,
+    ⟨"stopline_friction", 8, 1, [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 2], 9, 10, 1, 1⟩,
+    ⟨"stopline_friction", 8, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 9, 10, 1, 2⟩,
+    ⟨"stopline_friction", 8, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 2, 1⟩,
+    ⟨"stopline_friction", 8, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 2, 2⟩,
     -- stopline_lag (rows derived from the emitted cover: the joint pairings reached in each window)
-    ⟨"stopline_lag", 3, 0, [2, 3, 4, 5, 0, 1], 1, 1, 0, 0⟩,
-    ⟨"stopline_lag", 3, 1, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"stopline_lag", 3, 1, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"stopline_lag", 3, 2, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"stopline_lag", 3, 2, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"stopline_lag", 5, 0, [2, 3, 4, 5, 6, 7, 8, 0, 1], 1, 1, 0, 0⟩,
+    ⟨"stopline_lag", 5, 1, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,
+    ⟨"stopline_lag", 5, 1, [0, 1, 2, 3, 4], 1, 1, 1, 2⟩,
+    ⟨"stopline_lag", 5, 2, [0, 1, 2, 3, 4], 1, 1, 2, 1⟩,
+    ⟨"stopline_lag", 5, 2, [0, 1, 2, 3, 4], 1, 1, 2, 2⟩,
     -- stopline_tyre (rows derived from the emitted cover: the joint pairings reached in each window)
-    ⟨"stopline_tyre", 4, 0, [2, 3, 5, 6, 7, 8, 9, 0, 1, 4], 1, 1, 0, 0⟩,
-    ⟨"stopline_tyre", 4, 1, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"stopline_tyre", 4, 1, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"stopline_tyre", 4, 2, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"stopline_tyre", 4, 2, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"stopline_tyre", 11, 0, [2, 3, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 0, 1, 4, 10, 11, 12, 13], 1, 1, 0, 0⟩,
+    ⟨"stopline_tyre", 11, 1, [0, 1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 2, 3, 4, 5], 1, 1, 1, 1⟩,
+    ⟨"stopline_tyre", 11, 1, [0, 1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 2, 3, 4, 5], 1, 1, 1, 2⟩,
+    ⟨"stopline_tyre", 11, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 1, 1, 2, 1⟩,
+    ⟨"stopline_tyre", 11, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 1, 1, 2, 2⟩,
     -- gantry_speed_zones (cover replay): each speed zone against MOVE at its override, λ = 3, 2, 1
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 3, 1, 0, 0⟩,
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 2, 1, 1, 0⟩,
@@ -360,8 +369,11 @@ running example's Mid window closes at stretch 1 (budget 1) instead of 2, so the
 `watertank_twospeed` rows were re-derived (`scripts/gen_pack_rows.py --joint`), one pairing fewer
 in `watertank_twospeed`. 961 since batch 14 of 2026-11-01: the stop-line ladder
 (`stopline_{lag,friction,tyre,drag}`, 20 rows, `scripts/gen_pack_rows.py --joint-swap`) replaced
-the rover refinement ladder (`rover_ladder_*`, 28 rows of polynomial rows over 3 to 12 states). -/
-def expectedModalV2 : Nat := 961
+the rover refinement ladder (`rover_ladder_*`, 28 rows of polynomial rows over 3 to 12 states).
+1421 since batch 15 of 2026-11-01: the rover ladder back (24 rows, `--joint-swap` for
+`platoon_linkloss`, `acc_tune_lag`, `rover_terrain_{2to4,4to6}`) and the full-fidelity stop-line
+rungs (the same 20 rows over 5 to 15 states, the attitude rows in every mode). -/
+def expectedModalV2 : Nat := 1421
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -807,8 +819,9 @@ the literature migration of 2026-10-29, 2827 since: the 48 abstraction modes of
 `lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2256
 transitions, all vacuous as its rows are identical; 2841 since batch 11 of 2026-10-30:
 `extruder_pe100_manualstart` and `lit_nahs25_engine_cooling` in for `fuelcell_chp_dos` and
-`rover_terrain_6to12`). -/
-def expectedHandoffV2 : Nat := 2841
+`rover_terrain_6to12`); 2846 since batch 15 of 2026-11-01: the rover ladder (5 transitions each) for
+`rover_terrain_{2to4,4to6}`, `platoon_linkloss` and `acc_tune_lag`). -/
+def expectedHandoffV2 : Nat := 2846
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -895,7 +908,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 177
+  wfModes   : Nat := 181  -- 177 until batch 15 of 2026-11-01 (the rover ladder back: 12 right modes for 8)
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

@@ -834,6 +834,20 @@ against the ramp planner; stored as the relational redesign, the planner fallbac
 Lean leaves, Assumption 1 proofs, bridge instances and refutations are in git history (last at
 commit 0a40e7d).
 
+## Batch 15 (2026-11-01): two ladders
+
+The rover ladder (`rover_ladder_{2to3,3to6,6to8,8to12}`, exact transfer: the finer rover is never
+faster and never ahead of the coarser one) is back from the reserve beside the stop-line ladder
+(quantified loss), with one relational row each on `rover_ladder_6to8` (heading, `abs(psi_L -
+psi_R) <= 0.35`) and `rover_ladder_8to12` (heave, `abs(z_L - z_R) <= 0.15`), both tightest and
+collapsing without the step's added inertia. Four files went to `benchmarks/reserve/` (suite stays
+50; reasons in `reserve/README.md`): `rover_terrain_2to4`, `rover_terrain_4to6` (a second
+exact-transfer chain, superseded and incomplete in the suite), `platoon_linkloss` (needs no
+mechanism), `acc_tune_lag` (near-duplicate of `acc_spoof_lag`). The stop-line rungs became
+full-fidelity models of the same rover (L2 -> L5 -> L8 -> L11 -> L15: each rung adds a longitudinal
+effect and an attitude or lateral block; one shared box per rung; the loss rows and the friction
+stretch as before, the left level's attitude requirement rows added). `docs/BATCH15-2026-11-01.md`.
+
 ## Retired 2026-10-27: the rover hierarchy (batch I3)
 
 The rover files now follow one canonical hierarchy (a four-wheel UGV on one route, zones `STEEP`
@@ -945,7 +959,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 |---|---|---|---|---|
 | `acc_spoof_lag` | 2 / 2 | 1 / 1 | sensor-attack | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, the left guard its own loop's engaged envelope; batch I9: the exact dominant-mode claim at the stated ratio 3/2 (`lambda_min = lambda_max = 1.5`) |
 | `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | redesigned 2026-10-27: the same two requirement rows in both modes (no longer mode-keyed), closed right guards; lambda pinned to 1 (batch I6) |
-| `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, the left guard its own loop's engaged envelope |
 | `acc_tune_limp` | 1 / 1 | 2 / 2 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27; review round 6 (2026-10-30): the never-run COMFORT and SPORT right modes removed |
 | `bottling_fill_strainer` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 17/20 in FILL (`lambda_min = 0.8`), load-bearing mode fact; `CLOSE`'s predicted-final-volume guard conjunct added at installation |
 | `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | back from the reserve 2026-10-29 (fix round 4, for the skipped `grid_ffr_dos`; in the reserve from batch I8): mode choice (the operating rule's notch committed at each window start) |
@@ -967,18 +980,19 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `lit_lz21_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
 | `molding_pack_checkring` | 3 / 3 | 2 / 2 | degraded-actuator | back from the reserve 2026-10-30 (review round 6, in place of `charger_fast_tapers`; in the reserve since batch I11): an injection-molding pack and hold phase with a worn check ring against a new one; mode-keyed (the hold row bounds the nozzle and the cavity pressure, the cooling row only the cavity pressure), physical domain (the 2000 bar pressure rating); letters D |
 | `platoon_latency` | 3 / 3 | 2 / 1 | degraded-network | back from the reserve 2026-10-28 (batch I11; in the reserve from batch I9): the V2V feed-forward two control periods late (its Pade lag's error `e` bounded by the ISO 15622 jerk limit), against the design follower with an ideal link; mode-keyed (AEB row), right model shared with `platoon_linkloss` (D); fix round 4 (2026-10-29): start-only AEB removed on both sides, D gone |
-| `platoon_linkloss` | 2 / 2 | 2 / 1 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers; fix round 4 (2026-10-29): start-only AEB removed, D gone |
 | `platoon_profiles` | 2 / 2 | 1 / 1 | controller-refinement | back from the reserve 2026-10-27 (batch I9) as the time-scaled design: SPORT = the CACC at 1.2 x bandwidth, exact re-timed SPORT rows at 6/5, the AEB at 1 (`lambda in [1, 1.2]`); mode-keyed (AEB row), right model shared with `platoon_linkloss`; fix round 4 (2026-10-29): AEB removed, SPORT kd 0.85 (critical damping), tolerance rows, D gone |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 3 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate; batch I9: conformance to the reference's NORMAL profile at the stated scaling 6/5 (the rows of `quad_light_airframe_20`), multi-step and branching covers, mode choice; review round 6 (2026-10-30): the three profiles on both sides (pilot switching), SPORT set point 2.5, per-profile stretch |
 | `reactor_feed_wireless` | 2 / 2 | 4 / 4 | degraded-sensor | new 2026-10-28 (batch I11, from the reserve): an exothermic CSTR's feed interlock read through a WirelessHART transmitter every 2 min against the validated 1 min wired reading; multi-step and branching covers (budget 2, the design's deterministic level partition), four pruned edges into the live levels F1 and F4 (M B P) |
-| `stopline_lag` | 3 / 3 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14, the stop-line ladder for the rover refinement ladder): the brake actuator lag (P3 / P2); loss row Z_P3(L) <= Z_P2(R) + 2.4 (tau V, tightest); D |
-| `stopline_friction` | 3 / 3 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14): the friction-limited deceleration on gravel (P3f / P3); loss 32/27 m (tightest); the time-to-stop stretch lambda in [0.9, 1] on BRAKE (0.9 = 2.7/3, tightest; SYNC declines); S D |
-| `stopline_tyre` | 4 / 4 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14): the tyre relaxation lag (P4 / P3f); loss 0.4 m (T V, tightest); D |
-| `stopline_drag` | 4 / 4 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14): aerodynamic and rolling drag (P4d / P4); loss 0 (tightest), with the inductive rows b, c <= 2.7; D |
+| `stopline_lag` | 5 / 5 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14); full fidelity since batch 15 (L5 / L2: + s, b, psi): the brake actuator lag and the heading loop; one shared box, the right declares the left's extra states frozen; loss row Z_L5(L) <= Z_L2(R) + 2.4 (tau V, tightest); heading row on the left; D |
+| `stopline_friction` | 8 / 8 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14); full fidelity since batch 15 (L8 / L5: + theta_p, z, phi_r): the friction-limited deceleration on gravel, pitch, heave and roll; loss 32/27 m (tightest); the time-to-stop stretch lambda in [0.9, 1] on BRAKE (0.9 = 2.7/3, tightest; SYNC declines); S D |
+| `stopline_tyre` | 11 / 11 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14); full fidelity since batch 15 (L11 / L8: + c, omega_psi, omega_theta): the tyre relaxation lag, yaw and pitch inertia; loss 0.4 m (T V, tightest); D |
+| `stopline_drag` | 15 / 15 | 3 / 3 | model-refinement | new 2026-11-01 (batch 14); full fidelity since batch 15 (L15 / L11: + omega_z, omega_phi, y, omega_y): aerodynamic and rolling drag, heave and roll inertia, tyre slip; loss 0 (tightest), with the inductive rows b, c <= 2.7; D |
+| `rover_ladder_2to3` | 3 / 3 | 3 / 3 | model-refinement | reinstalled 2026-10-27 on the canonical rover hierarchy (L3 / L2): clearance and heading rows, lambda 1; back 2026-11-01 (batch 15, from the reserve) |
+| `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L6 / L3): clearance, heading and pitch rows, lambda 1; back 2026-11-01 (batch 15) |
+| `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header); back 2026-11-01 (batch 15) with the relational heading row abs(psi_L - psi_R) <= 0.35 (= the yaw-rate bound, tightest; 0.04 without the yaw inertia at 11/10) |
+| `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L12 / L8): heading, roll, rollover (LTR) and lane rows; lambda [1, 1.25] (S M I from the re-timed claim form, header); back 2026-11-01 (batch 15) with the relational heave row abs(z_L - z_R) <= 0.15 (= the suspension travel, tightest; 0.02 without the heave inertia) |
 | `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
-| `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan; batch I9: the plan's speed loop at the wheel loop's 3 /s again, progress against the plan re-timed within `lambda in [1, 3]` (S M I) |
-| `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T`; lambda pinned to 1 (batch I6) |
 | `lit_nahs25_engine_cooling` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025, Secs. 3-5, Examples 3/5), the source's forward distance 0.3, tight; new 2026-10-30 (batch 11, from the pre-landing demo): the pre-landing certificate (right-only certificate only before the landing, `docs/PRELANDING.md`; the opt-in `prelanding = true` until 2026-10-31, always on since), letter R; the genuine Cool guard closed to `temp >= 100` (disclosed); took the slot of `fuelcell_chp_dos` (to `skipped/`) |
 | `lit_nahs25_salt_tank` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), the source's Def. 8 distance 0 by stutter (S at stretch 0, 2026-10-29; the opt-in `stutter = true` until 2026-10-31, always on since; the lock-step distance 3 under `RELCERT_NO_STUTTER=1`); new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |

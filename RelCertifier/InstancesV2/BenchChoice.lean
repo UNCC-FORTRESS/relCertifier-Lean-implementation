@@ -3,7 +3,6 @@ sets of the existential mode choice per benchmark (empty for a benchmark whose c
 needs none). -/
 import RelCertifier.InstancesV2.BenchChoice.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_spoof_limp
-import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 import RelCertifier.InstancesV2.BenchChoice.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchChoice.autoclave_liquid_steambank
@@ -29,14 +28,15 @@ import RelCertifier.InstancesV2.BenchChoice.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchChoice.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
 import RelCertifier.InstancesV2.BenchChoice.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchChoice.reactor_feed_wireless
-import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
-import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
+import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
+import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
+import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
+import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
@@ -57,7 +57,6 @@ namespace RelCertifier.Choice
 def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_spoof_lag", acc_spoof_lag_coverV2_choice),
   ("acc_spoof_limp", acc_spoof_limp_coverV2_choice),
-  ("acc_tune_lag", acc_tune_lag_coverV2_choice),
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2_choice),
   ("autoclave_liquid_steambank", autoclave_liquid_steambank_coverV2_choice),
@@ -83,14 +82,15 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("lit_nahs25_engine_cooling", lit_nahs25_engine_cooling_coverV2_choice),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_choice),
   ("molding_pack_checkring", molding_pack_checkring_coverV2_choice),
-  ("platoon_linkloss", platoon_linkloss_coverV2_choice),
   ("platoon_profiles", platoon_profiles_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_choice),
   ("reactor_feed_wireless", reactor_feed_wireless_coverV2_choice),
-  ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
-  ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
+  ("rover_ladder_2to3", rover_ladder_2to3_coverV2_choice),
+  ("rover_ladder_3to6", rover_ladder_3to6_coverV2_choice),
+  ("rover_ladder_6to8", rover_ladder_6to8_coverV2_choice),
+  ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),

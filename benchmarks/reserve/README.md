@@ -117,9 +117,20 @@ history (last at commit d9f0223). They certify as before (letters needed --, --,
 S M I, S M I); they left for a ladder whose rungs compose verbatim and whose relational content is a
 stop-distance loss with a closed form, not for a defect.
 
+(These four are back in the suite since batch 15, below.)
+
+Batch 15 (2026-11-01, `docs/BATCH15-2026-11-01.md`) brought the rover ladder back into the suite
+beside the stop-line ladder (two ladders: exact transfer and quantified loss), with a relational row
+each on `rover_ladder_6to8` (`abs(psi_L - psi_R) <= 0.35`) and `rover_ladder_8to12` (`abs(z_L - z_R)
+<= 0.15`), so they left the reserve. Four suite files came here in their place
+(suite stays 50); their Lean integration (IR literals, covers, progress, choice and pre-landing
+records, cuts, bridge instances, Assumption 1 proofs, the refutation instances of the terrain files
+and `platoon_linkloss` with their mutant inputs and witnesses) is in git history (last at commit
+d6222c9). Each still certifies; none left for a defect. The reserve is 28 files.
+
 | benchmark | from | declines under | letters | reason it is in reserve |
 |---|---|---|---|---|
-| `rover_ladder_2to3` | suite_v2 (2026-11-01, batch 14) | none | none needed (used I) | replaced by the stop-line ladder (`docs/BATCH14-2026-11-01.md`) |
-| `rover_ladder_3to6` | suite_v2 (2026-11-01, batch 14) | none | none needed (used I) | as `rover_ladder_2to3` |
-| `rover_ladder_6to8` | suite_v2 (2026-11-01, batch 14) | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_CUT` | S I (used S M I) | as `rover_ladder_2to3` |
-| `rover_ladder_8to12` | suite_v2 (2026-11-01, batch 14) | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_CUT` | S I (used S M I) | as `rover_ladder_2to3` |
+| `rover_terrain_2to4` | suite_v2 (2026-11-01, batch 15) | `NO_CUT` | I (used I) | the terrain chain is a second exact-transfer chain, superseded by the rover ladder, and incomplete in the suite (`rover_terrain_6to12` is here since batch 11) |
+| `rover_terrain_4to6` | suite_v2 (2026-11-01, batch 15) | `NO_CUT` | I (used I) | as `rover_terrain_2to4` |
+| `platoon_linkloss` | suite_v2 (2026-11-01, batch 15) | none | none needed (used M I) | needs no mechanism |
+| `acc_tune_lag` | suite_v2 (2026-11-01, batch 15) | `SYNC` | S (used S M I) | near-duplicate of `acc_spoof_lag` (same ACC model pair, same letter S) |

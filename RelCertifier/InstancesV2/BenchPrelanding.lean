@@ -4,7 +4,6 @@ certificate is on for every benchmark; a record without nodes is empty). -/
 import RelCertifier.Trusted.PrelandEmit
 import RelCertifier.InstancesV2.BenchPrelanding.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchPrelanding.acc_spoof_limp
-import RelCertifier.InstancesV2.BenchPrelanding.acc_tune_lag
 import RelCertifier.InstancesV2.BenchPrelanding.acc_tune_limp
 import RelCertifier.InstancesV2.BenchPrelanding.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchPrelanding.autoclave_liquid_steambank
@@ -30,14 +29,15 @@ import RelCertifier.InstancesV2.BenchPrelanding.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchPrelanding.lit_nahs25_engine_cooling
 import RelCertifier.InstancesV2.BenchPrelanding.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchPrelanding.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchPrelanding.platoon_linkloss
 import RelCertifier.InstancesV2.BenchPrelanding.platoon_profiles
 import RelCertifier.InstancesV2.BenchPrelanding.quad_light_lag
 import RelCertifier.InstancesV2.BenchPrelanding.quad_light_profiles
 import RelCertifier.InstancesV2.BenchPrelanding.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchPrelanding.reactor_feed_wireless
-import RelCertifier.InstancesV2.BenchPrelanding.rover_terrain_2to4
-import RelCertifier.InstancesV2.BenchPrelanding.rover_terrain_4to6
+import RelCertifier.InstancesV2.BenchPrelanding.rover_ladder_2to3
+import RelCertifier.InstancesV2.BenchPrelanding.rover_ladder_3to6
+import RelCertifier.InstancesV2.BenchPrelanding.rover_ladder_6to8
+import RelCertifier.InstancesV2.BenchPrelanding.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchPrelanding.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchPrelanding.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchPrelanding.sat_detumble_weak
@@ -59,8 +59,6 @@ def prelandTableV2 : List (String × PrelandEmitE) := [
   ("acc_spoof_lag", acc_spoof_lag_coverV2_prelanding),
 
   ("acc_spoof_limp", acc_spoof_limp_coverV2_prelanding),
-
-  ("acc_tune_lag", acc_tune_lag_coverV2_prelanding),
 
   ("acc_tune_limp", acc_tune_limp_coverV2_prelanding),
 
@@ -112,8 +110,6 @@ def prelandTableV2 : List (String × PrelandEmitE) := [
 
   ("molding_pack_checkring", molding_pack_checkring_coverV2_prelanding),
 
-  ("platoon_linkloss", platoon_linkloss_coverV2_prelanding),
-
   ("platoon_profiles", platoon_profiles_coverV2_prelanding),
 
   ("quad_light_lag", quad_light_lag_coverV2_prelanding),
@@ -124,9 +120,13 @@ def prelandTableV2 : List (String × PrelandEmitE) := [
 
   ("reactor_feed_wireless", reactor_feed_wireless_coverV2_prelanding),
 
-  ("rover_terrain_2to4", rover_terrain_2to4_coverV2_prelanding),
+  ("rover_ladder_2to3", rover_ladder_2to3_coverV2_prelanding),
 
-  ("rover_terrain_4to6", rover_terrain_4to6_coverV2_prelanding),
+  ("rover_ladder_3to6", rover_ladder_3to6_coverV2_prelanding),
+
+  ("rover_ladder_6to8", rover_ladder_6to8_coverV2_prelanding),
+
+  ("rover_ladder_8to12", rover_ladder_8to12_coverV2_prelanding),
 
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_prelanding),
 

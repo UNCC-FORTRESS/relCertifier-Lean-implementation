@@ -95,8 +95,11 @@ of `progressTableV2`), every benchmark's groups built on its cover merged with i
 record); 13089 since batch 13 of 2026-10-31: stretch 0 only for a declared range including 0, so
 `lit_freedm_meter` (declared [1, 1]) is certified at stretch 1 in every window); 12317 since batch 14
 of 2026-11-01: the stop-line ladder (`stopline_lag` 84, `stopline_friction` 86, `stopline_tyre` 96,
-`stopline_drag` 80 groups) for the rover refinement ladder (`rover_ladder_*`). -/
-def expectedBridgeGroupsV2 : Nat := 12317
+`stopline_drag` 80 groups) for the rover refinement ladder (`rover_ladder_*`); 13677 since batch 15
+of 2026-11-01: the rover ladder back (`rover_ladder_2to3` 56, `_3to6` 104, `_6to8` 461, `_8to12` 569
+groups) for `rover_terrain_{2to4,4to6}`, `platoon_linkloss` and `acc_tune_lag`, and the full-fidelity
+stop-line rungs (`stopline_lag` 132, `stopline_friction` 170, `stopline_tyre` 278, `stopline_drag` 270). -/
+def expectedBridgeGroupsV2 : Nat := 13677
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

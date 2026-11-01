@@ -1,0 +1,137 @@
+# stopline_drag: stop-line ladder, rung 4 (L15 / L11): aerodynamic and rolling drag; heave and roll
+# inertia and tyre slip.
+# scenario: model-refinement
+# mechanisms: D (mode-dependent rows); used D I
+#
+# System (the stop-line ladder, stated in full here and shared by stopline_lag, _friction, _tyre and
+# _drag; SI units, time in s, angles in rad). The canonical four-wheel UGV of the suite (track 1.8 m,
+# centre of gravity 0.9 m high, LTR = a_b/g + phi_r, top speed V = 8 m/s) approaches a stop line along
+# a level, straight corridor (grade 0, cross-slope 0). Both sides decide every 0.1 s (the brake ECU's
+# cycle) from the wheel odometer p [m] and the speed v [m/s]. Modes on every level: CRUISE (p < 100,
+# v >= 0.35, speed held: p' = v, v' = 0), BRAKE (p >= 100, v >= 0.35: the planner's brake point),
+# STOP (p >= 100, v <= 0.35 m/s = 1.3 km/h, every state frozen). Along-track position s [m] (the
+# distance to the line is measured along the corridor): s' = v (1 - psi^2/2 - 0.2 phi_r^2), the
+# heading and crabbing losses of the rover hierarchy; the planner identifies s with p.
+# The levels are models of the same rover at increasing fidelity. Each rung adds one longitudinal
+# effect the planner's model leaves out and one attitude or lateral block of the rover hierarchy
+# (rover_ladder_*); the added states are the fidelity increment, whether or not the safety claim
+# reads them. Each rung's right model is the previous rung's left verbatim (up to the frozen extra
+# states; checked: ODEs, guards, next lists and evolve atoms equal on the shared coordinates):
+#   L2  (p, v): the planner's point model, BRAKE v' = -3.
+#   L5  + s, b, psi (stopline_lag, 2 -> 5 states): the brake actuator (valve and line pressure) is a
+#       first-order lag, tau = 0.3 s, b the realised deceleration [m/s^2] (BRAKE b' = (3 - b)/0.3,
+#       v' = -b; CRUISE b' = -b/0.3, released); the heading error psi with the steering loop psi' =
+#       -psi (1 rad/s); r = psi' the yaw-rate error, a = v r the lateral acceleration.
+#   L8  + theta_p, z, phi_r (stopline_friction, 5 -> 8): the tyre-road friction limit of the gravel
+#       surface (mu about 0.275) caps the realised deceleration at 2.7 m/s^2 (BRAKE b' = (2.7 -
+#       b)/0.3); pitch, heave and roll of the terrain-following suspension (time constant 1 s) with
+#       the brake-induced pitch (load transfer, 0.02 rad per m/s^2): theta_p' = -theta_p + 0.5 z +
+#       0.02 b, z' = -z, phi_r' = -phi_r + 0.015 a.
+#   L11 + c, omega_psi, omega_theta (stopline_tyre, 8 -> 11): the hub (pressure) deceleration c builds
+#       through the valve (c' = (2.7 - c)/0.3) and the tyre force b follows c through the tyre
+#       relaxation (0.4 m at 8 m/s: T = 0.05 s, b' = 20 (c - b)); yaw and pitch inertia (critically
+#       damped at 1 rad/s, cascade chart): psi' = omega_psi - psi, omega_psi' = -omega_psi, theta_p'
+#       = omega_theta - theta_p, omega_theta' = -omega_theta + 0.5 z + 0.02 b; r = omega_psi - psi.
+#   L15 + omega_z, omega_phi, y, omega_y (stopline_drag, 11 -> 15): aerodynamic and rolling drag
+#       (BRAKE v' = -b - 0.003 v^2 - 0.2; CRUISE v' = 0, the drive compensates); heave and roll
+#       inertia and tyre slip: z' = omega_z - z, omega_z' = -omega_z, phi_r' = omega_phi - phi_r,
+#       omega_phi' = -omega_phi + 0.015 a_b with a_b = a + y'', y' = omega_y - y, omega_y' = -omega_y
+#       + 0.03 (a + g phi_r), so y'' = y - 2 omega_y + 0.03 (a + g phi_r).
+# One physical domain on every rung, the same text on every mode of both sides (the right declares
+# the left's extra states, frozen at their start values): p, s >= 0; 0 <= v <= 8 (top speed); brake
+# states b, c in [0, 3] (the brake's capacity, the planner's 3 m/s^2); psi, omega_psi, theta_p,
+# omega_theta in [-0.6, 0.6] (small-angle validity); z, omega_z in [-0.15, 0.15] m (suspension
+# travel); phi_r, omega_phi, y, omega_y in [-0.5, 0.5]. Forward invariant mode by mode (a BRAKE
+# window from v >= 0.35 ends above 0; the attitude boxes are inflowing); relcert --wellformed:
+# CRUISE, BRAKE ok (exit), STOP ok (invariant), 0 UNKNOWN, 0 BLOCKING.
+# Constants are representative values, not taken from a cited source: brake actuator lag 0.3 s (a
+# build-up time of a few tenths of a second); gravel friction limit 2.7 m/s^2 (mu about 0.275); tyre
+# relaxation length 0.4 m, i.e. 0.05 s at 8 m/s; aerodynamic term 0.003 v^2 (rho C_dA / 2m for C_dA
+# 1.5 m^2 and a 300 kg rover) and rolling resistance 0.2 m/s^2 (about 0.02 g); brake pitch 0.02 rad
+# per m/s^2; the attitude and slip dynamics are the rover hierarchy's.
+# Stop point. On each level the braking flow conserves (L15: does not increase) a stop-point
+# functional on the odometer: Z_L2 = p + v^2/6; Z_L5 = p + tau v + (v - tau b)^2/6; Z_L8 = p + tau v +
+# (v - tau b)^2/5.4; Z_L11 = p + (T + tau) v - tau T b + (v - T b - tau c)^2/5.4 (L15 uses Z_L11).
+# The planner's margin: its stop point P* = Z_L2 at the brake point stays 5 m short of the line
+# (110.67 m against 115.67 m at 8 m/s).
+# Rows. CRUISE: p_L = p_R, v_L = v_R and every brake state 0 on both sides (both trigger at the same
+# decision; the two-sided form keeps the brake states at 0 while cruising). BRAKE and STOP: R_p >= 100
+# and the loss row Z(left) <= Z(right) + delta, scaled to integer-friendly coefficients. The loss rows
+# read the longitudinal state only (p, v, b, c): on this corridor the odometer does not depend on the
+# attitude. In every mode, the left level's attitude and lateral requirement rows (left-only:
+# requirements on the finer model, the margin each channel consumes against the plan's level,
+# straight model): heading 0.35 rad (half field of view of the navigation camera), pitch 0.25 rad
+# (mast camera tilt stabilizer), roll 0.2 rad (suspension roll stop), LTR 0.8 (20 % to wheel lift),
+# lane 0.25 m (corridor half-width 1.25 m minus vehicle half-width 1.0 m), each from the rung where
+# its channel moves; and s_L <= p_L (heading and crabbing only shorten the along-track progress, so the
+# odometer bound bounds s). The CRUISE brake rows are not needed for the loss (a pre-charged brake only
+# shortens the stop).
+#
+# This rung: left L15 (L11's states + omega_z, omega_phi, y, omega_y: drag, heave and roll inertia,
+# the tyre slip y), right L11 (stopline_tyre's left; omega_z, omega_phi, y, omega_y frozen). Fidelity
+# added: 11 -> 15 states.
+# Loss row (BRAKE, STOP): 5.4 Z_L11(L) <= 5.4 Z_L11(R) + 0, with the inductive rows b_L, c_L <= 2.7
+# in BRAKE (the derated brake never exceeds its friction limit; under L15's braking flow the
+# derivative of Z_L11 is -(0.003 v^2 + 0.2)(0.35 + u/2.7) <= 0 since u = v - 0.05 b - 0.3 c >= -0.945
+# for b, c <= 2.7: drag only shortens the stop, and the ladder never credits an unmodelled benefit).
+# delta 0 is the TIGHTEST constant (-0.01 DECLINES: both sides coincide at the brake point). Cause
+# test: with the drag removed delta 0 CERTIFIES and -0.01 DECLINES.
+# Attitude and lateral rows (left): abs(psi_L), abs(omega_psi_L) <= 0.35; abs(theta_p_L),
+# abs(omega_theta_L) <= 0.25; abs(phi_r_L), abs(omega_phi_L) <= 0.2; abs(y_L), abs(omega_y_L) <= 0.25
+# (lane); LTR abs(a_b / g + phi_r)_L <= 0.8 with a_b = v r + y - 2 omega_y + 0.03 (v r + g phi_r);
+# s_L <= p_L.
+# Composition: the right is stopline_tyre's left; last rung.
+# Letters: needed D; used D I.
+# Chained claim (the four rungs): Z_L15(L) <= Z_L11 + 0 <= Z_L8 + 0.4 <= Z_L5 + 1.585 <= P* + 3.985;
+# with the standstill residual of Z_L11 at most 0.0371 (v <= 0.35, b, c in [0, 2.7]) the refined rover's
+# odometer stands still within P* + 4.022 m, and its along-track position s <= p with it: 0.978 m of the
+# planner's 5 m margin remains, on every level the attitude requirement rows holding as well.
+# Verdicts (RELCERT_IMPLIED_CUT=1, measured 2026-11-01 on this branch): CERTIFIED (4.0 s); CERTIFIED
+# under RELCERT_NO_CHOICE, NO_PRUNE, NO_REPO, SINGLE_STEP, OPREGION, NO_STUTTER, NO_PRELANDING,
+# NO_CUT and WELLFORMED_STRICT and RELCERT_SYNC=1; --handoff 5/5; the composition check EQUAL.
+[problem]
+name = stopline_drag
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [p, s, v, b, c, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 0.1
+[Lsys.mode.CRUISE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:0.0; b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 0.0 c)); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(- 0.0 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (- 0.0 omega_theta) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- omega_z z); omega_z' = smt2:(- 0.0 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (- 0.0 omega_phi) (* 0.015 (+ (* v (- omega_psi psi)) (+ (- y (* 2.0 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (- 0.0 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [CRUISE, BRAKE]
+[Lsys.mode.BRAKE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:(- (- (- 0.0 b) (* 0.003 (* v v))) 0.2); b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 2.7 c)); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(- 0.0 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (- 0.0 omega_theta) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- omega_z z); omega_z' = smt2:(- 0.0 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (- 0.0 omega_phi) (* 0.015 (+ (* v (- omega_psi psi)) (+ (- y (* 2.0 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (- 0.0 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [BRAKE, STOP]
+[Lsys.mode.STOP]
+ode = p' = smt2:0.0; s' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0; c' = smt2:0.0; psi' = smt2:0.0; omega_psi' = smt2:0.0; theta_p' = smt2:0.0; omega_theta' = smt2:0.0; z' = smt2:0.0; omega_z' = smt2:0.0; phi_r' = smt2:0.0; omega_phi' = smt2:0.0; y' = smt2:0.0; omega_y' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [STOP]
+[Rsys]
+state_vars = [p, s, v, b, c, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 0.1
+[Rsys.mode.CRUISE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:0.0; b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 0.0 c)); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(- 0.0 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (- 0.0 omega_theta) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- 0.0 z); omega_z' = smt2:0.0; phi_r' = smt2:(+ (- 0.0 phi_r) (* 0.015 (* v (- omega_psi psi)))); omega_phi' = smt2:0.0; y' = smt2:0.0; omega_y' = smt2:0.0;
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [CRUISE, BRAKE]
+[Rsys.mode.BRAKE]
+ode = p' = v; s' = smt2:(* v (- (- 1.0 (* 0.5 (* psi psi))) (* 0.2 (* phi_r phi_r)))); v' = smt2:(- 0.0 b); b' = smt2:(* 20.0 (- c b)); c' = smt2:(* (/ 1.0 0.3) (- 2.7 c)); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(- 0.0 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (- 0.0 omega_theta) (* 0.5 z)) (* 0.02 b)); z' = smt2:(- 0.0 z); omega_z' = smt2:0.0; phi_r' = smt2:(+ (- 0.0 phi_r) (* 0.015 (* v (- omega_psi psi)))); omega_phi' = smt2:0.0; y' = smt2:0.0; omega_y' = smt2:0.0;
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [BRAKE, STOP]
+[Rsys.mode.STOP]
+ode = p' = smt2:0.0; s' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0; c' = smt2:0.0; psi' = smt2:0.0; omega_psi' = smt2:0.0; theta_p' = smt2:0.0; omega_theta' = smt2:0.0; z' = smt2:0.0; omega_z' = smt2:0.0; phi_r' = smt2:0.0; omega_phi' = smt2:0.0; y' = smt2:0.0; omega_y' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and s >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0 and c >= 0.0 and c <= 3.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [STOP]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_p R_p) (<= R_p L_p) (<= L_v R_v) (<= R_v L_v) (<= L_b 0.0) (<= L_c 0.0) (<= R_b 0.0) (<= R_c 0.0) (>= L_b 0.0) (>= L_c 0.0) (>= R_b 0.0) (>= R_c 0.0) (<= L_psi 0.35) (<= (- 0.0 0.35) R_psi) (<= L_theta_p 0.25) (<= (- 0.0 0.25) L_theta_p) (<= L_phi_r 0.2) (<= (- 0.0 0.2) L_phi_r) (<= L_omega_psi 0.35) (<= (- 0.0 0.35) L_omega_psi) (<= L_omega_theta 0.25) (<= (- 0.0 0.25) L_omega_theta) (<= L_omega_phi 0.2) (<= (- 0.0 0.2) L_omega_phi) (<= L_y 0.25) (<= (- 0.0 0.25) L_y) (<= L_omega_y 0.25) (<= (- 0.0 0.25) L_omega_y) (<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) (<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) (<= L_s L_p))
+BRAKE = smt2:(and (>= R_p 100.0) (<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) (<= L_b 2.7) (<= L_c 2.7) (<= L_psi 0.35) (<= (- 0.0 0.35) R_psi) (<= L_theta_p 0.25) (<= (- 0.0 0.25) L_theta_p) (<= L_phi_r 0.2) (<= (- 0.0 0.2) L_phi_r) (<= L_omega_psi 0.35) (<= (- 0.0 0.35) L_omega_psi) (<= L_omega_theta 0.25) (<= (- 0.0 0.25) L_omega_theta) (<= L_omega_phi 0.2) (<= (- 0.0 0.2) L_omega_phi) (<= L_y 0.25) (<= (- 0.0 0.25) L_y) (<= L_omega_y 0.25) (<= (- 0.0 0.25) L_omega_y) (<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) (<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) (<= L_s L_p))
+STOP = smt2:(and (>= R_p 100.0) (<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) (<= L_psi 0.35) (<= (- 0.0 0.35) R_psi) (<= L_theta_p 0.25) (<= (- 0.0 0.25) L_theta_p) (<= L_phi_r 0.2) (<= (- 0.0 0.2) L_phi_r) (<= L_omega_psi 0.35) (<= (- 0.0 0.35) L_omega_psi) (<= L_omega_theta 0.25) (<= (- 0.0 0.25) L_omega_theta) (<= L_omega_phi 0.2) (<= (- 0.0 0.2) L_omega_phi) (<= L_y 0.25) (<= (- 0.0 0.25) L_y) (<= L_omega_y 0.25) (<= (- 0.0 0.25) L_omega_y) (<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) (<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) (<= L_s L_p))

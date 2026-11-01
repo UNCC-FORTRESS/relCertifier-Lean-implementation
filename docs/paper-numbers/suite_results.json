@@ -9,7 +9,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 114
+  "ms": 141
  },
  {
   "name": "acc_spoof_limp",
@@ -21,7 +21,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M B I",
-  "ms": 168
+  "ms": 486
  },
  {
   "name": "acc_tune_lag",
@@ -33,7 +33,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 89
+  "ms": 268
  },
  {
   "name": "acc_tune_limp",
@@ -45,7 +45,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B D I X",
-  "ms": 1031
+  "ms": 2604
  },
  {
   "name": "bottling_fill_strainer",
@@ -57,7 +57,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S I",
-  "ms": 596
+  "ms": 1377
  },
  {
   "name": "charger_fast_tapers",
@@ -69,7 +69,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M R B P D I",
-  "ms": 564
+  "ms": 1473
  },
  {
   "name": "csf21_vehicle_bus",
@@ -81,7 +81,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 3503
+  "ms": 8612
  },
  {
   "name": "csf21_vehicle_thermo",
@@ -93,7 +93,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 1793
+  "ms": 4691
  },
  {
   "name": "drl_car_stop",
@@ -105,7 +105,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 452
+  "ms": 1108
  },
  {
   "name": "drl_lane_control",
@@ -117,7 +117,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 2831
+  "ms": 6790
  },
  {
   "name": "elevator_start_discbrake",
@@ -129,7 +129,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D",
-  "ms": 974
+  "ms": 2483
  },
  {
   "name": "engine_start_highidle",
@@ -141,7 +141,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D I",
-  "ms": 455
+  "ms": 1009
  },
  {
   "name": "flaps_slow_approach",
@@ -153,7 +153,7 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "S",
-  "ms": 238
+  "ms": 595
  },
  {
   "name": "freedm_meter",
@@ -165,7 +165,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 2483
+  "ms": 6297
  },
  {
   "name": "fuelcell_chp_dos",
@@ -177,7 +177,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M B P X",
-  "ms": 443
+  "ms": 1143
  },
  {
   "name": "furnace_program_timebase",
@@ -189,7 +189,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S I",
-  "ms": 1122
+  "ms": 2939
  },
  {
   "name": "gantry_speed_zones",
@@ -201,7 +201,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 1256
+  "ms": 3086
  },
  {
   "name": "girard_robot",
@@ -213,7 +213,7 @@
   "inv": "quadratic",
   "dyn": "linear",
   "mech": "X",
-  "ms": 3737
+  "ms": 7523
  },
  {
   "name": "grid_ffr_dos",
@@ -225,7 +225,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M P",
-  "ms": 366
+  "ms": 878
  },
  {
   "name": "h2_refuel_ambientbias",
@@ -237,7 +237,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D I",
-  "ms": 736
+  "ms": 1929
  },
  {
   "name": "hydro_rejection_gatecal",
@@ -249,7 +249,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "D",
-  "ms": 318
+  "ms": 701
  },
  {
   "name": "lz_vehicle_position",
@@ -261,7 +261,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 336
+  "ms": 900
  },
  {
   "name": "platoon_latency",
@@ -273,7 +273,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "D",
-  "ms": 668
+  "ms": 1610
  },
  {
   "name": "platoon_linkloss",
@@ -285,7 +285,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M D",
-  "ms": 576
+  "ms": 1344
  },
  {
   "name": "platoon_profiles",
@@ -297,7 +297,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M D",
-  "ms": 2417
+  "ms": 5839
  },
  {
   "name": "quad_light_lag",
@@ -309,7 +309,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M",
-  "ms": 69
+  "ms": 178
  },
  {
   "name": "quad_light_profiles",
@@ -321,7 +321,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B X",
-  "ms": 198
+  "ms": 478
  },
  {
   "name": "reactor_feed_wireless",
@@ -333,55 +333,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "M B P",
-  "ms": 746
- },
- {
-  "name": "rover_ladder_2to3",
-  "family": "Rover ladder",
-  "dimL": 3,
-  "dimR": 3,
-  "modesL": 3,
-  "modesR": 3,
-  "inv": "linear",
-  "dyn": "polynomial",
-  "mech": "",
-  "ms": 345
- },
- {
-  "name": "rover_ladder_3to6",
-  "family": "Rover ladder",
-  "dimL": 6,
-  "dimR": 6,
-  "modesL": 3,
-  "modesR": 3,
-  "inv": "linear",
-  "dyn": "polynomial",
-  "mech": "",
-  "ms": 754
- },
- {
-  "name": "rover_ladder_6to8",
-  "family": "Rover ladder",
-  "dimL": 8,
-  "dimR": 8,
-  "modesL": 3,
-  "modesR": 3,
-  "inv": "quadratic",
-  "dyn": "polynomial",
-  "mech": "S M I",
-  "ms": 18721
- },
- {
-  "name": "rover_ladder_8to12",
-  "family": "Rover ladder",
-  "dimL": 12,
-  "dimR": 12,
-  "modesL": 3,
-  "modesR": 3,
-  "inv": "quadratic",
-  "dyn": "polynomial",
-  "mech": "S M I",
-  "ms": 33829
+  "ms": 1994
  },
  {
   "name": "rover_patrol_lag",
@@ -393,7 +345,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M R B",
-  "ms": 1313
+  "ms": 3168
  },
  {
   "name": "rover_terrain_2to4",
@@ -405,7 +357,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M I",
-  "ms": 2336
+  "ms": 5705
  },
  {
   "name": "rover_terrain_4to6",
@@ -417,7 +369,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "I",
-  "ms": 1109
+  "ms": 2677
  },
  {
   "name": "rover_terrain_6to12",
@@ -429,7 +381,7 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "I",
-  "ms": 2263
+  "ms": 5385
  },
  {
   "name": "salt_tank_sensor",
@@ -441,7 +393,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "I",
-  "ms": 110
+  "ms": 331
  },
  {
   "name": "sat3w_detumble_phases",
@@ -453,7 +405,7 @@
   "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "M I X",
-  "ms": 2823
+  "ms": 3745
  },
  {
   "name": "sat_detumble_phases",
@@ -465,7 +417,7 @@
   "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "M I X",
-  "ms": 4664
+  "ms": 6129
  },
  {
   "name": "sat_detumble_weak",
@@ -477,7 +429,55 @@
   "inv": "quadratic",
   "dyn": "linear",
   "mech": "S M B X",
-  "ms": 1995
+  "ms": 2719
+ },
+ {
+  "name": "stopline_rover_11to15",
+  "family": "Stop-line rover ladder",
+  "dimL": 15,
+  "dimR": 11,
+  "modesL": 3,
+  "modesR": 3,
+  "inv": "quadratic",
+  "dyn": "polynomial",
+  "mech": "D",
+  "ms": 7851
+ },
+ {
+  "name": "stopline_rover_2to5",
+  "family": "Stop-line rover ladder",
+  "dimL": 5,
+  "dimR": 2,
+  "modesL": 3,
+  "modesR": 3,
+  "inv": "quadratic",
+  "dyn": "polynomial",
+  "mech": "D",
+  "ms": 830
+ },
+ {
+  "name": "stopline_rover_5to8",
+  "family": "Stop-line rover ladder",
+  "dimL": 8,
+  "dimR": 5,
+  "modesL": 3,
+  "modesR": 3,
+  "inv": "quadratic",
+  "dyn": "polynomial",
+  "mech": "D",
+  "ms": 2115
+ },
+ {
+  "name": "stopline_rover_8to11",
+  "family": "Stop-line rover ladder",
+  "dimL": 11,
+  "dimR": 8,
+  "modesL": 3,
+  "modesR": 3,
+  "inv": "quadratic",
+  "dyn": "polynomial",
+  "mech": "D",
+  "ms": 4412
  },
  {
   "name": "syringe_relay_prearm",
@@ -489,7 +489,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R D",
-  "ms": 1241
+  "ms": 3332
  },
  {
   "name": "tank_dos_3to1",
@@ -501,7 +501,7 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "M I",
-  "ms": 966
+  "ms": 2670
  },
  {
   "name": "train_ato_odometry",
@@ -513,7 +513,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B",
-  "ms": 2385
+  "ms": 6068
  },
  {
   "name": "tunnel_jetfan_pairout",
@@ -525,7 +525,7 @@
   "inv": "linear",
   "dyn": "polynomial",
   "mech": "D I",
-  "ms": 235
+  "ms": 538
  },
  {
   "name": "turbine_startup_gearratio",
@@ -537,7 +537,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "R P I",
-  "ms": 327
+  "ms": 836
  },
  {
   "name": "vehicle_hypercert",
@@ -549,7 +549,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "X",
-  "ms": 1006
+  "ms": 2480
  },
  {
   "name": "ventilator_vc_cuffleak",
@@ -561,7 +561,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "D",
-  "ms": 191
+  "ms": 575
  },
  {
   "name": "watertank",
@@ -573,7 +573,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B",
-  "ms": 659
+  "ms": 1608
  },
  {
   "name": "watertank_twospeed",
@@ -585,7 +585,7 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B P",
-  "ms": 1951
+  "ms": 4754
  },
  {
   "name": "zone_lightmass_schedule",
@@ -597,6 +597,6 @@
   "inv": "linear",
   "dyn": "linear",
   "mech": "S M B X",
-  "ms": 143
+  "ms": 418
  }
 ]

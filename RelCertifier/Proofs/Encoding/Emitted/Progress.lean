@@ -5,15 +5,16 @@ Released under Apache 2.0 license.
 # The generic bridge, part 5: reposition progress from the emitted certificates
 
 For every reposition node `(l, q, pre)` of a cover the tool emits a progress certificate
-(`ProgressE`: one stage in either direction, or two upward stages, and the exits the landing
-covers). Its verdict (`ProgressVerd`, the queries the progress runner rebuilds) is read as
-facts over the node's region by `progressVerd_one` / `progressVerd_one_down` /
-`progressVerd_two`; `repoProgress_one` / `repoProgress_one_down` / `repoProgress_two` turn
-them into the general theorem's `RepoProgress` premise, with Assumption 1 for the cycles, the
+(`ProgressE`: one stage, or a helper stage and a landing stage, each in either direction, and
+the exits the landing covers). Its verdict (`ProgressVerd`, the queries the progress runner
+rebuilds) is read as facts over the node's region by `progressVerd_one` /
+`progressVerd_one_down` / `progressVerd_two` / `progressVerd_two_ud` / `_du` / `_dd`; the
+`Progress.lean` closers (`repoProgress_one_reg`, `_one_down_reg`, `_two_reg`, `_two_ud_reg`,
+`_two_du_reg`, `_two_dd_reg`) turn them into the general theorem's `RepoProgress` premise, with Assumption 1 for the cycles, the
 anchor kept along the frozen flow (`AG_boxD`) and the pruned exits excluded (`AG_pruneD`).
-The certificate's shape facts (`progOK`: positive rates, variables right, a two-stage
-certificate upward in both stages, exits declared non-self non-pruned successors, mode
-indices by name) are decided in the kernel.
+The certificate's shape facts (`progOK`: positive rates, variables right, one or two
+stages (`Progress.shapeOK`), exits declared non-self non-pruned successors, mode indices by
+name) are decided in the kernel.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Anchor
 import RelCertifier.Proofs.Encoding.Progress
@@ -46,11 +47,11 @@ def stageOK (st : ProgressStageE) : Bool :=
   (0 < st.rate) && (resolveVar (vars p) n Side.R st.var).isSome &&
     !st.var.startsWith "L_"
 
-/-- The certificate's stages pass `stageOK`: one stage in either direction, or two stages
-both upward (the only two-stage form the lemmas cover); its exits are declared non-self
-non-pruned successors of `q`. -/
+/-- The certificate's stages pass `stageOK`: one stage, or two stages (a helper, then the
+landing stage), each in either direction (`Progress.shapeOK`, the test the tool's search
+applies before emitting); its exits are declared non-self non-pruned successors of `q`. -/
 def certOK (q : ℕ) (c : ProgressE) : Bool :=
-  (c.stages.length == 1 || (c.stages.length == 2 && c.stages.all (·.up))) &&
+  shapeOK c.stages &&
   c.stages.all (stageOK p n) &&
   c.exits.all (fun nm => (mRof p q).next.contains nm && nm != (mRof p q).name &&
     !(prunedOf cov (mRof p q).name nm))
@@ -221,15 +222,16 @@ theorem certOK_stage {q : ℕ} {c : ProgressE} (h : certOK p n cov q c = true) {
   exact ⟨by exact_mod_cast this.1.1, this.1.2, this.2⟩
 
 omit hs in
-/-- The shape: one stage (either direction), or two stages both upward. -/
+/-- The shape: one stage or two stages, each in either direction (the directions are cased on
+by the dispatch of `hrepoProg_of`). Since 2026-11-01 (was: two stages both upward). -/
 theorem certOK_shape {q : ℕ} {c : ProgressE} (h : certOK p n cov q c = true) :
-    (∃ st, c.stages = [st]) ∨ ∃ sth st, c.stages = [sth, st] ∧ sth.up = true ∧ st.up = true := by
-  simp only [certOK, Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq, List.all_eq_true] at h
-  rcases h.1.1 with h1 | ⟨h2, hup⟩
+    (∃ st, c.stages = [st]) ∨ ∃ sth st, c.stages = [sth, st] := by
+  simp only [certOK, shapeOK, Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq] at h
+  rcases h.1.1 with h1 | h2
   · obtain ⟨st, hst⟩ := List.length_eq_one_iff.mp h1
     exact Or.inl ⟨st, hst⟩
-  · rcases hc : c.stages with _ | ⟨a, _ | ⟨b, _ | _⟩⟩ <;> rw [hc] at h2 hup <;> simp at h2
-    exact Or.inr ⟨a, b, rfl, hup a (by simp), hup b (by simp)⟩
+  · rcases hc : c.stages with _ | ⟨a, _ | ⟨b, _ | _⟩⟩ <;> rw [hc] at h2 <;> simp at h2
+    exact Or.inr ⟨a, b, rfl⟩
 
 omit hs in
 /-- A resolved right variable is `Rv` of its index. -/
@@ -355,7 +357,7 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     fun y hy => regionSat_of_regionF hs hl pre y hy
   have hpruneD := fun e he hp σ ω (hA : Formula.sat (AGr p n cX cov reg l q) σ) hω =>
     AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω
-  rcases certOK_shape hok with ⟨st, hstg⟩ | ⟨sth, st, hstg, huph, hup⟩
+  rcases certOK_shape hok with ⟨st, hstg⟩ | ⟨sth, st, hstg⟩
   · -- one stage, in either direction
     obtain ⟨hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
     have hlast : c.stages.getLast? = some st := by rw [hstg]; rfl
@@ -400,36 +402,119 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
         exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
       · intro y hy hlt
         exact hrate y (hRsat y hy) (by rw [hvR]; exact hlt)
-  · -- two stages, both upward
+  · -- two stages, either direction in either stage
     obtain ⟨hrhpos, -, hfreeh⟩ := certOK_stage hok (st := sth) (by rw [hstg]; simp)
     obtain ⟨hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
     have hlast : c.stages.getLast? = some st := by rw [hstg]; rfl
-    obtain ⟨w, v, hw', hv', hrate_h, hkeep_h, hrate, hline, hstart⟩ :=
-      progressVerd_two hv sth st hstg huph hup
-    rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate_h hkeep_h hrate hline hstart
-    have hvR := resolve_Rv (p := p) hfree hv'
-    have hwR := resolve_Rv (p := p) hfreeh hw'
-    refine repoProgress_two_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
-      (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
-      (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
-      (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
-      (dynRegion p n cov prog l q pre).pred
-      (hboxB (hregion st v hlast hv' hvR).1)
-      hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ ?_ (st.rate : ℝ) hrpos w.2
-      (sth.theta : ℝ) (sth.rate : ℝ) hrhpos ?_ ?_ ?_
-    · intro y hy hθ
-      exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
-    · intro x hx
-      exact (hregion st v hlast hv' hvR).2 x ((sat_before_up v st hup x).mpr (by rw [hvR]; exact hx))
-    · intro y hy hg hθ
-      exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
-    · intro y hy hlt
-      exact hrate_h y (hRsat y hy) (by rw [hwR]; exact hlt)
-    · intro y hy hle
-      exact hkeep_h y (hRsat y hy) (by rw [hwR]; exact hle)
-    · intro y hy hθh hlt
-      exact hrate y (hRsat y hy) (by rw [hwR]; exact hθh) (by rw [hvR]; exact hlt)
+    cases huph : sth.up <;> cases hup : st.up
+    · -- helper down, landing down
+      obtain ⟨w, v, hw', hv', hrate_h, hkeep_h, hrate, hline, hstart⟩ :=
+        progressVerd_two_dd hv sth st hstg huph hup
+      rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate_h hkeep_h hrate hline hstart
+      have hvR := resolve_Rv (p := p) hfree hv'
+      have hwR := resolve_Rv (p := p) hfreeh hw'
+      refine repoProgress_two_dd_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+        (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
+        (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
+        (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
+        (dynRegion p n cov prog l q pre).pred
+        (hboxB (hregion st v hlast hv' hvR).1)
+        hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ ?_ (st.rate : ℝ) hrpos w.2
+        (sth.theta : ℝ) (sth.rate : ℝ) hrhpos ?_ ?_ ?_
+      · intro y hy hθ
+        exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro x hx
+        exact (hregion st v hlast hv' hvR).2 x ((sat_before_down v st hup x).mpr (by rw [hvR]; exact hx))
+      · intro y hy hg hθ
+        exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
+      · intro y hy hlt
+        exact hrate_h y (hRsat y hy) (by rw [hwR]; exact hlt)
+      · intro y hy hle
+        exact hkeep_h y (hRsat y hy) (by rw [hwR]; exact hle)
+      · intro y hy hθh hlt
+        exact hrate y (hRsat y hy) (by rw [hwR]; exact hθh) (by rw [hvR]; exact hlt)
+    · -- helper down, landing up
+      obtain ⟨w, v, hw', hv', hrate_h, hkeep_h, hrate, hline, hstart⟩ :=
+        progressVerd_two_du hv sth st hstg huph hup
+      rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate_h hkeep_h hrate hline hstart
+      have hvR := resolve_Rv (p := p) hfree hv'
+      have hwR := resolve_Rv (p := p) hfreeh hw'
+      refine repoProgress_two_du_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+        (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
+        (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
+        (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
+        (dynRegion p n cov prog l q pre).pred
+        (hboxB (hregion st v hlast hv' hvR).1)
+        hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ ?_ (st.rate : ℝ) hrpos w.2
+        (sth.theta : ℝ) (sth.rate : ℝ) hrhpos ?_ ?_ ?_
+      · intro y hy hθ
+        exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro x hx
+        exact (hregion st v hlast hv' hvR).2 x ((sat_before_up v st hup x).mpr (by rw [hvR]; exact hx))
+      · intro y hy hg hθ
+        exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
+      · intro y hy hlt
+        exact hrate_h y (hRsat y hy) (by rw [hwR]; exact hlt)
+      · intro y hy hle
+        exact hkeep_h y (hRsat y hy) (by rw [hwR]; exact hle)
+      · intro y hy hθh hlt
+        exact hrate y (hRsat y hy) (by rw [hwR]; exact hθh) (by rw [hvR]; exact hlt)
+    · -- helper up, landing down
+      obtain ⟨w, v, hw', hv', hrate_h, hkeep_h, hrate, hline, hstart⟩ :=
+        progressVerd_two_ud hv sth st hstg huph hup
+      rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate_h hkeep_h hrate hline hstart
+      have hvR := resolve_Rv (p := p) hfree hv'
+      have hwR := resolve_Rv (p := p) hfreeh hw'
+      refine repoProgress_two_ud_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+        (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
+        (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
+        (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
+        (dynRegion p n cov prog l q pre).pred
+        (hboxB (hregion st v hlast hv' hvR).1)
+        hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ ?_ (st.rate : ℝ) hrpos w.2
+        (sth.theta : ℝ) (sth.rate : ℝ) hrhpos ?_ ?_ ?_
+      · intro y hy hθ
+        exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro x hx
+        exact (hregion st v hlast hv' hvR).2 x ((sat_before_down v st hup x).mpr (by rw [hvR]; exact hx))
+      · intro y hy hg hθ
+        exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
+      · intro y hy hlt
+        exact hrate_h y (hRsat y hy) (by rw [hwR]; exact hlt)
+      · intro y hy hle
+        exact hkeep_h y (hRsat y hy) (by rw [hwR]; exact hle)
+      · intro y hy hθh hlt
+        exact hrate y (hRsat y hy) (by rw [hwR]; exact hθh) (by rw [hvR]; exact hlt)
+    · -- helper up, landing up
+      obtain ⟨w, v, hw', hv', hrate_h, hkeep_h, hrate, hline, hstart⟩ :=
+        progressVerd_two hv sth st hstg huph hup
+      rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate_h hkeep_h hrate hline hstart
+      have hvR := resolve_Rv (p := p) hfree hv'
+      have hwR := resolve_Rv (p := p) hfreeh hw'
+      refine repoProgress_two_reg (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+        (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
+        (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
+        (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp
+        (dynRegion p n cov prog l q pre).pred
+        (hboxB (hregion st v hlast hv' hvR).1)
+        hpruneD (regionF p n cX l q pre) hR v.2 (st.theta : ℝ) ?_ ?_ ?_ (st.rate : ℝ) hrpos w.2
+        (sth.theta : ℝ) (sth.rate : ℝ) hrhpos ?_ ?_ ?_
+      · intro y hy hθ
+        exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro x hx
+        exact (hregion st v hlast hv' hvR).2 x ((sat_before_up v st hup x).mpr (by rw [hvR]; exact hx))
+      · intro y hy hg hθ
+        exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
+      · intro y hy hlt
+        exact hrate_h y (hRsat y hy) (by rw [hwR]; exact hlt)
+      · intro y hy hle
+        exact hkeep_h y (hRsat y hy) (by rw [hwR]; exact hle)
+      · intro y hy hθh hlt
+        exact hrate y (hRsat y hy) (by rw [hwR]; exact hθh) (by rw [hvR]; exact hlt)
 
 end Proofs
 

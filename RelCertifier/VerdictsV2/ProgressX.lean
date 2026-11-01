@@ -163,6 +163,25 @@ theorem keep_of_unsat (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n �
   · simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hb
   · simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hlt
 
+/-- **keep** (downward): on the region, under the earlier crossed facts and at or above the
+threshold, the field is nonpositive (the mirror of `keep_of_unsat`). -/
+theorem keep_of_unsat_down (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n × ProgressStageE))
+    (i : ℕ) (v : Var n) (st : ProgressStageE) (hup : st.up = false)
+    (hz : z3solve (keepQuery R fR vs i v st).toHost = Verdict.unsat) :
+    ∀ y, Formula.sat R.toHost y → Formula.sat (crossedBefore vs i).toHost y →
+      (st.theta : ℝ) ≤ y v → Term.eval (fR v.2).toHost y ≤ 0 := by
+  intro y hR hC hb
+  have hns := z3_unsat_sound hz y
+  by_contra hlt
+  push Not at hlt
+  refine hns ?_
+  unfold keepQuery
+  simp only [hup, Bool.false_eq_true, if_false]
+  refine ⟨⟨⟨hR, hC⟩, ?_⟩, ?_⟩
+  · simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hb
+  · simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hlt
+
+
 /-- The landing conjunction: some exit's guard holds. -/
 theorem land_of_unsat (base : IForm n) (guards : List (IForm n))
     (hz : z3solve (guards.foldl (fun d g => IForm.and d (IForm.neg g)) base).toHost

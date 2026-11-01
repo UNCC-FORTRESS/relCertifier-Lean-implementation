@@ -723,7 +723,10 @@ partial def thresholdAtoms : PForm → List (String × ℚ × Bool)
 flow preserves), field `fR`, and exits. Candidates: a threshold atom of an exit guard as the
 last stage (its landing query first, then its rate on a geometric grid); failing that, one
 helper stage on a coordinate the field reads (its keep query, its rate, then the last stage's
-rate under the helper's crossed fact). Two stages at most. `accept` (the pre-landing check,
+rate under the helper's crossed fact); the helper and the landing stage each in either
+direction. Two stages at most; a found list is returned only if it passes `Progress.shapeOK`,
+the kernel's shape test (`Emitted.certOK`), which since 2026-11-01 accepts every direction pair
+(`docs/PRELANDING.md`). `accept` (the pre-landing check,
 `checkDynRepo` on the region, which reads only the last stage): a found stage list is returned only if it
 holds, otherwise the next candidate is tried; the default accepts, so with the pre-landing
 feature off (`RELCERT_NO_PRELANDING=1`) the search is the old one. -/
@@ -756,7 +759,7 @@ def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt dead
         let st := stLast r
         if ← probe (Progress.rateQuery R fR [(v, st)] 0 v st) then found := some [st]
       match found with
-      | some sts => if ← accept sts then return found else continue
+      | some sts => if Progress.shapeOK sts && (← accept sts) then return found else continue
       | none => pure ()
       let ys := (itermVars (fR v.2)).eraseDups.filter (fun w => w.1 == Side.R && w != v)
       for w in ys do
@@ -779,7 +782,7 @@ def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt dead
                 if ← probe (Progress.rateQuery R fR vs 1 v (stLast r)) then
                   found := some [stY r1v, stLast r]
       match found with
-      | some sts => if ← accept sts then return found
+      | some sts => if Progress.shapeOK sts && (← accept sts) then return found
       | none => pure ()
   return none
 

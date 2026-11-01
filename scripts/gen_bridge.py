@@ -284,7 +284,8 @@ def uses_stutter(b):
     return bool(re.search(r'⟨"\w+", \[[^\]]*\], \[[^\]]*\], \[[^\]]*\], 0, \d+⟩', open(f).read()))
 
 # benchmarks without a generated instance (none; a downward single progress stage is covered
-# by `repoProgress_one_down`, a two-stage certificate must be upward in both stages)
+# by `repoProgress_one_down`, a two-stage certificate in any directions by `repoProgress_two_reg`
+# and its mixed / downward mirrors, docs/PRELANDING.md)
 SKIP = set()
 
 STUTTER_THMS = """/-- Stretch 0 is admitted for this file: the run had the stutter feature on (`stutter = true`,

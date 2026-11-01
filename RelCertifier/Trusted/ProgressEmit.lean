@@ -98,6 +98,13 @@ def landQueries (R guardq : IForm n) (v : Var n) (st : ProgressStageE)
   let neg := fun (base : IForm n) => guards.foldl (fun d g => IForm.and d (IForm.neg g)) base
   [neg (IForm.and R (onLine v st)), neg (IForm.and (IForm.and R guardq) (crossed v st))]
 
+/-- **The certificate shapes the kernel accepts** (`Emitted.certOK`): one stage, or two stages
+(a helper, then the landing stage), each stage in either direction. The progress search
+(`OracleAPI.checkProgress`) returns a stage list only when it passes this test, so no shape the
+kernel rejects is emitted. Since 2026-11-01 every direction pair of a two-stage list is
+accepted (before: two upward stages only; `docs/PRELANDING.md`). -/
+def shapeOK (sts : List ProgressStageE) : Bool := sts.length == 1 || sts.length == 2
+
 /-- The queries of a resolved stage list (one or two stages): per stage its rate query and
 (non-last) keep query, then the landing queries. -/
 def stageQueries (R guardq : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n × ProgressStageE))

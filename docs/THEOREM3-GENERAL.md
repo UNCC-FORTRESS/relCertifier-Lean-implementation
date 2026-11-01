@@ -87,7 +87,9 @@ node discharged that way (it moved to `benchmarks/reserve/` on 2026-10-27; its i
 history).
 
 `Proofs/Encoding/Progress.lean` proves the certificate sound: `repoProgress_one`,
-`repoProgress_one_down` (a single downward stage, the mirror) and `repoProgress_two` give `RepoProgress` (the general theorem's premise: from a reposition start,
+`repoProgress_one_down` (a single downward stage, the mirror), `repoProgress_two` and, in the
+pre-landing region form, the mixed and downward two-stage closers `repoProgress_two_ud_reg`,
+`_du_reg`, `_dd_reg` (2026-11-01, docs/PRELANDING.md) give `RepoProgress` (the general theorem's premise: from a reposition start,
 cycles of the node until an exit is enabled, the anchor kept) from the certificate's facts,
 Assumption 1 (each cycle's run, and an enabled successor at its end), the reposition flow
 certificate (the anchor is kept) and the right-only non-connection certificate (a pruned exit

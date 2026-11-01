@@ -19,8 +19,14 @@ of `q` ending with a switch along a non-self exit. The tool's progress certifica
   without crossing advances the coordinate by `r ε_R`, so the cycles are bounded;
 * `repoProgress_one`, `repoProgress_two`: the certificate with one or two (upward) stages
   gives `RepoProgress`; `repoProgress_one_down` (with `cycle_decay`, `hits_line_down`,
-  `phase_down`, `land_at_start_down`) the mirror for a single DOWNWARD stage, the only
-  downward form the suite's records use (`lit_hypercert_vehicle`).
+  `phase_down`, `land_at_start_down`) the mirror for a single DOWNWARD stage;
+* the other two-stage shapes the tool's search emits (pre-landing region form, the end of the
+  file): helper up then landing down (`repoProgress_two_ud_reg`, the stop-line rungs' braking
+  nodes: the brake builds up, then the speed falls to the stop threshold), helper down then
+  landing up (`repoProgress_two_du_reg`) and both downward (`repoProgress_two_dd_reg`), from
+  `phase_regM` / `phase_down_regM` (a stage's cycles with an abstract progress measure) and the
+  measures `meas_up_reg`, `meas_down_reg`, `meas_land_down_reg` (`keep_preserved_down_reg`
+  keeps a helper crossed downward).
 
 Each cycle's run is Assumption 1's (from a guard state, duration `ε_R`); the anchor is kept by
 the reposition flow certificate; the pruned exits are excluded by the right-only
@@ -1009,5 +1015,761 @@ theorem repoProgress_one_down (r : ℝ) (hr : 0 < r)
     (hboxB_of_hboxD fR domL domR gL hfR hdomL hdomR hgL (A q) hAfv hAdom pre hboxD (fun _ => True)) hpruneD R hR j θ hline (fun _ _ => trivial) r hr hstart_down hrate
 
 end Close
+
+end RelCertifier
+
+namespace RelCertifier
+open DL DLCalTiming DLRel Set Function
+
+variable {n : ℕ}
+
+/-! ## Mixed and downward two-stage certificates (pre-landing region form)
+
+The tool's progress search (`OracleAPI.checkProgress`) tries a helper stage in either direction
+before a landing stage in either direction. The lemmas above cover one stage (either direction)
+and two upward stages. Here the remaining two-stage shapes: helper up then landing down
+(`repoProgress_two_ud_reg`), helper down then landing up (`repoProgress_two_du_reg`), and both
+downward (`repoProgress_two_dd_reg`). The cycles of a stage are `phase_regM` (landing upward) and
+`phase_down_regM` (landing downward), the mirrors of `phase_reg` / `phase_down_reg` with the
+stage's measure abstracted to a function `g` of one right coordinate that falls by `c` per
+cycle until it is nonpositive (`hmeas`); `meas_up_reg`, `meas_down_reg` and
+`meas_land_down_reg` are the three measures (a helper rising, a helper falling, the landing
+coordinate falling), from the rate facts, the crossed helper kept (`keep_preserved_reg`,
+`keep_preserved_down_reg`) and `cycle_growth` / `cycle_decay`. -/
+
+section NodeM
+
+variable (G : SearchGraph (Var n)) (fR : Fin n → Term (Var n)) (domL domR gL : Formula (Var n))
+  (guard : ℕ → Formula (Var n)) (q : ℕ) (m : RMode (Var n)) (hm : G.modeAt q = some m)
+  (hsys : m.sys = rightBlock fR (Term.const 1)) (hdomM : m.dom = domR)
+  (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
+  (hgL : gL.fv ⊆ range Lv) (hguardR : ∀ q', (guard q').fv ⊆ range Rv)
+  (hgR : GuardsRight G) (hguards : ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+  (A : Formula (Var n)) (hAfv : A.fv ⊆ range Lv ∪ range Rv)
+  (hAdom : ∀ y, Formula.sat A y → Formula.sat domL y ∧ Formula.sat domR y)
+  (pre : Bool)
+  (epsR : ℝ) (hε : 0 < epsR)
+  (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
+  (reg : Formula (Var n)) (hregR : reg.fv ⊆ range Rv)
+  (hAreg : ∀ y, Formula.sat A y → Formula.sat reg y)
+  (hex : ∀ x, Formula.sat (guard q) x → Formula.sat domR x → Formula.sat reg x →
+    ∃ Φ, ODESol (rightBlock fR (Term.const 1)) domR x epsR Φ)
+  (hcomp : ∀ x, Formula.sat (guard q) x → Formula.sat domR x → Formula.sat reg x → ∀ t Φ, t ≤ epsR →
+    ODESol (rightBlock fR (Term.const 1)) domR x t Φ →
+    ∃ e ∈ G.edgesFrom q, Formula.sat (guard e.tgt) (Φ t))
+  (Bf : State (Var n) → Prop)
+  (hboxB : ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat A y → (pre = true → Formula.sat gL y) →
+    ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ →
+    (∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t)) → Formula.sat A (mergeLR y y (Φ T)))
+  (hpruneD : ∀ e ∈ G.edgesFrom q, e.pruned = true → ∀ σ ω, Formula.sat A σ →
+    Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR (Term.const 1))
+      (Formula.and domL domR)) σ ω → ¬ Formula.sat e.guard ω)
+  (R : Formula (Var n)) (hR : ∀ y, Formula.sat A y → (pre = true → Formula.sat gL y) →
+    Formula.sat R y)
+
+include hfR hdomL hdomR hgL hAdom hboxB hR in
+/-- **A threshold crossed downward is kept** along a run that stays in `Bf` before its end, when
+the coordinate's field is nonpositive at or above it on the region (the mirror of
+`keep_preserved_reg`). -/
+theorem keep_preserved_down_reg (z : Fin n) (z₀ : ℝ)
+    (hkeep : ∀ y, Formula.sat R y → z₀ ≤ y (Rv z) → Term.eval (fR z) y ≤ 0)
+    {y ρ : State (Var n)} (hyρ : ∀ i, y (Rv i) = ρ (Rv i))
+    (hA : Formula.sat A y) (hgLy : pre = true → Formula.sat gL y)
+    {T : ℝ} {Φ : ℝ → State (Var n)} (H : ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ)
+    (hB : ∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t))
+    (h0 : ρ (Rv z) ≤ z₀) : Φ T (Rv z) ≤ z₀ := by
+  have hmr := merged_run_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf hboxB R hR hyρ
+    hA hgLy H
+  set D := Formula.and domL (Formula.and domR R) with hD
+  obtain ⟨hr, h0', hder, hmask, -⟩ := right_sol_merge hfR hdomR H y y
+  have HD : ODESol (rightBlock fR (Term.const 1)) D (mergeLR y y ρ) T
+      (fun t => mergeLR y y (Φ t)) := by
+    refine ⟨hr, h0', hder, hmask, fun t ht => ?_⟩
+    obtain ⟨-, hAt, hRt⟩ := hmr t ht (fun s hs => hB s ⟨hs.1, hs.2.trans_le ht.2⟩)
+    exact ⟨(hAdom _ hAt).1, (hAdom _ hAt).2, hRt⟩
+  have hrunD : Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR (Term.const 1)) D)
+      (mergeLR y y ρ) (mergeLR y y (Φ T)) := by
+    rw [hD]
+    exact (sem_rightBlock_frozen_iff hfR (by simp [Term.fv])).mpr
+      (DLCalTiming.sem_ode_restrict HD H.hr le_rfl)
+  have hinit : Term.eval (thrLe (Rv z) z₀) (mergeLR y y ρ) ≤ 0 := by
+    simp [thrLe, Term.eval, AOp.interp, mergeLR_R]; linarith
+  have hb := boxle_thrLe_R z z₀ (fun _ => Term.const 0) fR 1 zero_le_one D D (fun x h => h)
+    (fun w hw hle => hkeep w hw.2.2 hle) hinit _ hrunD
+  simp [thrLe, Term.eval, AOp.interp, mergeLR_R] at hb
+  linarith
+
+include hfR hdomL hdomR hgL hAdom hε hboxB hR in
+/-- **The measure of a rising helper**: over one cycle that stays in `Bf` (with the stage
+invariant `Kf` along it), a helper not crossed at the cycle's end rose by `rz ε_R` (crossed
+within the cycle, it would be kept to the end). -/
+theorem meas_up_reg (z : Fin n) (z₀ rz : ℝ) (Kf : Formula (Var n))
+    (hrate : ∀ y, Formula.sat R y → Formula.sat Kf y → y (Rv z) < z₀ → rz ≤ Term.eval (fR z) y)
+    (hkeep : ∀ y, Formula.sat R y → y (Rv z) ≤ z₀ → 0 ≤ Term.eval (fR z) y)
+    {y ρ : State (Var n)} (hyρ : ∀ i, y (Rv i) = ρ (Rv i))
+    (hA : Formula.sat A y) (hgLy : pre = true → Formula.sat gL y)
+    {Φ : ℝ → State (Var n)} (H : ODESol (rightBlock fR (Term.const 1)) domR ρ epsR Φ)
+    (hB : ∀ t ∈ Icc (0 : ℝ) epsR, ∀ s ∈ Ico (0 : ℝ) t, Bf (Φ s))
+    (hKt : ∀ t ∈ Icc (0 : ℝ) epsR, Formula.sat Kf (mergeLR y y (Φ t)))
+    (hpos : 0 < z₀ - Φ epsR (Rv z)) :
+    z₀ - Φ epsR (Rv z) ≤ (z₀ - ρ (Rv z)) - rz * epsR := by
+  have hmr := merged_run_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf hboxB R hR hyρ
+    hA hgLy H
+  by_cases hz : ∃ t ∈ Icc (0 : ℝ) epsR, z₀ ≤ Φ t (Rv z)
+  · exfalso
+    obtain ⟨t, ht, hzt⟩ := hz
+    have hsh := odeSol_shift H ht.1 ht.2 le_rfl
+    have hAt : Formula.sat A (mergeLR y y (Φ t)) := (hmr t ht (hB t ht)).2.1
+    have hkept := keep_preserved_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf
+      hboxB R hR z z₀ hkeep (y := mergeLR y y (Φ t)) (ρ := Φ t)
+      (fun i => mergeLR_R y y _ i) hAt
+      (fun hp => (sat_merge_L hgL y y _).mpr (hgLy hp)) hsh
+      (fun s hs => hB epsR ⟨hε.le, le_rfl⟩ (t + s) ⟨by linarith [hs.1, ht.1], by linarith [hs.2]⟩)
+      hzt
+    simp only [add_sub_cancel] at hkept
+    linarith
+  · push Not at hz
+    have hgr := cycle_growth H z rz (fun t ht => by
+      obtain ⟨-, -, hRt⟩ := hmr t ht (hB t ht)
+      have := hrate _ hRt (hKt t ht) (by rw [mergeLR_R]; exact hz t ht)
+      rwa [eval_fR_merge hfR] at this)
+    linarith
+
+include hfR hdomL hdomR hgL hAdom hε hboxB hR in
+/-- **The measure of a falling helper** (the mirror of `meas_up_reg`). -/
+theorem meas_down_reg (z : Fin n) (z₀ rz : ℝ) (Kf : Formula (Var n))
+    (hrate : ∀ y, Formula.sat R y → Formula.sat Kf y → z₀ < y (Rv z) → Term.eval (fR z) y ≤ -rz)
+    (hkeep : ∀ y, Formula.sat R y → z₀ ≤ y (Rv z) → Term.eval (fR z) y ≤ 0)
+    {y ρ : State (Var n)} (hyρ : ∀ i, y (Rv i) = ρ (Rv i))
+    (hA : Formula.sat A y) (hgLy : pre = true → Formula.sat gL y)
+    {Φ : ℝ → State (Var n)} (H : ODESol (rightBlock fR (Term.const 1)) domR ρ epsR Φ)
+    (hB : ∀ t ∈ Icc (0 : ℝ) epsR, ∀ s ∈ Ico (0 : ℝ) t, Bf (Φ s))
+    (hKt : ∀ t ∈ Icc (0 : ℝ) epsR, Formula.sat Kf (mergeLR y y (Φ t)))
+    (hpos : 0 < Φ epsR (Rv z) - z₀) :
+    Φ epsR (Rv z) - z₀ ≤ (ρ (Rv z) - z₀) - rz * epsR := by
+  have hmr := merged_run_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf hboxB R hR hyρ
+    hA hgLy H
+  by_cases hz : ∃ t ∈ Icc (0 : ℝ) epsR, Φ t (Rv z) ≤ z₀
+  · exfalso
+    obtain ⟨t, ht, hzt⟩ := hz
+    have hsh := odeSol_shift H ht.1 ht.2 le_rfl
+    have hAt : Formula.sat A (mergeLR y y (Φ t)) := (hmr t ht (hB t ht)).2.1
+    have hkept := keep_preserved_down_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf
+      hboxB R hR z z₀ hkeep (y := mergeLR y y (Φ t)) (ρ := Φ t)
+      (fun i => mergeLR_R y y _ i) hAt
+      (fun hp => (sat_merge_L hgL y y _).mpr (hgLy hp)) hsh
+      (fun s hs => hB epsR ⟨hε.le, le_rfl⟩ (t + s) ⟨by linarith [hs.1, ht.1], by linarith [hs.2]⟩)
+      hzt
+    simp only [add_sub_cancel] at hkept
+    linarith
+  · push Not at hz
+    have hgr := cycle_decay H z rz (fun t ht => by
+      obtain ⟨-, -, hRt⟩ := hmr t ht (hB t ht)
+      have := hrate _ hRt (hKt t ht) (by rw [mergeLR_R]; exact hz t ht)
+      rwa [eval_fR_merge hfR] at this)
+    linarith
+
+include hfR hdomL hdomR hgL hAdom hboxB hR in
+/-- **The measure of a falling landing coordinate**: over one cycle that has not crossed `θ`
+(above `θ` is in `Bf`), the landing coordinate fell by `r ε_R`. -/
+theorem meas_land_down_reg (j : Fin n) (θ r : ℝ) (Kf : Formula (Var n))
+    (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)
+    (hrate : ∀ y, Formula.sat R y → Formula.sat Kf y → θ < y (Rv j) → Term.eval (fR j) y ≤ -r)
+    {y ρ : State (Var n)} (hyρ : ∀ i, y (Rv i) = ρ (Rv i))
+    (hA : Formula.sat A y) (hgLy : pre = true → Formula.sat gL y)
+    {Φ : ℝ → State (Var n)} (H : ODESol (rightBlock fR (Term.const 1)) domR ρ epsR Φ)
+    (hnc : ∀ t ∈ Icc (0 : ℝ) epsR, θ < Φ t (Rv j))
+    (hKt : ∀ t ∈ Icc (0 : ℝ) epsR, Formula.sat Kf (mergeLR y y (Φ t))) :
+    Φ epsR (Rv j) - θ ≤ (ρ (Rv j) - θ) - r * epsR := by
+  have hmr := merged_run_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf hboxB R hR hyρ
+    hA hgLy H
+  have hgr := cycle_decay H j r (fun t ht => by
+    obtain ⟨-, -, hRt⟩ := hmr t ht (fun s hs => hBf _ (hnc s ⟨hs.1, hs.2.le.trans ht.2⟩))
+    have := hrate _ hRt (hKt t ht) (by rw [mergeLR_R]; exact hnc t ht)
+    rwa [eval_fR_merge hfR] at this)
+  linarith
+
+include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
+  hcomp hboxB hpruneD hR in
+/-- **The cycles of one stage, landing upward, with an abstract measure** (`phase_reg` with the
+stage's progress measure `g (x_z)`: it falls by `c` over every cycle that neither lands nor
+reaches `g ≤ 0`, `hmeas`). The landing is at the first entry into `x_j ≥ θ`; below `θ` is in
+`Bf`; the stage invariant `Kf` is kept along runs that stay in `Bf`. -/
+theorem phase_regM (j : Fin n) (θ : ℝ) (hBf : ∀ x : State (Var n), x (Rv j) < θ → Bf x)
+    (hline : ∀ y, Formula.sat R y → y (Rv j) = θ →
+      ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+    (hstart : ∀ y, Formula.sat R y → Formula.sat (guard q) y → θ ≤ y (Rv j) →
+      ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+    (Kf : Formula (Var n)) (hKfv : Kf.fv ⊆ range Rv)
+    (hKkeep : ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat A y →
+      (pre = true → Formula.sat gL y) → Formula.sat Kf y →
+      ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ →
+        (∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t)) → Formula.sat Kf (mergeLR y y (Φ T)))
+    (z : Fin n) (g : ℝ → ℝ) (c : ℝ) (hc : 0 < c)
+    (hmeas : ∀ (y ρ : State (Var n)), (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat A y →
+      (pre = true → Formula.sat gL y) →
+      ∀ Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ epsR Φ →
+      (∀ t ∈ Icc (0 : ℝ) epsR, Φ t (Rv j) < θ) →
+      (∀ t ∈ Icc (0 : ℝ) epsR, Formula.sat Kf (mergeLR y y (Φ t))) →
+      0 < g (Φ epsR (Rv z)) → g (Φ epsR (Rv z)) ≤ g (ρ (Rv z)) - c) :
+    ∀ (N : ℕ) (y ρ : State (Var n)), (∀ i, y (Rv i) = ρ (Rv i)) →
+      (pre = true → Formula.sat gL y) → CycleStart guard q A Kf y ρ ρ →
+      g (ρ (Rv z)) ≤ N * c →
+      RRespPC G tr epsR q (fun q' μ => Landed G q A y ρ q' μ ∨
+        (q' = q ∧ CycleStart guard q A Kf y ρ μ ∧ g (μ (Rv z)) ≤ 0)) ρ := by
+  have htrode := tr_notMem_ode_node fR domR m hsys hdomM hfR hdomR tr htrR
+  have htrdom : tr ∉ m.dom.fv := ((notMem_ode_fv_iff _ _ _).mp htrode).2.2
+  intro N
+  induction N with
+  | zero =>
+      intro y ρ _ _ hcs hN
+      simp only [CharP.cast_eq_zero, zero_mul] at hN
+      exact rrespPC_stop (Or.inr ⟨rfl, hcs, hN⟩)
+  | succ N ih =>
+      intro y ρ hyρ hgLy hcs hN
+      obtain ⟨hg, hA, hK, hL⟩ := hcs
+      have hAy : Formula.sat A y :=
+        (sat_of_agree hAfv (x := mergeLR y y ρ) (y := y) (fun i => mergeLR_L y y ρ i)
+          (fun i => by rw [mergeLR_R, hyρ i])).mp hA
+      have hKρ : Formula.sat Kf ρ := (sat_merge_R hKfv y y ρ).mp hK
+      have hKy : Formula.sat Kf y :=
+        (Formula.coincidence Kf (fun v hv => by
+          obtain ⟨i, rfl⟩ := hKfv hv; exact hyρ i)).mpr hKρ
+      have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR y y ρ).mp (hAdom _ hA).2
+      -- the landing at the start, already crossed
+      by_cases hx0 : θ ≤ ρ (Rv j)
+      · have hRρ : Formula.sat R (mergeLR y y ρ) := hR _ hA (fun hp =>
+          (sat_merge_L hgL y y ρ).mpr (hgLy hp))
+        have hgρ : Formula.sat (guard q) (mergeLR y y ρ) :=
+          (sat_merge_R (hguardR q) y y ρ).mpr hg
+        obtain ⟨e, he, hneq, hnp, hge⟩ := hstart _ hRρ hgρ (by rw [mergeLR_R]; exact hx0)
+        have hleg : SwitchLegal e ρ := by
+          unfold SwitchLegal; rw [hguards e he]
+          exact (sat_merge_R (hguardR e.tgt) y y ρ).mp hge
+        have hdom : Formula.sat m.dom ρ := by rw [hdomM]; exact hρdom
+        exact rrespPC_step hm he (sem_clockedSeg_zero m.sys m.dom tr epsR hε.le htrdom hdom)
+          ((switchLegal_update hgR he htrR _ _).mpr hleg)
+          (rrespPC_stop (Or.inl (landed_update_tr G q hgR A tr htrL htrR 0
+            ⟨e, he, hneq, hnp, rfl, hleg, hA, hL⟩)))
+      push Not at hx0
+      -- one cycle
+      obtain ⟨Φ, H⟩ := hex ρ hg hρdom ((sat_merge_R hregR y y ρ).mp (hAreg _ hA))
+      have hmr := merged_run_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf hboxB R hR
+        hyρ hAy hgLy H
+      have hHm : ODESol m.sys m.dom ρ epsR Φ := by rw [hsys, hdomM]; exact H
+      -- the landing on the line within the cycle, at the FIRST entry into `x ≥ θ`
+      by_cases hcross : ∃ t ∈ Icc (0 : ℝ) epsR, θ ≤ Φ t (Rv j)
+      · obtain ⟨t, ht, hθt⟩ := hcross
+        obtain ⟨t', ht', hline', hbef⟩ := first_hit H j θ hx0 ht hθt
+        obtain ⟨-, hAt, hRt⟩ := hmr t' ht' (fun s hs => hBf _ (hbef s hs))
+        obtain ⟨e, he, hneq, hnp, hge⟩ := hline _ hRt (by rw [mergeLR_R]; exact hline')
+        have hleg : SwitchLegal e (Φ t') := by
+          unfold SwitchLegal; rw [hguards e he]
+          exact (sat_merge_R (hguardR e.tgt) y y _).mp hge
+        exact rrespPC_step hm he
+          (sem_clockedSeg_of_odeSol_fv m.sys m.dom tr epsR hHm ht'.1 ht'.2 ht'.2 htrode)
+          ((switchLegal_update hgR he htrR _ _).mpr hleg)
+          (rrespPC_stop (Or.inl (landed_update_tr G q hgR A tr htrL htrR t'
+            ⟨e, he, hneq, hnp, rfl, hleg, hAt,
+              fun i => (right_sol_left (ODESol_restrict H ht'.1 ht'.2) i).trans (hL i)⟩)))
+      push Not at hcross
+      -- no crossing: the whole cycle is in `Bf`
+      have hBall : ∀ t ∈ Icc (0 : ℝ) epsR, ∀ s ∈ Ico (0 : ℝ) t, Bf (Φ s) :=
+        fun t ht s hs => hBf _ (hcross s ⟨hs.1, hs.2.le.trans ht.2⟩)
+      -- the invariant along the cycle
+      have hKt : ∀ t ∈ Icc (0 : ℝ) epsR, Formula.sat Kf (mergeLR y y (Φ t)) := fun t ht =>
+        hKkeep y ρ hyρ hAy hgLy hKy t Φ (ODESol_restrict H ht.1 ht.2) (hBall t ht)
+      -- the end of the cycle: a declared successor is enabled
+      obtain ⟨-, hAe, -⟩ := hmr epsR ⟨hε.le, le_rfl⟩ (hBall epsR ⟨hε.le, le_rfl⟩)
+      obtain ⟨e, he, hge⟩ := hcomp ρ hg hρdom ((sat_merge_R hregR y y ρ).mp (hAreg _ hA)) epsR Φ le_rfl H
+      have hleg : SwitchLegal e (Φ epsR) := by unfold SwitchLegal; rwa [hguards e he]
+      have hflow := sem_clockedSeg_of_odeSol_fv m.sys m.dom tr epsR hHm H.hr le_rfl le_rfl htrode
+      have hlegκ : SwitchLegal e (Function.update (Φ epsR) tr epsR) :=
+        (switchLegal_update hgR he htrR _ _).mpr hleg
+      have hLe : ∀ i, Φ epsR (Lv i) = ρ (Lv i) := fun i => (right_sol_left H i).trans (hL i)
+      have hLeκ : ∀ i, Function.update (Φ epsR) tr epsR (Lv i) = ρ (Lv i) :=
+        fun i => (update_Lv_of_notMem htrL _ _ i).trans (hLe i)
+      by_cases hself : e.tgt = q
+      · -- the self-loop: the next cycle start, with the measure decreased
+        have hgnext : Formula.sat (guard q) (Φ epsR) := by rw [← hself]; exact hge
+        have hKLR : Kf.fv ⊆ range Lv ∪ range Rv := fun v hv => Or.inr (hKfv hv)
+        set y' := mergeLR y y (Φ epsR) with hy'
+        have hgLy' : pre = true → Formula.sat gL y' := fun hp =>
+          (sat_merge_L hgL y y _).mpr (hgLy hp)
+        have hnext : CycleStart guard q A Kf y' (Φ epsR) (Φ epsR) :=
+          ⟨hgnext, (sat_merge_merge hAfv y _ _).mpr hAe,
+            (sat_merge_merge hKLR y _ _).mpr (hKt epsR ⟨hε.le, le_rfl⟩), fun _ => rfl⟩
+        have hnextκ : CycleStart guard q A Kf y' (Function.update (Φ epsR) tr epsR)
+            (Function.update (Φ epsR) tr epsR) := by
+          obtain ⟨h1, h2, h3, -⟩ := cycleStart_update_tr guard q hguardR A tr htrL htrR epsR hnext
+          exact ⟨h1, h2, h3, fun _ => rfl⟩
+        have hgrow : g (Φ epsR (Rv z)) ≤ N * c := by
+          have hpos : (0 : ℝ) ≤ N * c := by positivity
+          by_cases hd : g (Φ epsR (Rv z)) ≤ 0
+          · linarith
+          push Not at hd
+          have hm' := hmeas y ρ hyρ hAy hgLy Φ H hcross hKt hd
+          have : (N.succ : ℝ) * c = N * c + c := by push_cast; ring
+          linarith
+        have hgrowκ : g (Function.update (Φ epsR) tr epsR (Rv z)) ≤ N * c := by
+          rw [update_Rv_of_notMem htrR]; exact hgrow
+        have hrest := ih y' (Function.update (Φ epsR) tr epsR)
+          (fun i => by rw [hy', mergeLR_R, update_Rv_of_notMem htrR]) hgLy' hnextκ hgrowκ
+        refine rrespPC_step hm he hflow hlegκ ?_
+        rw [hself]
+        refine rrespPC_mono ?_ hrest
+        rintro q' μ (⟨e', he', hneq', hnp', rfl, hleg', hAμ, hμL⟩ | ⟨rfl, ⟨hg', hA', hK', hμL⟩, hz'⟩)
+        · exact Or.inl ⟨e', he', hneq', hnp', rfl, hleg', (sat_merge_merge hAfv y _ _).mp hAμ,
+            fun i => (hμL i).trans (hLeκ i)⟩
+        · exact Or.inr ⟨rfl, ⟨hg', (sat_merge_merge hAfv y _ _).mp hA',
+            (sat_merge_merge hKLR y _ _).mp hK', fun i => (hμL i).trans (hLeκ i)⟩, hz'⟩
+      · -- a non-self successor: an exit (not pruned, by the non-connection certificate)
+        have hnp : e.pruned = false := by
+          by_contra hc
+          have hp : e.pruned = true := by simpa using hc
+          exact hpruneD e he hp _ _ hA
+            (hmr epsR ⟨hε.le, le_rfl⟩ (hBall epsR ⟨hε.le, le_rfl⟩)).1
+            ((switchLegal_merge hgR he y y).mpr hleg)
+        exact rrespPC_step hm he hflow hlegκ
+          (rrespPC_stop (Or.inl (landed_update_tr G q hgR A tr htrL htrR epsR
+            ⟨e, he, hself, hnp, rfl, hleg, hAe, hLe⟩)))
+
+include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
+  hcomp hboxB hpruneD hR in
+/-- **The cycles of one stage, landing downward, with an abstract measure** (the mirror of
+`phase_regM`; `phase_down_reg` with a stage invariant and a measure on any coordinate). The
+landing is at the first entry into `x_j ≤ θ`; above `θ` is in `Bf`. -/
+theorem phase_down_regM (j : Fin n) (θ : ℝ) (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)
+    (hline : ∀ y, Formula.sat R y → y (Rv j) = θ →
+      ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+    (hstart : ∀ y, Formula.sat R y → Formula.sat (guard q) y → y (Rv j) ≤ θ →
+      ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+    (Kf : Formula (Var n)) (hKfv : Kf.fv ⊆ range Rv)
+    (hKkeep : ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat A y →
+      (pre = true → Formula.sat gL y) → Formula.sat Kf y →
+      ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ →
+        (∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t)) → Formula.sat Kf (mergeLR y y (Φ T)))
+    (z : Fin n) (g : ℝ → ℝ) (c : ℝ) (hc : 0 < c)
+    (hmeas : ∀ (y ρ : State (Var n)), (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat A y →
+      (pre = true → Formula.sat gL y) →
+      ∀ Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ epsR Φ →
+      (∀ t ∈ Icc (0 : ℝ) epsR, θ < Φ t (Rv j)) →
+      (∀ t ∈ Icc (0 : ℝ) epsR, Formula.sat Kf (mergeLR y y (Φ t))) →
+      0 < g (Φ epsR (Rv z)) → g (Φ epsR (Rv z)) ≤ g (ρ (Rv z)) - c) :
+    ∀ (N : ℕ) (y ρ : State (Var n)), (∀ i, y (Rv i) = ρ (Rv i)) →
+      (pre = true → Formula.sat gL y) → CycleStart guard q A Kf y ρ ρ →
+      g (ρ (Rv z)) ≤ N * c →
+      RRespPC G tr epsR q (fun q' μ => Landed G q A y ρ q' μ ∨
+        (q' = q ∧ CycleStart guard q A Kf y ρ μ ∧ g (μ (Rv z)) ≤ 0)) ρ := by
+  have htrode := tr_notMem_ode_node fR domR m hsys hdomM hfR hdomR tr htrR
+  have htrdom : tr ∉ m.dom.fv := ((notMem_ode_fv_iff _ _ _).mp htrode).2.2
+  intro N
+  induction N with
+  | zero =>
+      intro y ρ _ _ hcs hN
+      simp only [CharP.cast_eq_zero, zero_mul] at hN
+      exact rrespPC_stop (Or.inr ⟨rfl, hcs, hN⟩)
+  | succ N ih =>
+      intro y ρ hyρ hgLy hcs hN
+      obtain ⟨hg, hA, hK, hL⟩ := hcs
+      have hAy : Formula.sat A y :=
+        (sat_of_agree hAfv (x := mergeLR y y ρ) (y := y) (fun i => mergeLR_L y y ρ i)
+          (fun i => by rw [mergeLR_R, hyρ i])).mp hA
+      have hKρ : Formula.sat Kf ρ := (sat_merge_R hKfv y y ρ).mp hK
+      have hKy : Formula.sat Kf y :=
+        (Formula.coincidence Kf (fun v hv => by
+          obtain ⟨i, rfl⟩ := hKfv hv; exact hyρ i)).mpr hKρ
+      have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR y y ρ).mp (hAdom _ hA).2
+      -- the landing at the start, already crossed
+      by_cases hx0 : ρ (Rv j) ≤ θ
+      · have hRρ : Formula.sat R (mergeLR y y ρ) := hR _ hA (fun hp =>
+          (sat_merge_L hgL y y ρ).mpr (hgLy hp))
+        have hgρ : Formula.sat (guard q) (mergeLR y y ρ) :=
+          (sat_merge_R (hguardR q) y y ρ).mpr hg
+        obtain ⟨e, he, hneq, hnp, hge⟩ := hstart _ hRρ hgρ (by rw [mergeLR_R]; exact hx0)
+        have hleg : SwitchLegal e ρ := by
+          unfold SwitchLegal; rw [hguards e he]
+          exact (sat_merge_R (hguardR e.tgt) y y ρ).mp hge
+        have hdom : Formula.sat m.dom ρ := by rw [hdomM]; exact hρdom
+        exact rrespPC_step hm he (sem_clockedSeg_zero m.sys m.dom tr epsR hε.le htrdom hdom)
+          ((switchLegal_update hgR he htrR _ _).mpr hleg)
+          (rrespPC_stop (Or.inl (landed_update_tr G q hgR A tr htrL htrR 0
+            ⟨e, he, hneq, hnp, rfl, hleg, hA, hL⟩)))
+      push Not at hx0
+      -- one cycle
+      obtain ⟨Φ, H⟩ := hex ρ hg hρdom ((sat_merge_R hregR y y ρ).mp (hAreg _ hA))
+      have hmr := merged_run_reg fR domL domR gL hfR hdomL hdomR hgL A hAdom pre Bf hboxB R hR
+        hyρ hAy hgLy H
+      have hHm : ODESol m.sys m.dom ρ epsR Φ := by rw [hsys, hdomM]; exact H
+      -- the landing on the line within the cycle, at the FIRST entry into `x ≤ θ`
+      by_cases hcross : ∃ t ∈ Icc (0 : ℝ) epsR, Φ t (Rv j) ≤ θ
+      · obtain ⟨t, ht, hθt⟩ := hcross
+        obtain ⟨t', ht', hline', hbef⟩ := first_hit_down H j θ hx0 ht hθt
+        obtain ⟨-, hAt, hRt⟩ := hmr t' ht' (fun s hs => hBf _ (hbef s hs))
+        obtain ⟨e, he, hneq, hnp, hge⟩ := hline _ hRt (by rw [mergeLR_R]; exact hline')
+        have hleg : SwitchLegal e (Φ t') := by
+          unfold SwitchLegal; rw [hguards e he]
+          exact (sat_merge_R (hguardR e.tgt) y y _).mp hge
+        exact rrespPC_step hm he
+          (sem_clockedSeg_of_odeSol_fv m.sys m.dom tr epsR hHm ht'.1 ht'.2 ht'.2 htrode)
+          ((switchLegal_update hgR he htrR _ _).mpr hleg)
+          (rrespPC_stop (Or.inl (landed_update_tr G q hgR A tr htrL htrR t'
+            ⟨e, he, hneq, hnp, rfl, hleg, hAt,
+              fun i => (right_sol_left (ODESol_restrict H ht'.1 ht'.2) i).trans (hL i)⟩)))
+      push Not at hcross
+      -- no crossing: the whole cycle is in `Bf`
+      have hBall : ∀ t ∈ Icc (0 : ℝ) epsR, ∀ s ∈ Ico (0 : ℝ) t, Bf (Φ s) :=
+        fun t ht s hs => hBf _ (hcross s ⟨hs.1, hs.2.le.trans ht.2⟩)
+      -- the invariant along the cycle
+      have hKt : ∀ t ∈ Icc (0 : ℝ) epsR, Formula.sat Kf (mergeLR y y (Φ t)) := fun t ht =>
+        hKkeep y ρ hyρ hAy hgLy hKy t Φ (ODESol_restrict H ht.1 ht.2) (hBall t ht)
+      -- the end of the cycle: a declared successor is enabled
+      obtain ⟨-, hAe, -⟩ := hmr epsR ⟨hε.le, le_rfl⟩ (hBall epsR ⟨hε.le, le_rfl⟩)
+      obtain ⟨e, he, hge⟩ := hcomp ρ hg hρdom ((sat_merge_R hregR y y ρ).mp (hAreg _ hA)) epsR Φ le_rfl H
+      have hleg : SwitchLegal e (Φ epsR) := by unfold SwitchLegal; rwa [hguards e he]
+      have hflow := sem_clockedSeg_of_odeSol_fv m.sys m.dom tr epsR hHm H.hr le_rfl le_rfl htrode
+      have hlegκ : SwitchLegal e (Function.update (Φ epsR) tr epsR) :=
+        (switchLegal_update hgR he htrR _ _).mpr hleg
+      have hLe : ∀ i, Φ epsR (Lv i) = ρ (Lv i) := fun i => (right_sol_left H i).trans (hL i)
+      have hLeκ : ∀ i, Function.update (Φ epsR) tr epsR (Lv i) = ρ (Lv i) :=
+        fun i => (update_Lv_of_notMem htrL _ _ i).trans (hLe i)
+      by_cases hself : e.tgt = q
+      · -- the self-loop: the next cycle start, with the measure decreased
+        have hgnext : Formula.sat (guard q) (Φ epsR) := by rw [← hself]; exact hge
+        have hKLR : Kf.fv ⊆ range Lv ∪ range Rv := fun v hv => Or.inr (hKfv hv)
+        set y' := mergeLR y y (Φ epsR) with hy'
+        have hgLy' : pre = true → Formula.sat gL y' := fun hp =>
+          (sat_merge_L hgL y y _).mpr (hgLy hp)
+        have hnext : CycleStart guard q A Kf y' (Φ epsR) (Φ epsR) :=
+          ⟨hgnext, (sat_merge_merge hAfv y _ _).mpr hAe,
+            (sat_merge_merge hKLR y _ _).mpr (hKt epsR ⟨hε.le, le_rfl⟩), fun _ => rfl⟩
+        have hnextκ : CycleStart guard q A Kf y' (Function.update (Φ epsR) tr epsR)
+            (Function.update (Φ epsR) tr epsR) := by
+          obtain ⟨h1, h2, h3, -⟩ := cycleStart_update_tr guard q hguardR A tr htrL htrR epsR hnext
+          exact ⟨h1, h2, h3, fun _ => rfl⟩
+        have hgrow : g (Φ epsR (Rv z)) ≤ N * c := by
+          have hpos : (0 : ℝ) ≤ N * c := by positivity
+          by_cases hd : g (Φ epsR (Rv z)) ≤ 0
+          · linarith
+          push Not at hd
+          have hm' := hmeas y ρ hyρ hAy hgLy Φ H hcross hKt hd
+          have : (N.succ : ℝ) * c = N * c + c := by push_cast; ring
+          linarith
+        have hgrowκ : g (Function.update (Φ epsR) tr epsR (Rv z)) ≤ N * c := by
+          rw [update_Rv_of_notMem htrR]; exact hgrow
+        have hrest := ih y' (Function.update (Φ epsR) tr epsR)
+          (fun i => by rw [hy', mergeLR_R, update_Rv_of_notMem htrR]) hgLy' hnextκ hgrowκ
+        refine rrespPC_step hm he hflow hlegκ ?_
+        rw [hself]
+        refine rrespPC_mono ?_ hrest
+        rintro q' μ (⟨e', he', hneq', hnp', rfl, hleg', hAμ, hμL⟩ | ⟨rfl, ⟨hg', hA', hK', hμL⟩, hz'⟩)
+        · exact Or.inl ⟨e', he', hneq', hnp', rfl, hleg', (sat_merge_merge hAfv y _ _).mp hAμ,
+            fun i => (hμL i).trans (hLeκ i)⟩
+        · exact Or.inr ⟨rfl, ⟨hg', (sat_merge_merge hAfv y _ _).mp hA',
+            (sat_merge_merge hKLR y _ _).mp hK', fun i => (hμL i).trans (hLeκ i)⟩, hz'⟩
+      · -- a non-self successor: an exit (not pruned, by the non-connection certificate)
+        have hnp : e.pruned = false := by
+          by_contra hc
+          have hp : e.pruned = true := by simpa using hc
+          exact hpruneD e he hp _ _ hA
+            (hmr epsR ⟨hε.le, le_rfl⟩ (hBall epsR ⟨hε.le, le_rfl⟩)).1
+            ((switchLegal_merge hgR he y y).mpr hleg)
+        exact rrespPC_step hm he hflow hlegκ
+          (rrespPC_stop (Or.inl (landed_update_tr G q hgR A tr htrL htrR epsR
+            ⟨e, he, hself, hnp, rfl, hleg, hAe, hLe⟩)))
+
+end NodeM
+
+/-! ### The mixed and downward two-stage closers (pre-landing region form) -/
+
+section CloseM
+
+variable (G : SearchGraph (Var n)) (fR : Fin n → Term (Var n)) (domL domR gL : Formula (Var n))
+  (guard : ℕ → Formula (Var n)) (q : ℕ) (m : RMode (Var n)) (hm : G.modeAt q = some m)
+  (hsys : m.sys = rightBlock fR (Term.const 1)) (hdomM : m.dom = domR)
+  (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
+  (hgL : gL.fv ⊆ range Lv) (hguardR : ∀ q', (guard q').fv ⊆ range Rv)
+  (hgR : GuardsRight G) (hguards : ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+  (A : ℕ → Formula (Var n)) (hAfv : (A q).fv ⊆ range Lv ∪ range Rv)
+  (hAdom : ∀ y, Formula.sat (A q) y → Formula.sat domL y ∧ Formula.sat domR y)
+  (pre : Bool) (epsR : ℝ) (hε : 0 < epsR)
+  (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
+  (reg : Formula (Var n)) (hregR : reg.fv ⊆ range Rv)
+  (hAreg : ∀ y, Formula.sat (A q) y → Formula.sat reg y)
+  (hex : ∀ x, Formula.sat (guard q) x → Formula.sat domR x → Formula.sat reg x →
+    ∃ Φ, ODESol (rightBlock fR (Term.const 1)) domR x epsR Φ)
+  (hcomp : ∀ x, Formula.sat (guard q) x → Formula.sat domR x → Formula.sat reg x → ∀ t Φ, t ≤ epsR →
+    ODESol (rightBlock fR (Term.const 1)) domR x t Φ →
+    ∃ e ∈ G.edgesFrom q, Formula.sat (guard e.tgt) (Φ t))
+  (Bf : State (Var n) → Prop)
+  (hboxB : ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (A q) y →
+    (pre = true → Formula.sat gL y) →
+    ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ →
+    (∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t)) → Formula.sat (A q) (mergeLR y y (Φ T)))
+  (hpruneD : ∀ e ∈ G.edgesFrom q, e.pruned = true → ∀ σ ω, Formula.sat (A q) σ →
+    Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR (Term.const 1))
+      (Formula.and domL domR)) σ ω → ¬ Formula.sat e.guard ω)
+  (R : Formula (Var n)) (hR : ∀ y, Formula.sat (A q) y → (pre = true → Formula.sat gL y) →
+    Formula.sat R y)
+  (j : Fin n) (θ : ℝ)
+  (hline : ∀ y, Formula.sat R y → y (Rv j) = θ →
+    ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+
+/-- `θh ≤ x_jh`: the crossed fact of an upward helper, a stage invariant. -/
+theorem sat_helperUp (jh : Fin n) (θh : ℝ) (w : State (Var n)) :
+    Formula.sat (Formula.cmp CompOp.le (Term.const θh) (Term.var (Rv jh))) w ↔ θh ≤ w (Rv jh) := by
+  simp [Formula.sat, CompOp.interp, Term.eval]
+
+/-- `x_jh ≤ θh`: the crossed fact of a downward helper. -/
+theorem sat_helperDown (jh : Fin n) (θh : ℝ) (w : State (Var n)) :
+    Formula.sat (Formula.cmp CompOp.le (Term.var (Rv jh)) (Term.const θh)) w ↔ w (Rv jh) ≤ θh := by
+  simp [Formula.sat, CompOp.interp, Term.eval]
+
+theorem helperUp_fv (jh : Fin n) (θh : ℝ) :
+    (Formula.cmp CompOp.le (Term.const θh) (Term.var (Rv jh))).fv ⊆ range (Rv (n := n)) := by
+  intro v hv
+  simp only [Formula.fv, Term.fv, Set.empty_union, Set.mem_singleton_iff] at hv
+  exact ⟨jh, hv.symm⟩
+
+theorem helperDown_fv (jh : Fin n) (θh : ℝ) :
+    (Formula.cmp CompOp.le (Term.var (Rv jh)) (Term.const θh)).fv ⊆ range (Rv (n := n)) := by
+  intro v hv
+  simp only [Formula.fv, Term.fv, Set.union_empty, Set.mem_singleton_iff] at hv
+  exact ⟨jh, hv.symm⟩
+
+/-- The ceiling bound of a stage's cycle count. -/
+theorem stage_bound (d r e : ℝ) (hr : 0 < r) (he : 0 < e) :
+    d ≤ (⌈d / (r * e)⌉₊ : ℕ) * (r * e) := by
+  have hpos : 0 < r * e := mul_pos hr he
+  have := Nat.le_ceil (d / (r * e))
+  rw [div_le_iff₀ hpos] at this
+  exact this
+
+include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
+  hcomp hboxB hpruneD hR hline in
+/-- **Two stages, helper up then landing DOWN, pre-landing** (above the landing threshold is in
+`Bf`). The helper `jh` rises at rate `rh` to `θh` and stays crossed (`hkeep_h`); under its
+crossed fact the landing coordinate `j` falls at rate `r` to `θ`. Either stage may land first. -/
+theorem repoProgress_two_ud_reg (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)
+    (hstart_down : ∀ y, Formula.sat R y → Formula.sat (guard q) y → y (Rv j) ≤ θ →
+      ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+    (r : ℝ) (hr : 0 < r) (jh : Fin n) (θh rh : ℝ) (hrh : 0 < rh)
+    (hrate_h : ∀ y, Formula.sat R y → y (Rv jh) < θh → rh ≤ Term.eval (fR jh) y)
+    (hkeep_h : ∀ y, Formula.sat R y → y (Rv jh) ≤ θh → 0 ≤ Term.eval (fR jh) y)
+    (hrate : ∀ y, Formula.sat R y → θh ≤ y (Rv jh) → θ < y (Rv j) → Term.eval (fR j) y ≤ -r) :
+    RepoProgress G tr epsR A gL (guard q) q pre := by
+  intro ρ y hyρ hA hg hgLy
+  have hA' : Formula.sat (A q) (mergeLR y y ρ) :=
+    (sat_of_agree hAfv (x := y) (y := mergeLR y y ρ) (fun i => (mergeLR_L y y ρ i).symm)
+      (fun i => by rw [mergeLR_R, hyρ i])).mp hA
+  -- stage 1: the helper rises (the landing may come first)
+  have hph₁ := phase_down_regM G fR domL domR gL guard q m hm hsys hdomM hfR hdomL hdomR hgL hguardR
+    hgR hguards (A q) hAfv hAdom pre epsR hε tr htrL htrR reg hregR hAreg hex hcomp Bf hboxB hpruneD
+    R hR j θ hBf hline hstart_down Formula.tt (by simp [Formula.fv])
+    (fun _ _ _ _ _ _ _ _ _ _ => trivial) jh (fun x => θh - x) (rh * epsR) (mul_pos hrh hε)
+    (fun y₁ ρ₁ hyρ₁ hA₁ hgL₁ Φ H hnc hKt hpos =>
+      meas_up_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre epsR hε Bf hboxB R hR
+        jh θh rh Formula.tt (fun y hR' _ hlt => hrate_h y hR' hlt) hkeep_h hyρ₁ hA₁ hgL₁ H
+        (fun t ht s hs => hBf _ (hnc s ⟨hs.1, hs.2.le.trans ht.2⟩)) hKt hpos)
+    _ y ρ hyρ hgLy ⟨hg, hA', trivial, fun _ => rfl⟩
+    (stage_bound (θh - ρ (Rv jh)) rh epsR hrh hε)
+  refine rrespPC_bind' hph₁ ?_
+  rintro q' μ (hland | ⟨hq', ⟨hg₁, hA₁, -, hL₁⟩, hθh⟩)
+  · exact rrespPC_stop hland
+  subst q'
+  have hθh' : θh ≤ μ (Rv jh) := by linarith [show θh - μ (Rv jh) ≤ 0 from hθh]
+  -- stage 2: the landing coordinate falls, from the cycle start with the helper crossed
+  set Kf : Formula (Var n) := Formula.cmp CompOp.le (Term.const θh) (Term.var (Rv jh)) with hKf
+  have hKsat : ∀ w : State (Var n), Formula.sat Kf w ↔ θh ≤ w (Rv jh) := sat_helperUp jh θh
+  have hKfv : Kf.fv ⊆ range Rv := helperUp_fv jh θh
+  set y' := mergeLR y y μ with hy'
+  have hgLy' : pre = true → Formula.sat gL y' := fun hp => (sat_merge_L hgL y y μ).mpr (hgLy hp)
+  have hKkeep : ∀ y₁ ρ₁, (∀ i, y₁ (Rv i) = ρ₁ (Rv i)) → Formula.sat (A q) y₁ →
+      (pre = true → Formula.sat gL y₁) → Formula.sat Kf y₁ →
+      ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ₁ T Φ →
+        (∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t)) → Formula.sat Kf (mergeLR y₁ y₁ (Φ T)) := by
+    intro y₁ ρ₁ hyρ₁ hA₁' hgL₁ hK₁ T Φ H hB
+    rw [hKsat, mergeLR_R]
+    refine keep_preserved_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre Bf hboxB R hR jh
+      θh hkeep_h hyρ₁ hA₁' hgL₁ H hB ?_
+    rw [← hyρ₁ jh]
+    exact (hKsat y₁).mp hK₁
+  have hcs₂ : CycleStart guard q (A q) Kf y' μ μ :=
+    ⟨hg₁, (sat_merge_merge hAfv y μ μ).mpr hA₁,
+      by rw [hKsat, mergeLR_R]; exact hθh', fun _ => rfl⟩
+  have hph₂ := phase_down_regM G fR domL domR gL guard q m hm hsys hdomM hfR hdomL hdomR hgL hguardR
+    hgR hguards (A q) hAfv hAdom pre epsR hε tr htrL htrR reg hregR hAreg hex hcomp Bf hboxB hpruneD
+    R hR j θ hBf hline hstart_down Kf hKfv hKkeep j (fun x => x - θ) (r * epsR) (mul_pos hr hε)
+    (fun y₁ ρ₁ hyρ₁ hA₁ hgL₁ Φ H hnc hKt _ =>
+      meas_land_down_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre epsR Bf hboxB R hR
+        j θ r Kf hBf (fun y₂ hR' hK' hlt => hrate y₂ hR' ((hKsat y₂).mp hK') hlt) hyρ₁ hA₁ hgL₁ H
+        hnc hKt)
+    _ y' μ (fun i => by rw [hy', mergeLR_R]) hgLy' hcs₂ (stage_bound (μ (Rv j) - θ) r epsR hr hε)
+  refine rrespPC_bind' hph₂ ?_
+  rintro q'' μ' (⟨e, he, hneq, hnp, hq'', hleg, hAμ, hμL⟩ | ⟨hq'', ⟨hg₂, hA₂, -, hL₂⟩, hθ⟩)
+  · subst q''
+    exact rrespPC_stop ⟨e, he, hneq, hnp, rfl, hleg, (sat_merge_merge hAfv y μ μ').mp hAμ,
+      fun i => (hμL i).trans (hL₁ i)⟩
+  · subst q''
+    have hcs' : CycleStart guard q (A q) Formula.tt y ρ μ' :=
+      ⟨hg₂, (sat_merge_merge hAfv y μ μ').mp hA₂, trivial, fun i => (hL₂ i).trans (hL₁ i)⟩
+    have hθ' : μ' (Rv j) ≤ θ := by linarith [show μ' (Rv j) - θ ≤ 0 from hθ]
+    exact land_at_start_down (G := G) (domL := domL) (domR := domR) (gL := gL) (guard := guard)
+      (q := q) (m := m) (hm := hm)
+      (hdomM := hdomM) (hdomR := hdomR) (hgL := hgL) (hguardR := hguardR) (hguards := hguards)
+      (A := A) (hAdom := hAdom) (pre := pre) (epsR := epsR) (hε := hε) (hgR := hgR) (tr := tr)
+      (htrL := htrL) (htrR := htrR) (R := R) (hR := hR) (j := j) (θ := θ)
+      hstart_down hgLy hcs' hθ'
+
+include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
+  hcomp hboxB hpruneD hR hline in
+/-- **Two stages, helper DOWN then landing up, pre-landing** (below the landing threshold is in
+`Bf`). The helper `jh` falls at rate `rh` to `θh` and stays crossed; under its crossed fact the
+landing coordinate `j` rises at rate `r` to `θ`. -/
+theorem repoProgress_two_du_reg (hBf : ∀ x : State (Var n), x (Rv j) < θ → Bf x)
+    (hstart : ∀ y, Formula.sat R y → Formula.sat (guard q) y → θ ≤ y (Rv j) →
+      ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+    (r : ℝ) (hr : 0 < r) (jh : Fin n) (θh rh : ℝ) (hrh : 0 < rh)
+    (hrate_h : ∀ y, Formula.sat R y → θh < y (Rv jh) → Term.eval (fR jh) y ≤ -rh)
+    (hkeep_h : ∀ y, Formula.sat R y → θh ≤ y (Rv jh) → Term.eval (fR jh) y ≤ 0)
+    (hrate : ∀ y, Formula.sat R y → y (Rv jh) ≤ θh → y (Rv j) < θ → r ≤ Term.eval (fR j) y) :
+    RepoProgress G tr epsR A gL (guard q) q pre := by
+  intro ρ y hyρ hA hg hgLy
+  have hA' : Formula.sat (A q) (mergeLR y y ρ) :=
+    (sat_of_agree hAfv (x := y) (y := mergeLR y y ρ) (fun i => (mergeLR_L y y ρ i).symm)
+      (fun i => by rw [mergeLR_R, hyρ i])).mp hA
+  -- stage 1: the helper falls (the landing may come first)
+  have hph₁ := phase_regM G fR domL domR gL guard q m hm hsys hdomM hfR hdomL hdomR hgL hguardR
+    hgR hguards (A q) hAfv hAdom pre epsR hε tr htrL htrR reg hregR hAreg hex hcomp Bf hboxB hpruneD
+    R hR j θ hBf hline hstart Formula.tt (by simp [Formula.fv])
+    (fun _ _ _ _ _ _ _ _ _ _ => trivial) jh (fun x => x - θh) (rh * epsR) (mul_pos hrh hε)
+    (fun y₁ ρ₁ hyρ₁ hA₁ hgL₁ Φ H hnc hKt hpos =>
+      meas_down_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre epsR hε Bf hboxB R hR
+        jh θh rh Formula.tt (fun y hR' _ hlt => hrate_h y hR' hlt) hkeep_h hyρ₁ hA₁ hgL₁ H
+        (fun t ht s hs => hBf _ (hnc s ⟨hs.1, hs.2.le.trans ht.2⟩)) hKt hpos)
+    _ y ρ hyρ hgLy ⟨hg, hA', trivial, fun _ => rfl⟩
+    (stage_bound (ρ (Rv jh) - θh) rh epsR hrh hε)
+  refine rrespPC_bind' hph₁ ?_
+  rintro q' μ (hland | ⟨hq', ⟨hg₁, hA₁, -, hL₁⟩, hθh⟩)
+  · exact rrespPC_stop hland
+  subst q'
+  have hθh' : μ (Rv jh) ≤ θh := by linarith [show μ (Rv jh) - θh ≤ 0 from hθh]
+  -- stage 2: the landing coordinate rises, from the cycle start with the helper crossed
+  set Kf : Formula (Var n) := Formula.cmp CompOp.le (Term.var (Rv jh)) (Term.const θh) with hKf
+  have hKsat : ∀ w : State (Var n), Formula.sat Kf w ↔ w (Rv jh) ≤ θh := sat_helperDown jh θh
+  have hKfv : Kf.fv ⊆ range Rv := helperDown_fv jh θh
+  set y' := mergeLR y y μ with hy'
+  have hgLy' : pre = true → Formula.sat gL y' := fun hp => (sat_merge_L hgL y y μ).mpr (hgLy hp)
+  have hKkeep : ∀ y₁ ρ₁, (∀ i, y₁ (Rv i) = ρ₁ (Rv i)) → Formula.sat (A q) y₁ →
+      (pre = true → Formula.sat gL y₁) → Formula.sat Kf y₁ →
+      ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ₁ T Φ →
+        (∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t)) → Formula.sat Kf (mergeLR y₁ y₁ (Φ T)) := by
+    intro y₁ ρ₁ hyρ₁ hA₁' hgL₁ hK₁ T Φ H hB
+    rw [hKsat, mergeLR_R]
+    refine keep_preserved_down_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre Bf hboxB R
+      hR jh θh hkeep_h hyρ₁ hA₁' hgL₁ H hB ?_
+    rw [← hyρ₁ jh]
+    exact (hKsat y₁).mp hK₁
+  have hcs₂ : CycleStart guard q (A q) Kf y' μ μ :=
+    ⟨hg₁, (sat_merge_merge hAfv y μ μ).mpr hA₁,
+      by rw [hKsat, mergeLR_R]; exact hθh', fun _ => rfl⟩
+  have hph₂ := phase_reg G fR domL domR gL guard q m hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR
+    hguards (A q) hAfv hAdom pre epsR hε tr htrL htrR reg hregR hAreg hex hcomp Bf hboxB hpruneD R
+    hR j θ hBf hline hstart j θ r hr
+    Kf hKfv hKkeep (fun y₂ hR' hK' hlt => hrate y₂ hR' ((hKsat y₂).mp hK') hlt)
+    (Or.inr ⟨rfl, rfl⟩) _ y' μ (fun i => by rw [hy', mergeLR_R]) hgLy' hcs₂
+    (stage_bound (θ - μ (Rv j)) r epsR hr hε)
+  refine rrespPC_bind' hph₂ ?_
+  rintro q'' μ' (⟨e, he, hneq, hnp, hq'', hleg, hAμ, hμL⟩ | ⟨hq'', ⟨hg₂, hA₂, -, hL₂⟩, hθ⟩)
+  · subst q''
+    exact rrespPC_stop ⟨e, he, hneq, hnp, rfl, hleg, (sat_merge_merge hAfv y μ μ').mp hAμ,
+      fun i => (hμL i).trans (hL₁ i)⟩
+  · subst q''
+    have hcs' : CycleStart guard q (A q) Formula.tt y ρ μ' :=
+      ⟨hg₂, (sat_merge_merge hAfv y μ μ').mp hA₂, trivial, fun i => (hL₂ i).trans (hL₁ i)⟩
+    exact land_at_start (G := G) (domL := domL) (domR := domR) (gL := gL) (guard := guard) (q := q)
+      (m := m) (hm := hm)
+      (hdomM := hdomM) (hdomR := hdomR) (hgL := hgL) (hguardR := hguardR) (hguards := hguards)
+      (A := A) (hAdom := hAdom) (pre := pre) (epsR := epsR) (hε := hε) (hgR := hgR) (tr := tr)
+      (htrL := htrL) (htrR := htrR) (R := R) (hR := hR) (j := j) (θ := θ)
+      (hstart := hstart) hgLy hcs' hθ
+
+include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
+  hcomp hboxB hpruneD hR hline in
+/-- **Two stages, both DOWNWARD, pre-landing** (above the landing threshold is in `Bf`). The
+helper `jh` falls at rate `rh` to `θh` and stays crossed; under its crossed fact the landing
+coordinate `j` falls at rate `r` to `θ`. -/
+theorem repoProgress_two_dd_reg (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)
+    (hstart_down : ∀ y, Formula.sat R y → Formula.sat (guard q) y → y (Rv j) ≤ θ →
+      ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
+    (r : ℝ) (hr : 0 < r) (jh : Fin n) (θh rh : ℝ) (hrh : 0 < rh)
+    (hrate_h : ∀ y, Formula.sat R y → θh < y (Rv jh) → Term.eval (fR jh) y ≤ -rh)
+    (hkeep_h : ∀ y, Formula.sat R y → θh ≤ y (Rv jh) → Term.eval (fR jh) y ≤ 0)
+    (hrate : ∀ y, Formula.sat R y → y (Rv jh) ≤ θh → θ < y (Rv j) → Term.eval (fR j) y ≤ -r) :
+    RepoProgress G tr epsR A gL (guard q) q pre := by
+  intro ρ y hyρ hA hg hgLy
+  have hA' : Formula.sat (A q) (mergeLR y y ρ) :=
+    (sat_of_agree hAfv (x := y) (y := mergeLR y y ρ) (fun i => (mergeLR_L y y ρ i).symm)
+      (fun i => by rw [mergeLR_R, hyρ i])).mp hA
+  -- stage 1: the helper falls (the landing may come first)
+  have hph₁ := phase_down_regM G fR domL domR gL guard q m hm hsys hdomM hfR hdomL hdomR hgL hguardR
+    hgR hguards (A q) hAfv hAdom pre epsR hε tr htrL htrR reg hregR hAreg hex hcomp Bf hboxB hpruneD
+    R hR j θ hBf hline hstart_down Formula.tt (by simp [Formula.fv])
+    (fun _ _ _ _ _ _ _ _ _ _ => trivial) jh (fun x => x - θh) (rh * epsR) (mul_pos hrh hε)
+    (fun y₁ ρ₁ hyρ₁ hA₁ hgL₁ Φ H hnc hKt hpos =>
+      meas_down_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre epsR hε Bf hboxB R hR
+        jh θh rh Formula.tt (fun y hR' _ hlt => hrate_h y hR' hlt) hkeep_h hyρ₁ hA₁ hgL₁ H
+        (fun t ht s hs => hBf _ (hnc s ⟨hs.1, hs.2.le.trans ht.2⟩)) hKt hpos)
+    _ y ρ hyρ hgLy ⟨hg, hA', trivial, fun _ => rfl⟩
+    (stage_bound (ρ (Rv jh) - θh) rh epsR hrh hε)
+  refine rrespPC_bind' hph₁ ?_
+  rintro q' μ (hland | ⟨hq', ⟨hg₁, hA₁, -, hL₁⟩, hθh⟩)
+  · exact rrespPC_stop hland
+  subst q'
+  have hθh' : μ (Rv jh) ≤ θh := by linarith [show μ (Rv jh) - θh ≤ 0 from hθh]
+  -- stage 2: the landing coordinate falls, from the cycle start with the helper crossed
+  set Kf : Formula (Var n) := Formula.cmp CompOp.le (Term.var (Rv jh)) (Term.const θh) with hKf
+  have hKsat : ∀ w : State (Var n), Formula.sat Kf w ↔ w (Rv jh) ≤ θh := sat_helperDown jh θh
+  have hKfv : Kf.fv ⊆ range Rv := helperDown_fv jh θh
+  set y' := mergeLR y y μ with hy'
+  have hgLy' : pre = true → Formula.sat gL y' := fun hp => (sat_merge_L hgL y y μ).mpr (hgLy hp)
+  have hKkeep : ∀ y₁ ρ₁, (∀ i, y₁ (Rv i) = ρ₁ (Rv i)) → Formula.sat (A q) y₁ →
+      (pre = true → Formula.sat gL y₁) → Formula.sat Kf y₁ →
+      ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ₁ T Φ →
+        (∀ t ∈ Ico (0 : ℝ) T, Bf (Φ t)) → Formula.sat Kf (mergeLR y₁ y₁ (Φ T)) := by
+    intro y₁ ρ₁ hyρ₁ hA₁' hgL₁ hK₁ T Φ H hB
+    rw [hKsat, mergeLR_R]
+    refine keep_preserved_down_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre Bf hboxB R
+      hR jh θh hkeep_h hyρ₁ hA₁' hgL₁ H hB ?_
+    rw [← hyρ₁ jh]
+    exact (hKsat y₁).mp hK₁
+  have hcs₂ : CycleStart guard q (A q) Kf y' μ μ :=
+    ⟨hg₁, (sat_merge_merge hAfv y μ μ).mpr hA₁,
+      by rw [hKsat, mergeLR_R]; exact hθh', fun _ => rfl⟩
+  have hph₂ := phase_down_regM G fR domL domR gL guard q m hm hsys hdomM hfR hdomL hdomR hgL hguardR
+    hgR hguards (A q) hAfv hAdom pre epsR hε tr htrL htrR reg hregR hAreg hex hcomp Bf hboxB hpruneD
+    R hR j θ hBf hline hstart_down Kf hKfv hKkeep j (fun x => x - θ) (r * epsR) (mul_pos hr hε)
+    (fun y₁ ρ₁ hyρ₁ hA₁ hgL₁ Φ H hnc hKt _ =>
+      meas_land_down_reg fR domL domR gL hfR hdomL hdomR hgL (A q) hAdom pre epsR Bf hboxB R hR
+        j θ r Kf hBf (fun y₂ hR' hK' hlt => hrate y₂ hR' ((hKsat y₂).mp hK') hlt) hyρ₁ hA₁ hgL₁ H
+        hnc hKt)
+    _ y' μ (fun i => by rw [hy', mergeLR_R]) hgLy' hcs₂ (stage_bound (μ (Rv j) - θ) r epsR hr hε)
+  refine rrespPC_bind' hph₂ ?_
+  rintro q'' μ' (⟨e, he, hneq, hnp, hq'', hleg, hAμ, hμL⟩ | ⟨hq'', ⟨hg₂, hA₂, -, hL₂⟩, hθ⟩)
+  · subst q''
+    exact rrespPC_stop ⟨e, he, hneq, hnp, rfl, hleg, (sat_merge_merge hAfv y μ μ').mp hAμ,
+      fun i => (hμL i).trans (hL₁ i)⟩
+  · subst q''
+    have hcs' : CycleStart guard q (A q) Formula.tt y ρ μ' :=
+      ⟨hg₂, (sat_merge_merge hAfv y μ μ').mp hA₂, trivial, fun i => (hL₂ i).trans (hL₁ i)⟩
+    have hθ' : μ' (Rv j) ≤ θ := by linarith [show μ' (Rv j) - θ ≤ 0 from hθ]
+    exact land_at_start_down (G := G) (domL := domL) (domR := domR) (gL := gL) (guard := guard)
+      (q := q) (m := m) (hm := hm)
+      (hdomM := hdomM) (hdomR := hdomR) (hgL := hgL) (hguardR := hguardR) (hguards := hguards)
+      (A := A) (hAdom := hAdom) (pre := pre) (epsR := epsR) (hε := hε) (hgR := hgR) (tr := tr)
+      (htrL := htrL) (htrR := htrR) (R := R) (hR := hR) (j := j) (θ := θ)
+      hstart_down hgLy hcs' hθ'
+
+end CloseM
 
 end RelCertifier

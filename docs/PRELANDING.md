@@ -208,6 +208,66 @@ strict demo's node is on the pre-landing region with its strict component marked
 region, and with the key off its region is the whole domain; kernel negatives: each record with
 the key off fails `plOK`, each emitted cover without its pre-landing nodes fails `coversOK`.
 
+## Two-stage certificates in every direction (2026-11-01)
+
+**The gap.** The bridge merges the pre-landing record into the cover (`covM := withPL cov pl`)
+and decides `prog_ok : progOK IR n covM prog` in the kernel, so every pre-landing node's progress
+certificate must pass `certOK`. The tool's progress search (`OracleAPI.checkProgress`) tries a
+helper stage in BOTH directions before a landing stage in either direction, but `certOK`
+accepted only one stage (either direction) or two stages both upward. The stop-line ladder's
+friction and tyre rungs emit, for their right-BRAKE nodes, `[b >= 2 up, v <= 7/20 down]`: the
+brake builds up (a helper up), then the speed falls to the stop threshold (a downward landing).
+`decide` on `prog_ok` failed loudly at build time (not unsound: a tool/kernel shape mismatch).
+
+**The fix (kernel side, proved).** `certOK` now accepts one stage or two stages, each in either
+direction (`Progress.shapeOK`, `Trusted/ProgressEmit.lean`: `length = 1 || length = 2`);
+`certOK_shape` returns the stage list (the directions are cased on by the dispatch). The three
+new two-stage shapes, in `Proofs/Encoding/Progress.lean` (pre-landing region form, `Bf` the
+region before the landing threshold, as the existing `_reg` closers; no `sorry`, the three
+standard axioms):
+
+| lemma | role |
+|---|---|
+| `keep_preserved_down_reg` | a threshold crossed DOWNWARD stays crossed along a run in `Bf` when the field is `<= 0` at or above it (`boxle_thrLe_R`; the mirror of `keep_preserved_reg`) |
+| `meas_up_reg`, `meas_down_reg` | a rising / falling helper, not crossed at a cycle's end, moved by `r_h ε_R` over the cycle (crossed within it, it would be kept to the end) |
+| `meas_land_down_reg` | a falling landing coordinate, not crossed within a cycle, fell by `r ε_R` (`cycle_decay`) |
+| `phase_regM`, `phase_down_regM` | the cycles of one stage with the landing upward / downward and an ABSTRACT measure `g (x_z)` that falls by `c` per cycle until `g <= 0` (`phase_reg` / `phase_down_reg` with the measure a parameter; the first entry into the landing target by `first_hit` / `first_hit_down`; the stage invariant `Kf` kept along runs in `Bf`) |
+| `repoProgress_two_ud_reg` | helper UP then landing DOWN: stage 1 `phase_down_regM` with `meas_up_reg` (the landing may come first), stage 2 `phase_down_regM` under `Kf := θh <= x_h` (kept by `keep_preserved_reg`) with `meas_land_down_reg`, then `land_at_start_down` |
+| `repoProgress_two_du_reg` | helper DOWN then landing UP: stage 1 `phase_regM` with `meas_down_reg`, stage 2 the existing `phase_reg` under `Kf := x_h <= θh` (kept by `keep_preserved_down_reg`), then `land_at_start` |
+| `repoProgress_two_dd_reg` | both DOWNWARD: stage 1 `phase_down_regM` with `meas_down_reg`, stage 2 `phase_down_regM` under `x_h <= θh` |
+
+The pins (`VerdictsV2/ProgressPin.lean`): `progressVerd_two_unpack` unpacks any two-stage
+verdict (the rebuilt region, field, guards and the five `unsat` queries; `stageQueries` was
+already direction-generic) and `progressVerd_two_ud` / `_du` / `_dd` read it as host facts, with
+`keep_of_unsat_down` (`VerdictsV2/ProgressX.lean`). The dispatchers `Emitted.hrepoProg_of`
+(`Emitted/Progress.lean`) and `hrepoProg_ofS` (`Emitted/StrictAnchor.lean`) case on the two
+directions and call the matching closer (two upward stages: `repoProgress_two_reg`, unchanged).
+The keyed files reach them through these two dispatchers and are unchanged. Every existing
+name keeps its statement except `certOK` (now wider) and `certOK_shape` (its two-stage disjunct
+no longer carries `sth.up = true ∧ st.up = true`); no instance or script uses them otherwise.
+
+**The tool.** No search change: `checkProgress` already emitted only one- or two-stage lists. It
+now returns a found list only if it passes `Progress.shapeOK`, the same function the kernel's
+`certOK` calls, so the search cannot emit a shape the kernel rejects. The emitted covers and
+records of the 50 suite files are byte-identical (no suite record had a mixed shape).
+
+**The demo** `benchmarks/progress_demo/stopline_friction_mixed` (NOT in suite_v2): the friction
+rung of the stop-line ladder without its timing stretch. `scripts/gen_progress_demo.py` emits
+its leaves and its bridge instance (`InstancesV2/Bridge/StoplineFrictionMixed.lean`, keyed,
+pre-landing, dimension 4) and asserts that the record has a helper-up / landing-down
+certificate: 4 of its 9 certificates (`BRAKE/BRAKE` and `STOP/BRAKE`, pre and post), each
+`[b >= 2 up rate 1, v <= 7/20 down rate 1]`. Assumption 1 is its own Z3-free lemma
+(`InstancesV2/WellFormed/StoplineFrictionMixed.lean`, through `wellFormedR_stopline`,
+`Proofs/Encoding/WellFormedStopline.lean`). `lake build
+RelCertifier.InstancesV2.Bridge.StoplineFrictionMixed` builds (`prog_ok` on the merged cover with
+the mixed nodes, decided in the kernel). `lake env lean scripts/progress_demo_verdicts.lean`:
+`92/92 groups, ALL DISCHARGED`; adversarial certificates, each mixed certificate mutated with the
+helper not holding (direction flipped, threshold 7/2 above the brake's target 3, rate 100) or the
+landing not reaching the guard (threshold 1/2 above the STOP guard's 7/20, direction flipped,
+rate 100): `24/24 DECLINED` (each leaves a group undischarged while still passing `certOK`, so the
+decline is the queries'); a three-stage certificate fails `certOK`. `prelanding_tests.py` gains
+the demo (CERTIFIED) and the demo with the right's brake never applied (DECLINED).
+
 ## Tests
 
 `scripts/prelanding_tests.py` (variant files in a temporary directory, `RELCERT_IMPLIED_CUT=1`),

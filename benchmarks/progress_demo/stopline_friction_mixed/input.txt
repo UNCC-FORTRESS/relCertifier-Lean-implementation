@@ -1,0 +1,62 @@
+# stopline_friction_mixed: the mixed-shape progress demo (NOT part of suite_v2; docs/PRELANDING.md,
+# "Two-stage certificates in every direction").
+#
+# The friction rung of the stop-line ladder (benchmarks/suite_v2/stopline_friction without its
+# timing stretch rows; one shared box b, c in [0, 3]) under another name. The left rover brakes on
+# gravel (the realised deceleration b relaxes to 2.7 m/s^2 with lag 0.3 s), the right on asphalt
+# (b relaxes to 3.0). The left stops first, so the cover has pre-landing right-only nodes with the
+# right in BRAKE. Their progress certificate has TWO stages in MIXED directions: a helper stage UP
+# (the brake builds, b >= 2, rate 10/3 per s, kept since b' >= 0 below 3) and then a DOWNWARD
+# landing stage (the speed falls, v <= 7/20 = 0.35 m/s, the STOP guard, at rate 2 once b >= 2). Until
+# 2026-11-01 the kernel's certOK accepted two stages only if both were upward, so this file's
+# bridge instance could not be built; Progress.lean's repoProgress_two_ud_reg now covers the shape.
+#
+# Kernel check: lake build RelCertifier.InstancesV2.Bridge.StoplineFrictionMixed
+# Verdicts:     lake env lean scripts/progress_demo_verdicts.lean
+# scenario: model-refinement
+[problem]
+name = stopline_friction_mixed
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [p, v, b]
+epsilon = 0.1
+[Lsys.mode.CRUISE]
+ode = p' = v; v' = smt2:0.0; b' = smt2:(* (/ 1.0 0.3) (- 0.0 b));
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0
+next = [CRUISE, BRAKE]
+[Lsys.mode.BRAKE]
+ode = p' = v; v' = smt2:(- 0.0 b); b' = smt2:(* (/ 1.0 0.3) (- 2.7 b));
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0
+next = [BRAKE, STOP]
+[Lsys.mode.STOP]
+ode = p' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0
+next = [STOP]
+[Rsys]
+state_vars = [p, v, b]
+epsilon = 0.1
+[Rsys.mode.CRUISE]
+ode = p' = v; v' = smt2:0.0; b' = smt2:(* (/ 1.0 0.3) (- 0.0 b));
+guard = p < 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0
+next = [CRUISE, BRAKE]
+[Rsys.mode.BRAKE]
+ode = p' = v; v' = smt2:(- 0.0 b); b' = smt2:(* (/ 1.0 0.3) (- 3.0 b));
+guard = p >= 100.0 and v >= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0
+next = [BRAKE, STOP]
+[Rsys.mode.STOP]
+ode = p' = smt2:0.0; v' = smt2:0.0; b' = smt2:0.0;
+guard = p >= 100.0 and v <= 0.35
+evolve = p >= 0.0 and v >= 0.0 and v <= 8.0 and b >= 0.0 and b <= 3.0
+next = [STOP]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_p R_p) (<= R_p L_p) (<= L_v R_v) (<= R_v L_v) (<= L_b 0.0) (<= R_b 0.0) (>= L_b 0.0) (>= R_b 0.0))
+BRAKE = smt2:(and (>= R_p 100.0) (<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)))
+STOP = smt2:(and (>= R_p 100.0) (<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)))

@@ -37,6 +37,10 @@ RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a s
              strict-equality: the synthetic file with the strict row y_R < 0, which reaches
              equality exactly at the landing y_R = 0: DECLINED (on the half-open region route B
              would pass vacuously, its boundary lying outside it; the closed region refuses it)
+  mixed      benchmarks/progress_demo/stopline_friction_mixed (the right's braking nodes need a
+             two-stage progress certificate, helper up then landing down; 2026-11-01): CERTIFIED;
+             with the right's brake never applied (BRAKE b' = -b/0.3, the speed never falls)
+             DECLINED
   negatives  every benchmarks/refute_mutants/*/input.txt and benchmarks/negative/*/input.txt
              (on): DECLINED
   key        a file that still carries the retired key `prelanding = true` is refused (ERROR,
@@ -51,6 +55,7 @@ import argparse, glob, os, re, subprocess, sys, tempfile
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 DEMO = os.path.join(ROOT, "benchmarks", "prelanding_demo", "engine_cooling_prelanding", "input.txt")
 STRICT = os.path.join(ROOT, "benchmarks", "prelanding_demo", "hold_reposition_strict", "input.txt")
+MIXED = os.path.join(ROOT, "benchmarks", "progress_demo", "stopline_friction_mixed", "input.txt")
 VERD = re.compile(r": (CERTIFIED|DECLINED|ERROR)")
 
 
@@ -189,6 +194,11 @@ def main():
     cases.append(("default strict-target (range [1,1])", starget, "DECLINED", None))
     cases.append(("default strict-equality (range [1,1])", sequal, "DECLINED", None))
     cases.append(("default strict demo off (range [1,1])", strict, "DECLINED", OFF))
+    mixed = open(MIXED).read()
+    cases.append(("mixed demo (two stages, helper up then landing down)", mixed, "CERTIFIED", None))
+    cases.append(("mixed demo, the right brake never applied (BRAKE b' = -b/0.3)",
+                  sub(mixed, "b' = smt2:(* (/ 1.0 0.3) (- 3.0 b));", "b' = smt2:(* (/ 1.0 0.3) (- 0.0 b));"),
+                  "DECLINED", None))
     # stretch 0 on and the declared range [0, 1]: the holding left lets the right wait, every
     # claim is true
     lam0 = lambda t: sub(t, "lambda_min = 1.0", "lambda_min = 0.0")

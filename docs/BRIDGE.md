@@ -39,7 +39,7 @@ instance: the structural bundles by `decide +kernel`, Assumption 1 transported f
 | `Stay.lean` | O2 from Z3: each kept atom stays along its mode's flow from the mode's atoms, by the route the certificate records (B/A/C; rational routes re-checked by C) over the evolve domain narrowed by the atom's `given` forms (earlier atoms), lifted by induction on the index (`boxle_of_stays_in`). |
 | `Barrier.lean` | pruned exits (Definition 6) from the non-connection pair: barrier `≤ 0` on entry (source check), kept along joint and frozen flows (strict DI on the narrowed domain, lifted by the stays), `> 0` under the target's guard; admissibility (`unsat` of `guardL ∧ guardR ∧ row`); handoffs (the domain-conditioned query); the row's hygiene. |
 | `Anchor.lean` | the anchor's hygiene, start, post, switch transfer, preservation along joint segments (`couple_box_cutX` with the pack, the stays, the barriers) and frozen segments (`couple_box_dyn`), exclusion of pruned exits. |
-| `Progress.lean` | the reposition-progress premise of every reposition node from its emitted certificate (`progressVerd_one`, `progressVerd_one_down`, `progressVerd_two`) with Assumption 1, the anchor kept, pruned exits excluded; the certificate-shape bundle `progOK` (one stage in either direction, or two upward stages). |
+| `Progress.lean` | the reposition-progress premise of every reposition node from its emitted certificate (`progressVerd_one`, `progressVerd_one_down`, `progressVerd_two`, `progressVerd_two_ud`/`_du`/`_dd`) with Assumption 1, the anchor kept, pruned exits excluded; the certificate-shape bundle `progOK` (one stage in either direction, or two upward stages). |
 | `Keyed.lean` | the `CoverHyps` of a window; covers of admissible starts decided (`coversOK`, the extended checker on the semantic automaton), other starts inadmissible by verdict; window responses through `coverX_gresp`; `theorem3_keyed_of_records` through `hstepMode_GR`, `HMode_regionG`, `hstep_modeKeyed`, `theorem3_modeKeyed`. |
 | `Window.lean` | `theorem3_window_of_records` through `theorem3_of_coverX` (rows identical, `rowsSame`). |
 | `Transport.lean` | `WellFormedR` transported from the standalone automaton: same modes (`Gr_modeAt` + `rfl`), every standalone edge a declared successor (`edgesCovered`, decided). |
@@ -113,7 +113,9 @@ gate, 3657/3657 over 46 + 3).
   their coverage queries among the verdicts. The single-stage downward progress form
   (`up = false`) is covered by `repoProgress_one_down` (`cycle_decay`, `hits_line_down`,
   `phase_down`, `land_at_start_down` in `Proofs/Encoding/Progress.lean`; the pin
-  `progressVerd_one_down`; a two-stage certificate must be upward in both stages, `certOK`); the
+  `progressVerd_one_down`; since 2026-11-01 a two-stage certificate may run in either direction in
+either stage, `repoProgress_two_ud_reg` / `_du_reg` / `_dd_reg` with the pins
+`progressVerd_two_ud` / `_du` / `_dd`, `certOK` through `Progress.shapeOK`, docs/PRELANDING.md); the
   velocity-only `lit_hypercert_vehicle` used it (a reposition node `A0` crossing its threshold
   downward), and since its redesign with the position coordinate (2026-10-27) no suite cover
   has a reposition node there and no record uses the downward form. (`lit_hypercert_vehicle` left the

@@ -223,6 +223,24 @@ but not kernel-refuted: none. The stop-line rungs: `stopline_lag` 11/2/19, `stop
 slowest `stopline_drag_m040` in 22 s (`docs/refute/decline_default_budget.tsv`); the three negatives
 (`benchmarks/negative/*`) DECLINED.
 
+Batch 15 (2026-11-01, `docs/BATCH15-2026-11-01.md`): `rover_terrain_{2to4,4to6}` and `platoon_linkloss` left
+the suite (their 15 refutation instances, mutant inputs and, with `acc_tune_lag`, 110 witness lines removed);
+the rover ladder came back with two relational rows and the stop-line rungs became full-fidelity models. The
+finder with `--only` on the eight changed files (five parallel runs, merged with the finder's own block
+semantics; each run on fresh oleans): `rover_ladder_2to3` 8 mutants, 0 witnesses; `_3to6` 10, 0; `_6to8` 21, 2;
+`_8to12` 24, 5; `stopline_lag` 42, 5; `stopline_friction` 65, 9; `stopline_tyre` 92, 21; `stopline_drag` 127,
+54. **140 refutation instances, `relcert-refute-verdicts` 416/416**, every instance builds; witness lines 1193.
+**Experiment recomputed 2026-11-01** at 96a75ab (`scripts/refute_experiment.py --jobs 6`; the verdict cache
+entries of the eight changed files and of the benchmarks that left were removed first: a stale cached verdict of
+a batch-14 mutant with the same index made four mutants read "kernel-refuted and certified" until then):
+1193 mutants, **398 certified, 140 kernel-refuted, 655 open** (one relcert ERROR, `lit_girard08_robot_m019`);
+by operator RRO/SNO 40/69/177, MCO 131/23/133, ORO 227/48/345; by kind C 36, B 103, A 1; kernel-refuted and
+certified: none; witness found but not kernel-refuted: none. The changed files (certified/refuted/open):
+`rover_ladder_2to3` 0/0/8, `_3to6` 3/0/7, `_6to8` 11/2/8, `_8to12` 10/5/9, `stopline_lag` 17/5/20,
+`stopline_friction` 25/9/31, `stopline_tyre` 38/21/33, `stopline_drag` 32/54/41. Decline check of the 140 mutant
+inputs (default budget, 4 parallel jobs): **140/140 DECLINED**, the slowest `rover_ladder_8to12_m004` in 42 s
+(`docs/refute/decline_default_budget.tsv`); the three negatives DECLINED.
+
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim

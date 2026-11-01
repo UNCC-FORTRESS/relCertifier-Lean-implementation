@@ -180,206 +180,6 @@
   "witness_found": false
  },
  {
-  "id": "acc_tune_lag_m000",
-  "bench": "acc_tune_lag",
-  "op": "RRO/SNO",
-  "mutant": "(<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m001",
-  "bench": "acc_tune_lag",
-  "op": "MCO",
-  "mutant": "(<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m002",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) [L_a->R_a]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m003",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) [L_v->R_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m004",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) [R_a->L_a]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m005",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) [R_v->L_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m006",
-  "bench": "acc_tune_lag",
-  "op": "RRO/SNO",
-  "mutant": "(<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m007",
-  "bench": "acc_tune_lag",
-  "op": "MCO",
-  "mutant": "(<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m008",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))) [L_a->R_a]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m009",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))) [L_v->R_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m010",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))) [R_a->L_a]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m011",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))) [R_v->L_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m012",
-  "bench": "acc_tune_lag",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_v (+ R_v 3.34)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m013",
-  "bench": "acc_tune_lag",
-  "op": "MCO",
-  "mutant": "(<= L_v (+ R_v 3.34)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m014",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= L_v (+ R_v 3.34)) [L_v->R_v]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m015",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= L_v (+ R_v 3.34)) [R_v->L_v]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m016",
-  "bench": "acc_tune_lag",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_v (+ L_v 3.34)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m017",
-  "bench": "acc_tune_lag",
-  "op": "MCO",
-  "mutant": "(<= R_v (+ L_v 3.34)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m018",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= R_v (+ L_v 3.34)) [L_v->R_v]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "acc_tune_lag_m019",
-  "bench": "acc_tune_lag",
-  "op": "ORO",
-  "mutant": "(<= R_v (+ L_v 3.34)) [R_v->L_v]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
   "id": "acc_tune_limp_m000",
   "bench": "acc_tune_limp",
   "op": "RRO/SNO",
@@ -5190,396 +4990,6 @@
   "witness_found": false
  },
  {
-  "id": "platoon_linkloss_m000",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) [>=-><=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m001",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m002",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) [L_g->R_g]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m003",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) [L_r->R_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m004",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) [R_g->L_g]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m005",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) [R_r->L_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m006",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m007",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m008",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) [L_g->R_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m009",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) [L_r->R_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m010",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) [R_g->L_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m011",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) [R_r->L_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m012",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) [>=-><=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m013",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m014",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) [L_g->R_g]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m015",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) [L_r->R_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m016",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) [R_g->L_g]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m017",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) [R_r->L_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m018",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m019",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m020",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) [L_g->R_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m021",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) [L_r->R_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m022",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) [R_g->L_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m023",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) [R_r->L_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m024",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(>= (- L_g R_g) 0.0) [>=-><=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m025",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(>= (- L_g R_g) 0.0) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m026",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (- L_g R_g) 0.0) [L_g->R_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m027",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (- L_g R_g) 0.0) [R_g->L_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m028",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(<= (- L_g R_g) 15.0) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m029",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(<= (- L_g R_g) 15.0) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m030",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (- L_g R_g) 15.0) [L_g->R_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m031",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(<= (- L_g R_g) 15.0) [R_g->L_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m032",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(>= L_g 5.0) [>=-><=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "platoon_linkloss_m033",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(>= L_g 5.0) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m034",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= L_g 5.0) [L_g->R_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m035",
-  "bench": "platoon_linkloss",
-  "op": "RRO/SNO",
-  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [>=-><=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "platoon_linkloss_m036",
-  "bench": "platoon_linkloss",
-  "op": "MCO",
-  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m037",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [L_g->R_g]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "platoon_linkloss_m038",
-  "bench": "platoon_linkloss",
-  "op": "ORO",
-  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [L_r->R_r]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
   "id": "platoon_profiles_m000",
   "bench": "platoon_profiles",
   "op": "RRO/SNO",
@@ -6876,516 +6286,6 @@
   "mutant": "(<= R_p L_p) [R_p->L_p]",
   "kind": null,
   "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m000",
-  "bench": "rover_terrain_2to4",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_v R_v) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m001",
-  "bench": "rover_terrain_2to4",
-  "op": "MCO",
-  "mutant": "(<= L_v R_v) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m002",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_v R_v) [L_v->R_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m003",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_v R_v) [R_v->L_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m004",
-  "bench": "rover_terrain_2to4",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_s R_s) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m005",
-  "bench": "rover_terrain_2to4",
-  "op": "MCO",
-  "mutant": "(<= L_s R_s) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m006",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_s R_s) [L_s->R_s]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m007",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_s R_s) [R_s->L_s]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m008",
-  "bench": "rover_terrain_2to4",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_v L_w) [<=->>=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_2to4_m009",
-  "bench": "rover_terrain_2to4",
-  "op": "MCO",
-  "mutant": "(<= L_v L_w) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m010",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_v L_w) [L_v->R_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m011",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_v L_w) [L_w->R_w]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_2to4_m012",
-  "bench": "rover_terrain_2to4",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [<=->>=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_2to4_m013",
-  "bench": "rover_terrain_2to4",
-  "op": "MCO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m014",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [L_v->R_v]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m015",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [L_w->R_w]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_2to4_m016",
-  "bench": "rover_terrain_2to4",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_w (+ (* 0.93 R_v) 0.05)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m017",
-  "bench": "rover_terrain_2to4",
-  "op": "MCO",
-  "mutant": "(<= L_w (+ (* 0.93 R_v) 0.05)) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m018",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_w (+ (* 0.93 R_v) 0.05)) [L_w->R_w]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_2to4_m019",
-  "bench": "rover_terrain_2to4",
-  "op": "ORO",
-  "mutant": "(<= L_w (+ (* 0.93 R_v) 0.05)) [R_v->L_v]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m000",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_v R_v) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m001",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= L_v R_v) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m002",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_v R_v) [L_v->R_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m003",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_v R_v) [R_v->L_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m004",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_s R_s) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m005",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= L_s R_s) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m006",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_s R_s) [L_s->R_s]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m007",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_s R_s) [R_s->L_s]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m008",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_w R_w) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m009",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= L_w R_w) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m010",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_w R_w) [L_w->R_w]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m011",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_w R_w) [R_w->L_w]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m012",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_zs L_zs) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m013",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= R_zs L_zs) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m014",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= R_zs L_zs) [L_zs->R_zs]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m015",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= R_zs L_zs) [R_zs->L_zs]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m016",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_v L_w) [<=->>=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m017",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= L_v L_w) [del]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m018",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_v L_w) [L_v->R_v]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m019",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_v L_w) [L_w->R_w]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m020",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_w L_u) [<=->>=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m021",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= L_w L_u) [del]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m022",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_w L_u) [L_u->R_u]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m023",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_w L_u) [L_w->R_w]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m024",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [<=->>=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m025",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m026",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [L_v->R_v]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m027",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_w (+ L_v 0.25)) [L_w->R_w]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m028",
-  "bench": "rover_terrain_4to6",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_zh 0.15) [<=->>=]",
-  "kind": "B",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "rover_terrain_4to6_m029",
-  "bench": "rover_terrain_4to6",
-  "op": "MCO",
-  "mutant": "(<= L_zh 0.15) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "rover_terrain_4to6_m030",
-  "bench": "rover_terrain_4to6",
-  "op": "ORO",
-  "mutant": "(<= L_zh 0.15) [L_zh->R_zh]",
-  "kind": null,
-  "relcert": "CERTIFIED",
   "kernel_refuted": false,
   "witness_found": false
  },
@@ -9543,6 +8443,686 @@
   "id": "stopline_drag_m040",
   "bench": "stopline_drag",
   "op": "RRO/SNO",
+  "mutant": "(<= L_psi 0.35) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m041",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_psi 0.35) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m042",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_psi 0.35) [L_psi->R_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m043",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m044",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m045",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [L_psi->R_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m046",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_theta_p 0.25) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m047",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_theta_p 0.25) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m048",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_theta_p 0.25) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m049",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m050",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m051",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m052",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_phi_r 0.2) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m053",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_phi_r 0.2) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m054",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_phi_r 0.2) [L_phi_r->R_phi_r]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m055",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m056",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m057",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [L_phi_r->R_phi_r]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m058",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_omega_psi 0.35) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m059",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_omega_psi 0.35) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m060",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_omega_psi 0.35) [L_omega_psi->R_omega_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m061",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.35) L_omega_psi) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m062",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.35) L_omega_psi) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m063",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.35) L_omega_psi) [L_omega_psi->R_omega_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m064",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_omega_theta 0.25) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m065",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_omega_theta 0.25) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m066",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_omega_theta 0.25) [L_omega_theta->R_omega_theta]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m067",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_theta) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m068",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_theta) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m069",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_theta) [L_omega_theta->R_omega_theta]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m070",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_omega_phi 0.2) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m071",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_omega_phi 0.2) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m072",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_omega_phi 0.2) [L_omega_phi->R_omega_phi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m073",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.2) L_omega_phi) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m074",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.2) L_omega_phi) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m075",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.2) L_omega_phi) [L_omega_phi->R_omega_phi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m076",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_y 0.25) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m077",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_y 0.25) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m078",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_y 0.25) [L_y->R_y]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m079",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.25) L_y) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m080",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.25) L_y) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m081",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.25) L_y) [L_y->R_y]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m082",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_omega_y 0.25) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m083",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_omega_y 0.25) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m084",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_omega_y 0.25) [L_omega_y->R_omega_y]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m085",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_y) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m086",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_y) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m087",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_y) [L_omega_y->R_omega_y]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m088",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m089",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m090",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [L_omega_psi->R_omega_psi]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m091",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [L_omega_y->R_omega_y]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m092",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m093",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m094",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [L_v->R_v]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m095",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r) 0.8) [L_y->R_y]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m096",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m097",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m098",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [L_omega_psi->R_omega_psi]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m099",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [L_omega_y->R_omega_y]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m100",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m101",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m102",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [L_v->R_v]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m103",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (+ (* L_v (- L_omega_psi L_psi)) (+ (- L_y (* 2.0 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r)))))) L_phi_r)) [L_y->R_y]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m104",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_s L_p) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_drag_m105",
+  "bench": "stopline_drag",
+  "op": "MCO",
+  "mutant": "(<= L_s L_p) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m106",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_p->R_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m107",
+  "bench": "stopline_drag",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_s->R_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_drag_m108",
+  "bench": "stopline_drag",
+  "op": "RRO/SNO",
   "mutant": "(>= R_p 100.0) [>=-><=]",
   "kind": "A",
   "relcert": "DECLINED",
@@ -9550,7 +9130,7 @@
   "witness_found": true
  },
  {
-  "id": "stopline_drag_m041",
+  "id": "stopline_drag_m109",
   "bench": "stopline_drag",
   "op": "MCO",
   "mutant": "(>= R_p 100.0) [del]",
@@ -9560,7 +9140,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m042",
+  "id": "stopline_drag_m110",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(>= R_p 100.0) [R_p->L_p]",
@@ -9570,7 +9150,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m043",
+  "id": "stopline_drag_m111",
   "bench": "stopline_drag",
   "op": "RRO/SNO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [<=->>=]",
@@ -9580,7 +9160,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m044",
+  "id": "stopline_drag_m112",
   "bench": "stopline_drag",
   "op": "MCO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [del]",
@@ -9590,7 +9170,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m045",
+  "id": "stopline_drag_m113",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [L_b->R_b]",
@@ -9600,7 +9180,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m046",
+  "id": "stopline_drag_m114",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [L_c->R_c]",
@@ -9610,7 +9190,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m047",
+  "id": "stopline_drag_m115",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [L_p->R_p]",
@@ -9620,7 +9200,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m048",
+  "id": "stopline_drag_m116",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [L_v->R_v]",
@@ -9630,7 +9210,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m049",
+  "id": "stopline_drag_m117",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [R_b->L_b]",
@@ -9640,7 +9220,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m050",
+  "id": "stopline_drag_m118",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [R_c->L_c]",
@@ -9650,7 +9230,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m051",
+  "id": "stopline_drag_m119",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [R_p->L_p]",
@@ -9660,7 +9240,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m052",
+  "id": "stopline_drag_m120",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (- (+ (* 5.4 R_p) (* 1.89 R_v)) (* 0.081 R_b)) (* 1 (* (- (- R_v (* 0.05 R_b)) (* 0.3 R_c)) (- (- R_v (* 0.05 R_b)) (* 0.3 R_c))))) 0.0)) [R_v->L_v]",
@@ -9670,7 +9250,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m053",
+  "id": "stopline_drag_m121",
   "bench": "stopline_drag",
   "op": "RRO/SNO",
   "mutant": "(<= L_b 2.7) [<=->>=]",
@@ -9680,7 +9260,7 @@
   "witness_found": true
  },
  {
-  "id": "stopline_drag_m054",
+  "id": "stopline_drag_m122",
   "bench": "stopline_drag",
   "op": "MCO",
   "mutant": "(<= L_b 2.7) [del]",
@@ -9690,7 +9270,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m055",
+  "id": "stopline_drag_m123",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= L_b 2.7) [L_b->R_b]",
@@ -9700,7 +9280,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_drag_m056",
+  "id": "stopline_drag_m124",
   "bench": "stopline_drag",
   "op": "RRO/SNO",
   "mutant": "(<= L_c 2.7) [<=->>=]",
@@ -9710,7 +9290,7 @@
   "witness_found": true
  },
  {
-  "id": "stopline_drag_m057",
+  "id": "stopline_drag_m125",
   "bench": "stopline_drag",
   "op": "MCO",
   "mutant": "(<= L_c 2.7) [del]",
@@ -9720,7 +9300,7 @@
   "witness_found": true
  },
  {
-  "id": "stopline_drag_m058",
+  "id": "stopline_drag_m126",
   "bench": "stopline_drag",
   "op": "ORO",
   "mutant": "(<= L_c 2.7) [L_c->R_c]",
@@ -10013,8 +9593,8 @@
   "id": "stopline_friction_m028",
   "bench": "stopline_friction",
   "op": "RRO/SNO",
-  "mutant": "(>= R_p 100.0) [>=-><=]",
-  "kind": "C",
+  "mutant": "(<= L_psi 0.35) [<=->>=]",
+  "kind": "B",
   "relcert": "DECLINED",
   "kernel_refuted": true,
   "witness_found": true
@@ -10023,9 +9603,9 @@
   "id": "stopline_friction_m029",
   "bench": "stopline_friction",
   "op": "MCO",
-  "mutant": "(>= R_p 100.0) [del]",
+  "mutant": "(<= L_psi 0.35) [del]",
   "kind": null,
-  "relcert": "DECLINED",
+  "relcert": "CERTIFIED",
   "kernel_refuted": false,
   "witness_found": false
  },
@@ -10033,9 +9613,9 @@
   "id": "stopline_friction_m030",
   "bench": "stopline_friction",
   "op": "ORO",
-  "mutant": "(>= R_p 100.0) [R_p->L_p]",
+  "mutant": "(<= L_psi 0.35) [L_psi->R_psi]",
   "kind": null,
-  "relcert": "DECLINED",
+  "relcert": "CERTIFIED",
   "kernel_refuted": false,
   "witness_found": false
  },
@@ -10043,8 +9623,8 @@
   "id": "stopline_friction_m031",
   "bench": "stopline_friction",
   "op": "RRO/SNO",
-  "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [<=->>=]",
-  "kind": "C",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [<=->>=]",
+  "kind": "B",
   "relcert": "DECLINED",
   "kernel_refuted": true,
   "witness_found": true
@@ -10053,7 +9633,7 @@
   "id": "stopline_friction_m032",
   "bench": "stopline_friction",
   "op": "MCO",
-  "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [del]",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [del]",
   "kind": null,
   "relcert": "CERTIFIED",
   "kernel_refuted": false,
@@ -10063,6 +9643,226 @@
   "id": "stopline_friction_m033",
   "bench": "stopline_friction",
   "op": "ORO",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m034",
+  "bench": "stopline_friction",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_theta_p 0.25) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_friction_m035",
+  "bench": "stopline_friction",
+  "op": "MCO",
+  "mutant": "(<= L_theta_p 0.25) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m036",
+  "bench": "stopline_friction",
+  "op": "ORO",
+  "mutant": "(<= L_theta_p 0.25) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m037",
+  "bench": "stopline_friction",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_friction_m038",
+  "bench": "stopline_friction",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m039",
+  "bench": "stopline_friction",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m040",
+  "bench": "stopline_friction",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_phi_r 0.2) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_friction_m041",
+  "bench": "stopline_friction",
+  "op": "MCO",
+  "mutant": "(<= L_phi_r 0.2) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m042",
+  "bench": "stopline_friction",
+  "op": "ORO",
+  "mutant": "(<= L_phi_r 0.2) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m043",
+  "bench": "stopline_friction",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_friction_m044",
+  "bench": "stopline_friction",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m045",
+  "bench": "stopline_friction",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m046",
+  "bench": "stopline_friction",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_s L_p) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_friction_m047",
+  "bench": "stopline_friction",
+  "op": "MCO",
+  "mutant": "(<= L_s L_p) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m048",
+  "bench": "stopline_friction",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_p->R_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m049",
+  "bench": "stopline_friction",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_s->R_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m050",
+  "bench": "stopline_friction",
+  "op": "RRO/SNO",
+  "mutant": "(>= R_p 100.0) [>=-><=]",
+  "kind": "C",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_friction_m051",
+  "bench": "stopline_friction",
+  "op": "MCO",
+  "mutant": "(>= R_p 100.0) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m052",
+  "bench": "stopline_friction",
+  "op": "ORO",
+  "mutant": "(>= R_p 100.0) [R_p->L_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m053",
+  "bench": "stopline_friction",
+  "op": "RRO/SNO",
+  "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [<=->>=]",
+  "kind": "C",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_friction_m054",
+  "bench": "stopline_friction",
+  "op": "MCO",
+  "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_friction_m055",
+  "bench": "stopline_friction",
+  "op": "ORO",
   "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [L_b->R_b]",
   "kind": null,
   "relcert": "DECLINED",
@@ -10070,7 +9870,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m034",
+  "id": "stopline_friction_m056",
   "bench": "stopline_friction",
   "op": "ORO",
   "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [L_p->R_p]",
@@ -10080,7 +9880,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m035",
+  "id": "stopline_friction_m057",
   "bench": "stopline_friction",
   "op": "ORO",
   "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [L_v->R_v]",
@@ -10090,7 +9890,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m036",
+  "id": "stopline_friction_m058",
   "bench": "stopline_friction",
   "op": "ORO",
   "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [R_b->L_b]",
@@ -10100,7 +9900,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m037",
+  "id": "stopline_friction_m059",
   "bench": "stopline_friction",
   "op": "ORO",
   "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [R_p->L_p]",
@@ -10110,7 +9910,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m038",
+  "id": "stopline_friction_m060",
   "bench": "stopline_friction",
   "op": "ORO",
   "mutant": "(<= (* 5.0 (+ (+ (* 5.4 L_p) (* 1.62 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b)))))) (+ (* 4.5 (+ (+ (* 6.0 R_p) (* 1.8 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b)))))) 32.0)) [R_v->L_v]",
@@ -10120,7 +9920,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m039",
+  "id": "stopline_friction_m061",
   "bench": "stopline_friction",
   "op": "RRO/SNO",
   "mutant": "(>= L_b (* 0.9 R_b)) [>=-><=]",
@@ -10130,7 +9930,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m040",
+  "id": "stopline_friction_m062",
   "bench": "stopline_friction",
   "op": "MCO",
   "mutant": "(>= L_b (* 0.9 R_b)) [del]",
@@ -10140,7 +9940,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m041",
+  "id": "stopline_friction_m063",
   "bench": "stopline_friction",
   "op": "ORO",
   "mutant": "(>= L_b (* 0.9 R_b)) [L_b->R_b]",
@@ -10150,7 +9950,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_friction_m042",
+  "id": "stopline_friction_m064",
   "bench": "stopline_friction",
   "op": "ORO",
   "mutant": "(>= L_b (* 0.9 R_b)) [R_b->L_b]",
@@ -10383,8 +10183,8 @@
   "id": "stopline_lag_m022",
   "bench": "stopline_lag",
   "op": "RRO/SNO",
-  "mutant": "(>= R_p 100.0) [>=-><=]",
-  "kind": "C",
+  "mutant": "(<= L_psi 0.35) [<=->>=]",
+  "kind": "B",
   "relcert": "DECLINED",
   "kernel_refuted": true,
   "witness_found": true
@@ -10393,7 +10193,7 @@
   "id": "stopline_lag_m023",
   "bench": "stopline_lag",
   "op": "MCO",
-  "mutant": "(>= R_p 100.0) [del]",
+  "mutant": "(<= L_psi 0.35) [del]",
   "kind": null,
   "relcert": "CERTIFIED",
   "kernel_refuted": false,
@@ -10403,7 +10203,7 @@
   "id": "stopline_lag_m024",
   "bench": "stopline_lag",
   "op": "ORO",
-  "mutant": "(>= R_p 100.0) [R_p->L_p]",
+  "mutant": "(<= L_psi 0.35) [L_psi->R_psi]",
   "kind": null,
   "relcert": "CERTIFIED",
   "kernel_refuted": false,
@@ -10413,8 +10213,8 @@
   "id": "stopline_lag_m025",
   "bench": "stopline_lag",
   "op": "RRO/SNO",
-  "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [<=->>=]",
-  "kind": "C",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [<=->>=]",
+  "kind": "B",
   "relcert": "DECLINED",
   "kernel_refuted": true,
   "witness_found": true
@@ -10423,7 +10223,7 @@
   "id": "stopline_lag_m026",
   "bench": "stopline_lag",
   "op": "MCO",
-  "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [del]",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [del]",
   "kind": null,
   "relcert": "CERTIFIED",
   "kernel_refuted": false,
@@ -10433,6 +10233,106 @@
   "id": "stopline_lag_m027",
   "bench": "stopline_lag",
   "op": "ORO",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_lag_m028",
+  "bench": "stopline_lag",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_s L_p) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_lag_m029",
+  "bench": "stopline_lag",
+  "op": "MCO",
+  "mutant": "(<= L_s L_p) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_lag_m030",
+  "bench": "stopline_lag",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_p->R_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_lag_m031",
+  "bench": "stopline_lag",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_s->R_s]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_lag_m032",
+  "bench": "stopline_lag",
+  "op": "RRO/SNO",
+  "mutant": "(>= R_p 100.0) [>=-><=]",
+  "kind": "C",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_lag_m033",
+  "bench": "stopline_lag",
+  "op": "MCO",
+  "mutant": "(>= R_p 100.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_lag_m034",
+  "bench": "stopline_lag",
+  "op": "ORO",
+  "mutant": "(>= R_p 100.0) [R_p->L_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_lag_m035",
+  "bench": "stopline_lag",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [<=->>=]",
+  "kind": "C",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_lag_m036",
+  "bench": "stopline_lag",
+  "op": "MCO",
+  "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_lag_m037",
+  "bench": "stopline_lag",
+  "op": "ORO",
   "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [L_b->R_b]",
   "kind": null,
   "relcert": "DECLINED",
@@ -10440,7 +10340,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_lag_m028",
+  "id": "stopline_lag_m038",
   "bench": "stopline_lag",
   "op": "ORO",
   "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [L_p->R_p]",
@@ -10450,7 +10350,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_lag_m029",
+  "id": "stopline_lag_m039",
   "bench": "stopline_lag",
   "op": "ORO",
   "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [L_v->R_v]",
@@ -10460,7 +10360,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_lag_m030",
+  "id": "stopline_lag_m040",
   "bench": "stopline_lag",
   "op": "ORO",
   "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [R_p->L_p]",
@@ -10470,7 +10370,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_lag_m031",
+  "id": "stopline_lag_m041",
   "bench": "stopline_lag",
   "op": "ORO",
   "mutant": "(<= (+ (+ (* 6.0 L_p) (* 1.8 L_v)) (* 1 (* (- L_v (* 0.3 L_b)) (- L_v (* 0.3 L_b))))) (+ (+ (* 6 R_p) (* 1 (* R_v R_v))) 14.4)) [R_v->L_v]",
@@ -10823,8 +10723,8 @@
   "id": "stopline_tyre_m034",
   "bench": "stopline_tyre",
   "op": "RRO/SNO",
-  "mutant": "(>= R_p 100.0) [>=-><=]",
-  "kind": "C",
+  "mutant": "(<= L_psi 0.35) [<=->>=]",
+  "kind": "B",
   "relcert": "DECLINED",
   "kernel_refuted": true,
   "witness_found": true
@@ -10833,9 +10733,9 @@
   "id": "stopline_tyre_m035",
   "bench": "stopline_tyre",
   "op": "MCO",
-  "mutant": "(>= R_p 100.0) [del]",
+  "mutant": "(<= L_psi 0.35) [del]",
   "kind": null,
-  "relcert": "DECLINED",
+  "relcert": "CERTIFIED",
   "kernel_refuted": false,
   "witness_found": false
  },
@@ -10843,9 +10743,9 @@
   "id": "stopline_tyre_m036",
   "bench": "stopline_tyre",
   "op": "ORO",
-  "mutant": "(>= R_p 100.0) [R_p->L_p]",
+  "mutant": "(<= L_psi 0.35) [L_psi->R_psi]",
   "kind": null,
-  "relcert": "DECLINED",
+  "relcert": "CERTIFIED",
   "kernel_refuted": false,
   "witness_found": false
  },
@@ -10853,8 +10753,8 @@
   "id": "stopline_tyre_m037",
   "bench": "stopline_tyre",
   "op": "RRO/SNO",
-  "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [<=->>=]",
-  "kind": "C",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [<=->>=]",
+  "kind": "B",
   "relcert": "DECLINED",
   "kernel_refuted": true,
   "witness_found": true
@@ -10863,7 +10763,7 @@
   "id": "stopline_tyre_m038",
   "bench": "stopline_tyre",
   "op": "MCO",
-  "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [del]",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [del]",
   "kind": null,
   "relcert": "CERTIFIED",
   "kernel_refuted": false,
@@ -10873,6 +10773,466 @@
   "id": "stopline_tyre_m039",
   "bench": "stopline_tyre",
   "op": "ORO",
+  "mutant": "(<= (- 0.0 0.35) L_psi) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m040",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_theta_p 0.25) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m041",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= L_theta_p 0.25) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m042",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= L_theta_p 0.25) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m043",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m044",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m045",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.25) L_theta_p) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m046",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_phi_r 0.2) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m047",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= L_phi_r 0.2) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m048",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= L_phi_r 0.2) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m049",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m050",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m051",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.2) L_phi_r) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m052",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_omega_psi 0.35) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m053",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= L_omega_psi 0.35) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m054",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= L_omega_psi 0.35) [L_omega_psi->R_omega_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m055",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.35) L_omega_psi) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m056",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.35) L_omega_psi) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m057",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.35) L_omega_psi) [L_omega_psi->R_omega_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m058",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_omega_theta 0.25) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m059",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= L_omega_theta 0.25) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m060",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= L_omega_theta 0.25) [L_omega_theta->R_omega_theta]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m061",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_theta) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m062",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_theta) [del]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m063",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.25) L_omega_theta) [L_omega_theta->R_omega_theta]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m064",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) [<=->>=]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m065",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m066",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) [L_omega_psi->R_omega_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m067",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m068",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m069",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) [L_v->R_v]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m070",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) [<=->>=]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m071",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m072",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) [L_omega_psi->R_omega_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m073",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m074",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m075",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= (- 0.0 0.8) (+ (* (/ 1.0 9.81) (* L_v (- L_omega_psi L_psi))) L_phi_r)) [L_v->R_v]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m076",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_s L_p) [<=->>=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m077",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= L_s L_p) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m078",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_p->R_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m079",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(<= L_s L_p) [L_s->R_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m080",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(>= R_p 100.0) [>=-><=]",
+  "kind": "C",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m081",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(>= R_p 100.0) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m082",
+  "bench": "stopline_tyre",
+  "op": "ORO",
+  "mutant": "(>= R_p 100.0) [R_p->L_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m083",
+  "bench": "stopline_tyre",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [<=->>=]",
+  "kind": "C",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "stopline_tyre_m084",
+  "bench": "stopline_tyre",
+  "op": "MCO",
+  "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "stopline_tyre_m085",
+  "bench": "stopline_tyre",
+  "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [L_b->R_b]",
   "kind": null,
   "relcert": "DECLINED",
@@ -10880,7 +11240,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_tyre_m040",
+  "id": "stopline_tyre_m086",
   "bench": "stopline_tyre",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [L_c->R_c]",
@@ -10890,7 +11250,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_tyre_m041",
+  "id": "stopline_tyre_m087",
   "bench": "stopline_tyre",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [L_p->R_p]",
@@ -10900,7 +11260,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_tyre_m042",
+  "id": "stopline_tyre_m088",
   "bench": "stopline_tyre",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [L_v->R_v]",
@@ -10910,7 +11270,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_tyre_m043",
+  "id": "stopline_tyre_m089",
   "bench": "stopline_tyre",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [R_b->L_b]",
@@ -10920,7 +11280,7 @@
   "witness_found": false
  },
  {
-  "id": "stopline_tyre_m044",
+  "id": "stopline_tyre_m090",
   "bench": "stopline_tyre",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [R_p->L_p]",
@@ -10930,12 +11290,642 @@
   "witness_found": false
  },
  {
-  "id": "stopline_tyre_m045",
+  "id": "stopline_tyre_m091",
   "bench": "stopline_tyre",
   "op": "ORO",
   "mutant": "(<= (+ (- (+ (* 5.4 L_p) (* 1.89 L_v)) (* 0.081 L_b)) (* 1 (* (- (- L_v (* 0.05 L_b)) (* 0.3 L_c)) (- (- L_v (* 0.05 L_b)) (* 0.3 L_c))))) (+ (+ (+ (* 5.4 R_p) (* 1.62 R_v)) (* 1 (* (- R_v (* 0.3 R_b)) (- R_v (* 0.3 R_b))))) 2.16)) [R_v->L_v]",
   "kind": null,
   "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m000",
+  "bench": "rover_ladder_2to3",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_v R_v) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m001",
+  "bench": "rover_ladder_2to3",
+  "op": "MCO",
+  "mutant": "(<= L_v R_v) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m002",
+  "bench": "rover_ladder_2to3",
+  "op": "ORO",
+  "mutant": "(<= L_v R_v) [L_v->R_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m003",
+  "bench": "rover_ladder_2to3",
+  "op": "ORO",
+  "mutant": "(<= L_v R_v) [R_v->L_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m004",
+  "bench": "rover_ladder_2to3",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_s R_s) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m005",
+  "bench": "rover_ladder_2to3",
+  "op": "MCO",
+  "mutant": "(<= L_s R_s) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m006",
+  "bench": "rover_ladder_2to3",
+  "op": "ORO",
+  "mutant": "(<= L_s R_s) [L_s->R_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_2to3_m007",
+  "bench": "rover_ladder_2to3",
+  "op": "ORO",
+  "mutant": "(<= L_s R_s) [R_s->L_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m000",
+  "bench": "rover_ladder_3to6",
+  "op": "MCO",
+  "mutant": "(and (<= L_v R_v) (<= L_s R_s)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m001",
+  "bench": "rover_ladder_3to6",
+  "op": "ORO",
+  "mutant": "(and (<= L_v R_v) (<= L_s R_s)) [L_s->R_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m002",
+  "bench": "rover_ladder_3to6",
+  "op": "ORO",
+  "mutant": "(and (<= L_v R_v) (<= L_s R_s)) [L_v->R_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m003",
+  "bench": "rover_ladder_3to6",
+  "op": "ORO",
+  "mutant": "(and (<= L_v R_v) (<= L_s R_s)) [R_s->L_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m004",
+  "bench": "rover_ladder_3to6",
+  "op": "ORO",
+  "mutant": "(and (<= L_v R_v) (<= L_s R_s)) [R_v->L_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m005",
+  "bench": "rover_ladder_3to6",
+  "op": "MCO",
+  "mutant": "(and (<= L_psi R_psi) (<= R_psi L_psi)) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m006",
+  "bench": "rover_ladder_3to6",
+  "op": "ORO",
+  "mutant": "(and (<= L_psi R_psi) (<= R_psi L_psi)) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m007",
+  "bench": "rover_ladder_3to6",
+  "op": "ORO",
+  "mutant": "(and (<= L_psi R_psi) (<= R_psi L_psi)) [R_psi->L_psi]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m008",
+  "bench": "rover_ladder_3to6",
+  "op": "MCO",
+  "mutant": "(and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_3to6_m009",
+  "bench": "rover_ladder_3to6",
+  "op": "ORO",
+  "mutant": "(and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m000",
+  "bench": "rover_ladder_6to8",
+  "op": "MCO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m001",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_omega_psi->R_omega_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "rover_ladder_6to8_m002",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_omega_theta->R_omega_theta]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "rover_ladder_6to8_m003",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_phi_r->R_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m004",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m005",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_s->R_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m006",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_theta_p->R_theta_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m007",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_v->R_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m008",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_phi_r->L_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m009",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_psi->L_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m010",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_s->L_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m011",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_theta_p->L_theta_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m012",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_theta_p 0.25) (<= (- 0 0.25) L_theta_p)) (and (<= L_omega_theta 0.25) (<= (- 0 0.25) L_omega_theta))) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (* L_v (- L_omega_psi L_psi))) L_phi_r))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_v->L_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m013",
+  "bench": "rover_ladder_6to8",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- L_psi R_psi) 0.35) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m014",
+  "bench": "rover_ladder_6to8",
+  "op": "MCO",
+  "mutant": "(<= (- L_psi R_psi) 0.35) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m015",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(<= (- L_psi R_psi) 0.35) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m016",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(<= (- L_psi R_psi) 0.35) [R_psi->L_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m017",
+  "bench": "rover_ladder_6to8",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- R_psi L_psi) 0.35) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m018",
+  "bench": "rover_ladder_6to8",
+  "op": "MCO",
+  "mutant": "(<= (- R_psi L_psi) 0.35) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m019",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(<= (- R_psi L_psi) 0.35) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_6to8_m020",
+  "bench": "rover_ladder_6to8",
+  "op": "ORO",
+  "mutant": "(<= (- R_psi L_psi) 0.35) [R_psi->L_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m000",
+  "bench": "rover_ladder_8to12",
+  "op": "MCO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m001",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_omega_phi->R_omega_phi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "rover_ladder_8to12_m002",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_omega_psi->R_omega_psi]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "rover_ladder_8to12_m003",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_omega_y->R_omega_y]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "rover_ladder_8to12_m004",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_phi_r->R_phi_r]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "rover_ladder_8to12_m005",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_psi->R_psi]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m006",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_s->R_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m007",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_v->R_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m008",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [L_y->R_y]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m009",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_omega_psi->L_omega_psi]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m010",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_omega_theta->L_omega_theta]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m011",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_phi_r->L_phi_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m012",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_psi->L_psi]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m013",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_s->L_s]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m014",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_theta_p->L_theta_p]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "rover_ladder_8to12_m015",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)))) [R_v->L_v]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m016",
+  "bench": "rover_ladder_8to12",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- L_z R_z) 0.15) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m017",
+  "bench": "rover_ladder_8to12",
+  "op": "MCO",
+  "mutant": "(<= (- L_z R_z) 0.15) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m018",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(<= (- L_z R_z) 0.15) [L_z->R_z]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m019",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(<= (- L_z R_z) 0.15) [R_z->L_z]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m020",
+  "bench": "rover_ladder_8to12",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- R_z L_z) 0.15) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m021",
+  "bench": "rover_ladder_8to12",
+  "op": "MCO",
+  "mutant": "(<= (- R_z L_z) 0.15) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m022",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(<= (- R_z L_z) 0.15) [L_z->R_z]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "rover_ladder_8to12_m023",
+  "bench": "rover_ladder_8to12",
+  "op": "ORO",
+  "mutant": "(<= (- R_z L_z) 0.15) [R_z->L_z]",
+  "kind": null,
+  "relcert": "CERTIFIED",
   "kernel_refuted": false,
   "witness_found": false
  }

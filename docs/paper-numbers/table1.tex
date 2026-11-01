@@ -13,8 +13,8 @@
 \toprule
 Area & \# & Sync & Dim & Modes & Dyn/Inv & S & M & R & B & P & D & I & X \\
 \midrule
-Automotive & 7 & 2 & 1--2 & 1--3/1--3 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechUsed & \mechUsed & \mechUsed & \mechUsed & \mechNeeded & \mechNeeded &  \\
-Rovers & 6 & 5 & 3--6 & 3/3 & $\dyntypeL$,$\dyntypeP$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded &  &  &  &  & \mechNeeded & \mechNeeded &  \\
+Automotive & 5 & 1 & 1--2 & 1--3/1--3 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechUsed & \mechUsed & \mechUsed & \mechUsed & \mechNeeded & \mechNeeded &  \\
+Rovers & 8 & 5 & 3--15 & 3/3 & $\dyntypeP$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded & \mechUsed &  &  &  & \mechNeeded & \mechNeeded &  \\
 Aerospace & 7 & 2 & 2--6 & 1--6/1--6 & $\dyntypeL$,$\dyntypeP$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded & \mechUsed & \mechNeeded & \mechUsed & \mechUsed & \mechNeeded & \mechNeeded & \mechNeeded \\
 Process & 8 & 4 & 2--3 & 2--4/2--4 & $\dyntypeL$,$\dyntypeP$/$\invtypeLin$ & \mechNeeded & \mechUsed & \mechNeeded & \mechUsed & \mechNeeded & \mechNeeded & \mechNeeded &  \\
 Energy & 3 & 1 & 1--3 & 2--7/2--5 & $\dyntypeL$/$\invtypeLin$ &  &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded &  \\
@@ -23,14 +23,14 @@ Infrastructure & 5 & 3 & 1--3 & 3--6/1--6 & $\dyntypeL$/$\invtypeLin$ & \mechNee
 Water tank & 2 & 0 & 1 & 3/5--6 & $\dyntypeL$/$\invtypeLin$ & \mechNeeded & \mechUsed & \mechUsed & \mechUsed & \mechUsed &  & \mechUsed &  \\
 Literature & 10 & 7 & 1--6 & 2--48/2--12 & $\dyntypeL$/$\invtypeLin$,$\invtypeQuad$ & \mechNeeded &  & \mechNeeded &  &  & \mechNeeded & \mechNeeded & \mechNeeded \\
 \midrule
-Total needed & 50 & 25 & & & & 18 & -- & 8 & -- & 2 & 16 & 15 & 12 \\
-Total used & & & & & & 18 & 19 & 19 & 9 & 8 & 17 & 49 & 12 \\
+Total needed & 50 & 24 & & & & 19 & -- & 8 & -- & 2 & 16 & 15 & 12 \\
+Total used & & & & & & 19 & 19 & 19 & 9 & 8 & 17 & 49 & 12 \\
 \bottomrule
 \end{tabular}
 
 % Group mapping (benchmark -> application area, AREAS in scripts/suite_v2_letters.py):
-%   Automotive: acc_spoof_lag, acc_spoof_limp, acc_tune_lag, acc_tune_limp, platoon_linkloss, platoon_profiles, train_ato_odometry
-%   Rovers: rover_terrain_2to4, rover_terrain_4to6, stopline_drag, stopline_friction, stopline_lag, stopline_tyre
+%   Automotive: acc_spoof_lag, acc_spoof_limp, acc_tune_limp, platoon_profiles, train_ato_odometry
+%   Rovers: rover_ladder_2to3, rover_ladder_3to6, rover_ladder_6to8, rover_ladder_8to12, stopline_drag, stopline_friction, stopline_lag, stopline_tyre
 %   Aerospace: engine_start_highidle, flaps_slow_approach, quad_light_lag, quad_light_profiles, sat3w_detumble_phases, sat_detumble_phases, sat_detumble_weak
 %   Process: autoclave_liquid_steambank, boiler_purge_vfd, bottling_fill_strainer, extruder_pe100_manualstart, furnace_program_timebase, molding_pack_checkring, reactor_feed_wireless, tank_dos_3to1
 %   Energy: h2_refuel_ambientbias, hydro_rejection_gatecal, turbine_startup_gearratio

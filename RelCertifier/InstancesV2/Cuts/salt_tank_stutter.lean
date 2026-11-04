@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `salt_tank_stutter` (stutter_demo) — checked-cut certificates, legacy and extended (GENERATED leaf — do not edit)
+# `salt_tank_stutter` (stutter_demo) — mode-fact certificates, legacy and extended (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_stutter_demo.py`.
 -/

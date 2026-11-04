@@ -1,5 +1,5 @@
-/- suite_v2 choice-record aggregator (GENERATED — `scripts/gen_v2_data.py`): the chosen
-sets of the existential mode choice per benchmark (empty for a benchmark whose cover
+/- suite_v2 choice-record aggregator (GENERATED — `scripts/gen_v2_data.py`): the committed
+successor subsets per benchmark (empty for a benchmark whose cover
 needs none). -/
 import RelCertifier.InstancesV2.BenchChoice.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_spoof_limp

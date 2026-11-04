@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `lit_gpt10_boost_converter` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `lit_gpt10_boost_converter` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py lit_gpt10_boost_converter`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `lit_gpt10_boost_converter` (emitted, suite_v2, widened cut channel on). -/
+/-- `lit_gpt10_boost_converter` (emitted, suite_v2, implied mode-fact candidates on). -/
 def lit_gpt10_boost_converter_coverV2 : CoverEmitE :=
   ⟨"lit_gpt10_boost_converter", [], [
     ⟨"P1d00", (1 : ℚ) / 1, 1, [⟨"P1", true, false, false⟩, ⟨"P2", false, false, false⟩], ["P1", "P2"], [⟨"P1", [0], [], [], 1, 1⟩, ⟨"P2", [], [], [], 1, 1⟩]⟩,

@@ -18,7 +18,7 @@ abbrev IR := Refute.lit_girard08_robot_m016_IRm
 abbrev cX := Oracle.lit_girard08_robot_cutsV2X
 abbrev w := Refute.lit_girard08_robot_m016_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.lit_girard08_robot_IRv2.L ∧ IR.R = Parse.lit_girard08_robot_IRv2.R := ⟨rfl, rfl⟩
 
 /-- Every left mode declares the same row: the claim is the window form. -/

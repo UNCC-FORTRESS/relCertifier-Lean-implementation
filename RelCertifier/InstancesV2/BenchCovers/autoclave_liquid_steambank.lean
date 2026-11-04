@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `autoclave_liquid_steambank` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `autoclave_liquid_steambank` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py autoclave_liquid_steambank`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `autoclave_liquid_steambank` (emitted, suite_v2, widened cut channel on). -/
+/-- `autoclave_liquid_steambank` (emitted, suite_v2, implied mode-fact candidates on). -/
 def autoclave_liquid_steambank_coverV2 : CoverEmitE :=
   ⟨"autoclave_liquid_steambank", [], [
     ⟨"HEAT", (3 : ℚ) / 4, 1, [⟨"HEAT", true, false, false⟩, ⟨"EQUIL", false, false, false⟩, ⟨"EXPOSE", false, false, false⟩, ⟨"EXHAUST", false, false, false⟩], ["HEAT"], [⟨"HEAT", [0, 1, 2, 3, 6, 7, 4, 5], [], [], 3, 4⟩, ⟨"EQUIL", [1, 2, 3, 6, 7, 5], [], [], 3, 4⟩, ⟨"EXPOSE", [1, 2, 6, 7, 5], [], [], 3, 4⟩, ⟨"EXHAUST", [2, 3, 6], [], [], 3, 4⟩]⟩,

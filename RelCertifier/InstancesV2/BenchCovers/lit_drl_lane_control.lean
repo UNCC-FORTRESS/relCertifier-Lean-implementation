@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `lit_drl_lane_control` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `lit_drl_lane_control` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py lit_drl_lane_control`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `lit_drl_lane_control` (emitted, suite_v2, widened cut channel on). -/
+/-- `lit_drl_lane_control` (emitted, suite_v2, implied mode-fact candidates on). -/
 def lit_drl_lane_control_coverV2 : CoverEmitE :=
   ⟨"lit_drl_lane_control", [], [
     ⟨"AccelLAccel", (1 : ℚ) / 1, 1, [⟨"AccelLAccel", true, false, false⟩, ⟨"AccelLBrake", false, false, false⟩, ⟨"CoastLAccel", false, false, false⟩, ⟨"CoastLBrake", false, false, false⟩, ⟨"BrakeLAccel", false, false, false⟩, ⟨"BrakeLBrake", false, false, false⟩], ["AccelLAccel", "AccelLBrake", "CoastLAccel", "CoastLBrake", "BrakeLAccel", "BrakeLBrake"], [⟨"AccelLAccel", [2, 3, 4, 5, 0, 1], [], [], 1, 1⟩, ⟨"AccelLBrake", [2, 3, 5, 1], [], [], 1, 1⟩, ⟨"CoastLAccel", [3, 4, 5, 0], [], [], 1, 1⟩, ⟨"CoastLBrake", [3, 5], [], [], 1, 1⟩, ⟨"BrakeLAccel", [3, 4, 5, 0], [], [], 1, 1⟩, ⟨"BrakeLBrake", [3, 5], [], [], 1, 1⟩]⟩,

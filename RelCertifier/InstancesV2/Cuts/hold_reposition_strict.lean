@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `hold_reposition_strict` (prelanding_demo) — checked-cut certificates, legacy and extended (GENERATED leaf — do not edit)
+# `hold_reposition_strict` (prelanding_demo) — mode-fact certificates, legacy and extended (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_prelanding_demo.py`.
 -/

@@ -19,7 +19,7 @@ abbrev IR := Refute.antenna_track_kvretune_m018_IRm
 abbrev cX := Oracle.antenna_track_kvretune_cutsV2X
 abbrev w := Refute.antenna_track_kvretune_m018_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.antenna_track_kvretune_IRv2.L ∧ IR.R = Parse.antenna_track_kvretune_IRv2.R := ⟨rfl, rfl⟩
 
 /-- The rows differ by mode: the claim is the mode-keyed one. -/

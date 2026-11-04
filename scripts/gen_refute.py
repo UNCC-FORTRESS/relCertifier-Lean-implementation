@@ -167,7 +167,7 @@ def emit(rec, text, written):
                 f"abbrev IR := Refute.{mid}_IRm\n"
                 f"abbrev cX := Oracle.{b}_cutsV2X\n"
                 f"abbrev w := Refute.{mid}_wit\n\n"
-                f"/-- The mutant changes only the invariant: the model, hence its cut certificate, is the "
+                f"/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the "
                 f"suite benchmark's. -/\n"
                 f"theorem same_model : IR.L = Parse.{b}_IRv2.L ∧ IR.R = Parse.{b}_IRv2.R := ⟨rfl, rfl⟩\n\n")
         if window:
@@ -254,7 +254,7 @@ def main():
         f.write("import RelCertifier.Checker.EvolStrengtheningX\n\n"
                 "namespace RelCertifier.Refute\n\nopen RelCertifier.Parse RelCertifier.Oracle\n\n"
                 "/-- A refutation's records: the mutant's IR at its bridge dimension (the Assumption 1 "
-                "lemma's dimension plus one for the right clock, `bridgeDimV2`'s rule), the model's cut "
+                "lemma's dimension plus one for the right clock, `bridgeDimV2`'s rule), the model's mode-fact "
                 "certificate, the witness. -/\n"
                 "structure RefRec where\n  name : String\n  dim : ℕ\n  ir : PProblem\n"
                 "  cuts : EvolStrengtheningX\n  wit : RefWitE\n\n"
@@ -267,7 +267,7 @@ def main():
         f.write(f"def expectedRefuteGroups : Nat := {sum(nr_groups(r) for r, _, _ in out)}\n\n")
         f.write("end RelCertifier.Refute\n")
     with open(f"{OUT}.lean", "w") as f:
-        f.write(HDR.format(title="Every kernel refutation instance", body="\n"))
+        f.write(HDR.format(title="Every kernel refutation instance", body="\nThe known-false variants of Appendix B.6.\n"))
         for r, mid, C in out:
             f.write(f"import RelCertifier.InstancesV2.Refute.{C}\n")
     print(f"{len(out)} refutation instances; {len(written)} mutant input(s) written")

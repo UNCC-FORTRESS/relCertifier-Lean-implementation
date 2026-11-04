@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `antenna_track_kvretune` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `antenna_track_kvretune` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py antenna_track_kvretune`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `antenna_track_kvretune` (emitted, suite_v2, widened cut channel on). -/
+/-- `antenna_track_kvretune` (emitted, suite_v2, implied mode-fact candidates on). -/
 def antenna_track_kvretune_coverV2 : CoverEmitE :=
   ⟨"antenna_track_kvretune", [], [
     ⟨"TRACK", (1 : ℚ) / 1, 1, [⟨"TRACK", true, false, false⟩, ⟨"STOW", false, false, false⟩, ⟨"STOWED", true, false, false⟩], ["TRACK"], [⟨"TRACK", [0, 1, 2, 3, 6, 7, 4, 5], [], [], 1, 1⟩, ⟨"STOW", [0, 1, 2, 6, 4], [], [], 1, 1⟩, ⟨"STOWED", [0, 1, 2, 3, 4, 5, 6, 7], [], [], 1, 1⟩]⟩,

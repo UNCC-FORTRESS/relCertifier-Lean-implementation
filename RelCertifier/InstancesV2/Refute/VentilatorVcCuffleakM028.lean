@@ -19,7 +19,7 @@ abbrev IR := Refute.ventilator_vc_cuffleak_m028_IRm
 abbrev cX := Oracle.ventilator_vc_cuffleak_cutsV2X
 abbrev w := Refute.ventilator_vc_cuffleak_m028_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.ventilator_vc_cuffleak_IRv2.L ∧ IR.R = Parse.ventilator_vc_cuffleak_IRv2.R := ⟨rfl, rfl⟩
 
 /-- The rows differ by mode: the claim is the mode-keyed one. -/

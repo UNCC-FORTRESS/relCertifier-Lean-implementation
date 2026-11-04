@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `watertank_twospeed` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `watertank_twospeed` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py watertank_twospeed`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `watertank_twospeed` (emitted, suite_v2, widened cut channel on). -/
+/-- `watertank_twospeed` (emitted, suite_v2, implied mode-fact candidates on). -/
 def watertank_twospeed_coverV2 : CoverEmitE :=
   ⟨"watertank_twospeed", [], [
     ⟨"Low", (2 : ℚ) / 1, 2, [⟨"Fast", true, false, false⟩, ⟨"Slow", true, false, false⟩, ⟨"MidEco", true, false, false⟩, ⟨"MidBoost", true, false, false⟩, ⟨"High", true, false, false⟩, ⟨"PumpOff", false, false, false⟩], ["Fast", "Slow", "MidEco", "MidBoost"], [⟨"Fast", [0, 1], [], [], 1, 1⟩, ⟨"Slow", [0, 1], [], [], 2, 1⟩, ⟨"MidEco", [0, 1], [], [], 3, 2⟩, ⟨"MidBoost", [0, 1], [], [], 1, 1⟩, ⟨"High", [0, 1], [], [], 1, 1⟩, ⟨"PumpOff", [1], [], [], 2, 1⟩]⟩,

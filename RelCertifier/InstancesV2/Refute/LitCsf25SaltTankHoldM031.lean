@@ -19,7 +19,7 @@ abbrev IR := Refute.lit_csf25_salt_tank_hold_m031_IRm
 abbrev cX := Oracle.lit_csf25_salt_tank_hold_cutsV2X
 abbrev w := Refute.lit_csf25_salt_tank_hold_m031_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.lit_csf25_salt_tank_hold_IRv2.L ∧ IR.R = Parse.lit_csf25_salt_tank_hold_IRv2.R := ⟨rfl, rfl⟩
 
 /-- The rows differ by mode: the claim is the mode-keyed one. -/

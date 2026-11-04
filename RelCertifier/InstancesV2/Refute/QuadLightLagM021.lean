@@ -18,7 +18,7 @@ abbrev IR := Refute.quad_light_lag_m021_IRm
 abbrev cX := Oracle.quad_light_lag_cutsV2X
 abbrev w := Refute.quad_light_lag_m021_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.quad_light_lag_IRv2.L ∧ IR.R = Parse.quad_light_lag_IRv2.R := ⟨rfl, rfl⟩
 
 /-- Every left mode declares the same row: the claim is the window form. -/

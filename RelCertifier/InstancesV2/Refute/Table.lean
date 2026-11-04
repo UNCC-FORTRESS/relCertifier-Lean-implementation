@@ -170,7 +170,7 @@ namespace RelCertifier.Refute
 
 open RelCertifier.Parse RelCertifier.Oracle
 
-/-- A refutation's records: the mutant's IR at its bridge dimension (the Assumption 1 lemma's dimension plus one for the right clock, `bridgeDimV2`'s rule), the model's cut certificate, the witness. -/
+/-- A refutation's records: the mutant's IR at its bridge dimension (the Assumption 1 lemma's dimension plus one for the right clock, `bridgeDimV2`'s rule), the model's mode-fact certificate, the witness. -/
 structure RefRec where
   name : String
   dim : ℕ

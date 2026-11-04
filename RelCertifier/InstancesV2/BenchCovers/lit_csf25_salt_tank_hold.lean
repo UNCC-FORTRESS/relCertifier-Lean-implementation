@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `lit_csf25_salt_tank_hold` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `lit_csf25_salt_tank_hold` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py lit_csf25_salt_tank_hold`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `lit_csf25_salt_tank_hold` (emitted, suite_v2, widened cut channel on). -/
+/-- `lit_csf25_salt_tank_hold` (emitted, suite_v2, implied mode-fact candidates on). -/
 def lit_csf25_salt_tank_hold_coverV2 : CoverEmitE :=
   ⟨"lit_csf25_salt_tank_hold", [], [
     ⟨"HoldInc", (1 : ℚ) / 3, 1, [⟨"Inc", true, false, false⟩, ⟨"Dec", false, false, false⟩], ["Inc"], [⟨"Inc", [0, 2, 3, 1], [], [], 1, 3⟩, ⟨"Dec", [0, 3], [], [], 1, 3⟩]⟩,

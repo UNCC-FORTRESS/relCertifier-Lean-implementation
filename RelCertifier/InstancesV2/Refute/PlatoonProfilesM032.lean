@@ -18,7 +18,7 @@ abbrev IR := Refute.platoon_profiles_m032_IRm
 abbrev cX := Oracle.platoon_profiles_cutsV2X
 abbrev w := Refute.platoon_profiles_m032_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.platoon_profiles_IRv2.L ∧ IR.R = Parse.platoon_profiles_IRv2.R := ⟨rfl, rfl⟩
 
 /-- Every left mode declares the same row: the claim is the window form. -/

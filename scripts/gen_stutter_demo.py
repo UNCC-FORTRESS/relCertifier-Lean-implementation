@@ -38,9 +38,9 @@ G.wf_info = lambda b: _wf_info(WF_FROM if b == B else b)
 
 TITLE = "# `{b}` (suite_v2) through the generic bridge (GENERATED — `scripts/gen_bridge.py {b}`)"
 DEMO_TITLE = ("# `{b}` (stutter_demo) through the generic bridge (GENERATED —\n"
-              "`scripts/gen_stutter_demo.py`)\n\nThe attacked Off's pairings are stretch-0 (stutter) "
-              "segments: the\nrecord's `lamN = 0`, admitted by `timeOK` because the IR records the "
-              "stutter feature\n(`stutter = true`, the default) and the file declares `lambda_min = 0` "
+              "`scripts/gen_stutter_demo.py`)\n\nThe attacked Off's pairings are stretch-0 "
+              "segments: the\nrecord's `lamN = 0`, admitted by `timeOK` because the IR records that "
+              "stretch 0 is allowed\n(`stutter = true`, the default) and the file declares `lambda_min = 0` "
               "(`Run.stutterAllowed`).")
 for t in ("TEMPLATE", "PL_TEMPLATE"):
     assert TITLE in getattr(G, t), t

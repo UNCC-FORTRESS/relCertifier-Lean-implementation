@@ -1,6 +1,6 @@
 /- suite_v2 pre-landing-record aggregator (GENERATED — `scripts/gen_v2_data.py`): the
-pre-landing records of every benchmark (`docs/PRELANDING.md`; the pre-landing
-certificate is on for every benchmark; a record without nodes is empty). -/
+pre-landing records of every benchmark, its right-only nodes checked on the restricted
+mode of Lemma 4 (`docs/PRELANDING.md`; a record without nodes is empty). -/
 import RelCertifier.Trusted.PrelandEmit
 import RelCertifier.InstancesV2.BenchPrelanding.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchPrelanding.acc_spoof_limp

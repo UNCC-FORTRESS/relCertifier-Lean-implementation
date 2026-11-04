@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `elevator_start_discbrake` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `elevator_start_discbrake` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py elevator_start_discbrake`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `elevator_start_discbrake` (emitted, suite_v2, widened cut channel on). -/
+/-- `elevator_start_discbrake` (emitted, suite_v2, implied mode-fact candidates on). -/
 def elevator_start_discbrake_coverV2 : CoverEmitE :=
   ⟨"elevator_start_discbrake", [], [
     ⟨"LIFT", (1 : ℚ) / 1, 1, [⟨"LIFT", true, false, false⟩, ⟨"UP", false, false, false⟩, ⟨"APP", true, false, false⟩, ⟨"STOP", true, false, false⟩], ["LIFT"], [⟨"LIFT", [0, 1, 2, 3, 4], [], [], 1, 1⟩, ⟨"UP", [0, 2, 4], [], [], 1, 1⟩, ⟨"APP", [0, 1, 2, 3, 4], [], [], 1, 1⟩, ⟨"STOP", [0, 1, 2, 3, 4], [], [], 1, 1⟩]⟩,

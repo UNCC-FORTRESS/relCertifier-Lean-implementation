@@ -37,8 +37,8 @@ D.HDR = D.HDR.replace("(suite_v2)", "(progress_demo)").replace(
 TITLE = "# `{b}` (suite_v2) through the generic bridge (GENERATED — `scripts/gen_bridge.py {b}`)"
 DEMO_TITLE = ("# `{b}` (progress_demo) through the generic bridge (GENERATED —\n"
               "`scripts/gen_progress_demo.py`)\n\nThe pre-landing nodes with the right in BRAKE "
-              "carry a two-stage progress certificate in\nmixed directions (a helper up, then a "
-              "downward landing), accepted by `certOK` since\n2026-11-01 (`Progress.lean`'s "
+              "carry a reposition certificate whose two stages\ncross in opposite directions (a helper up, "
+              "then a downward landing), accepted by `certOK`\n(`Progress.lean`'s "
               "`repoProgress_two_ud_reg`).")
 for t in ("TEMPLATE", "PL_TEMPLATE"):
     assert TITLE in getattr(G, t), t

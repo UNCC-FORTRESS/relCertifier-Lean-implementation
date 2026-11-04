@@ -18,7 +18,7 @@ abbrev IR := Refute.sat_detumble_weak_m005_IRm
 abbrev cX := Oracle.sat_detumble_weak_cutsV2X
 abbrev w := Refute.sat_detumble_weak_m005_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.sat_detumble_weak_IRv2.L ∧ IR.R = Parse.sat_detumble_weak_IRv2.R := ⟨rfl, rfl⟩
 
 /-- Every left mode declares the same row: the claim is the window form. -/

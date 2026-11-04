@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `watertank_choice` (choice) — emitted progress certificates (GENERATED leaf)
+# `watertank_choice` (choice) — emitted reposition certificates (GENERATED leaf)
 
 Regenerate with `scripts/gen_v2_data.py --choice`.
 -/

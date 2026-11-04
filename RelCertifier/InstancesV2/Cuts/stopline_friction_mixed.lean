@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `stopline_friction_mixed` (progress_demo) — checked-cut certificates, legacy and extended (GENERATED leaf — do not edit)
+# `stopline_friction_mixed` (progress_demo) — mode-fact certificates, legacy and extended (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_progress_demo.py`.
 -/

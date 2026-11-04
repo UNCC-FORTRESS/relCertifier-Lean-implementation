@@ -18,7 +18,7 @@ abbrev IR := Refute.sat3w_detumble_phases_m005_IRm
 abbrev cX := Oracle.sat3w_detumble_phases_cutsV2X
 abbrev w := Refute.sat3w_detumble_phases_m005_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.sat3w_detumble_phases_IRv2.L ∧ IR.R = Parse.sat3w_detumble_phases_IRv2.R := ⟨rfl, rfl⟩
 
 /-- Every left mode declares the same row: the claim is the window form. -/

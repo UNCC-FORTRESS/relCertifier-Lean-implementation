@@ -1,4 +1,4 @@
-/- suite_v2 cut-certificate aggregator (GENERATED — `scripts/gen_v2_data.py`). -/
+/- suite_v2 mode-fact-certificate aggregator (GENERATED — `scripts/gen_v2_data.py`). -/
 import RelCertifier.InstancesV2.Cuts.acc_spoof_lag
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp

@@ -4,6 +4,7 @@ Released under Apache 2.0 license.
 
 # Every kernel refutation instance (GENERATED — `scripts/gen_refute.py`)
 
+The known-false variants of Appendix B.6.
 -/
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM016
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM017

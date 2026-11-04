@@ -19,7 +19,7 @@ abbrev IR := Refute.stopline_drag_m017_IRm
 abbrev cX := Oracle.stopline_drag_cutsV2X
 abbrev w := Refute.stopline_drag_m017_wit
 
-/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+/-- The mutant changes only the invariant: the model, hence its mode-fact certificate, is the suite benchmark's. -/
 theorem same_model : IR.L = Parse.stopline_drag_IRv2.L ∧ IR.R = Parse.stopline_drag_IRv2.R := ⟨rfl, rfl⟩
 
 /-- The rows differ by mode: the claim is the mode-keyed one. -/

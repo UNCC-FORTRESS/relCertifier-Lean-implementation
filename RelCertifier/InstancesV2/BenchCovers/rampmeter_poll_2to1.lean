@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rampmeter_poll_2to1` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `rampmeter_poll_2to1` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py rampmeter_poll_2to1`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `rampmeter_poll_2to1` (emitted, suite_v2, widened cut channel on). -/
+/-- `rampmeter_poll_2to1` (emitted, suite_v2, implied mode-fact candidates on). -/
 def rampmeter_poll_2to1_coverV2 : CoverEmitE :=
   ⟨"rampmeter_poll_2to1", [("R1440", "R1800")], [
     ⟨"R1800", (1 : ℚ) / 1, 2, [⟨"R1800", true, false, false⟩, ⟨"R1440", true, false, false⟩, ⟨"R1200", true, false, false⟩, ⟨"R960", true, false, false⟩, ⟨"R720", false, false, false⟩, ⟨"R480", false, false, false⟩], ["R1800", "R1440", "R1200"], [⟨"R1800", [0, 1, 2, 3, 4, 5], [], [], 1, 1⟩, ⟨"R1440", [0, 1, 2, 3, 4, 5], [], [], 1, 1⟩, ⟨"R1200", [0, 1, 2, 3, 4, 5], [], [], 1, 1⟩, ⟨"R960", [0, 1, 2, 3, 4, 5], [], [], 1, 1⟩, ⟨"R720", [0, 1, 2, 3, 5], [], [], 1, 1⟩, ⟨"R480", [0, 1, 2, 3, 5], [], [], 1, 1⟩]⟩,

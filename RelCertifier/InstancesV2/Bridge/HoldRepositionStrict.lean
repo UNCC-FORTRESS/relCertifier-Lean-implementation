@@ -5,14 +5,15 @@ Released under Apache 2.0 license.
 # `hold_reposition_strict` (prelanding_demo) through the generic bridge (GENERATED —
 `scripts/gen_prelanding_demo.py`)
 
-With the pre-landing certificate (`docs/PRELANDING.md`; always on since 2026-10-31, the IR
-records it, `prelanding = true`) the cover's right-only nodes are
+With the right-only flow certificates checked on the restricted mode of Lemma 4
+(`docs/PRELANDING.md`; the IR records it, `prelanding = true`) the cover's right-only nodes are
 pre-landing nodes, recorded in the pre-landing record `pl`, never as the cover's
 `dynPre`/`dynPost` flags. The kernel merges them (`withPL`) for the cover graph; each node's
-reposition pack is on its region (`dynRegion`: before its progress certificate's last threshold,
-strict components on the closure).
+right-only pack is on its region (`dynRegion`: before the landing target of its reposition
+certificate, the closed half-space past the stage list's last threshold; strict components on
+the closure).
 
-Theorem 3 of the benchmark from its emitted records at its strict row (the strict chain): the structural bundles decided in the
+Theorem 3 (Soundness of Synthesis) of the benchmark from its emitted records at its strict row (the strict chain): the structural bundles decided in the
 kernel on the merged cover (`struct_ok`, `prog_ok`, `covers_ok`, `rows_same`, `pad_ok`), the data
 gate `pl_ok` (the IR records the feature, the whole-domain flags are off), Assumption 1 from the demo's own
 lemma at dimension 3 lifted to 4 (the right clock), the verdicts assumed (`VerdictsS`: the groups
@@ -62,8 +63,8 @@ theorem wellFormedR : WellFormedRIn (grOf IR 4 (prunedOf cov)) (guardR IR 4) reg
   WellFormedRIn.of_tt (wellFormedR_lift (n := 3) pad_ok
     (V2HoldRepositionStrict.hold_reposition_strict_wellFormedR_direct (prunedOf cov))) reg
 
-/-- The run had the pre-landing feature on, and its cover really uses pre-landing nodes (decided
-in the kernel). -/
+/-- The run checked right-only nodes on the restricted mode, and its cover really uses such
+pre-landing nodes (decided in the kernel). -/
 theorem prelanding_on : IR.prelanding = true := by decide +kernel
 theorem uses_prelanding : pl.nodes.isEmpty = false := by decide +kernel
 
@@ -72,8 +73,8 @@ the kernel; the strict chain applies. -/
 theorem masks : (List.range (nL IR)).map (maskOf IR 4) = [[true, false]] := by decide +kernel
 theorem not_collapse : noStrictRows IR 4 = false := by decide +kernel
 
-/-- **Theorem 3 of `hold_reposition_strict`** (window form, over the emitted cover): every verdict group of the
-benchmark `unsat`. -/
+/-- **Theorem 3 of `hold_reposition_strict`** (window form, a mode-independent invariant, over the emitted cover):
+every verdict group of the benchmark `unsat`. -/
 theorem hold_reposition_strict_bridge (hv : VerdictsS IR 4 cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaimS IR 4 cX cov reg 0 1 2 dt :=
   theorem3_window_strict_of_records_pl pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR

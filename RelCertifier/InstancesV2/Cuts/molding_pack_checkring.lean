@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `molding_pack_checkring` (suite_v2) — checked-cut certificates, legacy and extended (GENERATED leaf — do not edit)
+# `molding_pack_checkring` (suite_v2) — mode-fact certificates, legacy and extended (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py molding_pack_checkring`.
 -/

@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `h2_refuel_ambientbias` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `h2_refuel_ambientbias` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py h2_refuel_ambientbias`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `h2_refuel_ambientbias` (emitted, suite_v2, widened cut channel on). -/
+/-- `h2_refuel_ambientbias` (emitted, suite_v2, implied mode-fact candidates on). -/
 def h2_refuel_ambientbias_coverV2 : CoverEmitE :=
   ⟨"h2_refuel_ambientbias", [], [
     ⟨"STAGE1", (1 : ℚ) / 1, 1, [⟨"STAGE1", true, false, false⟩, ⟨"STAGE2", true, false, false⟩, ⟨"STAGE3", true, false, false⟩, ⟨"TOPOFF", true, false, false⟩, ⟨"COMPLETE", true, false, false⟩], ["STAGE1", "STAGE2", "STAGE3", "TOPOFF", "COMPLETE"], [⟨"STAGE1", [0], [], [], 1, 1⟩, ⟨"STAGE2", [0], [], [], 1, 1⟩, ⟨"STAGE3", [0], [], [], 1, 1⟩, ⟨"TOPOFF", [0], [], [], 1, 1⟩, ⟨"COMPLETE", [0], [], [], 1, 1⟩]⟩,

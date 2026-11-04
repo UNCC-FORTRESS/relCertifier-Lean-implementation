@@ -4,7 +4,8 @@ Released under Apache 2.0 license.
 
 # `lit_gpt10_boost_converter` (suite_v2) through the generic bridge (GENERATED — `scripts/gen_bridge.py lit_gpt10_boost_converter`)
 
-Theorem 3 of the benchmark from its emitted records: the structural bundles decided in the
+Theorem 3 (Soundness of Synthesis) of the benchmark from its emitted records, through the
+record-level theorems of Appendix B.1: the structural bundles decided in the
 kernel (`struct_ok`, `prog_ok`, `covers_ok`, `rows_same`, `pad_ok`), Assumption 1 transported
 from the suite's lemma at dimension 3 and lifted to 4 (the right clock), the verdicts
 assumed (`Verdicts`: the groups `relcert-bridge-verdicts` discharges,
@@ -45,7 +46,8 @@ theorem wellFormedR : WellFormedRIn (grOf IR 4 (prunedOf cov)) (guardR IR 4) reg
   WellFormedRIn.of_tt (wellFormedR_lift (n := 3) pad_ok
     (V2LitGpt10BoostConverter.lit_gpt10_boost_converter_wellFormedR_direct (prunedOf cov))) reg
 
-/-- **Theorem 3 of `lit_gpt10_boost_converter`** (window form): every verdict group of the benchmark `unsat`. -/
+/-- **Theorem 3 of `lit_gpt10_boost_converter`** (window form, a mode-independent invariant): every verdict group of
+the benchmark `unsat`. -/
 theorem lit_gpt10_boost_converter_bridge (hv : Verdicts IR 4 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR 4 cX cov reg 0 1 2 dt :=
   theorem3_window_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR

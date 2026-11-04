@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `turbine_startup_gearratio` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `turbine_startup_gearratio` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py turbine_startup_gearratio`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `turbine_startup_gearratio` (emitted, suite_v2, widened cut channel on). -/
+/-- `turbine_startup_gearratio` (emitted, suite_v2, implied mode-fact candidates on). -/
 def turbine_startup_gearratio_coverV2 : CoverEmitE :=
   ⟨"turbine_startup_gearratio", [], [
     ⟨"SPINUP", (1 : ℚ) / 1, 1, [⟨"SPINUP", true, false, false⟩, ⟨"RAMP", false, false, false⟩, ⟨"GEN", true, false, false⟩, ⟨"REG", true, false, false⟩, ⟨"GUST", false, false, false⟩], ["SPINUP", "RAMP", "GEN", "REG", "GUST"], [⟨"SPINUP", [0, 1, 2, 3, 4], [], [], 1, 1⟩, ⟨"RAMP", [1, 2, 3, 4], [], [], 1, 1⟩, ⟨"GEN", [0, 1, 2, 3, 4], [], [], 1, 1⟩, ⟨"REG", [0, 1, 2, 3, 4], [], [], 1, 1⟩, ⟨"GUST", [0, 1, 2, 3], [], [], 1, 1⟩]⟩,

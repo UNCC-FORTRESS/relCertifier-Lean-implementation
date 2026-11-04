@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `watertank_strict` (strict_demo) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
+# `watertank_strict` (strict_demo) — emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_strict_demo.py`.
 -/
@@ -10,7 +10,7 @@ import RelCertifier.Checker.CoverEmit
 
 namespace RelCertifier
 
-/-- `watertank_strict` (emitted, suite_v2, widened cut channel on). -/
+/-- `watertank_strict` (emitted, suite_v2, implied mode-fact candidates on). -/
 def watertank_strict_coverV2 : CoverEmitE :=
   ⟨"watertank_strict", [("Low", "PumpOff")], [
     ⟨"Low", (2 : ℚ) / 1, 2, [⟨"Low", true, false, false⟩, ⟨"MidEco", true, false, false⟩, ⟨"MidBoost", true, false, false⟩, ⟨"High", true, false, false⟩, ⟨"PumpOff", false, false, false⟩], ["Low", "MidEco", "MidBoost"], [⟨"Low", [0, 1], [], [], 2, 1⟩, ⟨"MidEco", [0, 1], [], [], 2, 1⟩, ⟨"MidBoost", [0, 1], [], [], 2, 1⟩, ⟨"High", [0, 1], [], [], 2, 1⟩, ⟨"PumpOff", [1], [], [], 2, 1⟩]⟩,

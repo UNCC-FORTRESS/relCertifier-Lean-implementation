@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """The stutter tests (docs/STUTTER.md): stretch 0 (the right waits while the left runs a joint
-segment), on for every benchmark since 2026-10-31 (docs/BATCH12-2026-10-31.md; until then the
-opt-in key `[problem] stutter = true`) whose declared stretch range includes 0 (lambda_min = 0;
-batch 13, docs/BATCH13-2026-10-31.md). "Off" below is the ablation RELCERT_NO_STUTTER=1 (the
-key-off cases of the opt-in era); "on" is the default run.
+segment), a run feature on for every benchmark whose declared stretch range includes 0
+(lambda_min = 0; docs/STUTTER.md, "Status"). "Off" below is the ablation RELCERT_NO_STUTTER=1;
+"on" is the default run.
 
 Every variant file is written to a temporary directory, never to the suite. Runs the CLI with
 RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a summary.
@@ -12,8 +11,8 @@ RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a s
              CERTIFIED (on); band 0 off DECLINED; band -0.01 DECLINED
              (the rows admit no start)
   guard      the demo (lambda_min = 0) off: DECLINED (0 is never a candidate
-             off; before the opt-in key this certified unbacked)
-  range      (batch 13, docs/BATCH13-2026-10-31.md) stretch 0 is a candidate only when the
+             off)
+  range      (docs/STUTTER.md) stretch 0 is a candidate only when the
              declared range includes 0: the demo at lambda in [1, 1] or [0.5, 1], on, band 0:
              DECLINED; band 3 at [1, 1], on: CERTIFIED (lock step)
   lam00      the demo with lambda in [0, 0] (stretch 0 only): DECLINED (the attacked On moves,
@@ -21,7 +20,7 @@ RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a s
   moving     the demo with the attacked Off drifting (xp' = 0.1): DECLINED
   negatives  every benchmarks/refute_mutants/*/input.txt and benchmarks/negative/*/input.txt
              (on): DECLINED
-  adversarial (2026-10-30, docs/STUTTER-SOUNDNESS.md) claims that are false for every choice of
+  adversarial (docs/STUTTER-SOUNDNESS.md) claims that are false for every choice of
              right duration, so a CERTIFIED would be unsound; all on, all DECLINED:
              the held Off creeping up (0.001), also at band 0.0005; the attacked Off sinking
              out of the relation on its own (-0.1); the attacked On rising out of reach (to 30);
@@ -115,7 +114,7 @@ def main():
     cases.append(("positive band -0.01 (on)", band(demo, "-0.01"), "DECLINED", False))
     assert re.search(r"(?m)^lambda_min = 0\.0$", demo), "the demo does not declare lambda_min = 0"
     cases.append(("guard band 0.0, lambda in [0,1] (off)", demo, "DECLINED", True))
-    # batch 13: stretch 0 is a candidate only when the declared range includes 0
+    # stretch 0 is a candidate only when the declared range includes 0
     cases.append(("range: band 0.0, lambda in [1,1] (on; 0 outside the declared range)",
                   sub(demo, "lambda_min = 0.0", "lambda_min = 1.0"), "DECLINED", False))
     cases.append(("range: band 0.0, lambda in [0.5,1] (on; 0 outside the declared range)",

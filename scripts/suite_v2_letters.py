@@ -13,21 +13,15 @@ OUTDIR/letters.md and OUTDIR/suite_results.json (the per-benchmark rows of the p
 appendix table: name, family, dimensions, modes, invariant kind, letters, time).
 
 Letters (the paper's legend), every one measured, never read off a header:
-  S stretching       the certificate needs a stretch other than 1, a positive one or 0 (stutter:
-                     the right waits while the left runs a joint segment, docs/STUTTER.md; a
-                     candidate for a file whose declared range includes 0 since batch 13 of
-                     2026-10-31; 2026-10-30 the former letter W is folded
-                     into S, as lambda = 0 is a special case of stretching). Credited when some
-                     pairing of the cover runs at a stretch other than 1 (0 included) and
-                     RELCERT_SYNC=1 (lambda = 1 only, which disables every other stretch, 0
-                     included) DECLINES (2026-10-31; until then a stutter pairing was credited by
-                     the file without the opt-in key, and a mixed file needed the lambda = 1 file
-                     with the key kept to decline too). USED: some pairing at a stretch other
-                     than 1, 0 included, read off the replayed covers; since batch 13 the covers
-                     Lean wraps over several lines are parsed too (`suite_v2_matrix.unwrap_cover`;
-                     before, lit_freedm_meter and lit_csf21_vehicle_bus parsed to no windows, so
-                     their stretch-0 pairings, right-only nodes and multi-step covers were not
-                     credited).
+  S stretching       the certificate needs a stretch other than 1, a positive one or 0 (stretch
+                     0: the witness stands still while the left runs a joint segment,
+                     docs/STUTTER.md; a candidate only for a file whose declared range includes
+                     0; lambda = 0 is a special case of stretching, so there is no separate
+                     letter). Credited when some pairing of the cover runs at a stretch other
+                     than 1 (0 included) and RELCERT_SYNC=1 (lambda = 1 only, which disables
+                     every other stretch, 0 included) DECLINES. USED: some pairing at a stretch
+                     other than 1, 0 included, read off the replayed covers (covers Lean wraps
+                     over several lines are parsed too, `suite_v2_matrix.unwrap_cover`).
                      (diagnostics: S_lam1, the file with lambda_min = lambda_max = 1 under
                      RELCERT_NO_STUTTER=1, right-only segments still allowed, DECLINES;
                      S_nostutter_verdict, the file under RELCERT_NO_STUTTER=1)
@@ -58,7 +52,7 @@ Letters (the paper's legend), every one measured, never read off a header:
   I mode fact        RELCERT_NO_CUT=1 DECLINES (matrix no_cut_verdict)
   X committed subset RELCERT_NO_CHOICE=1 DECLINES
 
-USED and NEEDED (owner's decision, 2026-10-30, replacing the batch-11 screens). Table 1 marks a
+USED and NEEDED. Table 1 marks a
 mechanism USED (open circle) or NEEDED (filled circle); two plain notions, no further screens.
 USED: the mechanism appears in the certificate the tool produced (the emitted cover and
 certificate records, as replayed by `scripts/suite_v2_matrix.py`), on a CERTIFIED file:

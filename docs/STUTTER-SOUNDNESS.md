@@ -1,7 +1,13 @@
-# Stutter (stretch 0): independent soundness double check, 2026-10-30
+# Stretch 0: independent soundness review
 
-Subject: the opt-in stretch 0 (`[problem] stutter = true`, letter W, since 2026-10-30 folded into S, `docs/STUTTER.md`), commits
-16a8349 (tool and Lean backing) and bba18b3 (demo, tests, letter W), merged into `benchmark-fixes` in
+> A review record, kept because `scripts/stutter_tests.py` and `scripts/stutter_kernel_checks.lean`
+> take their adversarial cases from it. It reviews stretch 0 when it was an opt-in key
+> (`stutter = true`); stretch 0 is now a run feature, on for every file whose declared stretch
+> range includes 0, and the counts below are those of the review. The current description is
+> `docs/STUTTER.md`; the current counts are in `docs/CERTIFICATION-CHECK.md`.
+
+Subject: the opt-in stretch 0 (`[problem] stutter = true`, then credited under its own letter, now under S, `docs/STUTTER.md`), commits
+16a8349 (tool and Lean backing) and bba18b3 (demo, tests, a separate letter), merged into `benchmark-fixes` in
 f4050e0; `lit_nahs25_salt_tank` set the key in dbeadfc. Two fresh reviewers who did not write the
 add-on read the diff (one with the emphasis on the Lean chain and the paper's semantics, one on the
 trusted tool, the kernel gate, the letters and the tests); the kernel and CLI checks below were run

@@ -1,4 +1,6 @@
-# Suite redesign — `benchmarks/suite_v2` (2026-10-08, branch `suite-redesign`)
+# Suite redesign: `benchmarks/suite_v2` (2026-10-08, branch `suite-redesign`)
+
+> A historical design record, pass by pass; its rules (the domain audit of §13, the repairs of §20 and §21, the mechanism matrix) are cited by the current docs. The current suite is `benchmarks/README.md`; designs that were in `benchmarks/reserve/` or `benchmarks/skipped/` are kept at the git tag `pre-cleanup-2026-11`.
 
 > Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
 

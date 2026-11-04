@@ -1,5 +1,7 @@
 # Guard-gated switching on the right (branch `guarded-right`)
 
+> A historical record of the standalone route (archived on branch `archive/legacy-2026-10`); the current route is the generic bridge, `docs/BRIDGE.md`.
+
 > Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
 
 > Numbering here predates the submission; see `docs/PAPER-MAPPING.md`.

@@ -1,255 +1,24 @@
-# Kernel-checked refutations: results (branch `refutation`)
+# Kernel-checked refutations: results
 
-> Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
+The paper's known-false inputs (Section 6.3, "Known-false inputs."; Appendix B.6, Refutations):
+invariant variants of suite benchmarks, each proved in the Lean kernel to admit no
+certificate, which relcert must decline. Current state (`docs/refute/results.json`, the
+experiment at the paper's state):
 
-> Literature benchmark names here predate the 2026-10-28 rename (`lit_` prefix); old -> new: `benchmarks/README.md`, "Renamed 2026-10-28: the literature group".
-
-> 2026-10-29 (branch `benchmark-fixes`, domain audit, `docs/OVERNIGHT-2026-10-29.md`): the finder
-> was re-run on the six benchmarks whose files changed. `tunnel_jetfan_pairout` left the suite with
-> its two refutations (`_m024`, `_m027`); `antenna_track_kvretune` came back from the reserve with 13
-> witnesses over 44 mutants; `platoon_latency` (71 mutants, the `|e_L| <= 0.5` row added) has 5
-> witnesses (`_m040`, `_m043` re-emitted on the new model, `_m047`, `_m048`, `_m049` new);
-> `engine_start_highidle_m008` was re-emitted on the physical domain; `flaps_slow_approach` (16
-> mutants), `quad_light_profiles` (21) and `turbine_startup_gearratio` (6, now at bridge dimension 4)
-> have no witness. 87 instances, `relcert-refute-verdicts` 260/260.
-
-> 2026-10-29, fix round 4 (`docs/OVERNIGHT-2026-10-29.md`, "Fix round 4 (2026-10-29)"): the finder was
-> re-run (`--only`) on the seventeen changed benchmarks and the refill `canal_gate_notches` (8 mutants, no
-> witness); `grid_ffr_dos` left the suite with its records (21 mutants, no witness). Witnesses:
-> `hydro_rejection_gatecal` 2, `platoon_latency` 6, `platoon_linkloss` 2, `platoon_profiles` 2,
-> `quad_light_lag` 1, `rover_terrain_2to4` 4, `rover_terrain_4to6` 8, `rover_terrain_6to12` 11; none for
-> the other nine. 70 stale instance and data files (variants of the previous models) were removed as
-> `gen_refute.py` listed them. 74 instances, `relcert-refute-verdicts` 204/204, every instance builds.
-
-> 2026-10-29, later (branch `benchmark-fixes`, one evolve domain per benchmark,
-> `docs/OVERNIGHT-2026-10-29.md` "One domain per benchmark 2026-10-29"): the finder was re-run
-> (fresh, no reuse) on the eleven benchmarks whose models changed. `platoon_latency` (73 mutants:
-> the right now declares `e`, so two more mutants) has 6 witnesses (`_m050` new, `L_e -> R_e` in
-> the `|e| <= 0.5` row, kind B); `quad_light_lag` (24) has 1 (`_m021`; `_m023`, a Psi lower-row
-> mutant, has no witness on the 3 m/s / 1.5 g box and was removed); every other count is as before
-> (`rover_ladder_6to8` 2, `_8to12` 7, `rover_terrain_2to4` 4, `sat_detumble_phases` 4,
-> `sat_detumble_weak` 4, `sat3w_detumble_phases` 6; `rover_ladder_2to3`, `_3to6`, `rover_patrol_lag`
-> none), every instance re-emitted on its new model. 87 instances, `relcert-refute-verdicts`
-> 261/261, every instance builds.
-
-> 2026-10-26 (branch `benchmark-fixes`): the tables below are the 2026-10-21 run and predate two
-> suite changes. The `rover_lateral` model changes added refutations (79 instances, 224 groups),
-> and `rover_tier_1to2` (`rover3tier_rung12`) was retired with its two refutations (m000 kind C,
-> m004 kind B; 9 mutants) and replaced by `tank_dos_3to1` (3 mutants, no witness: m000 open,
-> m001/m002 tautologies, certified). The rollover files were aligned (rows of `rover_rollover_6to12`
-> on all three, s offset 0, audited left domain): the finder over their 72 mutants keeps
-> `rover_rollover_6to12_m010` (kind B, re-derived) and adds six of `rover_rollover_6to7` (m011, m016,
-> m018 to m021, kind B; each DECLINED by relcert), none for `rover_rollover_7to12`. The rover
-> batch of 2026-10-26 (ladder, terrain, attitude, lateral_8to12, patrol_zones) re-ran the finder on
-> its 15 files: `rover_patrol_zones` m008, m012 and `rover_ladder_6to8` m009, m010 are gone with the
-> rows they refuted (graded zone margins; quadratic attitude rows), `rover_lateral_8to12` has 7
-> (m015, m019 to m024, kind B; each DECLINED by relcert; was 6), no other file of the batch has a
-> witness. The nine redesigned files of 2026-10-26 (`acc_tune_lag`, `acc_spoof_lag`,
-> `quad_light_lag`, `rover_patrol_lag`, `charger_fast_setpoints`, `charger_fast_tapers`,
-> `acc_tune_limp`, `platoon_delay_profiles`, `quad_light_profiles`; 84 mutants) re-ran the finder:
-> `rover_patrol_lag` m003, m004, m009, m013 and `acc_tune_limp` m008 are gone with the rows they
-> refuted, `charger_fast_setpoints` m003 and `charger_fast_tapers` m003 are new (the charging row
-> `x_L <= x_R + 2` flipped, kind C; each DECLINED by relcert), no other file of the batch has a
-> witness. The terrain chain redesign of 2026-10-26 (`rover_terrain_3to6` renamed
-> `rover_terrain_2to4`, `rover_terrain_6to8` renamed `rover_terrain_4to6`, all three right models
-> new; the old files had no witness among their 24 mutants) re-ran the finder over its 95 mutants:
-> 33 new refutations, all kind B, each DECLINED by relcert (`rover_terrain_2to4` m008, m011, m012,
-> m015; `rover_terrain_4to6` m016, m017, m019 to m022, m024, m028; `rover_terrain_6to12` m020,
-> m021, m023 to m026, m028 to m030, m032, m035, m037, m039 to m047: flipped, deleted or
-> cross-side rows of the slip, lag, heave, pitch, acceleration and squat bounds).
-> On 2026-10-27 four benchmarks moved to `benchmarks/reserve/` (no Lean integration) with their
-> refutations and witness lines: `arm_plateau_profiles` (m000, kind B; 3 mutants),
-> `platoon3_linkloss` (m072, m084, m096, kind C; 104 mutants), `platoon3_profiles` (96 mutants, no
-> witness), `airheader_dos_3to1` (16 mutants, no witness).
-> Also 2026-10-27: the finder's `bench_dims` read the bridge instance's dimension, which since the
-> clocked change of 2026-10-21 already counts the right clock, and `gen_refute.py` adds the clock
-> again, so the 55 refutations found after 2026-10-21 (`charger_fast_setpoints` m003,
-> `charger_fast_tapers` m003, `rover_lateral_6to8` 6, `rover_lateral_8to12` 7,
-> `rover_rollover_6to12` 1, `rover_rollover_6to7` 6, `rover_terrain_*` 33) were stated one
-> dimension above their benchmark's bridge claim. Fixed (`bench_dims` is the Assumption 1
-> dimension); the 55 instances are regenerated at the bridge dimension (the witnesses do not read
-> the padded coordinate), each builds and its groups are `unsat`. The four redesigned files of
-> 2026-10-27 re-ran the finder: `acc_spoof_limp` (8 mutants; m008 is gone with the row it
-> refuted), `quad_light_lag` (24 mutants; m021 and m023 new, kind B, each DECLINED by relcert),
-> `tank_dos_3to1` (16) and `vehicle_hypercert` (16), no witness.
-> The platoon pair of 2026-10-27 (`platoon_delay_linkloss`, 12 mutants without a witness, replaced
-> by `platoon_linkloss`; `platoon_latency` new): `platoon_linkloss` 63 mutants, m036 and m039 new;
-> `platoon_latency` 67 mutants, m040 and m043 new (kind B, the floor rows `L_g >= 5`,
-> `L_g + 2 L_r >= 5` flipped; each DECLINED by relcert).
-> The two new files of 2026-10-27: `engine_start_highidle` (6 mutants; m003 new, kind C, the
-> `n_L <= n_R + 4` rows flipped, DECLINED by relcert) and `train_ato_odometry` (8 mutants, no
-> witness).
-> Batch I2 renames (2026-10-27): `match_multi_rate` (3 mutants, no witness) replaced by
-> `gantry_speed_zones` (16 mutants, no witness); `platoon_delay_profiles` (8 mutants, no witness)
-> replaced by `platoon_profiles` (51 mutants; m008 and m011 new, kind B, the floor rows
-> `L_g >= 5`, `L_g + 2 L_r >= 5` flipped, as on `platoon_linkloss`; each DECLINED by relcert).
-> Batch I2 redesigns: `quad_light_airframe_20` (18 mutants), `quad_light_profiles` (18) and
-> `watertank_twospeed` (8), no witness (8 each before, none). Batch I2 new files:
-> `bms_chiller_undercharge` (8 mutants), `canal_gate_notches` (8) and `turbine_startup_gearratio`
-> (3), no witness.
-> Batch I3 (2026-10-27, the rover hierarchy): the ten rover files that left the suite took their 20
-> refutations and 190 witness lines with them (`rover_lateral_6to8` 6, `rover_lateral_8to12` 7,
-> `rover_rollover_6to12` 1, `rover_rollover_6to7` 6; the other six had no witness). The five
-> reinstalled files re-ran the finder (`--only`, their records replaced in place):
-> `rover_ladder_2to3` (7 mutants), `rover_ladder_3to6` (10) and `rover_patrol_lag` (10), no
-> witness; `rover_ladder_6to8` (22 mutants; m006 and m009 new) and `rover_ladder_8to12` (27; m005,
-> m006, m008, m009, m010, m019 and m026 new), all kind B: a coordinate of a requirement row moved
-> to the other side (`L_omega_psi -> R_omega_psi` and the like; in m026 the plan row's `R_theta_p
-> -> L_theta_p`) or a rate row deleted; each DECLINED by relcert at the default time budget. The
-> two 6to8 mutant inputs carry the suite file's header as of the finder run (minutes before the
-> header's scratch path was removed); their non-comment lines equal the current file's mutants
-> (`gen_refute.py` checks this).
-> On 2026-10-27 (batch I4) seven more benchmarks moved to `benchmarks/reserve/` with their
-> refutations and witness lines: `charger_fast_setpoints` (m003; 6 mutants), `charger_fast_tapers`
-> (m003; 6), `sat_detumble_nominal` (m002, m003, m005, m006; 16), `sat3w_detumble_nominal` (m002 to
-> m007; 16), `sat3w_detumble_weak` (m002 to m007; 16), `arm_plateau_crit` (m000; 3),
-> `arm_plateau_slow` (m000; 3): 20 refutations and 66 witness lines out.
-> Batch I4 also re-ran the finder on its six installed files: `acc_spoof_lag` 20 mutants,
-> `acc_tune_lag` 12, `acc_tune_limp` 8, `sat_detumble_weak` 16, no witness (the four
-> `sat_detumble_weak` refutations m002, m003, m005, m006 are gone: both sides are now design
-> models); `sat_detumble_phases` 16 mutants (m002, m003, m005, m006) and `sat3w_detumble_phases` 16
-> (m002 to m007), all kind B (a left energy coordinate moved to the right side of a row), each
-> DECLINED by relcert (mutant inputs rewritten to the new files); the other 18 of their 28
-> refutations of the round-2 files (m000, m001, m004, m007, m018 to m023, resp. m000, m001, m018 to
-> m023) are gone with the rows and the 24-mutant claims they refuted.
-> Batch I5 (2026-10-27, first group: nine new benchmarks) ran the finder on each (`--only`, records
-> appended): `molding_pack_checkring` 24 mutants, `fuelcell_chp_dos` 16, `elevator_start_discbrake`
-> 20, `furnace_program_timebase` 24, `compressor_station_recycle` 16, `syringe_relay_prearm` 28,
-> `insulin_basal_cgmloss` 24, no witness; `hydro_rejection_gatecal` 32 mutants, m024 and m028 new,
-> and `ventilator_vc_cuffleak` 24, m020 new, all kind C (a row of the band after the breaker opens,
-> resp. of the expiratory band, flipped from `<=` to `>=`); each DECLINED by relcert. 3
-> refutations, 6 groups and 208 witness lines in.
-> Batch I5, second group: `rover_rollover_payload` (78 mutants; m023, m027, m028, m031 and m032
-> new, all kind B: the heading-rate, roll-rate and slip-rate envelope rows of the payload rover
-> deleted (m023, m027, m031) or moved to the right side (m028 `L_omega_phi -> R_omega_phi`, m032
-> `L_omega_y -> R_omega_y`); each DECLINED by relcert, in 8 to 13 s). 5 refutations, 15 groups and
-> 78 witness lines in.
-> Batch I6, first group (the round C fixes): the finder re-ran on the five changed files that carry
-> refutations (`--only`, records replaced in place): `engine_start_highidle` (6 mutants),
-> `quad_light_lag` (24), `rover_terrain_2to4` (16), `rover_terrain_4to6` (31) and `rover_terrain_6to12`
-> (48). The same 36 mutants are refuted as before (m003; m021, m023; m008, m011, m012, m015; eight;
-> twenty-one), their mutant inputs and IR data rewritten to the new files (the stretch ranges pinned,
-> the `rover_terrain_2to4` plan at 8 /s), each DECLINED by relcert. Counts unchanged.
-> Batch I6, second group (five new benchmarks): the finder ran on each (`--only`, records
-> appended): `flaps_slow_approach` 16 mutants, `tunnel_jetfan_pairout` 24, `rampmeter_poll_2to1` 24,
-> `bottling_fill_strainer` 24, no witness; `antenna_track_kvretune` 44 mutants, 13 new (m016 to m023,
-> m028, m029, m032, m036, m040), all kind C: a pointing or envelope row of the tracking band flipped
-> from `<=` to `>=`, deleted or with a coordinate moved to the other side (m016 to m023, m028, m029),
-> or a row of the stow band flipped (m032, m036, m040); each DECLINED by relcert (six of them at the
-> handoff into the stow band). 13 refutations, 39 groups and 132 witness lines in.
-> Batch I7, first group: `quad_light_airframe_20` left the suite (18 witness lines out, no
-> refutation); `charger_fast_tapers` reinstalled at the minute time scale, the finder rerun on it
-> (`--only`): 6 mutants, the same one refuted as before its batch-I4 move (m003, kind C: the
-> charging row flipped to `>=`), DECLINED by relcert; 1 refutation, 6 groups and 6 witness lines in.
-> Second group: `rampmeter_poll_2to1` left the suite (24 witness lines out, no refutation);
-> `grid_ffr_dos` installed, the finder run on it (`--only`): 21 mutants, no witness (21 lines in).
-> Batch I8, first group: `hvac_fan_staging` (8 witness lines, no refutation) and `platoon_profiles`
-> (51 witness lines; m008 and m011, kind B, 4 groups) left the suite; `csf21_vehicle_thermo` and
-> `csf21_vehicle_bus` installed, the finder run on them (`--only`): 16 + 16 mutants, no witness
-> (32 lines in).
-> Second group: `rover_rollover_payload` (78 witness lines; m023, m027, m028, m031, m032, kind B,
-> 15 groups), `flaps_slow_approach` (16 lines) and `canal_gate_notches` (8 lines, no refutation) left the
-> suite; `lz_vehicle_position`, `girard_robot` and `salt_tank_sensor` installed, the finder run on them
-> (`--only`): 16 + 18 + 14 mutants, one witness: `girard_robot_m016` (the quadratic tracking-error row
-> flipped to `>=`, kind B, 6 groups; DECLINED by relcert); 48 lines in.
-> Batch I9 (2026-10-27, the multi-rate and stretch pass, two swaps): `tank_dos_3to1` (16 witness lines, no refutation) and
-> `platoon_latency` (67 lines; m040 and m043, kind B, 4 groups) left the suite; `flaps_slow_approach` (16 mutants, no witness)
-> and the time-scaled `platoon_profiles` (51 mutants; m024 and m027 new, kind B, 4 groups: the floor rows `L_g >= 5` and
-> `L_g + 2 L_r >= 5` flipped, the same two rows its batch-I2 form refuted as m008 and m011) came in; the finder re-ran on the
-> eight changed files (`--only`): `acc_spoof_lag` 10 mutants (was 20: the dominant-mode rows), `charger_fast_tapers` 6,
-> `platoon_linkloss` 63, `quad_light_profiles` 18, `rover_terrain_2to4` 16, `sat3w_detumble_phases` 16, `sat_detumble_phases`
-> 16, `sat_detumble_weak` 16: the same refutations as before (`charger_fast_tapers` m003; `platoon_linkloss` m036, m039;
-> `rover_terrain_2to4` m008, m011, m012, m015; `sat3w_detumble_phases` m002 to m007; `sat_detumble_phases` m002, m003, m005,
-> m006), their mutant inputs and IR data rewritten to the new files, each DECLINED by relcert; no witness on the other four.
-> Then (2026-10-28) `insulin_basal_cgmloss` (24 witness lines, no refutation) left the suite and `tank_dos_3to1`
-> (16 lines, no refutation) came back, keeping the letter I at the frozen 17. Witness lines 983 -> 949; instances
-> 77 -> 77; groups 228 -> 228.
-> Batch I10 (2026-10-28): `bms_chiller_undercharge` (8 witness lines, no refutation) left the suite and
-> `zone_lightmass_schedule` came in (the finder with `--only`: 8 mutants, no witness). Witness lines 949 -> 949;
-> instances 77 -> 77; groups 228 -> 228.
-> Batch I11 (2026-10-28, the reserve scan): `antenna_track_kvretune` (44 witness lines, 13 refutations, 39 groups),
-> `compressor_station_recycle` (16 lines, none) and `molding_pack_checkring` (24 lines, none) left the suite;
-> `platoon_latency` came back (the finder with `--only`: 67 mutants, m040 and m043 refuted again, kind B, 2 groups each),
-> `h2_refuel_ambientbias` (6 mutants, m003 refuted, kind C, 6 groups) and `reactor_feed_wireless` (16 mutants, no witness)
-> came in; each refuted mutant DECLINED by relcert. Witness lines 949 -> 954; instances 77 -> 67; groups 228 -> 199.
-> Literature faithfulness fixes (2026-10-28): the finder re-ran with `--only` on the five files whose models
-> changed (`drl_car_stop` 16 mutants, `drl_lane_control` 24, `csf21_vehicle_thermo` 16, `csf21_vehicle_bus` 16,
-> `salt_tank_sensor` 14; Coast at `v <= 1`, the salt tank without its evolve domain): no witness on any of
-> them, as before; their 86 records rewritten (new hashes and scratch paths). Witness lines 954, instances 67,
-> groups 199 unchanged; `gen_refute.py` leaves every instance as it was; `refute_experiment.py` at the default budget
-> reproduces `results.json` exactly (366 certified, 67 kernel-refuted, 521 open, none both).
-> Literature migration (2026-10-29): the records of `lit_drl_car_stop`, `insulin_basal_cgmloss` and
-> `zone_lightmass_schedule` (48 lines, no witness) dropped; the finder with `--only` on the three incoming files
-> (`lit_gpt10_boost_converter` 5 mutants, `lit_csf25_salt_tank_hold` 24, `rampmeter_poll_2to1` 24): no witness. Records
-> 929 -> 934; witnesses 74, refutation instances and `relcert-refute-verdicts` 204/204 unchanged.
-> Literature round 3 (2026-10-29): the finder with `--only` on the two changed files (`lit_csf25_salt_tank_hold`
-> 32 mutants, the stale-reading rows; `lit_girard08_robot` 20 mutants, physical coordinates, `--timeout 300` since
-> one run takes about 57 s). Witnesses: `lit_girard08_robot` m016 re-found (the level row reversed, now over the
-> physical variables) and one new, `lit_csf25_salt_tank_hold` m031 (the Dec envelope edge `xp + 0.1 t >= 35.5` moved
-> to the attacked level, which falls at up to 0.3 per minute). Witnesses 75; 75 refutation instances,
-> `relcert-refute-verdicts` 206/206, every instance builds.
-> Review round 6 (2026-10-30, commit `bd7c608`, `docs/BENCHMARK-REVIEW-2026-10-30-r6.md`): the finder re-run on the
-> changed benchmarks (`refute_finder.py` now drops the records of benchmarks that left the suite); instances added or
-> re-emitted for `h2_refuel_ambientbias`, `quad_light_profiles`, `rover_terrain_2to4` and `ventilator_vc_cuffleak`.
-> 81 refutation instances, `relcert-refute-verdicts` 227/227, every instance builds.
-> Current instance set (2026-10-30): **81 refutations, 227 groups** (68 and 196 after Batch 11, `docs/BATCH11-2026-10-30.md`)
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 954 mutants in
-> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11
-> (`scripts/refute_experiment.py`, 4 parallel jobs on the owner's Apple M2 Max, Z3 4.15.1, the 300 s default budget; the
-> verdicts of the mutants of the three incoming benchmarks were measured, the others kept from the batch I10 run in the
-> cloud container; `docs/refute/relcert.json`, `results.json`, `runner.log`): 954 mutants, 366 certified, 67 kernel-refuted,
-> 521 open (9 of them relcert ERRORs by the time budget, kept from the container run: `rover_ladder_6to8_m021`,
-> `rover_ladder_8to12_m005`, `_m010`, `_m016`, `_m024`, `sat3w_detumble_phases_m011`, `_m012`, `_m014`, `_m015`, the same
-> nine as on 2026-10-27); by operator RRO/SNO 38/27/141, MCO 107/10/99, ORO 221/30/281 (certified/refuted/open); by kind
-> B 61, C 6; kernel-refuted and certified: none. (Batch I10, 2026-10-28: 949 mutants, 343 certified, 77 kernel-refuted,
-> 529 open; RRO/SNO 38/30/139, MCO 101/13/105, ORO 204/34/285. 2026-10-27, 983 mutants: 342 certified, 77 kernel-refuted,
-> 564 open; RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298.) The 67 of that run were all DECLINED by relcert at the default time budget. Decline check of the current set (2026-10-31, after Batch 11): all **68** mutant inputs of `benchmarks/refute_mutants/*` (`RELCERT_IMPLIED_CUT=1`, default 300 s budget, 4 parallel jobs on the owner's machine) are DECLINED, 68/68, the slowest `rover_ladder_8to12_m005` in 50 s (`docs/refute/decline_default_budget.tsv`).
-
-Batch 14 (2026-11-01, `docs/BATCH14-2026-11-01.md`): the four `rover_ladder_*` rungs left the suite for the
-stop-line ladder; their 67 witness lines and nine refutation instances (`rover_ladder_6to8` m006, m009;
-`_8to12` m005, m006, m008, m009, m010, m019, m026) with their mutant inputs were removed (git history). The
-finder with `--only` on the four stop-line rungs: `stopline_lag` 32 mutants, 2 witnesses; `stopline_friction` 43,
-2; `stopline_tyre` 46, 2; `stopline_drag` 59, 11. **76 refutation instances, `relcert-refute-verdicts`
-220/220**, every instance builds, every mutant input DECLINED by relcert (`stutter_tests.py`,
-`prelanding_tests.py`); witness lines 1094. **Experiment recomputed 2026-11-01** at d483594
-(`scripts/refute_experiment.py --jobs 6` on the owner's Apple M2 Max, Z3 4.15.1, the 300 s default budget; fresh:
-the verdict cache `docs/refute/relcert.json` cleared, so every one of the 1094 mutants was run with the batch-14
-binary; `docs/refute/runner.log` re-run, 220/220): 1094 mutants, **351 certified, 76 kernel-refuted, 667 open**
-(one of them a relcert ERROR, `lit_girard08_robot_m019`); by operator RRO/SNO 38/37/188, MCO 112/9/138, ORO
-201/30/341 (certified/refuted/open); by kind C 36, B 39, A 1; kernel-refuted and certified: none; witness found
-but not kernel-refuted: none. The stop-line rungs: `stopline_lag` 11/2/19, `stopline_friction` 12/2/29,
-`stopline_tyre` 13/2/31, `stopline_drag` 13/11/35. Decline check of the 76 mutant inputs
-(`benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, default budget, 4 parallel jobs): **76/76 DECLINED**, the
-slowest `stopline_drag_m040` in 22 s (`docs/refute/decline_default_budget.tsv`); the three negatives
-(`benchmarks/negative/*`) DECLINED.
-
-Batch 15 (2026-11-01, `docs/BATCH15-2026-11-01.md`): `rover_terrain_{2to4,4to6}` and `platoon_linkloss` left
-the suite (their 15 refutation instances, mutant inputs and, with `acc_tune_lag`, 110 witness lines removed);
-the rover ladder came back with two relational rows and the stop-line rungs became full-fidelity models. The
-finder with `--only` on the eight changed files (five parallel runs, merged with the finder's own block
-semantics; each run on fresh oleans): `rover_ladder_2to3` 8 mutants, 0 witnesses; `_3to6` 10, 0; `_6to8` 21, 2;
-`_8to12` 24, 5; `stopline_lag` 42, 5; `stopline_friction` 65, 9; `stopline_tyre` 92, 21; `stopline_drag` 127,
-54. **140 refutation instances, `relcert-refute-verdicts` 416/416**, every instance builds; witness lines 1193.
-**Experiment recomputed 2026-11-01** at 96a75ab (`scripts/refute_experiment.py --jobs 6`; the verdict cache
-entries of the eight changed files and of the benchmarks that left were removed first: a stale cached verdict of
-a batch-14 mutant with the same index made four mutants read "kernel-refuted and certified" until then):
-1193 mutants, **398 certified, 140 kernel-refuted, 655 open** (one relcert ERROR, `lit_girard08_robot_m019`);
-by operator RRO/SNO 40/69/177, MCO 131/23/133, ORO 227/48/345; by kind C 36, B 103, A 1; kernel-refuted and
-certified: none; witness found but not kernel-refuted: none. The changed files (certified/refuted/open):
-`rover_ladder_2to3` 0/0/8, `_3to6` 3/0/7, `_6to8` 11/2/8, `_8to12` 10/5/9, `stopline_lag` 17/5/20,
-`stopline_friction` 25/9/31, `stopline_tyre` 38/21/33, `stopline_drag` 32/54/41. Decline check of the 140 mutant
-inputs (default budget, 4 parallel jobs): **140/140 DECLINED**, the slowest `rover_ladder_8to12_m004` in 42 s
-(`docs/refute/decline_default_budget.tsv`); the three negatives DECLINED.
-
-Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
+1193 mutants over the 50 suite benchmarks, **398 certified, 140 kernel-refuted, 655 open** (one
+relcert ERROR, `lit_girard08_robot_m019`, counted open); by operator (certified / refuted /
+open) RRO/SNO 40/69/177, MCO 131/23/133, ORO 227/48/345; refuted by kind C 36, B 103, A 1.
+Kernel-refuted and certified: none; witness found but not kernel-refuted: none. The 140 come
+from 19 benchmarks (the stop-line ladder alone 89: `stopline_drag` 54, `stopline_tyre` 21,
+`stopline_friction` 9, `stopline_lag` 5). Decline check of the 140 mutant inputs (default
+budget): **140/140 DECLINED** (`docs/refute/decline_default_budget.tsv`); the three negatives
+DECLINED. `relcert-refute-verdicts`: **416/416 groups** over the 140 instances.
 
 ## The claim
 
-> Of the 1094 Black-Okun-Yesha mutants of the 50 suite benchmarks, **76 are proved false in the
-> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 351 are certified
-> by relcert, and 667 are open. **relcert certifies none of the 76** (decline check 2026-11-01:
-> 76/76 DECLINED). (2026-11-01, batch 14; 2026-10-28, batch I11: 954 mutants, 67 refuted, 366
-> certified, 521 open; the 2026-10-21 run: 776 mutants, 67 refuted, 303 certified, 406 open.)
+> Of the 1193 Black-Okun-Yesha mutants of the 50 suite benchmarks, **140 are proved false in the
+> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 398 are certified
+> by relcert, and 655 are open. **relcert certifies none of the 140** (140/140 DECLINED).
 
 The trust base of a refutation is the trust base of a certificate: the parser and lowering
 (the instance quotes the parser-emitted IR of the mutant file), the query printer and Z3's
@@ -261,8 +30,7 @@ which the kernel re-checks.
 
 For a mutant with per-mode rows, `¬ keyedClaim IR n cX cov ⊤ 0 1 2 3 dt`; with one declared row,
 `¬ windowClaim IR n cX cov ⊤ 0 1 2 dt` (the forms of the bridge instances, at the bridge dimension
-`n` of the suite benchmark, `reg = ⊤`; since 2026-10-21 the claims are the clocked ones, the
-right automaton `rightAutomatonBodyC` with the right clock `(Aux, 3)` resp. `(Aux, 2)`, and
+`n` of the suite benchmark, `reg = ⊤`; the claims are the clocked ones, the right automaton `rightAutomatonBodyC` with the right clock `(Aux, 3)` resp. `(Aux, 2)`, and
 `n` is the Assumption 1 lemma's dimension plus one, `RefRec.dim + 1` in
 `InstancesV2/Refute/Table.lean`, the rule of `bridgeDimV2`). Each instance proves the refutation
 
@@ -281,12 +49,12 @@ right automaton `rightAutomatonBodyC` with the right clock `(Aux, 3)` resp. `(Au
 
 | Theorem | Statement (one line) |
 |---|---|
-| `refute_keyed_C` (`Refute.lean:596`) | `preOK` (kernel) ∧ no-partner `unsat` per right mode ⟹ `∀ cov, ¬ keyedClaimU … ⊤ … dt`, `dt ≥ 0` (the unclocked claim, right automaton `rightAutomatonBody`) |
-| `refute_keyed_A` (`Refute.lean:617`) | `preOK` ∧ component `k` of the entered row `> 0` (kernel) ∧ rigidity `unsat` per right mode ⟹ same |
-| `refute_keyed_B` (`RefuteFlow.lean:418`) | `preOK` ∧ `bQ` (interior of the left envelope, component `≥ 0`, left Lie derivative `> 0`) ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ same, `dt > 0` |
-| `refute_window_B` (`RefuteFlow.lean:494`) | `preOKW` ∧ `bQW` ∧ `rowsSame` ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ `∀ cov, ¬ windowClaimU … ⊤ … dt`, `dt > 0` |
-| `keyedClaim_to_unclocked` (`Refute.lean:561`), `windowClaim_to_unclocked` (`RefuteFlow.lean:331`) | `namesOK` ∧ `cutsOK` ∧ `reg.fv ⊆ range Rv` ∧ `d ≠ a` ⟹ the clocked claim implies the unclocked one (`t3_right_mono`, `Refute.lean:491`: Theorem 3's form is monotone in the right program up to a post-condition transport; `erase_right_clock`, `Refute.lean:544`, by `star_bodyC_to_body`) |
-| `refute_keyed_C_clocked`, `refute_keyed_A_clocked` (`Refute.lean:653`, `:662`), `refute_keyed_B_clocked` (`RefuteFlow.lean:478`), `refute_window_B_clocked` (`RefuteFlow.lean:578`) | the same hypotheses plus `namesOK`, `cutsOK`, `d : Fin n`, `d ≠ a` ⟹ `∀ cov, ¬ keyedClaim … ⊤ a b c d dt` resp. `¬ windowClaim … ⊤ a b d dt`, the clocked claims the bridge instances prove; these are what the generated instances conclude (`gen_refute.py`, `d = 3` keyed, `2` window) |
+| `refute_keyed_C` (`Refute.lean`) | `preOK` (kernel) ∧ no-partner `unsat` per right mode ⟹ `∀ cov, ¬ keyedClaimU … ⊤ … dt`, `dt ≥ 0` (the unclocked claim, right automaton `rightAutomatonBody`) |
+| `refute_keyed_A` (`Refute.lean`) | `preOK` ∧ component `k` of the entered row `> 0` (kernel) ∧ rigidity `unsat` per right mode ⟹ same |
+| `refute_keyed_B` (`RefuteFlow.lean`) | `preOK` ∧ `bQ` (interior of the left envelope, component `≥ 0`, left Lie derivative `> 0`) ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ same, `dt > 0` |
+| `refute_window_B` (`RefuteFlow.lean`) | `preOKW` ∧ `bQW` ∧ `rowsSame` ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ `∀ cov, ¬ windowClaimU … ⊤ … dt`, `dt > 0` |
+| `keyedClaim_to_unclocked` (`Refute.lean`), `windowClaim_to_unclocked` (`RefuteFlow.lean`) | `namesOK` ∧ `cutsOK` ∧ `reg.fv ⊆ range Rv` ∧ `d ≠ a` ⟹ the clocked claim implies the unclocked one (`t3_right_mono`, `Refute.lean`: Theorem 3's form is monotone in the right program up to a post-condition transport; `erase_right_clock`, `Refute.lean`, by `star_bodyC_to_body`) |
+| `refute_keyed_C_clocked`, `refute_keyed_A_clocked` (`Refute.lean`), `refute_keyed_B_clocked` (`RefuteFlow.lean`), `refute_window_B_clocked` (`RefuteFlow.lean`) | the same hypotheses plus `namesOK`, `cutsOK`, `d : Fin n`, `d ≠ a` ⟹ `∀ cov, ¬ keyedClaim … ⊤ a b c d dt` resp. `¬ windowClaim … ⊤ a b d dt`, the clocked claims the bridge instances prove; these are what the generated instances conclude (`gen_refute.py`, `d = 3` keyed, `2` window) |
 | `exit_run` (`RefuteExit.lean`) | short-time existence of the polynomial flow inside an open domain, with `G > 0` at the end when `G ≥ 0` and `Lie G > 0` at the start |
 | `rigid_star` (`Refute.lean`) | a component no right field decreases on the right envelope never decreases along any run of the right automaton (any pruning) |
 
@@ -313,8 +81,8 @@ elimination) is out of scope.
 1. `scripts/refute_dump.lean`: prints the claim's lowered pieces (guards, envelopes, kept cut
    atoms, row components, left Lie derivatives, the pinned rigidity queries) through the tool's
    own parser and lowering, as SMT-LIB.
-2. `scripts/refute_finder.py` (untrusted): the mutants of `black_mutation.py` (same enumeration,
-   labels identical), rational witnesses over exactly the dumped formulas (Z3 models; grid
+2. `scripts/refute_finder.py` (untrusted): the mutants of the mutation enumeration (`scripts/black_mutation.py` on branch `mutation`,
+   copied into the finder; labels identical), rational witnesses over exactly the dumped formulas (Z3 models; grid
    models `ℤ/den` when Z3's model is algebraic; quadric repair). Output
    `docs/refute/witnesses.jsonl`.
 3. `scripts/gen_refute.py`: per witness, `benchmarks/refute_mutants/<id>/input.txt`, the
@@ -322,62 +90,33 @@ elimination) is out of scope.
    the instance (`InstancesV2/Refute/<Camel>.lean`), the runner table with its declared count.
 4. `relcert-refute-verdicts` (`VerdictsV2/RunRefute.lean`): every group `refGroups` builds, the
    exact queries `RefVerdicts` reads, each group at the instance's dimension `RefRec.dim + 1`.
-   Run: **188/188 groups unsat** over the 67 instances (`docs/refute/runner.log`); rerun
-   2026-10-21 at the +1 dimension, 67/67 instances, 188/188 groups (commit `b14f129`; the
-   queries do not read the padded coordinate, so the count is unchanged).
+   Run: **416/416 groups unsat** over the 140 instances, against the declared total
+   `expectedRefuteGroups` (`InstancesV2/Refute/Table.lean`).
 5. `scripts/refute_experiment.py`: relcert on every mutant (this worktree's binary,
    `RELCERT_IMPLIED_CUT=1`; the default verdict includes the handoff check), the table below
-   (`docs/refute/results.json`, `docs/refute/relcert.json`, archived on branch `archive/legacy-2026-10` on 2026-10-22; `docs/refute/witnesses.jsonl` stays).
+   (`docs/refute/results.json`, `docs/refute/relcert.json`).
 
 A mutant counts as kernel-refuted only if its instance builds (`lake build
-RelCertifier.InstancesV2.Refute`: all 67 build) and the runner discharges all its groups.
+RelCertifier.InstancesV2.Refute`: all 140 build; `lake build` builds them too) and the runner discharges all its groups.
 
 ## Results
 
-Current (2026-11-01, batch 14, `docs/refute/results.json`):
+`docs/refute/results.json`:
 
 | Operator | Certified | Kernel-refuted | Open | Total |
 |---|---|---|---|---|
-| RRO/SNO | 38 | 37 | 188 | 263 |
-| MCO | 112 | 9 | 138 | 259 |
-| ORO | 201 | 30 | 341 | 572 |
-| **all** | **351** | **76** | **667** | **1094** |
+| RRO/SNO | 40 | 69 | 177 | 286 |
+| MCO | 131 | 23 | 133 | 287 |
+| ORO | 227 | 48 | 345 | 620 |
+| **all** | **398** | **140** | **655** | **1193** |
 
-Kernel-refuted by kind: C 36, B 39, A 1. By operator: RRO/SNO C 23, B 13, A 1; ORO B 23, C 7;
-MCO C 6, B 3. **Kernel-refuted and certified: none.** relcert's verdicts on the 1094 mutants:
-742 DECLINED, 351 CERTIFIED, 1 ERROR (counted open); every kernel-refuted mutant is DECLINED.
-
-The 2026-10-21 run (kept for the comparison with the mutation run below):
-
-| Operator | Certified | Kernel-refuted | Open | Total |
-|---|---|---|---|---|
-| RRO/SNO | 21 | 18 | 125 | 164 |
-| MCO | 85 | 2 | 66 | 153 |
-| ORO | 197 | 47 | 215 | 459 |
-| **all** | **303** | **67** | **406** | **776** |
-
-Kernel-refuted by kind: C 6, A 28, B 33 (keyed 7, window 26). By operator: RRO/SNO C 6, A 6,
-B 6; ORO A 20, B 27; MCO A 2.
-
-**Kernel-refuted and certified: none.** relcert's verdicts on the 776 mutants are those of the
-mutation run (443 DECLINED, 303 CERTIFIED, 30 ERROR; the ERRORs are time-budget exhaustion, all
-counted open); every kernel-refuted mutant is DECLINED.
-
-Against the mutation run's unverified refuter (72 REFUTED): 67 of its 72 are kernel-refuted
-(its kind labels differ in places because the kernel form reads the exact claim: the cuts and
-the stored right mode's guard enter the antecedent, the left envelope is mode 0's evolve); the
-kernel set adds no mutant it did not flag. Its two D refutations are kernel-refuted as kind B.
-The five not kernel-refuted, reported open:
-
-* `sat3w_detumble_phases_m016` (its C): no kind-C witness at the exact antecedent (the quantified
-  no-partner search with the cuts finds none);
-* `story3_rollover_base_12dof_m016`, `_m019`, `story3_rollover_ladder_rung_a_m008`, `_m011` (its
-  B): the boundary point is on a quadric with only algebraic solutions near Z3's models; no
-  rational witness was found (the grid and quadric-repair fallbacks did not find one in time).
+Kernel-refuted by kind: C 36, B 103, A 1. By operator: RRO/SNO B 45, C 23, A 1; ORO B 41, C 7;
+MCO B 17, C 6. **Kernel-refuted and certified: none.** relcert's verdicts on the 1193 mutants:
+794 DECLINED, 398 CERTIFIED, 1 ERROR (counted open); every kernel-refuted mutant is DECLINED.
 
 ## Not done
 
-* Kind D (2 in the mutation run; both are kernel-refuted here as kind B anyway).
+* Kind D (projection exit; it needs quantifier elimination).
 * The optional `relcert --refute` mode (it would change `Main.lean`); the finder, the generator
   and the runner give the three outcomes outside the tool.
 
@@ -397,6 +136,5 @@ records in `docs/refute/witnesses.jsonl` and keeps the others. `gen_refute.py` t
 text only from the finder run that found its witness (the record's `sha256` against that run's
 scratch file, or the committed `benchmarks/refute_mutants/<id>/input.txt`), checks that it is
 mutant `idx` of the current suite file, and otherwise stops with an error before writing
-anything (2026-10-27; before, it copied whatever the scratch folder held, which for benchmarks
-the last run did not visit was another run's file). It lists every mutant input it writes and
+anything. It lists every mutant input it writes and
 every file no record produces.

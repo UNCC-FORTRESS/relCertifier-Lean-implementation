@@ -145,9 +145,8 @@ compares it with the literal of the same name in `benchIRTableV2`.
         f.write(",\n".join(f"  (\"{b}\", {b}_coverV2_choice)" for b in benches))
         f.write(" ]\n\nend RelCertifier.Choice\n")
     # the progress table (`relcert-progress-verdicts`, and the bridge runner's `progV2`): every
-    # benchmark (until 2026-10-31 `lit_drl_lane_control` and `lit_freedm_meter` were left out, so
-    # the bridge runner sent their groups without their progress certificates' queries, which their
-    # instances' `Verdicts` name; docs/BATCH12-2026-10-31.md)
+    # benchmark, so the bridge runner sends every instance's progress queries, which its
+    # `Verdicts` names (docs/PRELANDING.md)
     pbenches = list(benches)
     with open(f"{OUT}/BenchProgress.lean", "w") as f:
         f.write("/- suite_v2 reposition-certificate aggregator (GENERATED — `scripts/gen_v2_data.py`; "

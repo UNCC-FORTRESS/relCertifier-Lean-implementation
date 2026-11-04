@@ -1,6 +1,8 @@
 # Existential mode choice: soundness argument
 
-Status: argument first, code second. The region builders in `Trusted/OracleAPI.lean`
+The paper calls the chosen sets *committed successor subsets* (Definition 8, Lemmas 3 and 4);
+the tool and Lean call the feature the existential mode choice ("choice"). Argument first,
+code second. The region builders in `Trusted/OracleAPI.lean`
 (`ChoiceCtx.jointEnd`, `repoEnd`, `startReg`) must match §3 exactly.
 
 Numbering is the submitted paper's: Lemma 2 (flow certificates, Definition 5), Definition 6
@@ -124,16 +126,18 @@ start mode, so choice never has to look across a left-cycle boundary.
 ## 7. What must be true of the code
 
 1. Region builders as in §3 (prototype matches; keep it, add a comment pointing here).
-2. The old rule runs over the whole stretch loop (and the per-pairing fallback) before any
-   choice search, so the 46 emitted covers are unchanged.
+2. The all-successors rule runs over the whole stretch loop (and the per-pairing fallback)
+   before any choice search, so a cover that closes without choice is unchanged by it.
 3. Hop targets are declared, non-self successors; requiring them non-pruned is conservative
    and harmless (a hop has no flow).
 
-## 8. Lean status (the three exhibits of 2026-10-14; `lit_hypercert_vehicle` is a suite benchmark since 2026-10-15)
+## 8. Lean status: the standalone exhibits (archived)
 
-`RelCertifier/InstancesV2/Choice/Modal/` (archived on branch `archive/legacy-2026-10` on 2026-10-22, with `Choice/Verdicts.lean` and `relcert-choice-verdicts`; the exhibits' bridge instances remain) proved modal Theorem 3 for `lit_hypercert_vehicle`,
-`vehicle_accel_copy` and `watertank_choice`, standalone (not replayed from the tool's choice
-cover; the generic bridge replays the emitted chosen sets of the last two, §10). Each response is case 4 then case 1: a hop (`gresp_hop`) into one chosen mode, then
+The standalone exhibits (`InstancesV2/Choice/Modal/`, archived on branch
+`archive/legacy-2026-10` with `Choice/Verdicts.lean` and `relcert-choice-verdicts`) proved
+Theorem 3 for `vehicle_accel_copy`, `watertank_choice` and an earlier literature model by
+hand, not replayed from the tool's choice cover; the generic bridge now replays the emitted
+chosen sets (§10). Each response is case 4 then case 1: a hop (`gresp_hop`) into one chosen mode, then
 that mode's certified joint segment for the whole window. The hop's domain premise is S3
 (`envLR`; every exhibit has a uniform right evolution domain), its guard premise is the left
 guard plus the invariant at the start (the left run frames the right).
@@ -156,7 +160,7 @@ existence proof of §5 in Lean, generically; `theorem3_of_coverX` is Theorem 3 w
 The reposition-progress premise (§3 there) is the one fact §5's case 2 (right-only) glossed
 over.
 
-## 10. The bridge (2026-10-15)
+## 10. The bridge
 
 The tool emits the chosen sets (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean`: per window and
 right mode, the chosen successors after a joint segment, the chosen exits after a right-only
@@ -164,15 +168,14 @@ segment, the hop targets, each with its coverage query). `Proofs/Encoding/Emitte
 turns the record into the window's `ChoiceData`, rebuilds every coverage query from the tool's
 regions, and `coverage_sound` reads its `unsat` as the coverage premise (`hcovJ/hcovR/hcovS`
 of §9); the chosen cover is decided by `decideCoveredX`. `InstancesV2/Bridge/VehicleAccelCopy.lean`
-and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records`, and so
-is `lit_hypercert_vehicle` (until its 2026-10-27 redesign with the position coordinate its reposition
-node's progress stage crossed its threshold downward, through the downward mirror
-`repoProgress_one_down`, and its Assumption 1 came from the hand-written general instance of §9,
-now removed; since then it has no reposition node and its own `InstancesV2/WellFormed/` proof). The coverage queries are among the groups of `relcert-bridge-verdicts`
-(`docs/BRIDGE.md`).
+and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records_pl`. The
+coverage queries are among the groups of `relcert-bridge-verdicts` (`docs/BRIDGE.md`).
 
-Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46
-original suite covers are byte-identical with it on or off, and four suite benchmarks need it,
-`lit_hypercert_vehicle` (moved from the exhibits; skipped 2026-10-28, `benchmarks/skipped/`), the two dRL refinement benchmarks
-`lit_drl_car_stop`, `lit_drl_lane_control`, whose witness hops into the left's mode at every window, and
-`lit_freedm_meter`, whose witness hops into the left's mode or a zero-net grid mode.
+The choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it), tried only after the
+retained successors fail to close a cover. Twelve suite benchmarks need it (letter X, Table 1:
+they decline with it off, `docs/paper-numbers/letters.md`): seven of the ten literature
+benchmarks (`lit_csf21_vehicle_bus`, `lit_csf21_vehicle_thermo`, `lit_drl_lane_control`,
+`lit_freedm_meter`, `lit_girard08_robot`, `lit_gpt10_boost_converter`,
+`lit_lz21_vehicle_position`), `canal_gate_notches`, `quad_light_profiles` and the three
+satellites. For example, the witness of `lit_drl_lane_control` hops into the left's mode at
+every window, and that of `lit_freedm_meter` into the left's mode or a zero-net grid mode.

@@ -3,7 +3,7 @@
 #   scripts/paper_numbers.sh OUTDIR
 # Records the commit, Z3 version, OS and flags; emits every cover twice and requires them
 # byte-identical; runs every configuration; runs the mechanism matrix; writes OUTDIR/numbers.tex.
-# Letter macros (2026-10-30; scripts/suite_v2_letters.py, docstring "USED and NEEDED"):
+# Letter macros (scripts/suite_v2_letters.py, docstring "USED and NEEDED"):
 #   \numletter<L>      files whose certificate NEEDS mechanism <L> (the rule kept for continuity:
 #                      the file declines with <L> switched off; D by the uniform-row test; not
 #                      defined for M and B, which have no switch-off and are never needed)
@@ -12,7 +12,7 @@
 # Table snippets (same script): OUTDIR/table1.tex (Table 1, by group, one column per letter,
 # \mechNeeded / \mechUsed / blank, needed and used totals rows) and OUTDIR/table_per_benchmark.tex
 # (the appendix table); the paper defines \mechNeeded and \mechUsed.
-# Feature ablations (2026-10-31; both features are always on, docs/BATCH12-2026-10-31.md):
+# Feature ablations (both features are always on; docs/STUTTER.md, docs/PRELANDING.md):
 #   \numnostutter      files that DECLINE under RELCERT_NO_STUTTER=1 (no stretch 0, the right never
 #                      waits on a joint segment; run `nostutter`)
 #   \numnoprelanding   files that DECLINE under RELCERT_NO_PRELANDING=1 (right-only nodes need the
@@ -110,7 +110,7 @@ def uses_stretch(b): return any(c.get("lam_float", 1.0) != 1.0 for c in byname[b
 def uses_ro(b): return any(c.get("right_only") for c in byname[b]["covers"])
 def uses_stutter(b): return any(x == "0" for c in byname[b]["covers"] for x in c.get("lam_pairs", {}).values())
 syn_decl = [b for b, v in syn.items() if v[0] == "DECLINED"]
-# stretch includes stretch 0 (stutter; SYNC drops that candidate too; 2026-10-30 letter W folded into S)
+# stretch includes stretch 0 (stutter; SYNC drops that candidate too; credited under S)
 nst = sum(1 for b in syn_decl if uses_stretch(b) or uses_stutter(b))
 cells = {k: sum(1 for r in recs if str(r["cells"].get(k, "")).startswith("yes")) for k in
          ["M1", "M2", "M3", "M4", "M5", "M6", "M6+", "M6L"]}

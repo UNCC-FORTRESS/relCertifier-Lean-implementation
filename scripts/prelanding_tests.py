@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """The pre-landing tests (docs/PRELANDING.md): the pre-landing certificate (a right-only node
 needs its flow certificate only on the half-open region before the progress certificate's last
-threshold; the witness right run stops at its first entry into the target), on for every
-benchmark since 2026-10-31 (docs/BATCH12-2026-10-31.md; until then the opt-in key
-`[problem] prelanding = true`). "Off" below is the ablation RELCERT_NO_PRELANDING=1 (the key-off
-cases of the opt-in era); "on" is the default run.
+threshold; the witness right run stops at its first entry into the target), a run feature on
+for every benchmark (docs/PRELANDING.md, "Status"). "Off" below is the ablation
+RELCERT_NO_PRELANDING=1; "on" is the default run.
 
 Every variant file is written to a temporary directory, never to the suite. Runs the CLI with
 RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a summary.
@@ -22,7 +21,7 @@ RELCERT_IMPLIED_CUT=1 (the suite's setting) and prints one line per case and a s
              stretch 0 off (RELCERT_NO_STUTTER=1; with it on and the declared range widened to
              [0, 1] the right may wait and every claim below is true and CERTIFIED, listed as
              `stutter` cases; the default run on their declared [1, 1] never tries stretch 0,
-             batch 13, listed as `default` cases):
+             listed as `default` cases):
              fails-after: the row y_R <= 0 breaks only after the landing threshold y = 0
              (CERTIFIED on, DECLINED off);
              fails-before: the row y_R <= 0.5 against the landing threshold y = 1 breaks before
@@ -85,7 +84,7 @@ OFF = {"RELCERT_NO_PRELANDING": "1"}
 # The synthetic files and the strict demo have a HOLDING left (y' = 0): with stretch 0 a candidate
 # the right may wait through every left cycle, so every one of their claims is TRUE under
 # Theorem 3 (a zero-duration right cycle is a run) and CERTIFIES by stutter. They declare the range
-# [1, 1], so since batch 13 (stretch 0 only for a declared range including 0) the default run does
+# [1, 1], so (stretch 0 only for a declared range including 0) the default run does
 # not try stretch 0; their pre-landing cases still run with RELCERT_NO_STUTTER=1 as well, which
 # isolates the pre-landing certificate whatever the range; the stutter cases widen it to [0, 1].
 NOSTUT = {"RELCERT_NO_STUTTER": "1"}
@@ -186,7 +185,7 @@ def main():
                   {"RELCERT_NO_REPO": "1", "RELCERT_NO_STUTTER": "1"}))
     cases.append(("adversarial strict-equality (row y_R < 0 reaches 0 at the landing), no stutter",
                   sequal, "DECLINED", NOSTUT))
-    # the default run on the declared range [1, 1] (batch 13: stretch 0 is a candidate only when
+    # the default run on the declared range [1, 1] (stretch 0 is a candidate only when
     # the declared range includes 0): the verdicts of the runs without stretch 0
     cases.append(("default fails-after (range [1,1])", after, "CERTIFIED", None))
     cases.append(("default fails-after off (range [1,1])", after, "DECLINED", OFF))

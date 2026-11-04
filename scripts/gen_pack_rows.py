@@ -68,7 +68,7 @@ def derive(b):
                                     re.sub(r"\s*\n\s*", " ", pltxt))}
     M.merge_preland(covers, pl)
     entries = M.parse_choice(chtxt)
-    st = strata(M.unwrap_cover(covtxt))   # Lean's line wrapping undone (batch 13)
+    st = strata(M.unwrap_cover(covtxt))   # Lean's line wrapping undone
     succ = {m: prob["R"]["modes"][m]["next"] for m in prob["R"]["order"]}
     Lord, Rord = prob["L"]["order"], prob["R"]["order"]
     joint, dyn = set(), set()

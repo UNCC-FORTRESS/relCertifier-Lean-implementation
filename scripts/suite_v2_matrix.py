@@ -326,9 +326,9 @@ def unwrap_cover(text):
     a window (`    ⟨"<mL>", (`) or the cover header (`  ⟨"`) is joined to the previous one (lines
     at column 0, such as `def`, `end` and comments, stay as they are). The
     pretty-printer wraps a window wider than its line width (lit_freedm_meter's 12 x 12 windows,
-    lit_csf21_vehicle_bus), and the per-window pattern below is line-anchored: until 2026-10-31
-    (batch 13) such a cover parsed to NO windows, so every cover-derived cell and used letter of
-    those files was empty (a silent pass: their S, R, M, B used were never read)."""
+    lit_csf21_vehicle_bus), and the per-window pattern below is line-anchored: without the unwrap
+    such a cover parses to NO windows, so every cover-derived cell and used letter of those files
+    would be empty (a silent pass: their S, R, M, B used would never be read)."""
     out = []
     for line in text.split("\n"):
         if (not out or not line[:1].isspace() or re.match(r'    ⟨"\w+", \(', line)

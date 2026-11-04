@@ -4,6 +4,9 @@ Released under Apache 2.0 license.
 
 # Refutations, part 4: kind B (a component pushed out by the left flow), both forms
 
+The third refutation argument of Appendix B.6: a component of the invariant is at or past its
+boundary, the left flow pushes it out, and no right run pulls it back.
+
 At the witness `σ` component `k` of the entered row is `≥ 0`, its left Lie derivative along the
 entered mode's field is `> 0`, and the witness (after the switch and the clock reset) is in the
 INTERIOR of the left evolve domain (every atom strict, `strictQ`). The left run is the switch
@@ -14,8 +17,8 @@ the component is `> 0` at its end `ν`. The bi-state is `(σ, σ')`, `σ'` the r
 post-condition reads; right rigidity (`rigid_star`) keeps the component `> 0` along every right
 run, and the post-condition fails.
 
-The window form (`windowClaim`, one declared row) has no left mode variable: the left picks the
-window `m` whose guard holds at `σ`; the same argument applies to the common row.
+The window form (`windowClaim`, one declared row) has no left mode variable: the left runs the
+cycle of the mode `m` whose guard holds at `σ`; the same argument applies to the common row.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Refute
 import RelCertifier.Proofs.Encoding.Emitted.RefuteExit
@@ -236,7 +239,7 @@ def bQ (a b c : Fin n) (w : RefWitE) : Bool :=
 
 /-- The antecedent facts of the window form (no left mode variable; `c := b`, the clock, whose
 stored value the window resets): the window and right mode in range; at the witness the common
-row, both envelopes, the right mode's guard and kept atoms, the window's guard. -/
+row, both envelopes, the right mode's guard and mode-fact atoms, the left mode's guard. -/
 def preOKW (cX : EvolStrengtheningX) (a b : Fin n) (w : RefWitE) : Bool :=
   let s := witState n a b w
   decide (w.m < nL p) && decide (w.q0 < nR p) &&
@@ -312,11 +315,11 @@ theorem cuts_fv_of {p : PProblem} {cX : EvolStrengtheningX} (hc : cutsOK p n cX 
     (cuts p n cX q).fv ⊆ range Rv :=
   cutF_fv_sub (cutPairsX_fvF_R (atomsWF_R_any hc q))
 
-/-! ## The unclocked window claim (the pre-W3 `windowClaim`), and its transfer -/
+/-! ## The window claim without the right clock, and its transfer -/
 
 /-- The one-row claim over the UNCLOCKED guarded right automaton (`rightAutomatonBody`; mode
-variable `(Aux, a)`, left clock `(Aux, b)`): the pre-W3 `windowClaim`. The clocked claim
-implies it (`windowClaim_to_unclocked`). -/
+variable `(Aux, a)`, left clock `(Aux, b)`): `windowClaim` without the right clock. The clocked
+claim implies it (`windowClaim_to_unclocked`), so refuting it refutes `windowClaim`. -/
 def windowClaimU (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
     (reg : Formula (Var n)) (a b : Fin n) (dt : ℝ) : Prop :=
   RFormula.rvalid (theorem3Form
@@ -414,7 +417,9 @@ theorem pre_sat_bi (hpf : PreFacts p cX a b c w) (hca : c ≠ a) (hnm : namesOK 
     rw [sat_mvValid]
     exact ⟨w.u, by rw [leftAutOf_numModes]; exact hpf.hu, σW_aux_c hca⟩
 
-/-- **Kind B, mode-keyed.** -/
+/-- **Kind B, mode-keyed.** Given the kernel-decided witness facts (`preOK`, `bQ`, `namesOK`,
+`cutsOK`) and the Z3 verdicts `RefVerdicts` of the witness, the unclocked mode-keyed claim
+`keyedClaimU` is false for every cover and every `dt > 0` (Appendix B.6). -/
 theorem refute_keyed_B (hpre : preOK p n cX a b c w = true) (hb : bQ p n a b c w = true)
     (hk : w.kind ≠ "C") (hv : RefVerdicts p n cX w) (hnm : namesOK p = true)
     (hcu : cutsOK p n cX = true) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : 0 < dt)
@@ -473,8 +478,9 @@ theorem refute_keyed_B (hpre : preOK p n cX a b c w = true) (hb : bQ p n a b c w
     · simp [σ', withLeft, Rv, hνR])
   linarith [hrow G hmem]
 
-/-- **Kind B, mode-keyed, the clocked claim** (W4): `refute_keyed_B` by contraposition through
-`keyedClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
+/-- **Kind B, mode-keyed, the clocked claim**: `¬ keyedClaim`, from `refute_keyed_B` by
+contraposition through `keyedClaim_to_unclocked`; `(Aux, d)` is the right clock (Appendix B.6:
+the claim with the clock fails because the claim without it does). -/
 theorem refute_keyed_B_clocked (hpre : preOK p n cX a b c w = true) (hb : bQ p n a b c w = true)
     (hk : w.kind ≠ "C") (hv : RefVerdicts p n cX w) (hnm : namesOK p = true)
     (hcu : cutsOK p n cX = true) (hca : c ≠ a) (hcb : c ≠ b) (d : Fin n) (hda : d ≠ a) (dt : ℝ)
@@ -490,7 +496,9 @@ section WindowB
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {a b : Fin n} {w : RefWitE}
 
-/-- **Kind B, window form** (one declared row, `rowsSame`). -/
+/-- **Kind B, window form** (one declared row, `rowsSame`). Given the kernel-decided witness facts
+(`preOKW`, `bQW`, `namesOK`, `cutsOK`) and the Z3 verdicts `RefVerdicts`, the unclocked window
+claim `windowClaimU` is false for every cover and every `dt > 0` (Appendix B.6). -/
 theorem refute_window_B (hpre : preOKW p n cX a b w = true) (hb : bQW p n a b w = true)
     (hk : w.kind ≠ "C") (hv : RefVerdicts p n cX w) (hsame : rowsSame p = true)
     (hnm : namesOK p = true) (hcu : cutsOK p n cX = true) (hab : a ≠ b) (dt : ℝ) (hdt : 0 < dt)
@@ -573,8 +581,8 @@ theorem refute_window_B (hpre : preOKW p n cX a b w = true) (hb : bQW p n a b w 
     · simp [σ', withLeft, Rv, hνR])
   linarith [hrow G hmem]
 
-/-- **Kind B, window form, the clocked claim** (W4): `refute_window_B` by contraposition
-through `windowClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
+/-- **Kind B, window form, the clocked claim**: `¬ windowClaim`, from `refute_window_B` by
+contraposition through `windowClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
 theorem refute_window_B_clocked (hpre : preOKW p n cX a b w = true) (hb : bQW p n a b w = true)
     (hk : w.kind ≠ "C") (hv : RefVerdicts p n cX w) (hsame : rowsSame p = true)
     (hnm : namesOK p = true) (hcu : cutsOK p n cX = true) (hab : a ≠ b) (d : Fin n) (hda : d ≠ a)

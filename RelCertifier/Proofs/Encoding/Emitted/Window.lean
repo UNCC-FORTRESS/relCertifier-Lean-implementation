@@ -4,10 +4,11 @@ Released under Apache 2.0 license.
 
 # The generic bridge, part 8: Theorem 3 in the window form, for one declared row
 
-When every left mode declares the same row (`rowsSame`), the per-window loop of
-`theorem3_of_coverX` applies directly: the guard-gated windows of the left modes, the guarded
-right automaton, the row with the envelope and the right region. Two auxiliary coordinates
-suffice (the right mode variable and the window clock).
+When every left mode declares the same row (`rowsSame`), the mode-independent invariant of
+Appendix B.1, the loop of `theorem3_of_coverX` applies directly: the guard-gated left cycles of
+the left modes, the clocked guarded right automaton, the row with the envelope and the right
+region. No left mode variable is needed: the auxiliary coordinates are the right mode variable,
+the left clock and the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 
@@ -44,7 +45,7 @@ theorem FRow_same {p : PProblem} (h : rowsSame p = true) (l : ℕ) :
     FRow p n l = FRow p n 0 := by
   unfold FRow g gs comps; rw [rowOf_same h]
 
-/-- The claim of a one-row benchmark: Theorem 3 over the guard-gated windows and the CLOCKED
+/-- The claim of a one-row benchmark: Eq. (10) over the guard-gated left cycles and the CLOCKED
 guarded right automaton (each right cycle flows for at most `ε_R`; mode variable `(Aux, a)`,
 left clock `(Aux, b)`, right clock `(Aux, d)`), loop invariant the row with the envelope and
 the right region. -/
@@ -79,7 +80,11 @@ theorem AG_start_any (hnc : NonConnAll p n cX cov) {l : ℕ} (hl : l < nL p) (q 
       ⟨cutsL_of_guard hs hl σ hgL, (sat_cutF _ _).mp hc⟩
   · rw [barriers_dm hq]; simp
 
-/-- **Theorem 3 of a benchmark with one declared row, from its records.** -/
+/-- **Theorem 3 of a benchmark with one declared row, from its records.** Given the Z3 verdicts
+(`Verdicts`), the kernel-decided record facts (`structOK`, `progOK`, `coversOK`, `rowsSame`),
+a right region `reg` kept by every right flow, and Assumption 1 on `reg` (`WellFormedRIn`) for
+the pruned graph of the cover, `windowClaim` holds for every left cycle bound `dt ≤ ε_L`
+(Appendix B.1). -/
 theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
@@ -119,14 +124,16 @@ theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
 end Proofs
 
 
-/-! ## The pre-landing record (the pre-landing feature, `prelanding = true`, `docs/PRELANDING.md`) -/
+/-! ## The pre-landing record: right-only flow certificates on the restricted mode `q|¬tgt` of
+Lemma 4 (`prelanding = true`, `docs/PRELANDING.md`) -/
 
 section PL
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
   {ce : Choice.ChoiceEmitE}
 
-/-- **Theorem 3 of a one-row benchmark with a pre-landing record, over its EMITTED cover**:
+/-- **Theorem 3 of a one-row benchmark with a pre-landing record, over its EMITTED cover**
+(`theorem3_window_of_records_pl`, Appendix B.1):
 the records' theorem on the merged cover `withPL cov pl` (the claim reads the pruned edges
 only, which the merge keeps), behind the data gate `plOK` (the record only when the IR records the
 pre-landing feature as on). -/
@@ -143,8 +150,8 @@ theorem theorem3_window_of_records_pl {pl : Preland.PrelandEmitE} (_hpl : plOK p
   theorem3_window_of_records hs hv hpo hcovers hregR hinv hwf hsame a b d hab hda hdb dt hdt
 
 /-- **Theorem 3 of a benchmark with per-mode rows and a pre-landing record, over its EMITTED
-cover** (the mode-keyed form; since 2026-10-31 the pre-landing certificate is on for every
-benchmark, `docs/BATCH12-2026-10-31.md`): the records' theorem on the merged cover
+cover** (the mode-keyed form, Lemma 4 on the restricted mode `q|¬tgt`): the records' theorem on
+the merged cover
 `withPL cov pl` (the claim reads the pruned edges only, which the merge keeps), behind the data
 gate `plOK`. -/
 theorem theorem3_keyed_of_records_pl {pl : Preland.PrelandEmitE} (_hpl : plOK p cov pl = true)

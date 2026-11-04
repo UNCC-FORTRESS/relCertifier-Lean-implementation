@@ -154,6 +154,12 @@ import RelCertifier.VerdictsV2.ModalDynX
 import RelCertifier.VerdictsV2.ModalXStrict
 import RelCertifier.InstancesV2.WellFormedBattery
 import RelCertifier.InstancesV2.Bridge
+-- The demo and strict exhibits (Appendix B.1), so that `lake build` checks them too.
+import RelCertifier.InstancesV2.Bridge.EngineCoolingPrelanding
+import RelCertifier.InstancesV2.Bridge.HoldRepositionStrict
+import RelCertifier.InstancesV2.Bridge.SaltTankStutter
+import RelCertifier.InstancesV2.Bridge.StoplineFrictionMixed
+import RelCertifier.InstancesV2.Bridge.WatertankStrict
 import RelCertifier.Proofs.Encoding.Emitted.Refute
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.VerdictsV2.RunRefute

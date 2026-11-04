@@ -6,11 +6,11 @@ Released under Apache 2.0 license.
 
 Assumption 1 relative to a region (`WellFormedRIn G guard reg ε` with `RegionInvariant G reg`,
 the form the general theorem and the bridge are stated in; every generated instance takes
-`reg = ⊤`): for the cover's
+`reg = ⊤`, the satellite proofs of Appendix B.5 a momentum band): for the cover's
 induction the region must also survive the joint segments, whose right part is the right flow
 at the pairing's stretch. The right coordinates of a joint run `Φ` solve `ẏ = λ f_R(y)`
 (`f_R` reads right coordinates only), so `u ↦ Φ(u/λ)`, merged over the start's left part, is a
-solution of the unit-stretch right block over `λ·r`; `RegionInvariant` then keeps the region
+solution of the unit-stretch right block over `λ·r` (Lemma 1, Time Stretching); `RegionInvariant` then keeps the region
 (which reads right coordinates only) to the end.
 -/
 import RelCertifier.Proofs.Encoding.ReplayEngine
@@ -87,7 +87,7 @@ theorem odeSol_right_of_joint {fL fR : Fin n → Term (Var n)} {domL domR : Form
     rw [show c * r / c = r from by field_simp, hΦr]
 
 /-- **Frozen right** (the mirror of `frozen_left_constant`). Along a run of the joint system at
-stretch `0` (the stutter segment: the left runs, the right waits), every right coordinate is
+stretch `0` (the left runs, the witness stands still), every right coordinate is
 constant: its equation is `ẏ = 0 · f_R(y)`. -/
 theorem frozen_right_constant {fL fR : Fin n → Term (Var n)} {dom : Formula (Var n)}
     {ν μ : State (Var n)}
@@ -128,8 +128,8 @@ theorem frozen_right_constant {fL fR : Fin n → Term (Var n)} {dom : Formula (V
   rw [← hΦr, hconst r (right_mem_Icc.mpr hr), hΦ0]
 
 /-- A right-only region kept by every right flow (`RegionInvariant`) is kept along a joint
-segment at any stretch `c ≥ 0`: at `c > 0` through the time-rescaled right run, at the stutter
-stretch `c = 0` because the right coordinates do not move (`frozen_right_constant`). -/
+segment at any stretch `c ≥ 0`: at `c > 0` through the time-rescaled right run, at stretch
+`c = 0` because the right coordinates do not move (`frozen_right_constant`). -/
 theorem reg_kept_joint {G : SearchGraph (Var n)} {reg : Formula (Var n)}
     (hinv : RegionInvariant G reg) (hregR : reg.fv ⊆ range Rv)
     {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var n)}

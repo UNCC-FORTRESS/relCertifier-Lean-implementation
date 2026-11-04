@@ -2,20 +2,24 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The generic bridge, part 4: the anchor of a window and right mode
+# The generic bridge, part 4: the anchor of a left and a right mode
 
-`AG l q` (the row, the kept atoms of both modes, the barrier terms of `q`'s pruned exits, the
-envelope) is what the cover's induction carries. Here, from the structural bundle `structOK`
-and the verdicts (stays, non-connection pairs, flow packs, reposition packs):
+`AG l q` (the row, the mode-fact atoms of both modes, the barrier terms of `q`'s pruned exits,
+the envelope) is what the cover's induction carries: the relational invariant strengthened by
+the mode facts (Definition 2) and the non-connection barriers (Definition 6). Here, from the
+structural bundle `structOK` and the verdicts (stays, non-connection pairs, joint flow packs,
+right-only flow packs of Eq. (15)):
 
 * `AG_fv`, `AG_dom`, `AG_post`: hygiene, the envelope, the post of a segment;
 * `AG_start`: an admissible start satisfies the anchor (left atoms from the guard, right atoms
   from the region, barriers from the source checks);
-* `AG_hand`: the anchor transfers along a legal switch (the entered mode's atoms from its
-  guard, its barriers from its source checks);
-* `AG_box`: a joint segment at the pairing's stretch keeps the anchor (the pack, the stays, the
-  barriers' strict DI);
-* `AG_boxD`: a frozen-left segment keeps it (the reposition pack);
+* `AG_hand`: the anchor transfers along a legal right mode switch (the entered mode's atoms
+  from its guard (O1), its barriers from its source checks);
+* `AG_box`: a joint segment at the pairing's stretch keeps the anchor (the pack, the stays (O2),
+  the barriers' strict DI);
+* `AG_boxD`: a frozen-left segment keeps it (the right-only flow pack);
+* `AG_boxR`: so does a right-only run inside the pack's region, the restricted mode `q|¬tgt`
+  of Lemma 4 included;
 * `AG_prune`, `AG_pruneD`: a pruned exit's guard never holds at the end of a segment.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Barrier
@@ -175,7 +179,7 @@ theorem hostFlags_length (vars : List String) (n : ℕ) (f : PForm) :
   rcases hc : invComponents vars n f with _ | cs <;>
     rcases hf : invStrictFlags vars n f with _ | fs <;> simp_all
 
-/-- The strictness mask of window `l`'s row, aligned with `comps` (`g :: gs`). -/
+/-- The strictness mask of left mode `l`'s row, aligned with `comps` (`g :: gs`). -/
 def maskOf (p : PProblem) (n : ℕ) (l : ℕ) : List Bool := hostFlags (vars p) n (rowOf p l)
 
 /-! ## The half-open limit -/
@@ -209,27 +213,28 @@ section Verdicts
 
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
 
-/-- The stays of every mode's kept atoms. -/
+/-- The stays of every mode's kept atoms (O2 of the mode facts, Definition 2). -/
 def StayAll : Prop :=
   (∀ l < nL p, StayVerd (vars p) n Side.L (mLof p l) (cutAtomsOfX cX.L (mLof p l).name)) ∧
   (∀ q < nR p, StayVerd (vars p) n Side.R (mRof p q) (cutAtomsOfX cX.R (mRof p q).name))
 
-/-- The non-connection pair of every pruned edge. -/
+/-- The non-connection pair of every pruned edge (Definition 6). -/
 def NonConnAll : Prop :=
   ∀ q < nR p, ∀ t ∈ prunedTgts p cov q,
     NonConnVerd (vars p) n (cutAtomsOfX cX.R (mRof p q).name) (mRof p q) (mRof p t)
 
-/-- The flow pack of a certified pairing, at its strata order and stretch. -/
+/-- The joint flow pack of a certified pairing (Eq. (14)), at its strata order and stretch. -/
 def JointVerd (l q : ℕ) : Prop :=
   modalVerdX p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q
 
-/-- The reposition pack of a pairing, on the region `rg` (default: the whole domain; the
-pre-landing region of the node's progress certificate with the pre-landing feature on, `dynRegion`). -/
+/-- The right-only flow pack of a pairing (Eq. (15)), pre- or post-joint, on the region `rg`
+(default: the whole domain; with the `prelanding` feature on, `dynRegion`, the restricted mode
+`q|¬tgt` of the node's reposition certificate, Lemma 4). -/
 def DynVerd (l q : ℕ) (pre : Bool) (rg : DynRegion n := .whole) : Prop :=
   modalVerdDynX p cX n (rowIdx p l)
     (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder) pre l q rg
 
-/-- The ordered components of a window's row under a strata order. -/
+/-- The ordered components of a left mode's row under a strata order. -/
 noncomputable def compsAt (l : ℕ) (order : List ℕ) : List (Term (Var n)) :=
   order.map (fun i => (comps p n l).getD i (Term.const 0))
 
@@ -256,21 +261,21 @@ theorem hiffL {l : ℕ} (hl : l < nL p) : AtomsIff (cL p n cX l) :=
 theorem hiffR {q : ℕ} (hq : q < nR p) : AtomsIff (cR p n cX q) :=
   atomsIff_of_WF (atomsWF_R (hcuts hs) hq)
 
-/-- A pairing's stretch is nonnegative (`0` is the stutter segment, admitted by `timeOK` only
-under `stutter = true`). -/
+/-- A pairing's stretch is nonnegative (stretch `0`, the right waits, is admitted by `timeOK`
+only under `Run.stutterAllowed`). -/
 theorem lam_nonneg {l q : ℕ} (hl : l < nL p) (hq : q < nR p) : 0 ≤ lam p cov l q :=
   ((timeOK_at (htime hs) hl).2.2.2.2 q hq).1
 
-/-- The left atoms of window `l` stay along any joint flow at any stretch, inside the
-envelope. -/
+/-- The left mode-fact atoms of left mode `l` stay along any joint flow at any stretch, inside
+the envelope. -/
 theorem stayL_env {l : ℕ} (hl : l < nL p) (hst : StayAll p n cX) (fR' : Fin n → Term (Var n))
     (lam' : Term (Var n)) :
     AtomsStayC (cL p n cX l) (jointSys (fL p n l) fR' lam') (env p n) :=
   atomsStayC_L (vars p) (mLof p l) _ (atomsWF_L (hcuts hs) hl) (hst.1 l hl) fR' lam' (env p n)
     (fun z hz => by rw [hostEvolve_L (hu hs) hl]; exact hz.1)
 
-/-- The right atoms of mode `q` stay along any joint flow of its field at any stretch `≥ 0`,
-inside a domain within the envelope. -/
+/-- The right mode-fact atoms of mode `q` stay along any joint flow of its field at any stretch
+`≥ 0`, inside a domain within the right evolve domain. -/
 theorem stayR_dom {q : ℕ} (hq : q < nR p) (hst : StayAll p n cX) (fL' : Fin n → Term (Var n))
     (c : ℝ) (hc : 0 ≤ c) (dom : Formula (Var n)) (hdom : ∀ z, Formula.sat dom z → Formula.sat (domR p n) z) :
     AtomsStayC (cR p n cX q) (jointSys fL' (fR p n q) (Term.const c)) dom :=
@@ -503,10 +508,10 @@ theorem AG_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ}
 
 /-- **A right-only run that stays in the pack's region before its last instant keeps the
 anchor** (the region premise `hboxB` of `Progress.lean`). Whole domain: `AG_boxD` along the
-merged run. Pre-landing region: on every proper prefix the run is in the half-open region, where
-the pack keeps the rows and atoms (`couple_box_dyn`); the row and atom terms are continuous
-along the run, so they are `≤ 0` at the end too; the barriers and the envelope are whole-domain
-facts. -/
+merged run. Restricted mode `q|¬tgt` (Lemma 4): on every proper prefix the run is in the
+half-open region, where the pack keeps the rows and atoms (`couple_box_dyn`); the row and atom
+terms are continuous along the run, so they are `≤ 0` at the end too; the barriers and the
+envelope are whole-domain facts. -/
 theorem AG_boxR (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
     (hq : q < nR p) (pre : Bool)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true)

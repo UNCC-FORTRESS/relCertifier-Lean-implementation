@@ -7,7 +7,8 @@ Released under Apache 2.0 license.
 The suite's `WellFormedR` lemmas are stated over each benchmark's standalone right automaton
 (its modes listed, its edges a literal list faithful to the file's `next` lists). The generic
 automaton `grOf` has the same modes (same fields, same domain) and at least the same edge
-targets; Assumption 1 transports.
+targets, so Assumption 1 transports to it (Appendix B.5: the hand-written proof at the
+benchmark's dimension is transported to the pruned graph of the cover).
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Data
 

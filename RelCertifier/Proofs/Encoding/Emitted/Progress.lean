@@ -4,14 +4,15 @@ Released under Apache 2.0 license.
 
 # The generic bridge, part 5: reposition progress from the emitted certificates
 
-For every reposition node `(l, q, pre)` of a cover the tool emits a progress certificate
-(`ProgressE`: one stage, or a helper stage and a landing stage, each in either direction, and
-the exits the landing covers). Its verdict (`ProgressVerd`, the queries the progress runner
-rebuilds) is read as facts over the node's region by `progressVerd_one` /
+For every right-only node `(l, q, pre)` of a cover the tool emits a reposition certificate
+(Definition 7, as a stage list `ProgressE`: one stage, or a helper stage and a landing stage, each
+in either direction, and the exits the landing covers). Its verdict (`ProgressVerd`, the queries the
+progress runner rebuilds) is read as facts over the node's region by `progressVerd_one` /
 `progressVerd_one_down` / `progressVerd_two` / `progressVerd_two_ud` / `_du` / `_dd`; the
 `Progress.lean` closers (`repoProgress_one_reg`, `_one_down_reg`, `_two_reg`, `_two_ud_reg`,
-`_two_du_reg`, `_two_dd_reg`) turn them into the general theorem's `RepoProgress` premise, with Assumption 1 for the cycles, the
-anchor kept along the frozen flow (`AG_boxD`) and the pruned exits excluded (`AG_pruneD`).
+`_two_du_reg`, `_two_dd_reg`) turn them into the general theorem's `RepoProgress` premise (Lemma 4),
+with Assumption 1 for the cycles, the anchor kept along the frozen-left flow (`AG_boxR`) and the
+pruned exits excluded (`AG_pruneD`).
 The certificate's shape facts (`progOK`: positive rates, variables right, one or two
 stages (`Progress.shapeOK`), exits declared non-self non-pruned successors, mode indices by
 name) are decided in the kernel.
@@ -35,10 +36,10 @@ section Defs
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
   (prog : ProgressEmitE)
 
-/-- Every emitted certificate's verdict. -/
+/-- Every emitted reposition certificate's verdict. -/
 def ProgAll : Prop := ∀ c ∈ prog.certs, ProgressVerd p cX n c
 
-/-- The certificate of reposition node `(l, q, pre)`. -/
+/-- The reposition certificate of right-only node `(l, q, pre)` (by names). -/
 def certFor (l q : ℕ) (pre : Bool) : Option ProgressE :=
   prog.certs.find? (fun c => c.mL == (mLof p l).name && c.mR == (mRof p q).name && c.pre == pre)
 
@@ -56,8 +57,8 @@ def certOK (q : ℕ) (c : ProgressE) : Bool :=
   c.exits.all (fun nm => (mRof p q).next.contains nm && nm != (mRof p q).name &&
     !(prunedOf cov (mRof p q).name nm))
 
-/-- Every reposition node of every window has a well-shaped certificate; mode indices by name
-are the indices. -/
+/-- Every right-only node of every left mode has a well-shaped reposition certificate; mode
+indices by name are the indices. -/
 def progOK : Bool :=
   (List.range (nL p)).all (fun l => modeIdx p.L.modes (mLof p l).name == l &&
     (List.range (nR p)).all (fun q => modeIdx p.R.modes (mRof p q).name == q &&
@@ -67,16 +68,17 @@ def progOK : Bool :=
          | some c => certOK p n cov q c
          | none => false))))
 
-/-- The region of a reposition node as a formula (`RegionSat`). -/
+/-- The region of a right-only node as a formula (`RegionSat`): both evolve domains, both
+modes' mode-fact atoms, the row, and the left guard pre-joint. -/
 noncomputable def regionF (l q : ℕ) (pre : Bool) : Formula (Var n) :=
   Formula.and (Formula.and (Formula.and (Formula.and (hostEvolve (vars p) n Side.L (mLof p l))
     (cutF (cL p n cX l))) (FRow p n l)) (if pre then guardL p n l else Formula.tt))
     (Formula.and (hostEvolve (vars p) n Side.R (mRof p q)) (cutF (cR p n cX q)))
 
-/-! ### The region of a reposition node's pack -/
+/-! ### The region of a right-only node's pack -/
 
-/-- The landing stage of node `(l, q, pre)` when the IR records the pre-landing feature as on
-(`prelanding = true`, the default): its certificate's last stage with its resolved coordinate.
+/-- The landing stage of node `(l, q, pre)` when the IR records the restricted-mode feature as
+on (`prelanding = true`, the default): its certificate's last stage with its resolved coordinate.
 `none` with the feature off (or without a certificate). -/
 def nodeStage (l q : ℕ) (pre : Bool) : Option (Var n × ProgressStageE) :=
   if p.prelanding then
@@ -93,8 +95,8 @@ def dynMask (l q : ℕ) (pre : Bool) : List Bool :=
   (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder).map
     (fun i => (maskOf p n l).getD i false)
 
-/-- The pack's region at the IR level (the bridge's `dynGroups`): the pre-landing region of the
-node's landing stage, `none` (the whole domain) with the pre-landing feature off. -/
+/-- The pack's region at the IR level (the bridge's `dynGroups`): the restricted mode `q|¬tgt`
+of the node's landing stage, `none` (the whole domain) with the `prelanding` feature off. -/
 def dynRegionI (l q : ℕ) (pre : Bool) : Option (IForm n × IForm n × List Bool) :=
   (nodeStage p n prog l q pre).map (fun vs => (before vs.1 vs.2, beforeCl vs.1 vs.2, dynMask p n cov l q pre))
 
@@ -115,8 +117,8 @@ theorem sat_before (v : Var n) (st : ProgressStageE) (y : State (Var n)) :
   · simpa [h] using sat_before_down v st h y
   · simpa [h] using sat_before_up v st h y
 
-/-- The pre-landing region of a landing stage: `x < θ` (half-open) and `x ≤ θ` (its closure),
-upward; the mirror downward. -/
+/-- The restricted-mode region of a landing stage (`q|¬tgt`, Lemma 4): `x < θ` (half-open) and
+`x ≤ θ` (its closure), upward; the mirror downward. -/
 noncomputable def regionOfStage (v : Var n) (st : ProgressStageE) (mask : List Bool) :
     DynRegion n :=
   .pre (before v st).toHost (beforeCl v st).toHost mask
@@ -137,8 +139,9 @@ noncomputable def regionOfStage (v : Var n) (st : ProgressStageE) (mask : List B
           show (st.theta : ℝ) - f t v ≤ 0; linarith)
         linarith)
 
-/-- **The region of node `(l, q, pre)`'s pack**: the whole domain with the pre-landing feature off; with it, the
-pre-landing region of the node's landing stage, strict components on its closure. -/
+/-- **The region of node `(l, q, pre)`'s pack**: the whole domain with the `prelanding` feature
+off; with it, the restricted mode `q|¬tgt` of the node's landing stage (Lemma 4), strict
+components on its closure. -/
 noncomputable def dynRegion (p : PProblem) (n : ℕ) (cov : CoverEmitE) (prog : ProgressEmitE)
     (l q : ℕ) (pre : Bool) : DynRegion n :=
   match nodeStage p n prog l q pre with
@@ -223,7 +226,7 @@ theorem certOK_stage {q : ℕ} {c : ProgressE} (h : certOK p n cov q c = true) {
 
 omit hs in
 /-- The shape: one stage or two stages, each in either direction (the directions are cased on
-by the dispatch of `hrepoProg_of`). Since 2026-11-01 (was: two stages both upward). -/
+by the dispatch of `hrepoProg_of`). -/
 theorem certOK_shape {q : ℕ} {c : ProgressE} (h : certOK p n cov q c = true) :
     (∃ st, c.stages = [st]) ∨ ∃ sth st, c.stages = [sth, st] := by
   simp only [certOK, shapeOK, Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq] at h
@@ -274,10 +277,12 @@ theorem dynRegion_cases {l q : ℕ} {pre : Bool} {c : ProgressE} {st : ProgressS
   unfold dynRegion nodeStage
   by_cases hk : p.prelanding = true <;> simp [hk, hcf, hlast, hv]
 
-/-- **The reposition-progress premise of every reposition node of window `l`**, from the node's
-progress certificate and its right-only pack on the node's region (`dynRegion`: the whole domain
-with the pre-landing feature off, the pre-landing region with it). The landing cycle stops at the first entry into
-the certificate's closed target (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
+/-- **The reposition-progress premise of every right-only node of left mode `l`** (Lemma 4),
+from the node's reposition certificate (Definition 7, its stage list) and its right-only flow
+pack on the node's region (`dynRegion`: the whole domain with `prelanding` off, the restricted
+mode `q|¬tgt` with it on), with Assumption 1 relative to a right region `reg` kept by the right
+flows. The landing cycle stops at the first entry into the certificate's closed target `tgt`
+(`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
 theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)

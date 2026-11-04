@@ -2,23 +2,24 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The generic bridge at strict rows: data, anchor, handoffs, progress (extension `strict-atoms`)
+# The generic bridge at strict rows: data, anchor, handoffs, progress
 
-The window's row read through its strictness mask (`maskOf`, the computable
+For the strict-invariant exhibits of Appendix B.1. A left mode's row read through its strictness
+mask (`maskOf`, the computable
 `Oracle.invStrictFlags` aligned with the row's components): `FRowS`/`ϕRowS` (strict
 components `< 0`), the strict anchor `AGS` (the flagged row, the closure atoms and barriers,
 the envelope), and the facts the cover consumes:
 
 * CONCLUSION sites, proved strict: `AGS_box` (the flagged joint pack `JointVerdS`: strict
-  components by routes A/B), `AGS_boxD` (the EXISTING reposition pack: route A preserves
-  `< 0`), `AGS_start`, `AGS_hand`, `AGS_post`;
+  components by routes A/B), `AGS_boxD` (the existing right-only flow pack, Eq. (15): route A
+  preserves `< 0`), `AGS_start`, `AGS_hand`, `AGS_post`;
 * ASSUMPTION sites, reused through the weakening `AGS → AG`: `AGS_prune`, `AGS_pruneD`,
   `AGS_regionF`, hygiene (`AGS_fv`, the free variables are those of `AG`);
 * `HandoffVerdS`/`handoff_soundS`: the strict handoff query (both rows at their masks);
-* `hrepoProg_ofS`: the reposition-progress premise for the strict anchor.
+* `hrepoProg_ofS`: the reposition-progress premise (Lemma 4) for the strict anchor.
 
 With an all-false mask every definition collapses to the existing one (`FRowS_allFalse`,
-`ϕRowS_allFalse`, `AGS_allFalse`, `jointVerdS_of_allFalse`). New leaf; no upstream edits.
+`ϕRowS_allFalse`, `AGS_allFalse`, `jointVerdS_of_allFalse`).
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Progress
 import RelCertifier.Proofs.Encoding.StrictCouple
@@ -51,8 +52,8 @@ theorem maskOf_len (l : ℕ) : (maskOf p n l).length ≤ (gs p n l).length + 1 :
   unfold comps
   omega
 
-/-- **The strict anchor** of window `l` at right mode `q`: the flagged row, the kept atoms of
-both modes and the barriers (closures), the envelope. -/
+/-- **The strict anchor** of left mode `l` at right mode `q`: the flagged row, the mode-fact
+atoms of both modes and the non-connection barriers (closures), the envelope. -/
 noncomputable def AGS (l q : ℕ) : Formula (Var n) :=
   Formula.and (FMS (g p n l) (gs p n l ++ atomTerms (cL p n cX l) (cR p n cX q) ++
     barriers p n cov q) (maskOf p n l)) (env p n)
@@ -64,7 +65,7 @@ noncomputable def AGrS (reg : Formula (Var n)) (l q : ℕ) : Formula (Var n) :=
 def JointVerdS (l q : ℕ) : Prop :=
   modalVerdXS p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q
 
-/-- The strict handoff verdict of a declared left transition. -/
+/-- The strict handoff verdict (Eq. (13) at the rows' masks) of a declared left mode change. -/
 def HandoffVerdS (tr : ℕ × ℕ) : Prop :=
   ∃ q, Handoff.queryOfS p n tr = some q ∧ z3solve q.toHost = Verdict.unsat
 
@@ -257,7 +258,7 @@ theorem AGS_box (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ}
       (jointVerdS_core hs hl hq hv) σ ω hFA hω
   · exact barriers_keep hs hnc hst hq (fL p n l) _ (lam_nonneg hs hl hq) σ ω hcRσ hbar hω
 
-/-- **A frozen-left segment keeps the strict anchor** (the existing reposition pack). -/
+/-- **A frozen-left segment keeps the strict anchor** (the existing right-only flow pack). -/
 theorem AGS_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
     (hq : q < nR p) (pre : Bool)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true)
@@ -304,8 +305,8 @@ theorem tagS_getD_fst (cs : List (Term (Var n))) (m : List Bool) (i : ℕ) :
           cases m <;> simp_all
 
 /-- **A frozen-left right-only run that stays in the pack's region before its last instant
-keeps the strict anchor** (`AG_boxR` at a strict row). Whole domain: `AGS_boxD`. Pre-landing
-region: on every proper prefix the run is in the half-open region, where the pack keeps the
+keeps the strict anchor** (`AG_boxR` at a strict row). Whole domain: `AGS_boxD`. Restricted
+mode `q|¬tgt` (Lemma 4): on every proper prefix the run is in the half-open region, where the pack keeps the
 tagged rows and atoms (`couple_box_dynS`); every `≤ 0` term is `≤ 0` at the end by continuity;
 a strict component's pack is route A over the CLOSED region (`covers`), and the run, up to and
 including its end, lies in that closed region narrowed by the domain, the atoms and the earlier
@@ -520,10 +521,11 @@ theorem dynRegion_covers (l q : ℕ) (pre : Bool) :
         (by rw [List.getD_eq_getElem?_getD]; exact hi)
       rwa [List.getD_eq_getElem?_getD] at this
 
-/-- **The reposition-progress premise of every reposition node of window `l`, at a strict row**, from the node's
-progress certificate and its right-only pack on the node's region (`dynRegion`: the whole domain
-with the pre-landing feature off, the pre-landing region with it). The landing cycle stops at the first entry into
-the certificate's closed target (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
+/-- **The reposition-progress premise of every right-only node of left mode `l`, at a strict
+row** (Lemma 4), from the node's reposition certificate (Definition 7, its stage list) and its
+right-only flow pack on the node's region (`dynRegion`: the whole domain with `prelanding` off,
+the restricted mode `q|¬tgt` with it on). The landing cycle stops at the first entry into the
+certificate's closed target `tgt` (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
 theorem hrepoProg_ofS (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)

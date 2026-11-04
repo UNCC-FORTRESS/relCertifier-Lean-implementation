@@ -2,16 +2,19 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The generic bridge, part 9: the chosen sets, from the emitted choice record
+# The generic bridge, part 9: the committed subsets, from the emitted choice record
 
-The existential mode choice (`docs/CHOICE-SOUNDNESS.md`, cases 3 and 4 of `CoveredX`): after a
-joint or right-only segment of `q` the witness covers only a chosen subset of the successors,
-and may hop into a chosen successor before a segment, each under a coverage query
-`region ∧ ⋀_{q' ∈ S} ¬guard(q')` the tool found `unsat`. The record (`Choice.ChoiceEmitE`)
-names the chosen sets; `chOfC` is the `ChoiceData` of a window from it; `coverageQueryOf`
-rebuilds each entry's query from the tool's regions (`leftFacts`/`rightFacts`); `coverage_sound`
-reads `unsat` as "some chosen successor's guard holds on the region". The regions are the
-anchor's region facts (`regionF`), so the general theorem's `hRJ/hRR/hRS` are `AG_regionF`.
+Committed successor subsets (Section 4.3, the alternative in the continue case of Definition 8;
+cases 3 and 4 of `CoveredX`): after a joint or right-only segment of `q` the witness covers only
+a nonempty committed subset `S` of the retained successors, landing set of the segment's
+certificate, and may hop into a committed successor before a segment, each under a coverage
+query `region ∧ ⋀_{q' ∈ S} ¬guard(q')` the tool found `unsat` (the committed-subset query of
+Section 4.3, negated). The record (`Choice.ChoiceEmitE`) names the committed subsets; `chOfC`
+is the `ChoiceData` of a left mode from it; `coverageQueryOf` rebuilds each entry's query from
+the tool's regions (`leftFacts`/`rightFacts`); `coverage_sound` reads `unsat` as "some committed
+successor's guard holds on the region". The regions are the anchor's region facts (`regionF`),
+so the general theorem's `hRJ/hRR/hRS` are `AG_regionF`. These are the coverage verdicts of
+committed subsets, a `Verdicts` family of Appendix B.1.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Progress
 import RelCertifier.Trusted.ChoiceEmit
@@ -29,7 +32,8 @@ section Defs
 
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE) (ce : ChoiceEmitE)
 
-/-- The entries of window `l` at right mode `q` of a kind and setting. -/
+/-- The entries of left mode `l` at right mode `q` of a kind and setting (`pre`: pre-joint;
+immaterial for `joint`); none for an out-of-range `q`. -/
 def entriesAt (l q : ℕ) (k : ChoiceKind) (pre : Bool) : List ChoiceEntryE :=
   if q < nR p then
     ce.entries.filter (fun e => e.mL == (mLof p l).name && e.q == (mRof p q).name &&
@@ -40,7 +44,7 @@ def preOf : SrcSetting → Bool
   | SrcSetting.preJ => true
   | SrcSetting.postJ => false
 
-/-- The window's choice data: the cover flags and the chosen sets by index. -/
+/-- The choice data of left mode `l`: the cover flags and the committed subsets by index. -/
 def chOfC (l : ℕ) : ChoiceData :=
   { jointOK := fun q => (flagsOf p cov l q).jointOK,
     repoPre := fun q => (flagsOf p cov l q).dynPre,
@@ -49,8 +53,9 @@ def chOfC (l : ℕ) : ChoiceData :=
     repoS := fun q σ => (entriesAt p ce l q .repo (preOf σ)).map (fun e => e.S.map (tgtIdx p)),
     hopS := fun q σ => (entriesAt p ce l q .hop (preOf σ)).map (fun e => e.S.map (tgtIdx p)) }
 
-/-- The coverage query of an entry, rebuilt from the records at the entry's window and mode
-(by name). -/
+/-- The coverage query of an entry, rebuilt from the records at the entry's left and right
+modes (by name): the entry's region (row components, mode-fact atoms of both modes) and the
+negated guards of its committed subset. -/
 def coverageQueryOf (e : ChoiceEntryE) : Option (IForm n) := do
   let l := modeIdx p.L.modes e.mL
   let q := modeIdx p.R.modes e.q
@@ -132,8 +137,8 @@ theorem sat_regionOfEntry {p : PProblem} {cX : EvolStrengtheningX} {mL mR : PMod
     exact ⟨hbase e.pre (fun hp => h4 (by simpa [entryPre, hk] using hp)),
       sat_lowGetD (vars := vars p) (side := Side.R) _ y (hg hk)⟩
 
-/-- A guard of the chosen list holds at a state of the region where no other does not: the
-coverage query's reading. -/
+/-- The coverage query's reading: given its `unsat`, at a state of the region (and, for a hop,
+of the mode's guard) some guard of the committed subset holds. -/
 theorem coverage_sound {p : PProblem} {cX : EvolStrengtheningX} {e : ChoiceEntryE}
     (hv : CoverageVerd p n cX e) :
     ∀ y, RegionSat (vars p) n cX (mLof p (modeIdx p.L.modes e.mL)) (mRof p (modeIdx p.R.modes e.q))
@@ -191,7 +196,9 @@ theorem mRof_tgtIdx_of_mem {md : PMode} (hmd : md ∈ p.R.modes) :
     simpa using this
   exact List.inj_on_of_nodup_map hres'.1.1 (mRof_mem hlt) hmd hname
 
-/-- A guard of the chosen set (by index) from a named one. -/
+/-- A guard of the committed subset (by index) from a named one: with the entry's coverage
+verdict, at a state of the region of left mode `l` and right mode `q` (and of `q`'s guard for a
+hop), the guard of some `q' ∈ S` (by index) holds. -/
 theorem guard_of_named {l q : ℕ} {e : ChoiceEntryE}
     (he : e.mL = (mLof p l).name) (heq : e.q = (mRof p q).name)
     (hidxL : modeIdx p.L.modes (mLof p l).name = l) (hidxR : modeIdx p.R.modes (mRof p q).name = q)

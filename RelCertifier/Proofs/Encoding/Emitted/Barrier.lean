@@ -5,17 +5,18 @@ Released under Apache 2.0 license.
 # The generic bridge, part 3: pruned exits, admissibility, handoffs, read from Z3
 
 * **Pruned exits (Definition 6).** The non-connection pair of a pruned edge `src → tgt`
-  (`NonConn.queries`: the source check `guard ∧ evolve ∧ cut ∧ g > 0` and the barrier check
-  `evolve ∧ cut ∧ g = 0 ∧ ġ_R ≥ 0`, `g` the tool's `guardTerm` of `tgt`'s guard) gives: on
-  entering `src` the barrier term is `≤ 0` (`nonconn_entry`), it stays `≤ 0` along every flow
-  of `src`'s field, joint or frozen, that keeps `src`'s kept atoms (`nonconn_keep`, strict DI
-  on the narrowed domain lifted by the stays), and `tgt`'s guard forces it `> 0`
+  (`NonConn.queries`: the source check `guard ∧ evolve ∧ fact ∧ g > 0` and the barrier check
+  `evolve ∧ fact ∧ g = 0 ∧ ġ_R ≥ 0`, `fact` the mode fact of `src` (Definition 2), `g` the
+  tool's `guardTerm` of `tgt`'s guard) gives: on entering `src` the barrier term is `≤ 0`
+  (`nonconn_entry`), it stays `≤ 0` along every flow of `src`'s field, joint or frozen, that
+  keeps `src`'s mode-fact atoms (`nonconn_keep`, strict DI on the narrowed domain lifted by the
+  stays), and `tgt`'s guard forces it `> 0`
   (`guard_pos_of_barrier`). The anchor of the bridge carries the barrier terms of a mode's
   pruned exits, so a pruned exit is never enabled at the end of a segment.
 * **Admissibility.** `unsat` of `guardL ∧ guardR ∧ ⋀ gᵢ ≤ 0` means no start of the pairing
-  satisfies both guards and the row (`adm_sound`).
-* **Handoffs.** `unsat` of the domain-conditioned handoff query means the source row, the
-  envelope and the target guard imply the target row (`handoff_sound`).
+  satisfies both guards and the row (`adm_sound`): a dropped start of a cover is inadmissible.
+* **Handoffs.** `unsat` of the domain-conditioned handoff query (Eq. (13)) means the source
+  row, the envelope and the target guard imply the target row (`handoff_sound`).
 * The row's components mention no auxiliary variable (`hostComps_fv`).
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Stay
@@ -63,7 +64,7 @@ theorem mapM_option_forall {α β : Type} {f : α → Option β} {l : List α} {
       · obtain ⟨y, hy, hfy⟩ := ih hbs x hx
         exact ⟨y, List.mem_cons_of_mem _ hy, hfy⟩
 
-/-- The folded source cut denotes the kept atoms. -/
+/-- The folded source mode fact (`NonConn.cutOfAtoms`) denotes its kept atoms. -/
 theorem sat_cutOfAtoms {vars : List String} {atoms : List CutAtomX} {c : IForm n}
     (h : NonConn.cutOfAtoms vars n (atoms.map (·.atom)) = some c) (ν : State (Var n)) :
     Formula.sat c.toHost ν ↔ CutSat (cutPairsX vars n Side.R atoms) ν := by
@@ -189,7 +190,7 @@ theorem guardTerm_fv {vars : List String} :
 
 /-! ## The non-connection verdict of a pruned edge -/
 
-/-- The verdict: the source cut rebuilds from the kept atoms, the pair rebuilds, both
+/-- The verdict: the source mode fact rebuilds from its kept atoms, the pair rebuilds, both
 `unsat`. -/
 def NonConnVerd (vars : List String) (n : ℕ) (atoms : List CutAtomX) (src tgt : PMode) : Prop :=
   ∃ cutR q1 q2, NonConn.cutOfAtoms vars n (atoms.map (·.atom)) = some cutR ∧
@@ -212,7 +213,7 @@ theorem queries_parts {vars : List String} {cutR : IForm n} {src tgt : PMode} {q
   obtain ⟨g, hg, domR0, hdom, srcR0, hsrc, fR, hfR, h1, h2⟩ := h
   exact ⟨g, domR0, srcR0, fR, hg, hdom, hsrc, hfR, h1.symm, h2.symm⟩
 
-/-- **Entry**: in the source's guard, evolve domain and kept atoms, the barrier is `≤ 0`. -/
+/-- **Entry**: in the source's guard, evolve domain and mode-fact atoms, the barrier is `≤ 0`. -/
 theorem nonconn_entry {vars : List String} {atoms : List CutAtomX} {src tgt : PMode}
     (hv : NonConnVerd vars n atoms src tgt) :
     ∀ y, Formula.sat (hostGuard vars n Side.R src) y → Formula.sat (hostEvolve vars n Side.R src) y →
@@ -232,7 +233,7 @@ theorem nonconn_entry {vars : List String} {atoms : List CutAtomX} {src tgt : PM
   simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hpos
 
 /-- **Kept**: along any flow of the source's field (any left field, any stretch `≥ 0`) inside
-its evolve domain that keeps its atoms, the barrier stays `≤ 0`. -/
+its evolve domain that keeps its mode-fact atoms, the barrier stays `≤ 0`. -/
 theorem nonconn_keep {vars : List String} {atoms : List CutAtomX} {src tgt : PMode}
     (hv : NonConnVerd vars n atoms src tgt) (hwf : atomsWF vars n Side.R "L_" atoms = true)
     (hfree : PForm.namesFree "L_" tgt.guard = true)

@@ -4,23 +4,26 @@ Released under Apache 2.0 license.
 
 # The generic bridge, part 6: Theorem 3 of a benchmark, mode-keyed, from its records
 
-`theorem3_keyed_of_records`: the ∀∃ relational invariance of the declared rows (one per left
-mode, `u_L`-keyed) with the evolve envelope and the right mode's region, over the left
-automaton of the file and the guarded right automaton of the file, from
+`theorem3_keyed_of_records` (Appendix B.1, the mode-dependent form of Eq. (9)): the ∀∃
+relational invariance (Definition 1) of the declared rows (one per left mode, `u_L`-keyed) with
+the evolve envelope and the right mode's region, over the left automaton of the file and the
+clocked guarded right automaton of the file, for every left cycle length `dt ≤ ε_L`, from
 
 * the structural bundle `structOK` and the certificate-shape bundle `progOK`, decided in the
   kernel;
 * the covers of every admissible start, decided in the kernel (`coversOK`, the extended
-  checker on the semantic right automaton);
-* Assumption 1 (`WellFormedR`);
-* the verdicts (`Verdicts`): the flow packs of the certified pairings, the reposition packs,
-  the stays of the kept atoms, the non-connection pairs of the pruned edges, the
-  admissibility of the dropped starts, the handoffs of the left transitions, the progress
-  certificates of the reposition nodes.
+  checker on the semantic right automaton, committed subsets included);
+* Assumption 1 relative to a region `reg` over the right coordinates (`WellFormedRIn` with
+  `RegionInvariant`; the generated instances take `reg = ⊤`);
+* the verdicts (`Verdicts`): the joint flow packs of the certified pairings, the right-only
+  flow packs (Eq. (15)), the stays of the mode-fact atoms (Definition 2, O2), the
+  non-connection pairs of the pruned edges (Definition 6), the admissibility of the dropped
+  starts, the handoffs of the left mode changes (Eq. (13)), the reposition certificates of the
+  right-only nodes (Definition 7), the coverage of the committed subsets.
 
-Per window the cover's response is `coverX_gresp` (the general theorem's induction) with the
-window's anchor; the windows assemble through `hstepMode_GR`, `HMode_regionG`,
-`hstep_modeKeyed` and `theorem3_modeKeyed`, exactly as the per-benchmark keyed instances did.
+Per left mode the cover's response is `coverX_gresp` (the general theorem's induction, Lemma 5)
+with the left mode's anchor; the left modes assemble through `hstepMode_GR`, `HMode_regionG`,
+`hstep_modeKeyed` and `theorem3_modeKeyed`, the composition through the handoffs of Theorem 2.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Choice
 import RelCertifier.Proofs.Encoding.Emitted.Region
@@ -62,18 +65,18 @@ structure Verdicts : Prop where
   prog : ProgAll p n cX prog
   coverage : CoverageAll p n cX ce
 
-/-- The checker's fuel for a window (`coverFuel`'s shape over the mode count). -/
+/-- The checker's fuel for left mode `l` (`coverFuel`'s shape over the mode count). -/
 def fuelOf (l : ℕ) : ℕ := B p cov l * (nR p + 1) + 1
 
-/-- Every admissible start of every window is covered, by the extended checker on the
-semantic right automaton. -/
+/-- Every admissible start of every left mode is covered (Definition 8, committed subsets
+included), by the extended checker on the semantic right automaton. -/
 noncomputable def coversOK : Bool :=
   (List.range (nL p)).all (fun l => (admissibleOf p cov l).all (fun q =>
     decideCoveredX (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fuelOf p cov l)
       ⟨q, B p cov l, SrcSetting.preJ⟩))
 
-/-- The regions of the chosen sets: after a joint segment, after a right-only segment, at a
-hop (the anchor's region facts). -/
+/-- The regions of the committed subsets: after a joint segment, after a right-only segment, at
+a hop (the anchor's region facts); `⊤` out of range. -/
 noncomputable def RJof (l q : ℕ) : Formula (Var n) :=
   if q < nR p then regionF p n cX l q false else Formula.tt
 noncomputable def RRof (l q : ℕ) (σ : SrcSetting) : Formula (Var n) :=
@@ -81,15 +84,15 @@ noncomputable def RRof (l q : ℕ) (σ : SrcSetting) : Formula (Var n) :=
 noncomputable def RSof (l q : ℕ) (σ : SrcSetting) : Formula (Var n) :=
   if q < nR p then Formula.and (regionF p n cX l q (preOf σ)) (guardR p n q) else Formula.tt
 
-/-- The stretch of a pairing, the window's own out of range. -/
+/-- The stretch of a pairing, the left mode's cover default out of range. -/
 noncomputable def lamOf (l q : ℕ) : ℝ :=
   if q < nR p then lam p cov l q else (((coverOf p cov l).lamQ : ℚ) : ℝ)
 
-/-- The kept atoms of a right mode with the region Assumption 1 is relative to. -/
+/-- The mode-fact atoms of a right mode with the region Assumption 1 is relative to. -/
 noncomputable def cutsR (reg : Formula (Var n)) (q : ℕ) : Formula (Var n) :=
   Formula.and (cuts p n cX q) reg
 
-/-- The region of a right mode: its guard, its kept atoms, the Assumption 1 region. -/
+/-- The region of a right mode: its guard, its mode-fact atoms, the Assumption 1 region. -/
 noncomputable def gregion (reg : Formula (Var n)) (q : ℕ) : Formula (Var n) :=
   regionG (guardR p n) (cutsR p n cX reg) q
 
@@ -195,7 +198,7 @@ theorem AG_post_any {l : ℕ} (hl : l < nL p) (q : ℕ) (y : State (Var n))
   obtain ⟨-, hR⟩ := (atomTerms_iff (hiffL hs hl) (hiffR_any hs q) y).mp hat
   exact ⟨⟨hF, h.2⟩, (sat_cutF _ _).mpr hR⟩
 
-/-! ### The certificates of a window -/
+/-! ### The certificates of a left mode -/
 
 theorem lamOf_nonneg {l : ℕ} (hl : l < nL p) (q : ℕ) : 0 ≤ lamOf p cov l q := by
   unfold lamOf
@@ -225,7 +228,7 @@ theorem budget_span {l : ℕ} (hl : l < nL p) : epsL p ≤ (B p cov l : ℝ) * �
   rw [mul_div_assoc', le_div_iff₀ hlamQ]
   exact hbud
 
-/-- A chosen set's coverage premise, from its entry's verdict. -/
+/-- A committed subset's coverage premise, from its entry's verdict. -/
 theorem cov_of_entry (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     {l q : ℕ} (hl : l < nL p) {k : ChoiceKind} {pre : Bool} {S : List ℕ}
     (hS : S ∈ (entriesAt p ce l q k pre).map (fun e => e.S.map (tgtIdx p)))
@@ -244,7 +247,7 @@ theorem cov_of_entry (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
   rw [hpre']
   exact regionSat_of_regionF hs hl _ y (hreg hq)
 
-/-- **The certificates of window `l`**, as `CoverHyps`. -/
+/-- **The certificates of left mode `l`**, as `CoverHyps` (Appendix B.1). -/
 theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -303,8 +306,8 @@ theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
       · obtain ⟨e, he, -⟩ := List.mem_map.mp hS
         exact absurd (mem_entriesAt he).1 hq
 
-/-- **Every admissible start is covered** (decided) and every other start is inadmissible
-(its verdict). -/
+/-- **Every admissible start is covered**: a start in `admissibleOf` by the decided
+`coversOK`, every other start is inadmissible by its admissibility verdict. -/
 theorem hcov_of (hv : Verdicts p n cX cov prog ce) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} {l : ℕ}
     (hl : l < nL p) (q : ℕ) (hq : q < (grOf p n (prunedOf cov)).modes.length)
@@ -320,9 +323,9 @@ theorem hcov_of (hv : Verdicts p n cX cov prog ce) (hcovers : coversOK p n cov c
     have := (sat_FM_iff _ _ σ).mp hσ.1
     rwa [cons_g_gs p n l (rowsOK_at (hrows hs) hl)] at this
 
-/-! ### The window responses -/
+/-! ### The left-mode responses -/
 
-/-- The response of window `l` from every admissible start of every right mode. -/
+/-- The response of left mode `l` from every admissible start of every right mode. -/
 theorem Hwindow (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     (hcovers : coversOK p n cov ce = true) {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -423,7 +426,10 @@ def keyedClaim (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEm
       (domL p n) (domR p n)
       (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX reg) (grOf p n (prunedOf cov)).modes.length)))
 
-/-- **Theorem 3 of a benchmark, mode-keyed, from its records.** -/
+/-- **Theorem 3 of a benchmark, mode-keyed, from its records** (Appendix B.1): from the
+verdicts, the decided `progOK` and `coversOK` (with the section's `structOK`), Assumption 1
+relative to a right region `reg` kept by the right flows, and distinct auxiliary coordinates,
+`keyedClaim` holds for every left cycle length `dt ≤ ε_L`. -/
 theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
@@ -513,7 +519,7 @@ theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
     · exact notMem_bv_rightAutomatonBodyC Gr mv tr (epsR p) uL
         (by simp [huL, hmv, Prod.ext_iff, hca]) (by simp [huL, htr, Prod.ext_iff, hdc.symm])
         (aux_notin_range_Rv c) hgR hRv
-    · -- the windows
+    · -- the left modes, cycle by cycle (`A.window t`)
       intro t ht σ hσ
       rw [hnum] at ht
       rw [hA, leftAutOf_window _ _ ht]

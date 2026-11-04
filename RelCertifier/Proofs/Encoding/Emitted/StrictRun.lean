@@ -2,7 +2,10 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The queries of a benchmark at its strict rows, as one list of groups (extension `strict-atoms`)
+# The queries of a benchmark at its strict rows, as one list of groups
+
+The strict-invariant exhibits of Appendix B.1 (rows with strict atoms, Eq. (8) with `< 0`)
+are pinned like the other instances (Appendix B.4).
 
 `bridgeGroupsS` is `bridgeGroups` with the strict flow packs (`modalVerdXQueriesS`: a strict
 component's group is [route A, route B]) and the strict handoff queries
@@ -10,8 +13,6 @@ component's group is [route A, route B]) and the strict handoff queries
 green run as `VerdictsS`, the hypothesis of `theorem3_keyed_strict_of_records`.
 `bridgeGroupsS_eq_of_noStrict`: without strict atoms the strict run issues exactly the
 existing queries.
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Run
 import RelCertifier.Proofs.Encoding.Emitted.StrictKeyed
@@ -181,8 +182,10 @@ theorem bridgeGroupsS_eq_of_noStrict {p : PProblem} {cX : EvolStrengtheningX}
   unfold bridgeGroupsS bridgeGroups
   rw [hj, hh]
 
-/-- **Theorem 3 at strict rows from a green strict run**: the runner's groups
-(`bridgeGroupsS`) all discharged give the strict mode-keyed claim. -/
+/-- **Theorem 3 at strict rows from a green strict run**: if the runner's groups
+(`bridgeGroupsS`) are all discharged (`GroupsOK`), the kernel-decided record facts hold, and
+Assumption 1 holds on a right region kept by every right flow, then the strict mode-keyed claim
+`keyedClaimS` holds for every `dt ≤ ε_L`. -/
 theorem theorem3_keyed_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
     {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE}
     (hs : structOK p n cov cX = true) {gs : List (List (IForm n))}
@@ -197,7 +200,8 @@ theorem theorem3_keyed_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
   theorem3_keyed_strict_of_records hs (verdictsS_of_groups hrun hok) hpo hcovers hregR hinv hwf
     a b c d hba hca hcb hda hdb hdc dt hdt
 
-/-- **Theorem 3 at a strict one-row benchmark from a green strict run** (window form). -/
+/-- **Theorem 3 at a strict one-row benchmark from a green strict run** (window form): the same
+hypotheses as `theorem3_keyed_strict_of_run` plus `rowsSame`, concluding `windowClaimS`. -/
 theorem theorem3_window_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
     {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE}
     (hs : structOK p n cov cX = true) {gs : List (List (IForm n))}

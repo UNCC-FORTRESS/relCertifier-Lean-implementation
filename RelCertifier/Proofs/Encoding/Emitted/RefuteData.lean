@@ -4,13 +4,15 @@ Released under Apache 2.0 license.
 
 # Refutations, part 1: the witness, evaluated in the kernel, and the query groups
 
-A refutation witness (`Refute.RefWitE`) is a rational joint state. Its facts (the antecedent
-of Theorem 3's claim at the stored modes, the entered mode's guard, a broken component) are
-decided in the kernel by evaluating the lowered IR (`ITerm.evalQ`, `IForm.evalQ`) at the
-witness: `IForm.evalQ_iff` ties the evaluation to host satisfaction at the real cast.
+The kernel half of the refutations of Appendix B.6. A refutation witness (`Refute.RefWitE`) is a
+rational joint state. Its facts (the antecedent of Theorem 3's claim at the stored modes, the
+entered mode's guard, a broken component) are decided in the kernel by evaluating the lowered IR
+(`ITerm.evalQ`, `IForm.evalQ`) at the witness: `IForm.evalQ_iff` ties the evaluation to host
+satisfaction at the real cast.
 
 `refGroups` builds every query a refutation rests on, as singleton groups (the bridge's
-`GroupsOK` pattern); `RefVerdicts` is the green run of the runner.
+`GroupsOK` pattern); `RefVerdicts` is the green run of the runner, the Z3 verdicts on the
+mode-fact certificate and the right flow that enter through the pin layer.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Run
 import RelCertifier.Trusted.RefuteQueries
@@ -120,7 +122,7 @@ def compPosQ (row : PForm) (k : ℕ) (s : Var n → ℚ) : Bool :=
 
 /-- **The antecedent facts of a witness**, decided in the kernel: the indices in range and the
 switch declared; at the witness, the stored left mode's row, both evolve envelopes, the stored
-right mode's guard and kept atoms; after the switch, the entered mode's guard (tested twice by
+right mode's guard and mode-fact atoms; after the switch, the entered mode's guard (tested twice by
 the left automaton) and the left envelope (the zero-duration flow's domain). -/
 def preOK (a b c : Fin n) (w : RefWitE) : Bool :=
   let s := witState n a c w

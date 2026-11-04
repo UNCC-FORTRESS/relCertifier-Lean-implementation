@@ -4,13 +4,14 @@ Released under Apache 2.0 license.
 
 # Refutations, part 2: Theorem 3's claim is false (kinds C and A, mode-keyed form)
 
-Ground truth for "this invariant is correctly rejected": `¬ keyedClaim …`, for EVERY cover
-record (so for every pruning of the right automaton: the arguments below never use the right
-automaton's edges), at the model's cut certificate `cX`, at `reg = ⊤`, for every window length
-`dt ≥ 0`.
+The first two refutation arguments of Appendix B.6, for a mode-dependent invariant. Ground truth
+for "this invariant is correctly rejected": `¬ keyedClaim …`, for EVERY cover record (so for
+every pruning of the right automaton: the arguments below never use the right automaton's
+edges), at the model's mode-fact certificate `cX` (Definition 2), at `reg = ⊤`, for every left
+cycle length `dt ≥ 0`.
 
-W4: the refutation arguments are stated against the UNCLOCKED claim `keyedClaimU` (the pre-W3
-`keyedClaim`, right program `rightAutomatonBody`). The clocked claim implies the unclocked one
+The refutation arguments are stated against the claim without the right clock, `keyedClaimU`
+(right program `rightAutomatonBody`). The claim with the clock implies it
 (`keyedClaim_to_unclocked`: fewer right runs make the claim harder, the clock is erased by
 `star_bodyC_to_body`), so each refutation transfers to `¬ keyedClaim … d dt` by contraposition
 (`refute_keyed_C_clocked`, `refute_keyed_A_clocked`).
@@ -24,7 +25,8 @@ The right run binds only right coordinates and the right mode variable, so `μR`
 left values, and the entered row `m` holds at `μR` itself.
 
 * **Kind C (no partner):** a Z3 `unsat` per right mode `q` says no state with the witness's left
-  values satisfies row `m`, the right evolve domain, `q`'s guard and `q`'s kept atoms; `μR` would.
+  values satisfies row `m`, the right evolve domain, `q`'s guard and `q`'s mode-fact atoms; `μR`
+  would.
 * **Kind A (a component broken, right-rigid):** component `k` of row `m` is `> 0` at `σ`, and a
   Z3 `unsat` per right mode says the right field cannot decrease it inside the right evolve
   domain; along every right run (flows by `DI_nonstrict_domain`, jumps change no coordinate the
@@ -345,7 +347,7 @@ theorem pre_sat (hpf : PreFacts p cX a b c w) (hca : c ≠ a) (pr : String → S
     exact ⟨w.u, by rw [leftAutOf_numModes]; exact hpf.hu, σW_aux_c hca⟩
 
 /-- What the post-condition at `(νL, μR)` gives at `μR` itself: the entered row, the right
-envelope, a right mode with its guard and kept atoms. -/
+envelope, a right mode with its guard and mode-fact atoms. -/
 theorem post_facts (hpf : PreFacts p cX a b c w) (hcb : c ≠ b) {pr : String → String → Bool}
     {dt : ℝ} {μR : State (Var n)}
     (hR : Program.sem (Program.star (rightAutomatonBody (grOf p n pr) ((Side.Aux, a) : Var n)))
@@ -468,11 +470,11 @@ theorem rigid_star {p : PProblem} {pr : String → String → Bool} {a : Fin n} 
       refine Term.coincidence G (fun v hv => (hfr v ?_).symm)
       rcases hGfv hv with ⟨i, rfl⟩ | ⟨i, rfl⟩ <;> simp [Lv, Rv]
 
-/-! ## The unclocked claim (the pre-W3 `keyedClaim`), the refutations' target -/
+/-! ## The claim without the right clock, the refutations' target -/
 
 /-- The mode-keyed claim over the UNCLOCKED guarded right automaton (`rightAutomatonBody`; mode
-variable `(Aux, a)`, left clock `(Aux, b)`, left mode variable `(Aux, c)`): the pre-W3
-`keyedClaim`. The clocked claim implies it (`keyedClaim_to_unclocked`), so a refutation of this
+variable `(Aux, a)`, left clock `(Aux, b)`, left mode variable `(Aux, c)`): `keyedClaim` without
+the right clock. The clocked claim implies it (`keyedClaim_to_unclocked`), so a refutation of this
 claim refutes the clocked one by contraposition. -/
 def keyedClaimU (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
     (reg : Formula (Var n)) (a b c : Fin n) (dt : ℝ) : Prop :=
@@ -483,7 +485,7 @@ def keyedClaimU (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverE
       (domL p n) (domR p n)
       (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX reg) (grOf p n (prunedOf cov)).modes.length)))
 
-/-! ## W4: the clocked claim implies the unclocked one -/
+/-! ## The clocked claim implies the unclocked one -/
 
 /-- Theorem 3's ∀∃ form is monotone in the right program up to a transport of the
 post-condition: when every right run of `R'` landing in `ψ` yields a right run of `R` landing
@@ -591,8 +593,10 @@ section Refute
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {a b c : Fin n} {w : RefWitE}
 
-/-- **Kind C, mode-keyed.** From the witness's kernel-decided facts and the no-partner `unsat`s,
-the claim is false for every cover record (every pruning), every `dt ≥ 0`. -/
+/-- **Kind C, mode-keyed.** From the witness's kernel-decided facts (`preOK`) and the no-partner
+`unsat`s of `RefVerdicts`, the claim without the right clock, `keyedClaimU`, is false for every
+cover record (every pruning), every `dt ≥ 0` (Appendix B.6, no right state pairs with the left
+values). -/
 theorem refute_keyed_C (hpre : preOK p n cX a b c w = true) (hk : w.kind = "C")
     (hv : RefVerdicts p n cX w) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : 0 ≤ dt)
     (cov : CoverEmitE) : ¬ keyedClaimU p n cX cov Formula.tt a b c dt := by
@@ -611,9 +615,10 @@ theorem refute_keyed_C (hpre : preOK p n cX a b c w = true) (hk : w.kind = "C")
   refine z3_unsat_sound hz μR (noPartner_sound hQ (fun i => ?_) hrow hdR hgq hcq)
   rw [rightStar_keepsL hR, σW_L]
 
-/-- **Kind A, mode-keyed.** Component `k` of the entered row is positive at the witness and no
-right field decreases it inside the right evolve domain: the claim is false for every cover
-record (every pruning), every `dt ≥ 0`. -/
+/-- **Kind A, mode-keyed.** Component `k` of the entered row is positive at the witness
+(`compPosQ`) and no right field decreases it inside the right evolve domain (the rigidity
+`unsat`s of `RefVerdicts`): the claim without the right clock, `keyedClaimU`, is false for every
+cover record (every pruning), every `dt ≥ 0` (Appendix B.6). -/
 theorem refute_keyed_A (hpre : preOK p n cX a b c w = true) (hk : w.kind ≠ "C")
     (hpos : compPosQ p n (rowOf p w.m) w.k (witState n a c w) = true)
     (hv : RefVerdicts p n cX w) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : 0 ≤ dt)
@@ -648,8 +653,9 @@ theorem refute_keyed_A (hpre : preOK p n cX a b c w = true) (hk : w.kind ≠ "C"
   rw [sat_FRow_iff] at hrow
   linarith [hrow _ hmem]
 
-/-- **Kind C, mode-keyed, the clocked claim** (W4): `refute_keyed_C` by contraposition through
-`keyedClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
+/-- **Kind C, mode-keyed, the clocked claim**: `¬ keyedClaim`, from `refute_keyed_C` by
+contraposition through `keyedClaim_to_unclocked`; `(Aux, d)` is the right clock (Appendix B.6:
+the claim with the clock fails because the claim without it does). -/
 theorem refute_keyed_C_clocked (hpre : preOK p n cX a b c w = true) (hk : w.kind = "C")
     (hv : RefVerdicts p n cX w) (hnm : namesOK p = true) (hcu : cutsOK p n cX = true)
     (hca : c ≠ a) (hcb : c ≠ b) (d : Fin n) (hda : d ≠ a) (dt : ℝ) (hdt : 0 ≤ dt)
@@ -657,8 +663,8 @@ theorem refute_keyed_C_clocked (hpre : preOK p n cX a b c w = true) (hk : w.kind
   fun h => refute_keyed_C hpre hk hv hca hcb dt hdt cov
     (keyedClaim_to_unclocked hnm hcu (by simp [Formula.fv]) hda h)
 
-/-- **Kind A, mode-keyed, the clocked claim** (W4): `refute_keyed_A` by contraposition through
-`keyedClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
+/-- **Kind A, mode-keyed, the clocked claim**: `¬ keyedClaim`, from `refute_keyed_A` by
+contraposition through `keyedClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
 theorem refute_keyed_A_clocked (hpre : preOK p n cX a b c w = true) (hk : w.kind ≠ "C")
     (hpos : compPosQ p n (rowOf p w.m) w.k (witState n a c w) = true)
     (hv : RefVerdicts p n cX w) (hnm : namesOK p = true) (hcu : cutsOK p n cX = true)

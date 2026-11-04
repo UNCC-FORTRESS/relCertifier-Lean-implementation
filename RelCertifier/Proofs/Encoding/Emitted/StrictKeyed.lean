@@ -2,7 +2,9 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The generic bridge at strict rows: Theorem 3 from the records (extension `strict-atoms`)
+# The generic bridge at strict rows: Theorem 3 from the records
+
+The record-level theorems for the strict-invariant exhibits of Appendix B.1.
 
 `theorem3_keyed_strict_of_records` and `theorem3_window_strict_of_records`: the mode-keyed and
 one-row Theorem 3 of a benchmark whose rows may contain strict atoms, the statement carrying
@@ -15,8 +17,6 @@ row is only an assumption, read through the weakening `FMS → FM`.
 Collapse: for a benchmark without strict atoms (`noStrictRows`, decidable) the strict claims
 are the existing claims (`keyedClaimS_iff`, `windowClaimS_iff`) and the existing verdicts are
 the strict ones (`VerdictsS.ofVerdicts`), so the existing theorems are the special case.
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.StrictAnchor
@@ -154,7 +154,7 @@ theorem cov_of_entryS (hcovg : CoverageAll p n cX ce) (hpo : progOK p n cov prog
   rw [hpre']
   exact regionSat_of_regionF hs hl _ y (hreg hq)
 
-/-- **The certificates of window `l` at its strict row**, as `CoverHyps` (anchor `AGrS`). -/
+/-- **The certificates of left mode `l` at its strict row**, as `CoverHyps` (anchor `AGrS`). -/
 theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -230,7 +230,8 @@ theorem hcov_ofS (hv : VerdictsS p n cX cov prog ce) (hcovers : coversOK p n cov
     have := (sat_FM_iff _ _ σ).mp (FRowS_weaken hσ.1)
     rwa [cons_g_gs p n l (rowsOK_at (hrows hs) hl)] at this
 
-/-- The response of window `l` at its strict row from every admissible start. -/
+/-- The per-left-mode response of left mode `l` at its strict row, from every admissible start
+(Theorem 1, through `coverX_gresp`). -/
 theorem HwindowS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     (hcovers : coversOK p n cov ce = true) {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -290,7 +291,10 @@ def keyedClaimS (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverE
       (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX reg) (grOf p n (prunedOf cov)).modes.length)))
 
 /-- **Theorem 3 of a benchmark, mode-keyed, at its strict rows, from its records.** The rows
-are read through their strictness masks (`ϕRowS`): a strict atom is proved `< 0`. -/
+are read through their strictness masks (`ϕRowS`): a strict atom is proved `< 0`. From the
+strict verdicts `VerdictsS`, the kernel-decided record facts, and Assumption 1 on a right region
+kept by every right flow, `keyedClaimS` holds for every `dt ≤ ε_L`; the per-mode rows are
+composed through the strict handoffs (Theorem 2). -/
 theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)

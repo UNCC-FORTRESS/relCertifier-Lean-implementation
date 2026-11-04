@@ -8,7 +8,8 @@ Released under Apache 2.0 license.
 as groups of alternatives (a flow pack's component is discharged by any of its three routes;
 every other group is a singleton). `verdicts_of_groups` reads a run in which every group has
 an `unsat` member as the `Verdicts` structure. The runner (`VerdictsV2/RunBridge.lean`) issues
-exactly `bridgeGroups`; so the runner's green light is the instance's hypothesis.
+exactly `bridgeGroups`, so the query a theorem assumes is the query Z3 saw, and the runner's green
+light is the instance's hypothesis (the pinning of Appendix B.4).
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.VerdictsV2.ModalDynX
@@ -79,7 +80,8 @@ def progGroups (c : ProgressE) : Option (List (List (IForm n))) :=
 def coverageGroups (e : ChoiceEntryE) : Option (List (List (IForm n))) :=
   (coverageQueryOf p n cX e).map ([[·]])
 
-/-- **Every query of the benchmark**, in groups. -/
+/-- **Every query of the benchmark**, in groups, rebuilt from the records alone (`none` when a
+record fails to lower). -/
 def bridgeGroups : Option (List (List (IForm n))) := do
   let sL ← (List.range (nL p)).mapM (fun l =>
     stayGroups p n Side.L (mLof p l) (cutAtomsOfX cX.L (mLof p l).name))
@@ -232,7 +234,9 @@ theorem progVerd_of_groups {c : ProgressE} {gs : List (List (IForm n))}
     rw [List.mem_singleton] at ha; subst ha
     exact hz
 
-/-- **A green run is the `Verdicts` structure.** -/
+/-- **A green run is the `Verdicts` structure.** If `bridgeGroups` yields `gs` and every group of
+`gs` has a member that `z3solve` reports `unsat` (`GroupsOK`), then `Verdicts` holds for the same
+records (Appendix B.4). -/
 theorem verdicts_of_groups {gs : List (List (IForm n))}
     (h : bridgeGroups p n cX cov prog ce = some gs) (hok : GroupsOK gs) :
     Verdicts p n cX cov prog ce := by

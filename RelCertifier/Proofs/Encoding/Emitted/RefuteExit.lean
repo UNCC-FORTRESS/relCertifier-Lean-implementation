@@ -4,7 +4,8 @@ Released under Apache 2.0 license.
 
 # Refutations, part 3: short-time flow existence and first-order exit
 
-The analysis behind kind B (a component pushed out by the left flow). From a state `μ` in the
+The analysis behind kind B, the third refutation argument of Appendix B.6 (a component on its
+boundary pushed out by the left flow). From a state `μ` in the
 interior of the evolve domain, where a smooth function `G` is `≥ 0` and its Lie derivative along
 the field is `> 0`, an integral curve of the field exists on a short interval `[0, t]`, `t > 0`
 as small as asked, staying in the domain, at whose end `G > 0`:
@@ -56,7 +57,10 @@ theorem curve_coord {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
   have := hconst s hs
   linarith
 
-/-- **Short-time existence with first-order exit.** -/
+/-- **Short-time existence with first-order exit.** From `μ` in the interior of `dom` with
+`G μ ≥ 0` and `Lie sys G μ > 0` (`G` differentiable, `sys` well formed), for every `T > 0` there
+is a `t ∈ (0, T]` and an integral curve `Φ` of the field from `μ` on `[0, t]` that stays in `dom`
+and ends with `G (Φ t) > 0`. -/
 theorem exit_run {sys : ODESystem V} (hwf : sys.WellFormed) {dom : Formula V} {μ : State V}
     (hdom : {x | Formula.sat dom x} ∈ 𝓝 μ) {G : State V → ℝ} (hG : Differentiable ℝ G)
     (hG0 : 0 ≤ G μ) (hlie : 0 < Lie sys G μ) {T : ℝ} (hT : 0 < T) :

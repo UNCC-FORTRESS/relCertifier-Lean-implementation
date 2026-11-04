@@ -2,11 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Assumption 1, lifted by one coordinate (W3)
+# Assumption 1, lifted by one coordinate
 
-The suite's `WellFormedR` lemmas (`InstancesV2/WellFormed/*`) are stated at a fixed
-dimension `n`; the clocked bridge needs one more auxiliary coordinate (the right clock), so
-the generated instances live at `n+1`. The lowering of the same IR at `n+1` is the lowering
+The suite's `WellFormedR` lemmas (`InstancesV2/WellFormed/*`, Assumption 1, Appendix B.5) are
+stated at a fixed dimension `n`; the clocked bridge needs one more auxiliary coordinate (the
+right clock), so the generated instances live at `n+1` (Appendix B.1: Assumption 1 at the
+benchmark's dimension plus the clock). The lowering of the same IR at `n+1` is the lowering
 at `n` with every coordinate cast along `Fin.castSucc` and the new coordinate unbound: the
 state variables are the same, so `dynOf` gives the new coordinate derivative `0` and no
 guard or domain mentions it. Hence every solution at `n+1` projects to one at `n`
@@ -287,8 +288,9 @@ theorem odeSol_proj {p : PProblem} {n : ℕ} (hpad : padOK p n = true) {q : ℕ}
   · intro t ht
     exact (sat_domR_succ hpad _).mp (H.hdom t ht)
 
-/-- **Assumption 1 lifts by one coordinate.** Side condition: the decidable padding bundle
-`padOK p n` (the IR lowers at `n+1` as the embedding of its lowering at `n`). -/
+/-- **Assumption 1 lifts by one coordinate.** `WellFormedR` at `n` gives `WellFormedR` at
+`n+1`, same pruning and `ε`. Side condition: the decidable padding bundle `padOK p n` (the IR
+lowers at `n+1` as the embedding of its lowering at `n`). -/
 theorem wellFormedR_lift {p : PProblem} {n : ℕ} {pr : String → String → Bool} {ε : ℝ}
     (hpad : padOK p n = true) (h : WellFormedR (grOf p n pr) (guardR p n) ε) :
     WellFormedR (grOf p (n+1) pr) (guardR p (n+1)) ε := by

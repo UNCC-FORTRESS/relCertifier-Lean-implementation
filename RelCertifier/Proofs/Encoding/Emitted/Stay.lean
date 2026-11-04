@@ -4,7 +4,8 @@ Released under Apache 2.0 license.
 
 # The generic bridge, part 2: the kept atoms stay, from the route verdicts
 
-O2 of the extended cut certificate, read from Z3: each kept atom of a mode stays along every
+The preservation half (O2) of a mode fact (Definition 2), read from Z3, the kept-atom stays
+family of the `Verdicts` (Appendix B.1): each kept atom of a mode stays along every
 flow of that mode's own field (any partner field, any nonnegative stretch; the strict route
 needs a positive one) from any state where all of the mode's kept atoms hold. The route
 query (`Bridge.stayQueryOf`) is over the mode's evolve domain narrowed by the atom's `given`

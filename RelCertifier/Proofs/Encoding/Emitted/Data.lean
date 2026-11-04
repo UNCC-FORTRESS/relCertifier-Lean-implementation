@@ -5,8 +5,9 @@ Released under Apache 2.0 license.
 # The generic bridge, part 1: a benchmark's data, read off its records
 
 Everything the general Theorem 3 (`theorem3_of_coverX`, and its mode-keyed assembly) needs
-of a benchmark, as functions of the records the tool emits: the parsed problem `p` (the IR),
-the extended cut certificate `cX`, the cover record `cov`. No per-benchmark definition is
+of a benchmark, as functions of the records the tool emits (Appendix B.1): the parsed problem
+`p` (the IR), the mode-fact certificate `cX` (Definition 2, per mode a list of kept atoms), the
+cover record `cov` (Definition 8). No per-benchmark definition is
 written by hand; a generated instance supplies only the literals, the kernel-decided
 structural facts (`structOK`) and the verdict hypotheses.
 
@@ -17,17 +18,17 @@ structural facts (`structOK`) and the verdict hypotheses.
   uniform right evolve domain, unit weight), one edge per name in each mode's `next` list,
   resolved by `findIdx` exactly as the tool's `succOf`, carrying the entered mode's lowered
   guard, pruned iff the cover record prunes it;
-* the left automaton `leftAutOf`: one guard-gated window per left mode, the declared `next`
-  lists resolved by `Handoff.leftModeIndex`;
-* the kept cut atoms of each mode and the anchor `AG` of a window and right mode: the
-  window's row, the kept atoms of both modes, the barrier terms of the pruned exits of the
-  right mode, and the evolve envelope;
-* the time model of a window: the window's stretch `lamQ`, the per-pairing stretches, the
+* the left automaton `leftAutOf`: one guard-gated cycle (`windowOf`) per left mode, the
+  declared `next` lists resolved by `Handoff.leftModeIndex`;
+* the mode-fact atoms of each mode and the anchor `AG` of a left and a right mode: the left
+  mode's row, the mode-fact atoms of both modes, the barrier terms of the pruned exits of the
+  right mode (Definition 6), and the evolve envelope;
+* the time model of a left mode: its stretch bound `lamQ`, the per-pairing stretches, the
   common span `εR / lamQ`, the budget.
 
 The dimension `n` is a parameter: the state variables plus the auxiliary coordinates (the
-window form needs two, the keyed form three); the generated instances take the pack table's
-dimension (`bridgeDimV2`).
+mode-independent form needs two, the keyed form three, each one more for the right clock); the
+generated instances take the pack table's dimension (`bridgeDimV2`).
 -/
 import RelCertifier.Proofs.Encoding.Theorem3General
 import RelCertifier.Proofs.Encoding.ModeHandoff
@@ -70,7 +71,7 @@ noncomputable def env : Formula (Var n) := Formula.and (domL p n) (domR p n)
 noncomputable def guardL (l : ℕ) : Formula (Var n) := hostGuard (vars p) n Side.L (mLof p l)
 noncomputable def guardR (q : ℕ) : Formula (Var n) := hostGuard (vars p) n Side.R (mRof p q)
 
-/-- The lowered components of window `l`'s row, and the row as `g :: gs`. -/
+/-- The lowered components of left mode `l`'s row, and the row as `g :: gs`. -/
 noncomputable def comps (l : ℕ) : List (Term (Var n)) := hostComps (vars p) n (rowOf p l)
 noncomputable def g (l : ℕ) : Term (Var n) := (comps p n l).headD (Term.const 0)
 noncomputable def gs (l : ℕ) : List (Term (Var n)) := (comps p n l).tail
@@ -173,12 +174,12 @@ theorem grOf_pruned {q : ℕ} {e : REdge (Var n)} (he : e ∈ (grOf p n pruned).
 
 variable (p n)
 
-/-- The window of left mode `l`: `?guard_l ; clock := 0 ; flow_l` (one interval of duration
-at most `dt`), the clock on `tg`. -/
+/-- The cycle of left mode `l` (`windowOf`): `?guard_l ; clock := 0 ; flow_l` (one interval of
+duration at most `dt`), the clock on `tg`. -/
 noncomputable def windowOf (tg : Var n) (dt : ℝ) (l : ℕ) : Program (Var n) :=
   gwindowSeg (guardL p n l) (leftBlock (fL p n l)) (domL p n) tg dt 1
 
-/-- The declared left transitions, by index. -/
+/-- The declared left mode changes, by index. -/
 def nextL : List (List ℕ) :=
   (List.range (nL p)).map (fun l => (mLof p l).next.filterMap (Handoff.leftModeIndex p))
 
@@ -216,7 +217,7 @@ theorem nextL_lt : ∀ m' < nL p, ∀ t ∈ (nextL p).getD m' [], t < nL p := by
   obtain ⟨nm, -, hnm⟩ := ht
   exact leftModeIndex_lt hnm
 
-/-! ## The kept atoms, the barrier terms, the anchor -/
+/-! ## The mode-fact atoms, the barrier terms, the anchor -/
 
 variable (p n) (cX : Oracle.EvolStrengtheningX) (cov : CoverEmitE)
 
@@ -241,13 +242,13 @@ noncomputable def barrierOf (t : ℕ) : Term (Var n) :=
 noncomputable def barriers (q : ℕ) : List (Term (Var n)) :=
   (prunedTgts p cov q).map (barrierOf p n)
 
-/-- **The anchor** of window `l` at right mode `q`: the row, the kept atoms of both modes, the
-barrier terms of `q`'s pruned exits, the evolve envelope. -/
+/-- **The anchor** of left mode `l` at right mode `q`: the row, the mode-fact atoms of both
+modes, the barrier terms of `q`'s pruned exits, the evolve envelope. -/
 noncomputable def AG (l q : ℕ) : Formula (Var n) :=
   Formula.and (FM (g p n l) (gs p n l ++ atomTerms (cL p n cX l) (cR p n cX q) ++
     barriers p n cov q)) (env p n)
 
-/-! ## The time model of a window -/
+/-! ## The time model of a left mode -/
 
 /-- The cover of left mode `l` in the record (by name; an absent one is the empty cover). -/
 def coverOf (l : ℕ) : LeftCoverE :=
@@ -266,27 +267,27 @@ noncomputable def lam (l q : ℕ) : ℝ := ((lamQ p cov l q : ℚ) : ℝ)
 
 noncomputable def epsL : ℝ := (((Run.parseRat p.L.epsilon).getD 1 : ℚ) : ℝ)
 
-/-- The common segment span of window `l`: `εR / lamQ`. -/
+/-- The common segment span of left mode `l`: `εR / lamQ`, `lamQ` its cover's stretch bound. -/
 noncomputable def δ (l : ℕ) : ℝ := epsR p / (((coverOf p cov l).lamQ : ℚ) : ℝ)
 
 def B (l : ℕ) : ℕ := (coverOf p cov l).bBudget
 
-/-- The cover's per-window choice data (no chosen sets: the all-successors rules). -/
+/-- The cover's choice data of left mode `l` (no committed subsets: the all-successors rules). -/
 def chOf (l : ℕ) : ChoiceData :=
   { jointOK := fun q => (flagsOf p cov l q).jointOK,
     repoPre := fun q => (flagsOf p cov l q).dynPre,
     repoPost := fun q => (flagsOf p cov l q).dynPost,
     jointS := fun _ => [], repoS := fun _ _ => [], hopS := fun _ _ => [] }
 
-/-- The admissible starts of window `l`, by index. -/
+/-- The admissible starts of left mode `l`, by index. -/
 def admissibleOf (l : ℕ) : List ℕ := (coverOf p cov l).admissible.map (tgtIdx p)
 
 end Data
 
 /-! ## The atom-level checks a certificate side must pass -/
 
-/-- A kept atom is a closed threshold `a ≤ b` / `a ≥ b` whose sides mention no `bad` name, it
-lowers on its side, and its entry condition is not a Z3 one. -/
+/-- A kept atom of a mode fact is a closed threshold `a ≤ b` / `a ≥ b` whose sides mention no
+`bad` name, it lowers on its side, and its entry condition (O1) is not a Z3 one. -/
 def atomOK (vars : List String) (n : ℕ) (side : Side) (bad : String) (x : CutAtomX) : Bool :=
   (match x.atom with
    | .cmp op a b => (op == "<=" || op == ">=") && PExpr.namesFree bad a && PExpr.namesFree bad b
@@ -324,16 +325,15 @@ def namesResolve : Bool :=
   (p.R.modes.map (·.name)).Nodup && (p.L.modes.map (·.name)).Nodup &&
   p.R.modes.all (fun m => m.next.all (fun nm => p.R.modes.any (·.name == nm)))
 
-/-- Every window's row lowers to at least one component. -/
+/-- Every left mode's row lowers to at least one component. -/
 def rowsOK : Bool := (List.range (nL p)).all (fun l => 0 < compsLen p n l)
 
-/-- The record's time model: positive window stretches, each pairing's stretch at most its
-window's and positive, or `0` (the stutter segment, the right waits) when the IR records that
-the run had the stutter feature on (`stutter = true`, the default since 2026-10-31; off only under
-the ablation `RELCERT_NO_STUTTER=1`; `docs/STUTTER.md`) AND the file's declared stretch range
-includes `0` (`lambdaMin` parses to `0`; `Run.stutterAllowed`, since batch 13,
-`docs/BATCH13-2026-10-31.md`), and the budget covers one left interval
-(`bBudget · εR ≥ εL · lamQ`). -/
+/-- The record's time model: `εR, εL > 0`; per left mode a positive stretch bound `lamQ` and a
+budget covering one left interval (`bBudget · εR ≥ εL · lamQ`); each pairing's stretch at most
+its left mode's `lamQ`, with a positive denominator, and positive, or stretch `0` (the right
+waits) when `Run.stutterAllowed`: the IR records that the run had the stretch-0 feature on
+(`stutter = true`, the default; off only under the ablation `RELCERT_NO_STUTTER=1`) AND the
+file's declared stretch range includes `0` (`lambdaMin` parses to `0`). -/
 def timeOK : Bool :=
   let eL : ℚ := (Run.parseRat p.L.epsilon).getD 1
   let eR : ℚ := (Run.parseRat p.R.epsilon).getD 1
@@ -356,7 +356,7 @@ def lowersOK : Bool :=
 def rowsByName : Bool :=
   (List.range (nL p)).all (fun l => Handoff.invRowOf p (mLof p l) == some (rowOf p l))
 
-/-- The strata orders of the certified pairings (joint, pre- and post-joint reposition) are
+/-- The strata orders of the certified pairings (joint, pre- and post-joint right-only) are
 permutations of the row's component indices. -/
 def permOK : Bool :=
   (List.range (nL p)).all (fun l => (List.range (nR p)).all (fun q =>
@@ -367,8 +367,8 @@ def permOK : Bool :=
     (!fl.dynPre || decide (s.dynPreOrder.Perm (List.range k))) &&
     (!fl.dynPost || decide (s.dynPostOrder.Perm (List.range k)))))
 
-/-- The kept-atom lists of every mode pass `atomsWF`, and the extended certificate is
-well-formed (`evolStrengtheningWFX`). -/
+/-- The kept-atom lists of every mode pass `atomsWF`, the mode-fact certificate is well-formed
+(`evolStrengtheningWFX`), and every mode it names is declared on its side. -/
 def cutsOK (cX : Oracle.EvolStrengtheningX) : Bool :=
   Oracle.evolStrengtheningWFX p cX &&
   p.L.modes.all (fun m => atomsWF (vars p) n Side.L "R_" (cutAtomsOfX cX.L m.name)) &&
@@ -490,14 +490,14 @@ theorem name_tgtIdx (h : namesResolve p = true) {q : ℕ} (hq : q < nR p) {nm : 
 end Struct
 
 
-/-! ## The pre-landing record (the pre-landing feature, `docs/PRELANDING.md`; always on since
-2026-10-31, the IR records the run's value)
+/-! ## The restricted-mode record (right-only nodes on `q|¬tgt`, Lemma 4; the IR records the
+run's `prelanding` value)
 
-The pre-landing right-only nodes are emitted in their own record (`Preland.PrelandEmitE`), never
-as the cover's `dynPre`/`dynPost` flags. The record carries the region kind: a node it lists is
-certified on the pre-landing region (`Emitted.dynRegion`). -/
+The right-only nodes certified on the restricted mode `q|¬tgt` are emitted in their own record
+(`Preland.PrelandEmitE`), never as the cover's `dynPre`/`dynPost` flags. The record carries the
+region kind: a node it lists is certified on the restricted mode (`Emitted.dynRegion`). -/
 
-/-- The cover with the pre-landing nodes merged into its flag rows (and their strata orders):
+/-- The cover with the restricted-mode nodes merged into its flag rows (and their strata orders):
 the rows the cover graph is built on (`OracleAPI.coverMode`'s `effRows`). -/
 def withPL (cov : CoverEmitE) (pl : Preland.PrelandEmitE) : CoverEmitE :=
   { cov with covers := cov.covers.map (fun lc =>
@@ -510,10 +510,10 @@ def withPL (cov : CoverEmitE) (pl : Preland.PrelandEmitE) : CoverEmitE :=
                    dynPostOrder := ((pl.find lc.mL s.mR false).map (·.order)).getD
                      s.dynPostOrder }) }) }
 
-/-- **The kernel-side data gate**: a pre-landing record is admitted only when the IR records that
-the run had the pre-landing feature on (`prelanding = true`, the default; off only under the
-ablation `RELCERT_NO_PRELANDING=1`), and then every reposition node of the emitted cover is a
-pre-landing one (its whole-domain flags are all off). -/
+/-- **The kernel-side data gate**: a nonempty restricted-mode record is admitted only when the
+IR records that the run had the feature on (`prelanding = true`, the default; off only under
+the ablation `RELCERT_NO_PRELANDING=1`), and with the feature on every right-only node of the
+emitted cover is a restricted-mode one (its whole-domain flags are all off). -/
 def plOK (p : PProblem) (cov : CoverEmitE) (pl : Preland.PrelandEmitE) : Bool :=
   (pl.nodes.isEmpty || p.prelanding) &&
   (!p.prelanding || cov.covers.all (fun lc => lc.flags.all (fun f => !f.dynPre && !f.dynPost)))

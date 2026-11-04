@@ -3,3 +3,10 @@
 .category
 __pycache__/
 .build-logs/
+
+# scratch and run output (kept outside the repo)
+/tmp/
+docs/paper-numbers/*.err
+docs/paper-numbers/covers1/
+docs/paper-numbers/covers2/
+docs/paper-numbers/covers.diff

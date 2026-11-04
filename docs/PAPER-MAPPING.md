@@ -319,7 +319,7 @@ and from `docs/CERTIFICATION-CHECK.md`), and is checked against a declared total
 | 1009 progress (reposition certificate) groups | `relcert-progress-verdicts`, `expectedProgressV2` (`VerdictsV2/RunProgress.lean`) |
 | 140 kernel refutations, 416 verdict groups; the experiment: 1193 mutants, 398 certified, 140 refuted, 655 open | `InstancesV2/Refute.lean`, `relcert-refute-verdicts`, `expectedRefuteGroups` (`InstancesV2/Refute/Table.lean`); `docs/REFUTATION-RESULTS.md`, `docs/refute/` |
 | Assumption 1: 50 of 50, Z3-free; 78 axiom lines (76 standard, 2 `CutLiftX`) | `InstancesV2/WellFormedBattery.lean` |
-| axioms of the generic theorems: 11 lines, 8 at `propext`, `Classical.choice`, `Quot.sound`, 3 adding `z3_unsat_sound` | `InstancesV2/AxiomCheck.lean`; `docs/CERTIFICATION-CHECK.md` check 2 |
+| axioms of the generic theorems and Theorem 3's route (`theorem3_of_coverX`, the four record-level theorems): 16 lines, 9 at `propext`, `Classical.choice`, `Quot.sound`, 7 adding `z3_unsat_sound` | `InstancesV2/AxiomCheck.lean`; `docs/CERTIFICATION-CHECK.md` check 2 |
 
 ## 9. Modelling choices (Appendix B.2)
 
@@ -356,7 +356,7 @@ Appendix B (The Mechanization):
 | B.1 What Is Proved | §6.2 (`theorem3_of_coverX`, `CoverHyps`, the three record-level theorems, the eight `Verdicts` families, the five decided structural facts) and §0 (52 instances, 32 window, 18 keyed, 41 `_pl`, 5 demo and strict files) |
 | B.2 The Lean Statement and Eq. 1 | §9 |
 | B.3 Where the Paper Lives in Lean | this whole file; its table is §2 to §6 |
-| B.4 Trusted Base | §7, the last row of §3 ("Pinning the queries."), `RelCertifier/Trusted/README.md`; `InstancesV2/AxiomCheck.lean` (11 lines) |
+| B.4 Trusted Base | §7, the last row of §3 ("Pinning the queries."), `RelCertifier/Trusted/README.md`; `InstancesV2/AxiomCheck.lean` (16 lines) |
 | B.5 Assumption 1 | §2.1 and `docs/WELLFORMED.md` |
 | B.6 Refutations | the row below and `docs/REFUTATION-RESULTS.md` |
 | B.7 Reproduction | `docs/CERTIFICATION-CHECK.md` (the commands and their expected output) and `README.md` |

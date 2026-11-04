@@ -225,7 +225,7 @@ Expected:
 | step | expected output |
 |---|---|
 | 1 | `Build completed successfully`, no `declaration uses 'sorry'` |
-| 2 | 78 lines for the Assumption 1 battery (76 at the three standard axioms, 2 from the `CutLiftX` lift with `z3_unsat_sound`); 11 for the generic theorems (8 standard, 3 with `z3_unsat_sound`) |
+| 2 | 78 lines for the Assumption 1 battery (76 at the three standard axioms, 2 from the `CutLiftX` lift with `z3_unsat_sound`); 16 for the generic theorems and Theorem 3's route (9 standard, 7 with `z3_unsat_sound`) |
 | 3 | `[suite_v2] 50 certified, 0 declined, 0 error(s)`; modal 1421/1421, handoff 2846/2846, non-connection 32/32, pruned edges 16/16, reposition (dyn) 950/950; strict Assumption 1 gate 181/181 right modes `ok` (75 invariant, 106 exit), 0 `UNKNOWN`, 0 `BLOCKING`; `SUITE_V2 QUICK CHECKS PASSED`; `ONE DOMAIN: PASS (50 benchmarks: …)`; the three files of `benchmarks/negative/` `DECLINED` |
 | 4 | `ok   all 50 suite_v2 IR literals match their files (50 files)`, a bare `ALL PASS` |
 | 5 | bridge 13677/13677, progress 1009/1009, refute 416/416 |

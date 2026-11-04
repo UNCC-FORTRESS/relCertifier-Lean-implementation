@@ -11,7 +11,7 @@ to the Lean names.
 > 2846/2846, non-connection 32/32, pruned 16/16, reposition 950/950, strict gate 181/181 (75
 > invariant, 106 exit), PASSED; `relcert-test` ALL PASS (50 IR literals); bridge 13677/13677;
 > progress 1009/1009; refute 416/416 (140 instances); WellFormedBattery 78 axiom lines (2 with
-> `z3_unsat_sound`), AxiomCheck 11 (3 with `z3_unsat_sound`), no `sorryAx`; negatives DECLINED;
+> `z3_unsat_sound`), AxiomCheck 16 (7 with `z3_unsat_sound`), no `sorryAx`; negatives DECLINED;
 > `lit_hypercert_vehicle_s8` BLOCKING, DECLINED under strict; ONE DOMAIN PASS; stutter tests
 > 172/172, prelanding tests 179/179; demo verdicts 54/54, 18/18, 15/15, 90, progress demo 92/92
 > with 24/24 adversarial certificates DECLINED.
@@ -110,13 +110,15 @@ Use `-A3`: a four-axiom list prints over four lines. Expected from the battery: 
 Classical.choice, Quot.sound]`, and the 11 lines of `Proofs/Soundness/CutLiftX.lean`'s own
 audit, which `lake` replays, two of which (`entry_z3`, `entryZ3Fact_of_unsat`) carry
 `z3_unsat_sound`: 76 lines at the three standard axioms, 2 with `z3_unsat_sound`. Expected
-from `AxiomCheck.lean`: 11 lines, the generic theorems `cover_sound`, `check_sound`,
+from `AxiomCheck.lean`: 16 lines, the generic theorems `cover_sound`, `check_sound`,
 `theorem3_faithful`, `rvalid_from_cert`, `decideCovered_implies_theorem3_faithful`,
-`stratified_barrier_sound` and Lemma 1's `odeSol_stretch_iff`, `odeSol_rightBlock_stretch_iff`
-at the three standard axioms, and `flow_certified`, `segPres_from_flowCert`, `cut_hcert` (the
-flow-certificate, segment-preservation and cut lemmas) at the three plus `z3_unsat_sound`. No
-`sorryAx`, no other axiom. The bridge instances print no audit of their own: their only Z3
-leaf is the `Verdicts` hypothesis (check 6).
+`stratified_barrier_sound`, Lemma 1's `odeSol_stretch_iff`, `odeSol_rightBlock_stretch_iff` and
+Theorem 3's generic `theorem3_of_coverX` at the three standard axioms, and `flow_certified`,
+`segPres_from_flowCert`, `cut_hcert` (the flow-certificate, segment-preservation and mode-fact
+lemmas) and the four record-level theorems `Emitted.theorem3_window_of_records(_pl)`,
+`Emitted.theorem3_keyed_of_records(_pl)` at the three plus `z3_unsat_sound`. No `sorryAx`, no
+other axiom. The bridge instances apply the record-level theorems and inherit exactly their
+axioms; their only Z3 leaf is the `Verdicts` hypothesis (check 6).
 
 ## Check 3: certify the suite and discharge the verdict hypotheses
 

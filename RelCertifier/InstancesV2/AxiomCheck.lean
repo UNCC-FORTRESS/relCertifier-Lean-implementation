@@ -7,9 +7,11 @@ Released under Apache 2.0 license.
 Re-run: `lake env lean RelCertifier/InstancesV2/AxiomCheck.lean` (or read the build log — this module is in the
 `RelCertifier` import root, so the `#print axioms` below re-emit on every `lake build`).
 
-Expected output (Appendix B.4: eleven lines, eight at the three standard Lean axioms and three,
-the flow-certificate, segment-preservation and mode-fact lemmas, with the single trusted leaf
-`z3_unsat_sound` added, exactly where a `z3solve … = unsat` is turned into a fact):
+Expected output (Appendix B.4: sixteen lines, nine at the three standard Lean axioms and seven
+with the single trusted leaf `z3_unsat_sound` added, exactly where a `z3solve … = unsat` is turned
+into a fact: the flow-certificate, segment-preservation and mode-fact lemmas and the four
+record-level theorems, which read Z3 verdicts; the generic Theorem 3, `theorem3_of_coverX`, takes
+its certificates as hypotheses and is standard):
 
   cover_sound                            : [propext, Classical.choice, Quot.sound]
   check_sound                            : [propext, Classical.choice, Quot.sound]
@@ -22,6 +24,14 @@ the flow-certificate, segment-preservation and mode-fact lemmas, with the single
   cut_hcert                              : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
   odeSol_stretch_iff (Lemma 1)           : [propext, Classical.choice, Quot.sound]
   odeSol_rightBlock_stretch_iff          : [propext, Classical.choice, Quot.sound]
+  theorem3_of_coverX (Theorem 3)         : [propext, Classical.choice, Quot.sound]
+  Emitted.theorem3_window_of_records     : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
+  Emitted.theorem3_window_of_records_pl  : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
+  Emitted.theorem3_keyed_of_records      : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
+  Emitted.theorem3_keyed_of_records_pl   : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
+
+The bridge instances `InstancesV2/Bridge/*.lean` apply the record-level theorems and inherit
+exactly their axioms.
 
 For the per-benchmark audit (every suite_v2 benchmark's Theorem 3 and its axioms) see
 `InstancesV2/WellFormedBattery.lean` (Assumption 1 of every right model, Appendix B.5) and the
@@ -38,6 +48,9 @@ import RelCertifier.Proofs.Encoding.BridgeDischarge
 import RelCertifier.Proofs.Flow.StratifiedBarrier
 import RelCertifier.Proofs.Soundness.CutLift
 import RelCertifier.Proofs.Encoding.Stretching
+import RelCertifier.Proofs.Encoding.Theorem3General
+import RelCertifier.Proofs.Encoding.Emitted.Window
+import RelCertifier.Proofs.Encoding.Emitted.Keyed
 
 namespace RelCertifier
 
@@ -61,5 +74,13 @@ namespace RelCertifier
 -- Lemma 1 (Time Stretching), λ ≥ 0, as stated (three standard axioms)
 #print axioms odeSol_stretch_iff
 #print axioms odeSol_rightBlock_stretch_iff
+
+-- Theorem 3 (Soundness of Synthesis): the generic form and the four record-level forms the
+-- bridge instances apply (Appendix B.1, B.4)
+#print axioms theorem3_of_coverX
+#print axioms Emitted.theorem3_window_of_records
+#print axioms Emitted.theorem3_window_of_records_pl
+#print axioms Emitted.theorem3_keyed_of_records
+#print axioms Emitted.theorem3_keyed_of_records_pl
 
 end RelCertifier

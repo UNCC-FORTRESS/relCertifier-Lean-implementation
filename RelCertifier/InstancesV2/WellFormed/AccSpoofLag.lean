@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `acc_spoof_lag`: Assumption 1 of the right model (`WellFormedR`)
 
-Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1/10` (the 0.1 s decision period; 1 until 2026-10-27). The
+Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1/10` (the 0.1 s decision period). The
 right model has one mode `CRUISE`: the unspoofed loop with powertrain lag, `v' = a`,
 `a' = (8/3)(0.5 (30 − v) − a)`, guard the engaged envelope `3 a + 2 v ∈ [40, 66]`,
 `a + 2 v ∈ [44, 62]`, evolve box `v ∈ [0, 40]`, `a ∈ [−10, 10]`, next `[CRUISE]`.
@@ -178,7 +178,7 @@ noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+right mode `t`, lowered exactly as the left modes' guards are): the right switches into
 `t` only where `t`'s guard holds. -/
 noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
   { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }

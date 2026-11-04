@@ -2,19 +2,20 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S2 dischargers — `CoverCertMC` fields from the emitted cut certificates
+# Dischargers: `CoverCertMC` fields from the emitted mode-fact certificates
 
 Per-benchmark instances feed `CoverCertMC` from three ingredient kinds:
 
 * **`hiff`** — `hostAtom_iff`: the lowered atom formula ≡ its safe-side term `≤ 0`,
   fully generic (the failure branches of the two lowerings align, so the `getD`
   defaults `⊤`/`0` keep the equivalence);
-* **O1 entry** — `hostGuard_cutAtoms_sat`: the mode guard's lowering implies each cut
-  atom's lowering, given the guard's lowering succeeds (a per-benchmark `simp`+`decide`
+* **O1 entry** (Definition 2, guard implies the mode fact) — `hostGuard_cutAtoms_sat`: the
+  mode guard's lowering implies each mode-fact atom's lowering, given the guard's lowering
+  succeeds (a per-benchmark `simp`+`decide`
   kernel fact) — atom membership in `cutAtoms` is kernel-decided (`evolStrengtheningWF`);
 * **staying** — the route adapters from `CutLift` (`atom_boxle_{L,R}_{strict,nonstrict}`,
   `AtomFact.ofLie`), plus `atomsStay_L_frozen_dyn` here: LEFT atoms along the
-  frozen-left dynamic-reposition flows are constant (every field is `0` where the atom
+  frozen-left right-only flows (Eq. (15)) are constant (every field is `0` where the atom
   reads), a Lean fact needing no Z3.
 -/
 import RelCertifier.Proofs.Soundness.CutCover
@@ -80,7 +81,7 @@ theorem hostAtom_iff {vars : List String} {side : Side} {op : String} {x y : PEx
 
 /-! ## O1 -/
 
-/-- A cut atom of a successfully-lowered formula lowers too. -/
+/-- A mode-fact atom (`cutAtoms`) of a successfully lowered formula lowers too. -/
 theorem lowerF_cutAtom_isSome {vars : List String} {side : Side} {f a : PForm}
     (ha : a ∈ cutAtoms f) :
     ∀ {fI : IForm n}, Run.lowerF vars n side f = some fI →
@@ -108,8 +109,8 @@ theorem lowerF_cutAtom_isSome {vars : List String} {side : Side} {f a : PForm}
   | or p q ihp ihq => intro fI hf; exact absurd ha (by simp [cutAtoms])
   | not p ihp => intro fI hf; exact absurd ha (by simp [cutAtoms])
 
-/-- **O1, `getD`-level.** Wherever the mode guard's lowering holds, each of its cut
-atoms' lowerings holds — given the guard lowers (per-benchmark kernel fact). -/
+/-- **O1, `getD`-level.** Wherever the mode guard's lowering holds, each of its `cutAtoms`'
+lowerings holds, given the guard lowers (per-benchmark kernel fact). -/
 theorem hostGuard_cutAtoms_sat {vars : List String} {side : Side} {m : PMode}
     {a : PForm} (ha : a ∈ cutAtoms m.guard)
     (hsome : (Run.lowerF vars n side m.guard : Option (IForm n)).isSome = true) :
@@ -124,7 +125,7 @@ theorem hostGuard_cutAtoms_sat {vars : List String} {side : Side} {m : PMode}
   rw [haI]
   exact cutAtoms_sat ha hf haI ν (by simpa using hν)
 
-/-! ## Left atoms are frozen along the dynamic-reposition flows -/
+/-! ## Left atoms are frozen along the right-only flows -/
 
 /-- The Lie derivative with both fields zeroed evaluates to `0`. -/
 theorem eval_lieDeriv_zero (g : Term (Var n)) (x : DL.State (Var n)) :
@@ -136,9 +137,9 @@ theorem eval_lieDeriv_zero (g : Term (Var n)) (x : DL.State (Var n)) :
   
   | cons i l ih => simp [sumTerm, Term.eval, AOp.interp, ih]
 
-/-- **Left atoms stay along the frozen-left dynamic flows** — every field is `0` where
-the atom reads (`Lv`-only, and the left block of `dynSys` is the zero field), so the
-atom is constant. No Z3. -/
+/-- **Left atoms stay along the frozen-left flows**: for atoms reading no `Rv`, `AtomsStay`
+holds for the joint system with zero left field at stretch `1` (the right-only product
+program, Eq. (15)), since every field the atom reads is `0`. No Z3. -/
 theorem atomsStay_L_frozen_dyn (fR : Fin n → Term (Var n)) (dom : Formula (Var n))
     (atoms : List (CutAtomP n))
     (hfv : ∀ a ∈ atoms, ∀ i : Fin n, Rv i ∉ a.2.fv) :
@@ -193,7 +194,7 @@ theorem hostAtomG_fv_side {vars : List String} {s : Side} {bad : String}
         · exact hvy v hv
         · exact hvx v hv
 
-/-- The empty atom family stays along anything (windows without left cuts). -/
+/-- The empty atom family stays along anything (left modes without mode-fact atoms). -/
 theorem atomsStay_nil (sys : ODESystem (Var n)) (dom : Formula (Var n)) :
     AtomsStay ([] : List (CutAtomP n)) sys dom := by
   intro a ha
@@ -204,7 +205,7 @@ theorem atomsIff_nil : AtomsIff ([] : List (CutAtomP n)) := by
   exact absurd ha (List.not_mem_nil)
 
 /-- Transport `SegPreservesAllOn` across satisfaction-equivalent domains (the tool
-skips `⊤` cut conjuncts in its fold; the certificate's shape keeps them). -/
+skips `⊤` mode-fact conjuncts in its fold; the certificate's shape keeps them). -/
 theorem segPresAll_dom_congr {gs : List (Term (Var n))} {sys : ODESystem (Var n)}
     {D D' : Formula (Var n)} (h : ∀ x, Formula.sat D x ↔ Formula.sat D' x)
     (hp : SegPreservesAllOn gs sys D') : SegPreservesAllOn gs sys D :=
@@ -212,10 +213,10 @@ theorem segPresAll_dom_congr {gs : List (Term (Var n))} {sys : ODESystem (Var n)
 
 /-! ## Frozen and contract-shape staying (Lean facts, no Z3)
 
-The tool's `frozen` and `shape` cut routes take no Z3 probe: frozen atoms read only
-zero-field coordinates; shape atoms are the contract tangent case (`v ≥ lo` under
-`v' = k(c−v)` with `lo ≤ c`, or `v ≤ hi` with `c ≤ hi`) — a superlevel-DI fact
-(`Lie ≤ 0` on the atom's superlevel set), no exponential needed. -/
+The tool's `frozen` and `shape` mode-fact routes take no Z3 probe: frozen atoms read only
+zero-field coordinates; shape atoms are the set-point half-lines of a contraction field
+(Section 6.1: `v ≥ lo` under `v' = k(c−v)` with `lo ≤ c`, or `v ≤ hi` with `c ≤ hi`), a
+superlevel-DI fact (`Lie ≤ 0` on the atom's superlevel set). -/
 
 /-- The Lie sum collapses to the `j`-summand when the atom reads only `Rv j`. -/
 theorem eval_lieDeriv_single_R (g : Term (Var n)) (j : Fin n)

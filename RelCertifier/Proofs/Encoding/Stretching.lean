@@ -21,7 +21,8 @@ reduce to `ξ 0 = ω` and `ω` in the domain.
 
 Related: `sem_rightBlock_reparam_iff` (`Reparam.lean`, `λ > 0`, the run relations of the
 stretched and the real right block coincide) and `joint_of_sols_lam` (`SyncSwitch.lean`,
-`λ ≥ 0`, the forward direction inside the joint-run construction used by Theorem 3).
+`λ ≥ 0`, the forward direction inside the joint-run construction of Lemma 3, Proving Joint
+Segments).
 -/
 import RelCertifier.Proofs.Encoding.Reparam
 import DLCalTiming.PlantT

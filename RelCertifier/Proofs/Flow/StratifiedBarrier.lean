@@ -2,15 +2,14 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R4 — stratified differential cuts, kernel-checked (docs/history/ROADMAP.md R4)
+# Certification in rounds: stratified differential cuts (Lemma 2)
 
-The tool's `checkSeg` (since commit 1f9b578) certifies invariant components by
-STRATIFIED differential cuts: a component's flow query may narrow its domain only by
-components proven in EARLIER fixpoint rounds — sequential, acyclic DC. (The previous
-mutual narrowing was circular and unsound for the non-strict routes; see
-docs/history/COVER-AUDIT.md R4 and the `x², x' = 1` counterexample.)
+The tool's `checkSeg` certifies invariant components in rounds (Section 4.1, Lemma 2): a
+component's flow query may narrow its domain only by components certified in earlier rounds,
+a differential cut, so no component assumes itself. (Mutual narrowing would be circular and
+unsound for the non-strict routes, e.g. for `x²` under `x' = 1`.)
 
-This file is the soundness of that discipline, in kernel:
+This file proves that discipline sound:
 
 * `sem_ode_restrict` — a run of an ode, cut at any earlier time, is again a run;
 * `boxle_pointwise` — a `BoxLe` certificate holds POINTWISE along runs (via restriction);
@@ -21,10 +20,10 @@ This file is the soundness of that discipline, in kernel:
   then from a jointly-invariant start, every component holds at every reachable state
   of the UN-narrowed ode.
 
-Each stratum's `BoxLe` premise is exactly what the route theorems
-(`flow_cert_sound{,_strict,_superlevel}`) produce from the tool's per-stratum queries
-(`routeQueries` over `evolve ∧ cuts ∧ bigLe (prefix)`), so the Z3 leaf enters per
-component per stratum, nothing else assumed.
+Each stratum's `BoxLe` premise is what the route theorems
+(`flow_cert_sound{,_strict,_superlevel}`, Eq. (17) and Eq. (18)) produce from the tool's
+per-stratum queries (`routeQueries` over `evolve ∧ mode facts ∧ bigLe (prefix)`), so the Z3
+verdicts enter once per component per stratum and nothing else is assumed.
 -/
 import RelCertifier.Core.FlowCert
 import RelCertifier.Core.Reify
@@ -111,15 +110,12 @@ theorem sem_ode_refine {sys : ODESystem (Var n)} {D : Formula (Var n)}
 
 /-! ## The stratified assembly -/
 
-/-- **Stratified differential cuts are sound.** If each component `gs[i]` carries a
-`BoxLe` certificate over the ode narrowed by its PREFIX `gs.take i` (the tool's
-proven-order — round-1 components on the bare domain, later rounds assuming exactly
-the earlier strata), then from a jointly-invariant start, EVERY component holds at
-every time along every run of the UN-narrowed ode. Induction over strata: the prefix
-holds pointwise by the inductive hypothesis, so the run refines into stratum `i`'s
-narrowed ode (`sem_ode_refine`), whose certificate then yields `gs[i]` pointwise
-(`boxle_pointwise`-style, on each cut). No circularity: the assumption set is always
-already proven. -/
+/-- **Stratified differential cuts are sound** (the rounds of Lemma 2). If each component
+`gs[i]` carries, from every start where it holds, a `BoxLe` certificate over the ode with
+domain `D` narrowed by its prefix `gs.take i`, then from a start where every component holds,
+every component holds at every time along every run of the ode on `D` alone. Induction over
+the strata: the prefix holds pointwise by the induction hypothesis, so the run is a run of
+stratum `i`'s narrowed ode (`sem_ode_refine`), whose certificate gives `gs[i]`. -/
 theorem stratified_barrier_sound (sys : ODESystem (Var n)) (D : Formula (Var n))
     (gs : List (Term (Var n)))
     (hcert : ∀ i (hi : i < gs.length), ∀ ν', Term.eval gs[i] ν' ≤ 0 →
@@ -170,10 +166,12 @@ theorem stratified_barrier_boxle (sys : ODESystem (Var n)) (D : Formula (Var n))
   exact stratified_barrier_sound sys D gs hcert hinit hr hΦ0 hder hmask hdom i hi r
     (Set.right_mem_Icc.mpr hr)
 
-/-! ## The Z3 leaf, per stratum — the tool's exact query discipline -/
+/-! ## Z3 verdicts per stratum: the tool's query discipline -/
 
-/-- Per-stratum route verdicts (the tool's `routeQueries` over the prefix-narrowed
-domain, any of the three routes) discharge the strata certificates. -/
+/-- For every stratum, an `unsat` verdict on one of the three route queries (`flowQuery`,
+`flowQueryStrict`, `flowQuerySuperlevel`) for component `gs[i]` over `D` narrowed by
+`bigLe (gs.take i)`, on the joint system at stretch `lam`, discharges the strata certificates
+`stratified_barrier_sound` consumes. -/
 theorem strata_hcert_from_verdicts (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (D : Formula (Var n)) (gs : List (Term (Var n)))
     (hz3 : ∀ i (hi : i < gs.length),
@@ -198,11 +196,11 @@ def SegPreservesAllOn (gs : List (Term (Var n))) (sys : ODESystem (Var n))
   ∀ ν, (∀ g ∈ gs, Term.eval g ν ≤ 0) →
     ∀ ω, Program.sem (Program.ode sys dom) ν ω → ∀ g ∈ gs, Term.eval g ω ≤ 0
 
-/-- **The multi-component flow certificate, end to end**: the tool's per-stratum route
-verdicts give simultaneous preservation of the FULL component list along the
-un-narrowed joint co-evolution. This is the kernel-checked soundness of the stratified
-`checkSeg` (commit 1f9b578): the Z3 leaf enters once per component per stratum;
-`stratified_barrier_boxle` assembles the acyclic cuts. -/
+/-- **The multi-component flow certificate** (Lemma 2 for a component list): `unsat`
+verdicts on the per-stratum flow queries give `SegPreservesAllOn gs` for the joint system at
+stretch `lam` on the un-narrowed domain `D`, i.e. the full component list is preserved along
+every run. The verdicts enter once per component per stratum; `stratified_barrier_boxle`
+assembles the rounds. -/
 theorem segPresAll_from_strata_verdicts (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (D : Formula (Var n)) (gs : List (Term (Var n)))
     (hz3 : ∀ i (hi : i < gs.length),
@@ -216,10 +214,10 @@ theorem segPresAll_from_strata_verdicts (fL fR : Fin n → Term (Var n))
   fun _ hinit => stratified_barrier_boxle (jointSys fL fR lam) D gs
     (strata_hcert_from_verdicts fL fR lam D gs hz3) hinit
 
-/-! ## The fold-shaped domains (the tool's exact `strataDomIR` image) -/
+/-! ## The fold-shaped domains (the image of the tool's `strataDomIR`) -/
 
-/-- The host image of `strataDomIR`: base narrowed by a left fold of `≤ 0` conjuncts —
-the EXACT formula shape of the tool's stratified queries. -/
+/-- The host image of `strataDomIR`: the base `D` narrowed by a left fold of `≤ 0` conjuncts,
+the formula shape of the tool's stratified queries. -/
 def strataDomHost (D : Formula (Var n)) (pre : List (Term (Var n))) : Formula (Var n) :=
   pre.foldl (fun d g => Formula.and d (invLe g)) D
 
@@ -253,9 +251,9 @@ theorem boxle_dom_congr {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
   obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hsem
   exact hbox ω ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => (h (Φ t)).mp (hdom t ht)⟩
 
-/-- **The Z3 leaf, fold-shaped** — verdicts on the tool's EXACT stratified query domains
-(`strataDomHost`, the host image of `strataDomIR`) discharge the strata certificates in
-the `bigLe` shape `stratified_barrier_sound` consumes. -/
+/-- **Fold-shaped verdicts**: `unsat` verdicts on the tool's stratified query domains
+(`strataDomHost`, the host image of `strataDomIR`) discharge the strata certificates in the
+`bigLe` shape `stratified_barrier_sound` consumes. -/
 theorem strata_hcert_from_verdicts' (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (D : Formula (Var n)) (gs : List (Term (Var n)))
     (hz3 : ∀ i (hi : i < gs.length),
@@ -284,7 +282,8 @@ theorem strata_hcert_from_verdicts' (fL fR : Fin n → Term (Var n)) (lam : Term
   · exact flow_cert_sound_strict _ (z3_unsat_sound h) hinit
   · exact flow_cert_sound_superlevel _ (z3_unsat_sound h) hinit
 
-/-- Fold-shaped end-to-end multi-component certificate (the battery entry point). -/
+/-- `segPresAll_from_strata_verdicts` with the verdicts on the fold-shaped query domains
+`strataDomHost` (the form the verdict layer uses). -/
 theorem segPresAll_from_strata_verdicts' (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (D : Formula (Var n)) (gs : List (Term (Var n)))
     (hz3 : ∀ i (hi : i < gs.length),

@@ -2,30 +2,28 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The cut-narrowed segment coupling, generic (suite_v2 modal instances)
+# The joint segment coupling under mode facts, generic
 
-The suite_v2 benchmarks certify their joint segments with the WIDENED cut channel
-(`RELCERT_IMPLIED_CUT=1`): the flow queries of a pairing `(m_L, m_R)` are narrowed by the
-kept atoms of BOTH modes (`OracleAPI.andCuts` over `segParts`' `evolve_L ∧ evolve_R`),
-stratified per component (`strataDomIR`). This file states that query family at the host
-level (`domCutX`, `VerdXCore`, `modalVerdX` — the latter read off the parser-emitted IR
-and the emitted extended certificate exactly as the tool builds it) and turns it into the
-per-piece coupling the modal chain consumes (`couple_cutX`):
+The suite benchmarks certify their joint segments under the mode facts of both modes
+(Definition 2; Eqs. (17) and (18) assume `C(m_L) ∧ C(m_R)`): the flow queries of a pairing
+`(m_L, m_R)` are narrowed by the kept atoms of BOTH modes (`OracleAPI.andCuts` over `segParts`'
+`evolve_L ∧ evolve_R`), stratified per component into the rounds of Lemma 2 (`strataDomIR`).
+This file states that query family at the host level (`domCutX`, `VerdXCore`, `modalVerdX`, the
+latter read off the parser-emitted IR and the emitted mode-fact certificate exactly as the tool
+builds it) and turns it into the per-piece coupling the modal chain consumes (`couple_cutX`):
 
 * the stratified verdicts give preservation of the components over the NARROWED domain
   (`segPresAll_from_strata_verdicts'`);
-* the atoms' conditional staying (`CutLiftX`: O2 per kind, stratified) lifts that to the
+* the atoms' conditional staying (`CutLiftX`: the preservation obligation O2 of Definition 2, per kind, stratified) lifts that to the
   BARE domain from every base where the atoms hold, and keeps the atoms
   (`segPresAll_cut_liftX`);
 * the anchor formula carries the invariant components AND the atoms
   (`FM g (gs ++ atomTerms)`), so the coupling preserves both, and the λ-stretched right
   response is re-read as a run of the real (λ = 1) automaton mode (`sem_rightBlock_reparam`).
 
-The O1 side (atoms hold at the window start / at a right mode's entry) is the
-instance's: from the left guard (`gwindowSeg`'s test, `CutLiftX.evolStrengtheningWFX_entryL`)
-and from the right mode's region conjunct (`mvRegionR`).
-
-New leaf; no upstream edits.
+The entry side of Definition 2 (O1: the atoms hold at the left cycle's start and at a right
+mode's entry) is the instance's: from the left guard (`gwindowSeg`'s test,
+`CutLiftX.evolStrengtheningWFX_entryL`) and from the right mode's region conjunct (`mvRegionR`).
 -/
 import RelCertifier.Proofs.Soundness.CutLiftX
 import RelCertifier.Proofs.Encoding.WindowRF
@@ -40,13 +38,14 @@ variable {n : ℕ}
 
 /-! ## The narrowed query family, as the tool builds it -/
 
-/-- The host pairs (lowered formula, safe-side term) of a list of extended-certificate
-atoms (the same `hostAtomF`/`hostAtomG` the legacy cut instances use). -/
+/-- The host pairs (lowered formula, safe-side term) of a list of mode-fact certificate
+atoms (`hostAtomF`/`hostAtomG`). -/
 noncomputable def cutPairsX (vars : List String) (n : ℕ) (side : Side)
     (atoms : List CutAtomX) : List (CutAtomP n) :=
   atoms.map (fun x => (hostAtomF vars n side x.atom, hostAtomG vars n side x.atom))
 
-/-- The kept atoms of the mode named `name` on one side of the extended certificate. -/
+/-- The kept atoms (the mode fact) of the mode named `name` on one side of the mode-fact
+certificate. -/
 def cutAtomsOfX (mcs : List (String × List CutAtomX)) (name : String) : List CutAtomX :=
   ((mcs.find? (·.1 == name)).map (·.2)).getD []
 
@@ -81,7 +80,7 @@ def VerdXCore (comps : List (Term (Var n))) (fL fR : Fin n → Term (Var n)) (la
     ∨ z3solve (flowQuerySuperlevel ⟨comps[i], fL, fR, Term.const lam,
       strataDomHost D (comps.take i)⟩) = Verdict.unsat
 
-/-- **The suite_v2 modal verdict pack, read off the IR and the extended certificate.**
+/-- **The verdict pack of a pairing, read off the IR and the mode-fact certificate.**
 Left mode `l`, right mode `m`, stretch `lam`, the invariant row `invRow`'s components in
 the cover's strata `order`; the domain is the two modes' evolves narrowed by both modes'
 kept atoms (`andCuts`), the fields the two modes' own. Exactly the queries `checkSeg`
@@ -150,7 +149,7 @@ theorem atomTerms_iff {cL cR : List (CutAtomP n)} (hiffL : AtomsIff cL)
 
 /-! ## The coupling -/
 
-/-- **The cut-narrowed segment coupling.** Left `fL` on `domL` (clocked by `tg`), right
+/-- **The joint segment coupling under mode facts.** Left `fL` on `domL` (clocked by `tg`), right
 `fR` at stretch `lamv` on `domR`, read back as the λ = 1 automaton mode. The anchor
 carries the invariant components and the atoms of both families; it is preserved by the
 coupling (components: the narrowed verdicts lifted by the atoms' staying; atoms: their
@@ -330,7 +329,7 @@ theorem boxle_thrLe_R (j : Fin n) (K : ℝ) (fL fR : Fin n → Term (Var n)) (c 
   have := hf z hz hzK
   linarith
 
-/-! ## `hiff` and O1 for an emitted extended certificate -/
+/-! ## `hiff` and O1 (entry) for an emitted mode-fact certificate -/
 
 /-- Nonstrict comparison atoms have the `≤ 0`-normal form their `cutAtomG` term gives. -/
 theorem atomsIff_cutPairsX {vars : List String} {side : Side} {atoms : List CutAtomX}
@@ -343,7 +342,7 @@ theorem atomsIff_cutPairsX {vars : List String} {side : Side} {atoms : List CutA
   rw [hat]
   exact hostAtom_iff hop ν
 
-/-- **O1 from the extended certificate, left side**: every kept atom of left mode `m`
+/-- **Mode-fact entry (O1), left side**: every kept atom of left mode `m`
 holds wherever `m`'s lowered guard holds — by `evolStrengtheningWFX_entryL` on the
 kernel-checked certificate, given that the atoms and the guard lower and no atom took the
 `z3` entry. -/
@@ -378,7 +377,9 @@ theorem cutSatL_of_guard {p : PProblem} {cX : EvolStrengtheningX}
       simpa [cutAtomsOfX, hf] using hy))) ν hsatg x hx' aI haI
   simpa [hostAtomF, haI] using this
 
-/-- **O1 from the extended certificate, right side.** -/
+/-- **Mode-fact entry (O1), right side**: every kept atom of right mode `m` holds wherever `m`'s
+lowered guard holds, on the kernel-checked certificate (`evolStrengtheningWFX`), given that the
+atoms and the guard lower and no atom took the `z3` entry. -/
 theorem cutSatR_of_guard {p : PProblem} {cX : EvolStrengtheningX}
     (hwf : evolStrengtheningWFX p cX = true) {vars : List String} (m : PMode)
     (hm : p.R.modes.find? (·.name == m.name) = some m)

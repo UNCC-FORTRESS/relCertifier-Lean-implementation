@@ -1,38 +1,31 @@
 /-
-# Uniform evolution domains — junction trivial, staying-only H, margin discharge
+# Uniform evolution domains: trivial junction, staying-only hypothesis, margin discharge
 
-The proof-side deployment of the UNIFORM-EVOL + SETTLING design (demonstrated on the modified
-benchmark suite: shared evolution domain strictly wider than every guard, guard-enforced settling
-with margin > max-rate·dt):
+Lemmas for models whose right modes all share one evolution domain, the form every benchmark
+declares (Appendix B.2, *Domains*):
 
-* `UniformEvol` — all modes share ONE evolution domain `evolShared`. The junction obligation
-  (segment endpoint satisfies the successor's domain) is then TRIVIAL: successor's domain = the
-  shared domain = where the staying clause already put the endpoint. The narrowing machinery
-  (`SuccReach`/`SuccReachB`/`starStep_narrowing`) is NOT referenced on this path — retired.
-* `UniformStayingH` — the cleaned, staying-only well-formedness: junction content GONE (no
-  `LandingH` field, no reaching), one shared domain everywhere. `LandingWellFormed_of_uniform`
-  derives the shipped bundle from it (the `LandingH` field is discharged by `Or.inl` — under the
-  landing dispatch the endpoint is in the CURRENT mode's domain, which under uniform-evol is
-  every successor's domain too).
-* `theorem3_faithful_landing_clocked_uniform` — the shipped `rvalid` theorem re-pointed onto
-  `UniformEvol + UniformStayingH`. Non-breaking: a thin wrapper over
-  `theorem3_faithful_landing_clocked_wf`; the per-mode-domain path is untouched and remains the
-  general special case.
-* `staying_from_margin` — GATE (a): the settling-guard margin discharges boundary-unreachability.
-  Any flow whose tracked coordinate starts at `≤ cap` (the guard cap) with derivative bounded by
-  `r` stays `≤ cap + r·dt ≤ hi` on a `≤ dt` segment — geometric (mean value), not asserted.
-* `WellFormedFlowB_contract` — the ∀-base discharge for the STABILIZING class: a contractive
-  coordinate (`v' = k(c − v)`, equilibrium `c` INSIDE the shared band) makes the band forward-
-  invariant, so the staying clause of `WellFormedFlowB` holds from EVERY base — the H is
-  DISCHARGED BY CONSTRUCTION, with the explicit exponential witness (generalizing `decay_stays`).
+* `UniformEvol`: all modes share one evolution domain `evolShared`. The junction obligation
+  (a segment's endpoint satisfies the successor's domain) is then trivial: the successor's
+  domain is the shared domain, where the staying clause already puts the endpoint. The
+  narrowing machinery (`SuccReach`/`SuccReachB`/`starStep_narrowing`) is not used here.
+* `UniformStayingH`: the staying-only well-formedness hypothesis over the shared domain (no
+  `LandingH` field, no reaching). `LandingWellFormed_of_uniform` derives the
+  `LandingWellFormed` bundle from it (its `LandingH` field holds by `Or.inl`: the endpoint is in
+  the current mode's domain, which is every successor's domain).
+* `theorem3_faithful_landing_clocked_uniform`: the `rvalid` statement of
+  `theorem3_faithful_landing_clocked_wf` from `UniformEvol` and `UniformStayingH`, a thin
+  wrapper; the per-mode-domain statement is unchanged.
+* `staying_from_margin`: a scalar flow starting at `≤ cap` with derivative bounded by `r`
+  stays `≤ cap + r·dt ≤ hi` on a segment of length `≤ dt` (mean value theorem).
+* `WellFormedFlowB_contract`: for a contractive coordinate (`v' = k(c − v)`, equilibrium `c`
+  inside the shared band) the band is forward invariant, so the staying clause of
+  `WellFormedFlowB` holds from every base, with the explicit exponential witness
+  (generalizing `decay_stays`).
 
-HONEST SCOPE. This deployment certifies well-designed SETTLING systems: all modes share one
-physical envelope, and the dynamics/guards keep the flow off the envelope boundary. The staying
-H is DISCHARGED here for the single-coordinate stabilizing shape (equilibrium interior —
-`WellFormedFlowB_contract`); the margin lemma (`staying_from_margin`) is proven for the
-guard-capped growing shape, but consuming it in the star invariant requires guard-region-restricted
-bases (the guard-threaded invariant), which is scoped, not landed — those benchmarks CARRY the H.
-Non-settling / per-mode-domain systems remain on the shipped `LandingWellFormed` path unchanged.
+Scope: the staying hypothesis is discharged here for the single-coordinate contractive shape
+(`WellFormedFlowB_contract`). `staying_from_margin` covers the guard-capped growing shape, but
+using it in the star invariant needs bases restricted to the guard region (the guard-threaded
+invariant, `GuardThreaded.lean`); models outside both shapes carry the hypothesis.
 -/
 import RelCertifier.Proofs.Flow.MultisegLandingBridge
 
@@ -41,17 +34,18 @@ open DL DLCalTiming DLRel Function Set
 
 variable {n : ℕ}
 
-/-! ## The uniform-evol constraint and the staying-only H -/
+/-! ## The uniform-evol constraint and the staying-only hypothesis -/
 
-/-- All modes share ONE evolution domain (the uniform-evol design: `evolShared` is the physical
-envelope, strictly wider than every guard, checked benchmark-side). -/
+/-- Every mode of `G` has the evolution domain `evolShared`: `G.modeAt q = some m → m.dom =
+evolShared` (one evolution domain per system, Appendix B.2). -/
 def UniformEvol (G : SearchGraph (Var n)) (evolShared : Formula (Var n)) : Prop :=
   ∀ q m, G.modeAt q = some m → m.dom = evolShared
 
-/-- **The cleaned, staying-only well-formedness.** Junction content GONE: no `LandingH`
-membership field (trivial under uniform-evol), no per-mode domain, no reaching. What remains:
-bounded-`dt` staying over the ONE shared domain, the `g`-certificate over it, and the structural
-plumbing (freshness, edges). This is what a settling benchmark discharges. -/
+/-- **Staying-only well-formedness over a shared domain.** `0 ≤ dt`, freshness of the mode
+variable `mv` and the clock `tg`, and for every mode `q`: a right block `rightBlock fR lam`
+with `WellFormedFlowB fR lam evolShared dt` (bounded-`dt` staying), the box `g ≤ 0` along
+its flow from every state of `evolShared`, an unguarded self-edge, and an unguarded edge to
+every retained successor. No `LandingH` field, no per-mode domain, no reaching. -/
 def UniformStayingH (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)) (lam : Term (Var n))
     (tg : Var n) (dt : ℝ) (fL : Fin n → Term (Var n)) (evolShared : Formula (Var n)) : Prop :=
   0 ≤ dt ∧ mv ∉ g.fv ∧ mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound ∧ mv ≠ tg ∧
@@ -66,11 +60,10 @@ def UniformStayingH (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)) (l
     (∀ q', q' ∈ G.retainedSucc q →
       ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length))
 
-/-- **The decoupling + junction trivialization.** Under `UniformEvol`, the staying-only H derives
-the shipped `LandingWellFormed` bundle: the `LandingH` junction field is discharged by `Or.inl`
-(the endpoint is in the current mode's domain — which under uniform-evol IS every mode's domain,
-so the membership disjunction is immediate: `subset_refl` in spirit), and every per-mode domain
-field is rewritten to `evolShared`. No `SuccReach`, no reaching, no narrowing machinery. -/
+/-- **Junction trivialization.** Under `UniformEvol`, `UniformStayingH` implies the
+`LandingWellFormed` bundle: its `LandingH` junction field holds by `Or.inl` (the endpoint is in
+the current mode's domain, which under `UniformEvol` is every mode's domain), and every per-mode
+domain field is instantiated by `evolShared`. No `SuccReach`, no reaching. -/
 theorem LandingWellFormed_of_uniform (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (lam : Term (Var n)) (tg : Var n) (dt : ℝ) (fL : Fin n → Term (Var n))
     (domL evolShared : Formula (Var n))
@@ -91,10 +84,11 @@ theorem LandingWellFormed_of_uniform (G : SearchGraph (Var n)) (mv : Var n) (g :
     obtain ⟨fR, hsys, hqlen, hwff, hgbox, hself, hsucc⟩ := hmodes q m hm
     exact ⟨fR, evolShared, hsys, hU q m hm, hqlen, htgE, hwff, hgbox, hfrz, hself, hsucc⟩
 
-/-- **The re-pointed shipped theorem.** `rvalid (theorem3Form …)` from `UniformEvol` + the
-staying-only `UniformStayingH` — the junction is trivial, the narrowing machinery retired.
-Thin wrapper over `theorem3_faithful_landing_clocked_wf` (non-breaking: the per-mode-domain
-path is untouched; this is its uniform-evol instantiation). -/
+/-- **The single-left-flow ∀∃ invariance under a shared domain.** `rvalid (theorem3Form …)`
+for the left flow `leftBlock fL` under `domL`, the right automaton of `G`, and the
+one-component invariant `g ≤ 0` (`hψ`), from `UniformEvol`, `UniformStayingH`, the left
+budget `r ≤ k·dt` and the freshness and disjointness side conditions. A thin wrapper over
+`theorem3_faithful_landing_clocked_wf` through `LandingWellFormed_of_uniform`. -/
 theorem theorem3_faithful_landing_clocked_uniform (G : SearchGraph (Var n)) (mv : Var n)
     (g : Term (Var n)) (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n))
     (tg : Var n) (dt : ℝ) (k : ℕ) (lam : Term (Var n)) (ϕinv : RFormula (Var n))
@@ -121,15 +115,13 @@ theorem theorem3_faithful_landing_clocked_uniform (G : SearchGraph (Var n)) (mv 
     (LandingWellFormed_of_uniform G mv g lam tg dt fL domL evolShared hU hH)
     htgb htgr htgϕ htgR htgφ hdis hdMULTI hbudgetAll hddF
 
-/-! ## GATE (a) — staying from the settling-guard margin
+/-! ## Staying from the settling-guard margin
 
-The settling design enforces: growing modes' guards fire at `cap`, with margin `hi − cap`
-exceeding the worst-case one-step travel `r·dt`. The lemma: from any base at `≤ cap`, the
-boundary `hi` is UNREACHABLE within one `≤ dt` segment — a mean-value argument, not an
-assertion. This is the per-coordinate geometric content the certifier-verified benchmark
-discipline (margin > max-rate·dt) supplies. -/
+In a settling model, a growing mode's guard fires at `cap`, with margin `hi − cap` exceeding
+the worst-case one-step travel `r·dt`. From any base at `≤ cap`, the boundary `hi` is then
+unreachable within one segment of length `≤ dt`, by the mean value theorem. -/
 
-/-- **Staying from margin (GATE a).** A scalar flow `f` on `[0,s] ⊆ [0,dt]` with derivative
+/-- **Staying from margin.** A scalar flow `f` on `[0,s] ⊆ [0,dt]` with derivative
 bounded by `r`, starting at `f 0 ≤ cap`, stays `≤ hi` whenever the margin covers the worst-case
 travel: `cap + r·dt ≤ hi`. Mean value (`norm_image_sub_le_of_norm_hasDerivWithin_le`). -/
 theorem staying_from_margin (cap r hi dt s : ℝ) (f d : ℝ → ℝ)
@@ -153,11 +145,10 @@ theorem staying_from_margin (cap r hi dt s : ℝ) (f d : ℝ → ℝ)
 /-! ## The ∀-base discharge for the stabilizing class
 
 For a CONTRACTIVE coordinate (`v' = k(c − v)`, `k ≥ 0`) whose equilibrium `c` lies INSIDE the
-shared band `[lo, hi]`, the band is forward-INVARIANT: the exponential flow
+shared band `[lo, hi]`, the band is forward invariant: the exponential flow
 `v(t) = c + (v₀ − c)·e^{−kt}` stays between `v₀` and `c` for all `t ≥ 0`. So the staying clause
-holds from EVERY base in the band — `WellFormedFlowB` is DISCHARGED BY CONSTRUCTION, ∀-base, no
-guard restriction needed. This generalizes `decay_stays` (`k = 1, c = 0`) with the explicit
-witness. -/
+holds from every base in the band, and `WellFormedFlowB` holds with no guard restriction.
+This generalizes `decay_stays` (`k = 1, c = 0`) with the explicit witness. -/
 
 /-- Contractive field on coordinate `Rv j`: `v' = k(c − v)`, all other coordinates frozen. -/
 noncomputable def contractF (j : Fin n) (k c : ℝ) : Fin n → Term (Var n) :=
@@ -237,11 +228,10 @@ theorem contract_stays (j : Fin n) (k c lo hi : ℝ) (hk : 0 ≤ k) (hcl : lo �
     · nlinarith
     · nlinarith
 
-/-- **THE DISCHARGE (stabilizing class): `WellFormedFlowB` holds BY CONSTRUCTION** for a
-contractive coordinate with interior equilibrium over the shared band, at stretch `λ = 1` —
-∀ base, with the explicit exponential witness. The staying H is not carried for this class;
-it is a consequence of the field shape + envelope geometry (equilibrium strictly inside the
-uniform envelope — exactly the settling design the certifier verified benchmark-side). -/
+/-- **`WellFormedFlowB` for a contractive coordinate.** For the field `contractF j k c` with
+`k ≥ 0` and equilibrium `lo ≤ c ≤ hi`, at rate `λ = 1`, `WellFormedFlowB` holds over the band
+`lo ≤ v ≤ hi` from every base, with the explicit exponential witness: the staying hypothesis
+is a consequence of the field shape and the equilibrium lying inside the band. -/
 theorem WellFormedFlowB_contract (j : Fin n) (k c lo hi dt : ℝ)
     (hk : 0 ≤ k) (hcl : lo ≤ c) (hch : c ≤ hi) :
     WellFormedFlowB (contractF j k c) (Term.const 1) (bandDom j lo hi) dt := by

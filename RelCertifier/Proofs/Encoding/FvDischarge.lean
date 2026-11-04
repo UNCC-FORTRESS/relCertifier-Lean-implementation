@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Freshness discharge (the phase-A′ `fv ⊆ Rv` helpers, finally built)
+# Freshness discharge (the `fv ⊆ Rv` helpers)
 
 Every formula the checker builds — `envF`, `bandDom`, `GdOf` — mentions only right-side
 coordinates `Rv i`. Hence any AUX-side choice of the mode variable `mv` and the clock `tg`
@@ -96,7 +96,7 @@ theorem Rv_notin_clk_bound {b : Fin n} (fL : Fin n → Term (Var n)) (i : Fin n)
 /-- **`wellformed_sound`, Aux-instantiated**: with `mv := (Aux, a)`, `tg := (Aux, b)`,
 `a ≠ b`, every freshness hypothesis discharges generically. What remains is the checker
 certificate, `dt ≥ 0`, the invariant term's side split (no Aux reads), and the Z3
-certificates — the pipeline's designed residuals. -/
+certificates. -/
 theorem wellformed_sound_aux (M : SettlingModel n) (a b : Fin n) (hab : a ≠ b)
     (g : Term (Var n)) (fL : Fin n → Term (Var n))
     (hwf : decideWellFormed M = true)
@@ -655,8 +655,8 @@ theorem settling_end_to_end (M : SettlingModel n) (a b c : Fin n)
 
 `lowerE`/`invToG` resolve variables through `resolveVar`, which only ever produces
 `Side.L`, `Side.R`, or the (non-Aux) default side. Hence the lowered invariant term
-mentions no Aux coordinate — the `hgAux` hypothesis of `settling_end_to_end` is
-automatic on the parser-emitted path. -/
+mentions no Aux coordinate, so the `hgAux` hypothesis of `settling_end_to_end` holds
+on the parser-emitted path. -/
 
 theorem Run.resolveVar_no_aux {vars : List String} {defSide : Side} (hside : defSide ≠ Side.Aux)
     {name : String} {v : Var n} (h : Run.resolveVar vars n defSide name = some v) :

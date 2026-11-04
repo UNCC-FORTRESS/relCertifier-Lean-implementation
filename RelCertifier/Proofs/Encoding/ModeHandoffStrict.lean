@@ -4,9 +4,10 @@ Released under Apache 2.0 license.
 
 # The mode-keyed handoff at strict rows (extension `strict-atoms`)
 
-`ModeHandoff` is F-parametric (`hstep_modeKeyed` over `F : ℕ → Formula`), so the composed
-theorem at strict rows is the existing one at `F l := FMS (row l)`. What is specialized to
-the closure is the handoff hypothesis's discharge:
+The handoff condition of Theorem 2 (Composition), Eq. (13), for invariants with strict
+components. `ModeHandoff` is F-parametric (`hstep_modeKeyed` over `F : ℕ → Formula`), so the
+composed theorem at strict rows is the existing one at `F l := FMS (row l)`. What is specialized
+to strict rows is the discharge of the handoff hypothesis:
 
 * in-kernel, `FM_mono` (nested rows) → `FMS_mono`: a target component may be strict only if
   the source carries it strict;
@@ -14,8 +15,6 @@ the closure is the handoff hypothesis's discharge:
   (`Handoff.ihandoffQueryS`): the antecedent is the source row at its mask (it holds strictly
   at the switch), the negated target carries the target's mask, so the UNSAT gives the
   target's strict row (`handoff_FMS_of_unsatS`).
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.ModeHandoff
 import RelCertifier.Proofs.Encoding.StrictInv

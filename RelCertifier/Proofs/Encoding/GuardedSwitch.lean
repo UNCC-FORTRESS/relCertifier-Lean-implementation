@@ -6,38 +6,37 @@ Released under Apache 2.0 license.
 
 The right automaton `rightAutomatonBody G mv` (`JointBridge.lean`) already tests each
 edge's guard after the flow: `modeStep = ?(mv = q) ; flow_q ; ⋃_e (?e.guard ; mv := e.tgt)`.
-What made the earlier instance theorems statements about a relaxation of the paper's model
-was the GRAPH: every constructed edge carried `guard := ⊤`, and the bridge lemmas took the
-premise `htt : ∀ q e, e.guard = ⊤`. In the paper's `cpsProg` the right switches only into a
-declared successor whose guard holds at the switch state (`?(m ∈ next(mv)) ; ?guard_m(x) ;
-mv := m ; flow`), and staying in a mode is the same move (`m = mv`, its own guard tested).
+In Eq. (1) the right switches only into a declared successor whose guard holds at the switch
+state (`?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; flow`), and staying in a mode is the same
+move (`m = mv`, its own guard tested). The Lean automaton runs the same body rotated, flow then
+select (Appendix B.2, Rotation), and its graph must carry the guards: an edge with
+`guard := ⊤` (the premise `htt : ∀ q e, e.guard = ⊤` of the unguarded bridge lemmas) would make
+the statement one about a relaxation of Eq. (1).
 
-This file is the generic layer for the GUARDED automaton: an edge carries the lowered guard
+This file is the generic layer for the guarded automaton: an edge carries the lowered guard
 of the mode it enters (`e.guard = hostGuard … (mR e.tgt)`, built per instance exactly as the
 left guards are), and no lemma here assumes anything about `e.guard`.
 
 * `SwitchLegal e ω`: the per-switch obligation, the entered mode's guard holds at `ω`.
-* `gseg s = flow_{s.q} ; ?s.edge.guard`: one segment WITH its switch test. A run of
+* `gseg s = flow_{s.q} ; ?s.edge.guard`: one segment with its switch test. A run of
   `bigSeq (segs.map gseg)` is exactly a sequence of flows each followed by a legal switch.
-* `guarded_rights_bridge`: such a run IS a run of `star (rightAutomatonBody G mv)` with the
+* `guarded_rights_bridge`: such a run is a run of `star (rightAutomatonBody G mv)` with the
   mode variable threaded (`mv : q0 ↦ qfOf segs q0`); no guard premise.
-* `GResp G q P post σ`: the guarded step obligation. For EVERY run of the left program `P`
+* `GResp G q P post σ`: the guarded step obligation. For every run of the left program `P`
   from `σ`, there is a list of declared segments starting at `q`, each switch legal, whose
-  end state satisfies `post` of the final mode. The segments are chosen AFTER the left run,
-  so the final switch can depend on where the response ends (the paper's demonic choice of
-  successor is resolved by choosing an enabled one).
+  end state satisfies `post` of the final mode. The segments are chosen after the left run,
+  so the final switch can depend on where the response ends (the witness picks an enabled
+  successor, as a witness strategy continues from the enabled mode of its landing set).
 * `hstep_single_GR`/`hstep_assembled_GR` (region-carrying loop invariant `phiInvR`),
   `hstep_single_GF`/`hstep_assembled_GF` (`phiInvF`, `mvValid`), `hstepMode_GR`/`GF`
   (per left mode, for `theorem3_modeKeyed`): the loop steps over the guarded automaton.
 * Building blocks for the instances: `gresp_gate` (the left window's own guard test),
   `gresp_hop` (a zero-duration flow followed by a legal switch), `gresp_final` (the
-  response flow, then a switch into an enabled successor; its `NonblockingAt` premise is
-  Assumption 1 at the end states the response can reach, discharged per instance from the
-  explicit end state), `gresp_mono`.
+  response flow, then a switch into an enabled successor; its `NonblockingAt` premise is the
+  completeness clause of Assumption 1 at the end states the response can reach, discharged per
+  instance from the explicit end state), `gresp_mono`.
 * Footprint lemmas without `htt`: `vars_bodyG_sub` and the `hd`/`hddF` dischargers, whose
   only new premise is that the edge guards read right coordinates.
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.CutComposition
 import RelCertifier.Proofs.Encoding.ModeHandoff
@@ -85,7 +84,7 @@ theorem guardsFresh_of_right (G : SearchGraph (Var n)) (a : Fin n)
 
 /-! ## The bridge: legal switches make a run of the guarded automaton -/
 
-/-- One flow at a declared mode followed by a LEGAL switch along a declared edge is one
+/-- One flow at a declared mode followed by a legal switch along a declared edge is one
 step of the guarded automaton. -/
 theorem guarded_seg_step (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
     (hfv : mv ∉ (Program.ode m.sys m.dom).fv)
@@ -214,8 +213,9 @@ theorem gresp_hop {G : SearchGraph (Var n)} {q : ℕ} {m : RMode (Var n)} {e : R
 /-- **Assumption 1 at the response's end states.** From every state `Post'` describes (where
 the response flow in `qs` can end), some declared successor of `qs` is enabled (its switch is
 legal) and the loop postcondition holds for the entered mode. Every instance discharges
-this from the explicit end-state facts; it is the nonblocking half of the paper's
-Assumption 1, restricted to the states the response reaches. -/
+this from the explicit end-state facts. Despite the name, it is the completeness clause of
+Assumption 1 (a declared successor is enabled at the end of the flow), restricted to the
+states the response reaches and strengthened by `post` of the entered mode. -/
 def NonblockingAt (G : SearchGraph (Var n)) (qs : ℕ) (Post' : Formula (Var n))
     (post : ℕ → Formula (Var n)) : Prop :=
   ∀ μ, Formula.sat Post' μ →
@@ -295,7 +295,7 @@ theorem gresp_final_idle {G : SearchGraph (Var n)} {qs : ℕ} {ms : RMode (Var n
       exact ⟨κ, sem_gseg.mpr ⟨hflow, hleg⟩, rfl, trivial⟩
     · simpa [qfOf] using hp
 
-/-- **A flow cannot END on an upper face it pushes away from.** If along every state of the
+/-- **A flow cannot end on an upper face it pushes away from.** If along every state of the
 domain the coordinate `x` is at most `c`, and wherever `x = c` its derivative is negative,
 then a run either ends strictly below `c` or has zero duration (ends where it started). -/
 theorem ode_coord_end_lt_or_eq {sys : ODESystem (Var n)} {dom : Formula (Var n)}
@@ -1117,17 +1117,19 @@ theorem hostGuard_fv_R (vars : List String) (m : Parse.PMode)
   · rw [hlow, Option.map_some, Option.getD_some] at hx
     exact side_eq_R_mem (Run.lowerF_fv_side (resolvesTo_R vars) hfree hlow x hx)
 
-/-! ## The mode-consistent region: the current mode's guard and its checked cuts
+/-! ## The mode-consistent region: the current mode's guard and its mode facts
 
 At every loop boundary of the flow-then-jump right automaton the right has just taken a guarded
 jump (`modeStep`: flow, then `?e.guard ; mv := e.tgt`), so its state satisfies the lowered guard
 of its current mode `mv`. The loop invariant therefore carries, for the current mode `q`, the
-guard of `q` together with its checked cuts: `regionG guard cuts q = guard q ∧ cuts q`. This is a
-strengthening of the statement's hypothesis (and of its conclusion, which the guarded jump
-re-establishes), not of any invariant row. -/
+guard of `q` together with its mode facts (Definition 2): `regionG guard cuts q = guard q ∧ cuts q`.
+At the rotated loop head this is the operating region `op_R` of Section 3 for the current mode
+(Appendix B.2, Rotation). It strengthens the statement's hypothesis (and its conclusion, which
+the guarded jump re-establishes), not any invariant row. -/
 
-/-- **The mode-consistent region** of right mode `q`: its lowered guard and its checked cuts
-(`Formula.tt` where the statement keeps no cut; a false formula for a pruned sink). -/
+/-- **The mode-consistent region** of right mode `q`: `guard q ∧ cuts q`, its lowered guard and
+its mode facts (`cuts q` is `Formula.tt` where the statement keeps no mode fact, a false
+formula for a pruned sink). -/
 def regionG (guard cuts : ℕ → Formula (Var n)) (q : ℕ) : Formula (Var n) :=
   Formula.and (guard q) (cuts q)
 
@@ -1204,7 +1206,7 @@ theorem gresp_guard {G : SearchGraph (Var n)} (guard : ℕ → Formula (Var n))
     exact hleg
 
 /-- **The step provider over the mode-consistent region** (`hstep_assembled_GR`'s `Hmulti`
-for `regionG guard cuts`), from a provider over the cuts alone: the start mode's guard is in
+for `regionG guard cuts`), from a provider over the mode facts `cuts` alone: the start mode's guard is in
 the hypothesis (and is not even needed by the provider), and the final mode's guard is
 re-established by the guarded jump (`gresp_guard`). -/
 theorem Hmulti_regionG (G : SearchGraph (Var n)) (mv : Var n) (guard cuts : ℕ → Formula (Var n))
@@ -1243,8 +1245,8 @@ theorem HMode_regionG (G : SearchGraph (Var n)) (mv : Var n) (guard cuts : ℕ �
   exact ⟨hp.1, hg, hp.2⟩
 
 /-- The `mvValid`-chain providers (`GResp` to `F ∧ env` only) over the mode-consistent region:
-the guarded jump gives the final mode's guard, the cuts are `cuts` (typically `⊤`) wherever
-the provider's post implies them. -/
+the guarded jump gives the final mode's guard, and the mode facts `cuts` (typically `⊤`) hold
+wherever the provider's post implies them. -/
 theorem HMode_regionG_ofF (G : SearchGraph (Var n)) (mv : Var n) (guard cuts : ℕ → Formula (Var n))
     (hGg : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
     (hcuts : ∀ q μ, Formula.sat (guard q) μ → Formula.sat (cuts q) μ)

@@ -1,22 +1,23 @@
 /-
-`multiseg_landing` — the landing-selected joint-tree-walk ∃-witness (statement-first core).
+`multiseg_landing`: the landing-selected walk that builds the ∃-witness of a multi-segment response.
 
-The redesign that ELIMINATES `WFBoundary` clause 2 by construction: instead of folding a pre-fixed
+This removes `WFBoundary` clause 2 by construction: instead of folding a pre-fixed
 segment list (`multiseg_het`), walk `Covered`'s ∀-successor tree, selecting at each junction the branch
 whose domain the constructed right-flow endpoint `μ_R` landed in. Because the state stays in its mode's
 domain (ODE domain-constraint) and successor domains OVERLAP (verified per benchmark — shared/nested
 evolve-domains), the switch is an interior overlap point: `μ_R ∈ domR_next` holds BY SELECTION (no
 guard, `⊤`-switch free, no first-passage).
 
-This file lands the composable core statement-first:
-* `LandingH` — the (trivially-true, ODE-constrained) landing hypothesis.
-* `segment_landing` — the per-node dispatch: an in-domain entry + `WellFormedFlow` (existence) +
-  the cover's joint box discharge one segment's `faModal` via `segment_faModal`. Confirms pieces 3
-  (`WellFormedFlow`, banked) and 4 (`segment_faModal`, banked) COMPOSE sorry-free, with the in-domain
+Contents:
+* `LandingH`: the (trivially true, ODE-constrained) landing hypothesis.
+* `segment_landing`: the per-node dispatch: an in-domain entry + `WellFormedFlow` (existence) +
+  the cover's joint box discharge one segment's `faModal` via `segment_faModal`, with the in-domain
   entry `hνdom` the landing supplies by construction.
-The full `multiseg_landing` induction over `Covered` (composing these via `faModal_seq`/`faModal_MR`,
-threading `invLe g`) is `theorem multiseg_landing` below — the capstone; its per-node step is
-`segment_landing`.
+* `multiseg_landing`: the induction over `Covered` (composing these via `faModal_seq`/`faModal_MR`,
+  threading `invLe g`), whose per-node step is `segment_landing`.
+
+The right automaton here is `rightAutomatonBody` with unguarded (`⊤`) switches; the theorems of
+Appendix B.1 use the guarded `rightAutomatonBodyC`.
 -/
 import RelCertifier.Core.Reify
 import RelCertifier.Proofs.Flow.WFBoundary
@@ -38,11 +39,11 @@ def LandingH (G : SearchGraph (Var n)) : Prop :=
       (Formula.sat m.dom μ ∨
         ∃ q' ∈ G.retainedSucc q, ∃ m', G.modeAt q' = some m' ∧ Formula.sat m'.dom μ)
 
-/-- **Per-node dispatch (pieces 3 + 4 compose).** One segment's `faModal`, from: the cover's joint
+/-- **Per-node dispatch.** One segment's `faModal`, from: the cover's joint
 box (`hcert`), the per-mode flow well-formedness (`hwff`, `WellFormedFlow` — existence), the L/R split
 (`hfrz`), and the IN-DOMAIN ENTRY `hνdom` (which the landing-selection supplies by construction — the
 segment is entered where the flow landed, in this mode's domain). `HExistSeg` is discharged within-
-segment by the banked `hExistSeg_of_wellFormedFlow`; `segment_faModal` (banked) decouples joint →
+segment by `hExistSeg_of_wellFormedFlow`; `segment_faModal` decouples joint →
 frozen-left right-response. No guard, no cross-switch `HExistSeg`, no first-passage. -/
 theorem segment_landing (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (domL domR : Formula (Var n)) (ν : State (Var n))
@@ -92,7 +93,7 @@ theorem segment_landing_at (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (
   segment_landing g fL fR lam domL domR μ_R hdisj hφL hφR hcert hwff hfrz hland
 
 /-- **The flow-diamond — the input to `diamond_right_wrap` for the star step.** From `WellFormedFlow`
-(the frozen-left right run exists in `domR` — existence, banked), an in-domain start `hν`, and the
+(the frozen-left right run exists in `domR`: existence), an in-domain start `hν`, and the
 frozen-left flow's `g`-preservation `hg` (`BoxLe`, from `cert.repoDynPres`/`DI_nonstrict`), the right
 flow's diamond holds: `⟨ode rightBlock domR⟩(invLe g)`. This is the per-segment `∃`-right run with
 `g≤0` at its endpoint — `diamond_right_wrap` then wraps it into one `rightAutomatonBody` body-step
@@ -109,7 +110,7 @@ theorem wff_to_diamond (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : T
   exact ⟨ΦR 1, hsem, by rw [sat_invLe]; exact hg _ hsem⟩
 
 /-- **One `R_real` body-step, landing-selected (the star's unit).** Composes `wff_to_diamond` (the
-flow-diamond, banked) with `diamond_right_wrap` (banked): from the frozen-left right flow's existence
+flow-diamond) with `diamond_right_wrap`: from the frozen-left right flow's existence
 (`WellFormedFlow`) + `g`-preservation (`hgbox`) + the mode/edge structure (`hm`/`hsys`/`hdom`/`hef` —
 the `⊤`-guarded declared edge, so the switch is free), one `rightAutomatonBody` diamond step holds,
 carrying `invLe g ∧ mvValid` to the next state. The mode `q` is the landing-selected one (`hm` picks it);
@@ -343,7 +344,7 @@ theorem starStep_widening (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
   starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
     (flowDiamond_widening g fR lam domR m'.dom μ hwff hν hgbox hsub)
 
-/-! ## Narrowing — one model-level REACHABILITY (liveness) hypothesis `SuccReach` (STATEMENT-FIRST)
+/-! ## Narrowing — one model-level REACHABILITY (liveness) hypothesis `SuccReach`
 
 For a narrowing switch (`domSucc ⊊ domR`, e.g. rover Recover→Drive with `domR = vx∈[0,1]`,
 `domSucc = vx∈[0.3,1]`) the widening discharge `flowDiamond_widening`/`hsub` is UNAVAILABLE — `domR ⊆
@@ -357,12 +358,12 @@ ODE-endpoint `sem (ode …) μ μ'`) that is in `domSucc` — the terminal/reach
 directly. It is a property of the MODEL (the mode's field + successor domain), with NO reference to the
 fold/junctions/faModal — purely about the automaton's executions and domains.
 
-**Honestly labeled: this is a REACHABILITY (liveness) condition, NOT non-blocking.** `SuccReach` is exactly
+**This is a REACHABILITY (liveness) condition, NOT nonblocking.** `SuccReach` is exactly
 first-passage universally quantified over start states, named once — it *asserts* the flow reaches the
 successor domain. It is strictly stronger than the safety/non-blocking property `SuccReachUnion` (lands in
 `domR`-or-`domSucc`), which `SuccReachUnion_vacuous` PROVES is unconditionally true and hence useless. So we
 do not dress first-passage as something milder: `SuccReach` is a named, true, checkable, model-level
-reachability well-formedness, provable per-field via monotonicity+IVT (scoped future work). -/
+reachability well-formedness, provable per field via monotonicity + IVT. -/
 def SuccReach (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n)) : Prop :=
   ∀ μ : State (Var n), Formula.sat domR μ →
     ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧ Formula.sat domSucc μ'
@@ -370,7 +371,7 @@ def SuccReach (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc :
 /-- **`SuccReachB` — bounded-`dt`, CROSSING-SEGMENT-scoped reaching (the clocked-consistent narrowing
 condition).** A per-STATE predicate at the *crossing* state `μ` (the one the self-loop staging brought to
 be crossing-ready): from `μ`, a **single `≤ dt` right segment** stays in the source domain `domR` and
-reaches the successor domain `domSucc` at its end. This is the honest bounded analog of `SuccReach`:
+reaches the successor domain `domSucc` at its end. This is the bounded analog of `SuccReach`:
 - it is the **crossing segment only** — the PRIOR segments self-loop in `domR` (bounded-`dt` staying, handled
   by `WellFormedFlowB`), NOT a blanket "reach from anywhere within `dt`";
 - the reaching run has duration `s ≤ dt` (bounded — no `∀s`/unbounded existence, uniform with widening);
@@ -473,7 +474,7 @@ theorem starStep_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m :
   starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
     (hstep_of_SuccReachB g fR lam domR m'.dom dt μ hsr hgbox)
 
-/-! ## The H + landing-selection step — MEMBERSHIP + invariance, no reaching (the general fix)
+/-! ## The H + landing-selection step — MEMBERSHIP + invariance, no reaching
 
 The unified landing step: run one `≤ dt` right segment (`WellFormedFlowB` — bounded staying, TRUE), then
 CASE-SPLIT `LandingH`'s disjunction on the endpoint (`μ_end ∈` current mode's domain OR a cover-successor's
@@ -533,7 +534,7 @@ theorem starStep_landingH (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
 
 /-! ## The strengthened segment lemma — one segment preserves `starInvF` (the threaded `φinv`)
 
-The path-A capstone: reuse `multiseg_het`'s box-left induction, but with the STRENGTHENED invariant
+Reuse `multiseg_het`'s box-left induction, but with the STRENGTHENED invariant
 `φinv := starInvF` (`invLe g ∧ mvValid ∧ inModeDomF`). The strengthening dissolves `multiseg_het`'s `∀σ`
 seam — because every box-left endpoint is IN-DOMAIN (left flow freezes the right coords, start in `domR`),
 `∀σ` there ranges only over in-domain states, exactly where the per-segment discharge applies. This lemma
@@ -584,7 +585,7 @@ theorem segment_landing_full (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m
   · rw [ODESystem.rename_refl, Formula.rename_refl]
     exact hExistSeg_of_wellFormedFlow fL fR lam domL domR σ hwff hfrz hνdom
 
-/-- **The capstone per-step — the self-dispatching landing step (mirrors `hstep_single`, carrying
+/-- **The per-step: the self-dispatching landing step (mirrors `hstep_single`, carrying
 `starInvF`).** From the strengthened segment faModal `hseg` (`segment_landing_full`: one segment maps
 `starInvF → starInvF`, mode `q`) derive the SAME faModal with the right program lifted to the
 self-dispatching `rightAutomatonBody`. At each post-left state `ν` (mode `q`, since `mv` survives the
@@ -630,7 +631,7 @@ theorem landing_step_faModal (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m
       ⟨μ, hRμ, hstarμ.1, hsub μ hμdomR⟩
   exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
 
-/-- **The capstone per-step for a NARROWING switch — the analog of `landing_step_faModal`, BOUNDED-`dt`.**
+/-- **The per-step for a NARROWING switch — the analog of `landing_step_faModal`, BOUNDED-`dt`.**
 At each post-left state `ν` (mode `q`, in `domR` since the left flow freezes the right coords `hfrz` and
 `σ ∈ domR`), the crossing-segment condition `SuccReachB … dt ν` supplies a **`≤ dt`** right run reaching the
 target domain `m'.dom`, and the per-start `BoxLe` cert (`hgboxAll`) supplies `invLe g` along it;
@@ -679,7 +680,7 @@ theorem faModal_star_lift (ρ : Var n ≃ Var n) (P Q : Program (Var n)) (φ : F
   rw [rename_star]
   exact ⟨μ, Relation.ReflTransGen.single hQμ, hφ⟩
 
-/-- **The capstone per-step in `faModal_MULTI` form** — `landing_step_faModal` composed with
+/-- **The per-step in `faModal_MULTI` form** — `landing_step_faModal` composed with
 `faModal_star_lift`: one mode's contribution to the `hstep` obligation, `faModal P (star
 rightAutomatonBody) starInvF`. The `faModal_MULTI` wrap dispatches these per mode over the left star. -/
 theorem landing_step_star (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
@@ -821,7 +822,7 @@ theorem landing_step_landingH_clocked (G : SearchGraph (Var n)) (mv : Var n) (q 
       (hgboxAll ν hνdom) hH hmvdomAll hedgeSelf hedgeSucc
   exact ⟨o, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
 
-/-- **`multiseg_landing` — the capstone.** The full relational modality `faModal (leftBody*)
+/-- **`multiseg_landing`.** The full relational modality `faModal (leftBody*)
 (rightAutomatonBody*) starInvF` over the STARRED left and right automata, assembled from the per-step
 landing responses via `faModal_MULTI`. The `hdispatch` obligation — one landing star-step from every
 `starInvF`-state — is discharged (per mode) by `landing_step_star`, dispatching on the state's mode
@@ -880,7 +881,7 @@ modality over the STARRED CLOCKED left and the right automaton, from the clocked
 (`landing_step_star_landingH_clocked`) via `faModal_MULTI`. Each left iteration is a `≤ dt` `clockedSeg`
 (so the right `≤ dt` segment matches — no raw-left `∀s` gap); dispatch is `LandingH` membership
 (first-passage-free). `hdispatch` carried parametrically (discharged per mode by the clocked H hstep, as in
-the raw `multiseg_landing`). The physical collapse `star clockedSeg → star (ode leftBlock)` is the shipped
+the raw `multiseg_landing`). The physical collapse `star clockedSeg → star (ode leftBlock)` is
 `clockLift` (a further wrap). -/
 theorem multiseg_landing_clocked (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (σ : State (Var n))
@@ -915,13 +916,13 @@ theorem hdispatch_of_modeResp (G : SearchGraph (Var n)) (mv : Var n) (g : Term (
   obtain ⟨q, m, hqmv, hmode, hmdom⟩ := hstar.2.2
   exact hresp σ' hstar q m hmode hqmv hmdom
 
-/-- **`tooling_sound_landing` — the capstone at the `faModal`/`sat` layer, carrying the per-mode dispatch.**
+/-- **`tooling_sound_landing`: the `faModal`/`sat`-layer statement, carrying the per-mode dispatch.**
 The full ∀∃ relational modality `faModal (leftBody*) (rightAutomatonBody*) starInvF` over the starred
 automata, from `multiseg_landing` ∘ `hdispatch_of_modeResp`. The per-mode response `hresp` is where each
 declared mode routes to its branch: WIDENING modes discharge by construction (`landing_step_star`, no
 `SuccReach`); NARROWING modes carry `SuccReach` (`landing_step_star_narrowing`). So `SuccReach` is scoped to
 narrowing edges only — the enumeration fills `hresp` per mode. The all-widening instantiation recovers the
-banked `multiseg_het` behaviour (no reachability hypothesis anywhere). This is non-breaking: the encoded-
+`multiseg_het` behaviour (no reachability hypothesis anywhere). The encoded-
 layer `tooling_sound` (rvalid/theorem3Form, `EmitSegs`) and `multiseg_het` are untouched; bridging this
 `sat`-modality to the `rvalid` form is the reification integration (separate, layered on the existing
 `relational_loop_faithful` machinery). -/
@@ -938,9 +939,9 @@ theorem tooling_sound_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (
       (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
   multiseg_landing G mv g leftBody σ hd hσ (hdispatch_of_modeResp G mv g leftBody hresp)
 
-/-! ## Right-widen — `bigSeq k R ⊆ star R` (WRAP 2: residence `bigSeq k` right → `star R` before collapse)
+/-! ## Right-widen — `bigSeq k R ⊆ star R` (residence `bigSeq k` right → `star R` before collapse)
 
-The residence-level clocked H-combiner (option ii) composes `k` clocked H-pieces via the shipped
+The residence-level clocked H-combiner composes `k` clocked H-pieces via
 `multiseg_clocked` (per-piece `faModal_seq` — landing-selection stays per-`≤dt`-piece), giving a right side
 `bigSeq (replicate k rightAutomatonBody)`. These lemmas widen that finite `k`-fold to `star rightAutomatonBody`
 (a `k`-step star run), so `clockLift_collapse` (which takes any right `R`, here `star rightAutomatonBody`)
@@ -987,11 +988,11 @@ theorem faModal_bigSeq_replicate_to_star (ρ : Var n ≃ Var n) (P R : Program (
   rw [rename_bigSeq_replicate] at hRun
   exact sem_bigSeq_replicate_subset_star (R.rename ρ) k hRun
 
-/-! ## WRAP 2 (option ii) — the residence-level clocked H-combiner → physical collapse
+/-! ## The residence-level clocked H-combiner → physical collapse
 
-`clocked_H_residence`: compose `k` clocked H-pieces via the shipped `multiseg_clocked` (rights = `replicate
+`clocked_H_residence`: compose `k` clocked H-pieces via `multiseg_clocked` (rights = `replicate
 k rightAutomatonBody`, each dispatched per-piece by the clocked H-step `hHcouple`), then widen the finite
-right response to `star R`. `clocked_H_residence_physical`: `clockLift_collapse` (direct shipped reuse) →
+right response to `star R`. `clocked_H_residence_physical`: `clockLift_collapse` →
 one physical `ode leftBlock` residence. `multiseg_landing_clocked_physical`: `faModal_MULTI` outer → the
 physical `faModal (star (ode leftBlock))(star R) starInvF`. Per-`≤dt`-piece landing-selection survives
 end-to-end (`multiseg_clocked` composes per-piece; right-widen/collapse/MULTI don't touch dispatch). -/
@@ -1019,7 +1020,7 @@ theorem clocked_H_residence (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Va
     (starInvF G mv g) σ k hmc
 
 /-- Collapse the clocked residence to a physical `ode leftBlock` residence via `clockLift_collapse`
-(direct shipped reuse). The `≤dt` obligations were discharged in the clocked layer; the physical residence
+(reused directly). The `≤dt` obligations were discharged in the clocked layer; the physical residence
 is any-duration `≤ k·dt` (`hbudget`), matching the tool's physical model. -/
 theorem clocked_H_residence_physical (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
@@ -1043,12 +1044,11 @@ theorem clocked_H_residence_physical (G : SearchGraph (Var n)) (mv : Var n) (g :
   exact clockLift_collapse (leftBlock fL) domL (Program.star (rightAutomatonBody G mv))
     (starInvF G mv g) tg dt k htgb htgr htgϕ hdt htgRstar htgφ hbudget hres
 
-/-- **CHECKPOINT (a) — the collapsed PHYSICAL modality.** `faModal (star (ode leftBlock))(star
+/-- **The collapsed PHYSICAL modality.** `faModal (star (ode leftBlock))(star
 rightAutomatonBody) starInvF` — the physical model the tool runs, from the clocked H-combiner via
 `clockLift_collapse` + `faModal_MULTI`. Per-`≤dt`-piece membership dispatch, `WellFormedFlowB` `≤dt`
-invariance, first-passage-free — the honest bounded/clocked/membership foundation, now on the physical
-form. `hbudget` per residence (`r ≤ k·dt`) is the cover's fixed budget `k`; `hHcouple` the clocked H
-dispatch (WRAP 1). -/
+invariance, first-passage-free, now on the physical form. `hbudget` per residence (`r ≤ k·dt`) is the cover's fixed budget `k`; `hHcouple` the clocked H
+dispatch. -/
 theorem multiseg_landing_clocked_physical (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
     (htgb : tg ∉ (leftBlock fL).bound) (htgr : tg ∉ (leftBlock fL).readVars) (htgϕ : tg ∉ domL.fv)
@@ -1072,7 +1072,7 @@ theorem multiseg_landing_clocked_physical (G : SearchGraph (Var n)) (mv : Var n)
     (fun σ' hσ' => clocked_H_residence_physical G mv g fL domL tg dt k htgb htgr htgϕ hdt htgR htgφ
       hHcouple hdis hσ' (hbudgetAll σ')) (fun _ h => h)
 
-/-! ## PART 1 — `hHcouple` as ONE universal `∀modes` well-formedness (`LandingWellFormed`)
+/-! ## `hHcouple` as ONE universal `∀modes` well-formedness (`LandingWellFormed`)
 
 Replace the opaque per-mode dispatch bundle with a single model-level property: the automaton is well-formed
 in the bounded-landing sense — uniformly for every mode, its `≤dt` executions preserve the evolution domain

@@ -2,14 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# L3 — the intra-piece switch coupling (B-first split)
+# The intra-piece switch coupling (B-first split)
 
-Three benchmarks (`arm_chain_rung1/2`, `arm_fidelity_low`) have landing modes with a genuinely outward evolve face
-(`θ' = const > 0` against a bounded band): a full-duration single-mode piece leaves
-the envelope, so the response must SWITCH modes inside one left piece. The measured
-design: run the escape mode `B` first for the FIXED fraction `θ = M_A/(M_A+M_B)` of
-the left duration, then the certified mode `A` for the rest — the rise in `A` exactly
-cancels the drop in `B`, and only the `B` stretch is charged against the invariant.
+Some landing modes have an outward evolve face (`θ' = const > 0` against a bounded band): a
+full-duration single-mode piece leaves the envelope, so the witness run must switch modes
+inside one left piece. The construction runs the escape mode `B` first for the fixed fraction
+`θ = M_A/(M_A+M_B)` of the left duration, then the certified mode `A` for the rest: the rise in
+`A` cancels the drop in `B`, and only the `B` stretch counts against the invariant.
 
 The construction mirrors `faModal_ODE_G'_bounded` with a TWO-PHASE right trajectory:
 
@@ -21,10 +20,8 @@ The construction mirrors `faModal_ODE_G'_bounded` with a TWO-PHASE right traject
   carries `φ'` to the end; the `A`-witness pairs against the left run SHIFTED to
   `[θs, s]`, frame-patched to the switch state's right coordinates;
 * the response run `seq B A` from the left endpoint is assembled from the two
-  witnesses by frame patching (`patched_run` — each phase's system reads only its
+  witnesses by frame patching (`patched_run`: each phase's system reads only its
   own bound frame, so off-frame repatching preserves runs).
-
-New leaf (imports `EnvelopeChain`); no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChain
 import RelCertifier.Proofs.Flow.BoxViabilityBounded
@@ -163,9 +160,8 @@ certified `A` for the rest (the `A` joint box carries `φ'` from the switch stat
 The A-phase existence hypothesis additionally receives the QUANTITATIVE drop `B`
 achieved on the tracked coordinate `xj` (`κ' xj ≤ ω xj − cB·s₁`, from `hjrow` via
 `growth_along_dom`) together with the split fraction identity
-`(1 − θ)·s₁ = θ·s₂` — with `θ = cA/(cA + cB)` the instance's A-rise then cancels
-the B-drop from any anchor at or below the outward face (the §8 interface fix in
-docs/history/INTRA-PIECE-SWITCH-SCOPE.md). -/
+`(1 − θ)·s₁ = θ·s₂`: with `θ = cA/(cA + cB)` the instance's A-rise then cancels
+the B-drop from any anchor at or below the outward face. -/
 theorem faModal_ODE_split_bounded
     (sysX sysB sysA : ODESystem (Var n))
     (φx φyB φyA φ' : Formula (Var n))

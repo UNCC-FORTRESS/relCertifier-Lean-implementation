@@ -11,8 +11,6 @@ stays in the guard of the mode it runs in, so that its closing self-loop is lega
 derivative of a right term along `rightBlock fR λ` is its one-sided Lie derivative scaled by
 `λ` (`lie_rightBlock`), so every `super_*` shape lemma applies unchanged
 (`boxle_Ronly_of_super`).
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Soundness.CutLiftX
 
@@ -45,7 +43,9 @@ theorem lie_rightBlock (fR : Fin n → Term (Var n)) (lam : Term (Var n))
   rw [h0, zero_add]
 
 /-- **Superlevel O2 along the right's own flow** (the right-only counterpart of
-`boxle_R_of_super`). -/
+`boxle_R_of_super`). For a right term `g` with `g ≤ 0` at `ν`, if on `D` (implied by the
+domain) the right Lie derivative of `g` is `≤ 0` wherever `g ≥ 0` (the domain condition,
+Eq. (18)), then `g ≤ 0` along every run of the right block at constant stretch `c ≥ 0`. -/
 theorem boxle_Ronly_of_super (g : Term (Var n)) (fR : Fin n → Term (Var n)) (c : ℝ)
     (hc : 0 ≤ c) (dom D : Formula (Var n)) (hfv : ∀ i : Fin n, Lv i ∉ g.fv)
     (hdomImp : ∀ x, Formula.sat dom x → Formula.sat D x)

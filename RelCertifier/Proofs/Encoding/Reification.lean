@@ -2,29 +2,29 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Reification — assemble the mode-list into choice-star programs, apply the proven rules
+# Reification: assemble the mode list into choice-star programs, apply the proven rules
 
 NOTE (flat vs transition-faithful). `reified_relational` closes the loop with BOTH sides as flat
 choice-stars; the right `(⨆ modes)*` is a weaker over-approximation of the declared automaton. The
 transition-faithful right side (`R_real`, jumps only along declared edges) is assembled instead in
 `BridgeUnit1-3`/`BridgeFinish` (`theorem3_faithful`), reusing `faModal_bigChoiceL`/`faModal_LOCK`.
 
-The final CSF-side assembly of the single-sync (B=1) chain. Builds `leftBody`/`rightBody` as the
+The assembly of the single-segment (budget `B = 1`) chain: one joint segment per left mode. Builds `leftBody`/`rightBody` as the
 nondeterministic **choice** over the parsed modes (`bigChoice`), discharges the per-iteration
 lockstep step `hstep` from the per-pair `faModal`s (via `faModal_unionL`/`faModal_unionR`), and
 concludes the looped relational modality via `relational_loop` (⟵ `faModal_LOCK`).
 
-Fidelity (see the session gate):
+Fidelity:
 * **No new trusted surface.** This is proving-through-proven-rules over the mode-list; lowering
   `PProblem → mode-list` (dynamics, domains from `evolve`, invariant) is the existing parser.
 * **Flat over-approximation.** `leftBody* = (⨆ modes)*` admits *any* mode sequence, so the `box`
   `[L*]` claim is **stronger** than the benchmark's transition-restricted automaton — it *implies*
   the paper's real-automaton `[|(L*,R*)⟩⟩ϕ`. Sound; stated as the over-approximation, not the
   exact automaton.
-* **Single-sync scope.** One right match per left mode (`faModal_unionR`'s one-fixed-branch is
-  exactly single-sync). B>1 needs `faModal_MULTI` + the clock — out of scope here.
+* **Single-segment scope.** One right match per left mode (`faModal_unionR`'s one fixed branch
+  is exactly one joint segment). B>1 needs `faModal_MULTI` and the clock (`MultiSeg.lean`).
 * **Domain = evolution domain.** The per-pair `faModal`s come from `segment_faModal`, whose cert
-  is on `domL∧domR` = the evolve fields (guard-bug class barred).
+  is on `domL∧domR` = the evolve fields, never the guards.
 -/
 import RelCertifier.Proofs.Encoding.EncodingBridge
 
@@ -41,7 +41,7 @@ def bigChoice : List (Program V) → Program V
   | p :: ps => Program.choice p (bigChoice ps)
 
 /-- **Right choice fold.** A `faModal` for one right branch `Qm ∈ Qs` lifts to the whole choice
-`bigChoice Qs` (single-sync: the one fixed matching branch). ⟵ `faModal_unionR`. -/
+`bigChoice Qs` (one joint segment: the one fixed matching branch). ⟵ `faModal_unionR`. -/
 theorem faModal_bigChoiceR (ρ : V ≃ V) (P : Program V) (φ : Formula V) (ω : State V)
     (Qm : Program V) (h : Formula.sat (faModal ρ P Qm φ) ω) :
     ∀ (Qs : List (Program V)), Qm ∈ Qs → Formula.sat (faModal ρ P (bigChoice Qs) φ) ω
@@ -72,7 +72,7 @@ theorem faModal_bigChoiceL (ρ : V ≃ V) (Q : Program V) (φ : Formula V) (ω :
       exact ih (fun P hP => h P (List.mem_cons_of_mem p hP))
 
 /-- **Reified looped relational guarantee (the assembly).** Given the left/right mode programs
-(`leftProgs`/`rightProgs`), a single-sync **pairing** (`hpair`: each left mode has one matching
+(`leftProgs`/`rightProgs`), a one-segment **pairing** (`hpair`: each left mode has one matching
 right mode in `rightProgs` whose per-pair `faModal` preserves the invariant `ψ` from any
 invariant-satisfying state — discharged by `segment_relational`'s underlying `segment_faModal`),
 left/right variable disjointness (`hd`), the initial invariant, and `Bridges`, the NFM'25 ∀∃
@@ -80,7 +80,7 @@ relational modality over the **looped choice-automata** `[|((⨆leftProgs)*, (�
 holds at the bi-state.
 
 Assembles the per-pair `faModal`s into the loop step via `faModal_bigChoiceL` (∀ left mode) +
-`faModal_bigChoiceR` (pick the single-sync match), then applies `relational_loop` (⟵
+`faModal_bigChoiceR` (pick the matching right mode), then applies `relational_loop` (⟵
 `faModal_LOCK`). `ρ = id`. `(⨆leftProgs)*` is the flat over-approximation of the real left
 automaton (any mode sequence) — the `box` claim is thus **stronger** than, and implies, the
 paper's transition-restricted `[|(L*,R*)⟩⟩ϕ`. Proving-through-proven-rules; no new trusted

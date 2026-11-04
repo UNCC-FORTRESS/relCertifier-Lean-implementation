@@ -8,9 +8,9 @@ A component `g` of an invariant row is read as `g ≤ 0` (`invLe`) or, when its 
 (the atom was strict, `Oracle.invStrictFlags`), as `g < 0` (`invLt`). `invAt b g` selects the
 formula, `HoldsAt b g ω` its scalar meaning; `tagS` pairs a component list with its mask (a
 missing flag is `false`), `foldAt` conjoins flagged atoms over a base. Lightweight base of
-the strict layer (imports only `Core.Reify`), so the flow-level files can use it.
-
-New leaf; no upstream edits.
+the strict layer (imports only `Core.Reify`), so the flow-level files can use it. The strict
+variants serve the strict-invariant exhibits of Appendix B.1; the paper's components (Eq. (8)) are
+the non-strict case, an all-false mask.
 -/
 import RelCertifier.Core.Reify
 

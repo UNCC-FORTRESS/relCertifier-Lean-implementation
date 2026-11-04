@@ -1,11 +1,13 @@
 /-
-GAP 1 core — genuine multi-flow, budget-fixed cuts. The construction machinery for one left residence
-during which the right switches modes several times (the right runs "faster" than the left).
+# Multi-flow chain: one left cycle matched by several right cycles
 
-The load-bearing idea: the segment boundaries are **budget-triggered**, at a FIXED clock duration
-`dt = ε_r/λ` per segment, NOT a run-dependent first-passage (see the trigger analysis — the cover's
-`decideCovered` recurses on the budget, so the cut is the certificate's budget unit, not where a
-trajectory exits a domain). Contents, in composition order:
+The construction for one left cycle during which the right switches modes several times (the right
+runs "faster" than the left, stretch `λ > 0`, so several joint segments match one left cycle).
+
+The segment boundaries are fixed by the budget, at a FIXED clock duration `dt = ε_r/λ` per segment
+(the span `ε_R/λ` of a joint segment, Lemma 3), not at a run-dependent first passage: the cover
+recurses on the budget (Definition 8), so each split is one budget unit, not where a trajectory
+exits a domain. Contents, in composition order:
 
 * Fixed-cut tiling — `plantSteps`, `plantT_zero`, `plantT_split_iter`: a single clocked left run of
   duration `k·dt` splits into exactly `k` fixed-`dt` segments (verified arithmetic `Σ = k·dt`).
@@ -22,15 +24,14 @@ trajectory exits a domain). Contents, in composition order:
   `star (rightAutomatonBody G mv)` (each switch a declared `G`-edge, mode-validity `mvValid` riding the
   whole fold via `faithful_rights_bridge`), and compose over left modes with `faModal_bigChoiceL` into
   the star-right hstep that `relational_loop_multi` consumes.
-* Repositions — `dynreposition_faModal` (dynamic: `segment_faModal` at `fL = 0`, the
-  frozen-left flow: the paper's right-only segment, and the only right-only move).
+* Right-only segments: `dynreposition_faModal` (`segment_faModal` at `fL = 0`, the frozen-left
+  product program of Eq. (15)).
 
-The ⊤-edge model (right edges carry guard `⊤`; justified for the two step kinds, joint
-segments and the dynamic right-only reposition, under the paper's Assumption 1:
+The ⊤-edge model (right edges carry guard `⊤`, for the two segment kinds under Assumption 1:
 `docs/PAPER-MAPPING.md`) and the clock are mechanization devices with no direct paper
-analog; the soundness lines
-(`plantT`-predicate not domain-narrowing, `tg`/`mv`-invisibility, declared-edge faithfulness) are
-load-bearing and called out at each lemma.
+analog; the soundness points (`plantT` is a predicate on the run, not a narrowed domain;
+`tg` and `mv` are invisible to the invariant; every switch is a declared edge) are called out at
+each lemma.
 -/
 import RelCertifier.Proofs.Encoding.JointBridge
 import RelCertifier.Core.Reify
@@ -44,10 +45,9 @@ open DL DLCalTiming Function Set
 
 variable {n : ℕ}
 
-/-! ## The collapse — fixed budget-unit cuts (the tiling is VERIFIED, not assumed)
+/-! ## The collapse: splits at fixed budget units (the tiling is proved, not assumed)
 
-**Resolved from the cover code (the gate):** the segment switch is **budget/clock-triggered**,
-not a `domR`-exit first-passage.
+The segment switch is triggered by the budget and the clock, not by a first exit from `domR`.
 
 * `Checker.decideCovered` recurses on the budget `B`, decrementing by `m.weight`; the base case is
   `B ≤ m.weight` (one residence closes the budget). The switch is at the budget boundary.
@@ -88,11 +88,11 @@ theorem plantT_zero (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg : Var n
   have hr0 : r = 0 := le_antisymm (by rw [hνtg] at hle; linarith) hr
   rw [← hΦ0, ← hΦr, hr0]
 
-/-- **The iterated fixed-cut split (the collapse's heart).** A single clocked left run of duration
+/-- **The iterated fixed-duration split.** A single clocked left run of duration
 `k·dt` splits into **exactly `k`** consecutive segments each of the **fixed** budget duration `dt`.
 Every cut is at a fixed clock value (`plantT_split`, Prop 10); the tiling `k·dt = dt + ⋯ + dt` is
-verified by arithmetic in the induction, never assumed. This is the budget-triggered collapse: no
-`domR`-exit first-passage, no run-dependent cut. -/
+proved by arithmetic in the induction, never assumed: no first exit from `domR`, no
+run-dependent split. -/
 theorem plantT_split_iter (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg : Var n) (dt : ℝ)
     (hdt : 0 ≤ dt) (htg : (tg, Term.const 1) ∈ sys) :
     ∀ (k : ℕ) {ω ν : State (Var n)},
@@ -112,11 +112,11 @@ theorem plantT_split_iter (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg :
         plantT_split sys ϕ tg dt ((k : ℝ) * dt) hdt (by positivity) htg ω ν hsplit
       exact ⟨μ, hfirst, ih hrest⟩
 
-/-! ### Piece 1 — the per-segment plantT-coupling (the real construction content)
+/-! ### The per-segment coupling over duration-bounded left runs
 
 The clock accumulates across pieces, so each right mode's coupling is stated over a **`plantT⟨dt⟩`
 bounded-duration** left run — the `dt`-bound carried as the **plantT predicate on the run**
-(`ν tg − ω tg ≤ dt`), NOT as a narrowing of the domain. This is the sound line held throughout:
+(`ν tg − ω tg ≤ dt`), NOT as a narrowing of the domain. This holds throughout:
 `domR` stays the mode's real evolution domain (unnarrowed); only the *run's duration* is bounded.
 That is exactly why the `hExist` "any `s` up to `smax`" gives the bounded-`s` coupling without
 touching the domain. Each piece's `hExist` needs only its **own** `dt ≤ smax` (per-segment growth,
@@ -215,7 +215,7 @@ theorem faModal_ODE_G'_bounded (ρ : Var n ≃ Var n) (sysX sysY : ODESystem (Va
       exact ⟨hφxΦ t ht, hξyΦ t ht⟩
     exact hP2 (Φ s) hfull
 
-/-! ### Piece 2 — the `faModalB ⟺ clockedSeg` bridge (the last soundness obligation)
+/-! ### The `faModalB ⟺ clockedSeg` bridge
 
 `clockedSeg` runs the left mode under a fresh clock `tg` (reset to `0`, `tg' = 1`) followed by a
 **test on the clock** `?(tg ≤ dt)`. The bridge shows this equals the bounded coupling `faModalB`:
@@ -249,9 +249,9 @@ def clockedSeg (leftSys : ODESystem (Var n)) (domL : Formula (Var n)) (tg : Var 
 
 /-- **The bridge (`↔`).** The `clockedSeg` faModal at `σ` equals the bounded coupling `faModalB` at
 the reset state `σ[tg ↦ 0]`. The post-reset clock test `?(tg ≤ dt)` and the plantT duration
-predicate are **interderivable** — confirming (i). `Q` (hence `domR`) is untouched — confirming
-(ii). No freshness needed for the equivalence itself (pure unfolding); freshness is the *semantic*
-distinctness of the clock guard, carried explicitly downstream (clk-disjointness). -/
+predicate are interderivable, point (i). `Q` (hence `domR`) is untouched, point (ii). No
+freshness is needed for the equivalence itself (pure unfolding); freshness of the clock is carried
+explicitly downstream (clock disjointness). -/
 theorem faModalB_clockedSeg_iff (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
     (Q : Program (Var n)) (φ : Formula (Var n)) (tg : Var n) (dt : ℝ) (σ : State (Var n)) :
     Formula.sat (faModal (Equiv.refl (Var n)) (clockedSeg leftSys domL tg dt) Q φ) σ ↔
@@ -304,13 +304,12 @@ theorem sem_ode_nil {dom : Formula (Var n)} {ν μ : State (Var n)}
   funext x
   rw [← hΦr, hmask r ⟨hr, le_refl r⟩ x (by simp [ODESystem.bound])]
 
-/-- **Dynamic reposition = flow machinery with `fL = 0`.** The dynamic reposition's right
-segment evolves under the frozen-left field `m.dynSys = jointSys (0) fR lam` (`ṡ_L = 0`); its cert
-`repoDynPresPre : SegPreservesOn g m.dynSys m.dynDomPre` is exactly the joint `BoxLe` that
-`segment_faModal` consumes with `fL := 0`. So its modality image is the SAME `⟨ode rightBlock⟩`
-diamond as the flow case — genuine reuse, NOT a new lemma. This wrapper makes the instantiation
-explicit and confirms `fL = 0` presents no obstruction (the `hdisj`/footprint side-conditions hold:
-`leftBlock 0` reads nothing, so it is disjoint from the right block). -/
+/-- **Right-only segment through the joint machinery at `fL = 0`.** If the frozen-left product
+`jointSys 0 fR lam` on `domL ∧ domR` keeps `g ≤ 0` from `ν` (`BoxLe`, the right-only flow certificate
+of Definition 5 on the program of Eq. (15)), then, under the footprint conditions and `hExist`, the
+per-pair `faModal` of `ode (leftBlock 0) domL` and `ode (rightBlock fR lam) domR` for `invLe g`
+holds at `ν`. It is `segment_faModal` with `fL := 0`; the right-only certificate in the cover
+(`repoDynPresPre : SegPreservesOn g m.dynSys m.dynDomPre`) is such a `BoxLe`. -/
 theorem dynreposition_faModal (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (domL domR : Formula (Var n)) (ν : State (Var n))
     (hdisj : Disjoint ((leftBlock (fun _ => Term.const 0)).boundSet ∪
@@ -336,11 +335,11 @@ theorem dynreposition_faModal (g : Term (Var n)) (fR : Fin n → Term (Var n)) (
       (Program.ode (rightBlock fR lam) domR) (invLe g)) ν :=
   segment_faModal g (fun _ => Term.const 0) fR lam domL domR ν hdisj hφL hφR hcert hExist
 
-/-- **Piece 1 core — the ODE-semigroup split.** A single left flow splits at any interior time `t`
+/-- **The ODE semigroup split.** A single left flow splits at any interior time `t`
 into two runs (`ν → Φt`, `Φt → μ`). Reverse of the banked `sem_ode_glue`; proven by restricting the
 integral curve to `[0,t]` and shifting it to `[t,r]`. This is the general form; the zero-padding
-`sem_ode_sub_piter` (one real factor) is its `t = 0` / `t = r` degenerate case. Flow segments split
-off a `t > 0` piece of the left flow; a reposition segment takes the `t = 0` piece of the left
+`sem_ode_sub_piter` (one real factor) is its `t = 0` / `t = r` degenerate case. Joint segments split
+off a `t > 0` piece of the left flow; a right-only segment takes the `t = 0` piece of the left
 (the left is held while the right flows). -/
 theorem sem_ode_split {sys : ODESystem (Var n)} {dom : Formula (Var n)} (hwf : sys.WellFormed)
     {ν μ : State (Var n)} (h : Program.sem (Program.ode sys dom) ν μ) :
@@ -384,12 +383,12 @@ theorem disjoint_vars_bigSeq {A : Set (Var n)} :
         tauto
       exact (Set.disjoint_union_right.mpr ⟨h q (List.mem_cons_self ..), htail⟩).mono_right hsub
 
-/-- **Piece 1 — the general MULTI composition.** A single left flow couples with a right segment
-sequence `bigSeq (map snd pairs)`, where each segment couples with its OWN left factor `p.1`
-(`p.1 = ode leftBlock` for a flow segment, `test ⊤` for a reposition, where the left is held
-for zero time while the right flows). Composed
-segment-by-segment via `faModal_seq` — the per-segment coupling, replacing `multiseg_het`'s
-over-restrictive uniform hypothesis. Flow and reposition are the two `p.1` shapes; no class split. -/
+/-- **Sequential composition of couplings.** If every pair `p` of `pairs` couples (`faModal` of
+`p.1` and `p.2` preserves `φinv` from every `φinv` state) and right programs are variable-disjoint
+from left ones, then the sequence of left factors `bigSeq (map fst pairs)` couples with the
+sequence of right factors `bigSeq (map snd pairs)` for `φinv`. Each segment couples with its OWN
+left factor: `ode leftBlock` for a joint segment, `test ⊤` for a right-only segment (the left held
+for zero time while the right flows). Composed segment by segment via `faModal_seq`. -/
 theorem multiseg_gen (φinv : Formula (Var n)) :
     ∀ (pairs : List (Program (Var n) × Program (Var n))),
       (∀ p ∈ pairs, ∀ q ∈ pairs,
@@ -455,21 +454,20 @@ theorem multiseg_clocked (φinv : Formula (Var n)) (leftSys : ODESystem (Var n))
     ω hω
   simpa [List.map_map, Function.comp] using hmg
 
-/-! ### Piece 3 — the clock-lift collapse
+/-! ### The clock-lift collapse
 
 The box contravariance: a **physical** left run realizes a `k`-fold `clockedSeg` run, so the clocked
-`faModal` collapses to the physical `faModal`. Two confirmations, both the recurring patterns:
+`faModal` collapses to the physical `faModal`. Two points:
 
 * **(i) `tg`-freshness carries the diamond transfer.** `clockLift_one` reverses `clockReduce`
   (`Φ'(t) = update (Φ t) tg t`, clock derivative `1`); the physical vars evolve identically because
   `tg ∉ sys.bound`/`readVars`/`ϕ.fv` (carried explicitly as hypotheses, not assumed). The diamond
   transfer back to the physical endpoint (`clockLift_collapse`) is `Formula.coincidence` on the
-  fresh `tg` — the SAME `mv`-invisibility that discharges the reposition step (piece 1's
-  `mv ∉ g.fv`). `R`, `φinv` are `tg`-free ⟹ they cannot see the clocked/physical difference.
+  fresh `tg`, the same invisibility argument as for the mode variable (`mv ∉ g.fv`). `R`, `φinv` are `tg`-free ⟹ they cannot see the clocked/physical difference.
 * **(ii) `k` is the carried budget count.** The piece count is `k = |rights| = B` (the budget), and
-  the cuts are the fixed `dt`-boundaries — `plantT_split_iter` (banked, tiling-verified), NOT a
-  trajectory computation. `r ≤ k·dt` is the carried budget-boundary fact from the trigger
-  resolution. `clockLift_chain` peels one fixed-`dt` piece per budget unit. -/
+  the splits are the fixed `dt`-boundaries (`plantT_split_iter`), NOT a trajectory computation.
+  `r ≤ k·dt` is the carried budget bound. `clockLift_chain` peels one fixed-`dt` piece per budget
+  unit. -/
 
 /-- **One clocked segment from a physical run (reverse of `clockReduce`).** A physical ODE run of
 duration `r ≤ dt` lifts to a `clockedSeg` run: reset `tg`, run the clocked curve `Φ'(t) = Φ(t)` with
@@ -661,7 +659,7 @@ theorem clockLift_collapse (leftSys : ODESystem (Var n)) (domL : Formula (Var n)
   have hWφ : φ.fv ⊆ {x | x ≠ tg} := fun x hx (hc : x = tg) => htgφ (hc ▸ hx)
   exact (Formula.coincidence φ (hμμ₂.mono (hWφ.trans Set.subset_union_left))).mp hφμ
 
-/-- **The per-switch faithful lift** — the real content beyond the flat `reified_relational_multi`.
+/-- **The per-switch faithful lift.**
 One right-mode flow at a **declared** mode `q`, followed by a **declared** ⊤-guarded edge `e`
 (`e ∈ edgesFrom q`, `e.tgt < modes.length` — `EdgeTargetsValid`, the flat-`R*` guardrail), becomes
 one `star (rightAutomatonBody G mv)` step, threading the mode variable `q → e.tgt`. This is the
@@ -730,7 +728,7 @@ theorem faithful_rights_bridge (G : SearchGraph (Var n)) (mv : Var n)
         hchain.of_cons s.2.2.tgt (hlt s.1 s.2.2 he) htailstart hrest
       exact ⟨qf, hqfvalid, Relation.ReflTransGen.trans hfirst htail⟩
 
-/-- **The bigSeq→star faithful mv-lift (per left mode).** Upgrades the genuine-multi-flow
+/-- **The bigSeq→star faithful mv-lift (per left mode).** Upgrades the multi-flow
 `faModal … (bigSeq rights) (invLe g)` (from `multiseg_clocked` + `clockLift_collapse`) to the
 faithful loop step `faModal … (star (rightAutomatonBody G mv)) (phiInv g mv k)`. Two banked
 mechanisms carry it:
@@ -778,11 +776,11 @@ theorem hstep_single_multi (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ)
 
 /-- **The assembled faithful multi loop-step.** Composes the per-left-mode multi lifts
 (`hstep_single_multi`) over the flat left body `bigChoice leftProgs` via `faModal_bigChoiceL`. The
-current right mode `q` is read off the state (`mvValid`); each left mode's genuine-multi-flow
+current right mode `q` is read off the state (`mvValid`); each left mode's multi-flow
 response (`Hmulti`: the emitted `segs` + the `bigSeq`-flow `faModal` over `invLe g`, from
 `multiseg_clocked`/`clockLift_collapse`) lifts to one `star (rightAutomatonBody G mv)` response.
-This is the **star-right** hstep `relational_loop_multi` consumes — one left residence ↔ a
-mode-switching star, the genuine multi-flow the single-body `hstep_assembled` cannot express. -/
+This is the star-right step `relational_loop_multi` consumes: one left cycle matched by a
+mode-switching star of right cycles, which the single-body `hstep_assembled` cannot express. -/
 theorem hstep_assembled_multi (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (leftProgs : List (Program (Var n))) (hg : mv ∉ g.fv)
     (hfresh : ∀ q m, G.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)

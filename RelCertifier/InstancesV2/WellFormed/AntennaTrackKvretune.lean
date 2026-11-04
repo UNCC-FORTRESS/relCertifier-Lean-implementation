@@ -23,7 +23,7 @@ domain): `TRACK` `t < 60 ∧ 46.95 ≤ c + 0.7 t ≤ 47.05`, `STOW` `60 ≤ t �
   `c + 0.7 t`, so it ends in `TRACK` (below 60) or in `STOW` (from 60, with `c ≤ 47.05 < 90`);
   `STOW` keeps `60 ≤ t` and ends in `STOW` (`c < 90`) or `STOWED` (`90 ≤ c`); `STOWED` is
   invariant.
-Z3-free; modelled on `FurnaceProgramTimebase.lean` and `RoverTerrain2to4.lean`.
+Z3-free; modelled on `FurnaceProgramTimebase.lean`.
 -/
 
 import RelCertifier.Trusted.Parse

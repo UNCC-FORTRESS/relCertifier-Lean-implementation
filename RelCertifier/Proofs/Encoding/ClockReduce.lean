@@ -2,10 +2,10 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The clock reduction — the clock is a transient proof device, eliminable
+# The clock reduction: the clock is a proof device, eliminable
 
-The B>1 clock rework introduces a clock `tg` to *state* the duration-bounded segment and enable
-`plantT_split`, then **eliminates** it: a clocked run projects to the ordinary (unclocked) run.
+A clock `tg` *states* the duration-bounded segment (budgets above one segment) and enables
+`plantT_split`; it is then **eliminated**: a clocked run projects to the ordinary (unclocked) run.
 So `jointSys`/the invariant/the encoding stay over `Var n` — no permanent `ExtVar` threading.
 
 `clockReduce`: a run of `ode (clk tg sys) ϕ` (physical `sys` + clock `tg'=1`) projects, by resetting

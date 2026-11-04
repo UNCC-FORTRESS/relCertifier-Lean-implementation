@@ -10,9 +10,8 @@ The proof is the existing one: the row enters only through its free variables
 (`notMem_FMS_fv`), its encoding (`encode_canonInvMS`) and its projections
 (`canonInvMS_varsL/R`); preservation is carried by the anchor `A` of the cover hypotheses,
 which for a strict row must carry `FMS` (`hAstart`, `hApost`). With an all-false mask the
-statement is the existing one (`theorem3_of_coverXS_collapse`).
-
-New leaf; no upstream edits.
+statement is the existing one (`theorem3_of_coverXS_collapse`). This is the strict variant of
+Theorem 3 used by the strict-invariant exhibits of Appendix B.1.
 -/
 import RelCertifier.Proofs.Encoding.Theorem3General
 import RelCertifier.Proofs.Encoding.StrictInv
@@ -62,7 +61,7 @@ variable (Gr : SearchGraph (Var n)) (a b d : Fin n) (hab : a ≠ b) (had : a ≠
 
 include hgR hguards hguardR hcutsR hfR hsys hdomM hweight hgLv hfL hdomL hdomR hregR hAreg hwf H hdt hcov
   hAstart hApost comps_fv in
-/-- **Every window answered from its cover**, at a strict row (`Hmulti_of_coverX` with
+/-- **Every left cycle answered from its cover**, at a strict row (`Hmulti_of_coverX` with
 `FMS g gs msk`). -/
 theorem Hmulti_of_coverXS :
     ∀ P ∈ leftProgsOf b dt domL L gL fL, ∀ (q : ℕ), q < Gr.modes.length → ∀ σ,
@@ -104,8 +103,9 @@ include hab had hbd hgR hguards hguardR hcutsR hfR hsys hdomM hweight hlt hgLv h
 strict components `< 0`). The ∀∃ relational
 invariance of the declared row with the evolve envelope and the right mode's region, over the
 guard-gated left windows and the CLOCKED guarded right automaton (right clock `(Aux, d)`,
-cap `ε_R`), from: Assumption 1 (`hwf`), a cover of every admissible start of every window
-(`hcov`), and the certificates each cover consumes (`H`).
+cap `ε_R`), from: Assumption 1 on `reg` (`hwf`), a cover of every admissible start of every
+left mode (`hcov`) whose budget covers the left cycle (`hdt`), and the certificates each cover
+consumes (`H`).
 -/
 theorem theorem3_of_coverXS :
     RFormula.rvalid (theorem3Form

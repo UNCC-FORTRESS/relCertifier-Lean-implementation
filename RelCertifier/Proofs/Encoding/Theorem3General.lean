@@ -6,16 +6,17 @@ Released under Apache 2.0 license.
 
 `theorem3_of_coverX` is the paper's Theorem 3 (Soundness of Synthesis), with the existential
 mode choice, as one Lean theorem. Its hypotheses are conditions 1 and 2 of Theorem 3, with the cover's certificates as a
-hypothesis of their own (condition 3, the handoff, enters where `theorem3_modeKeyed` composes
-the rows):
+hypothesis of their own (condition 3, the handoff of Eq. (13), enters where
+`theorem3_modeKeyed_gen` composes mode-dependent rows, Theorem 2):
 
-1. the right model is well formed (`WellFormedR`, Assumption 1);
+1. the right model is well formed on the region `reg` (`WellFormedRIn`, Assumption 1);
 2. for every left mode `l` and every admissible start mode `q`, the configuration
-   `(q, B_l, preJ)` is covered (`CoveredX`, Definition 8 with committed subsets), where `B_l · δ_l` bounds
-   the window;
+   `(q, B_l, preJ)` is covered (`CoveredX`, Definition 8 with committed subsets), where
+   `dt ≤ B_l · δ_l`: the budget of `B_l` equal segments of span `δ_l` covers the left cycle
+   (Appendix B.2, budgets);
 3. the certificates each cover step consumes, per left mode (`CoverHyps`): the flow certificate
    of every pairing at its stretch (Definition 5, Lemma 2), the reposition certificates
-   (Definition 7), the non-connection certificates of the pruned edges (Definition 6), the coverage certificates of the chosen sets,
+   (Definition 7), the non-connection certificates of the pruned edges (Definition 6), the coverage queries of the committed subsets,
    the entry condition (the entered guard yields the entered mode's kept atoms), and the
    reposition-progress premise for the right-only steps of the all-successors rule.
 
@@ -45,7 +46,7 @@ structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
     (epsR δ : ℝ) (lam : ℕ → ℝ) (A : ℕ → Formula (Var n))
     (RJ : ℕ → Formula (Var n)) (RR RS : ℕ → SrcSetting → Formula (Var n)) : Prop where
   hδ : 0 < δ
-  -- a pairing's stretch may be `0` (the stutter segment: the right waits, `docs/STUTTER.md`)
+  -- a pairing's stretch may be `0` (the witness stands still, `docs/STUTTER.md`)
   hlam : ∀ q, 0 ≤ lam q
   hspan : ∀ q, lam q * δ ≤ epsR
   hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv
@@ -73,8 +74,9 @@ structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
   hcovS : ∀ q σ S, S ∈ ch.hopS q σ → ∀ y, Formula.sat (RS q σ) y →
     ∃ q' ∈ S, Formula.sat (guard q') y
 
-/-- The admissible starts of a window: some joint state satisfies the left guard, the loop
-invariant and the right mode's region. -/
+/-- The admissible starts of a left cycle: some joint state satisfies the left guard, the row
+`F` with the domains `env`, and the right mode's guard `guardq` and mode facts `cutsq` (the
+admissibility of Section 3, stated without the successor condition on the stored mode). -/
 def AdmissibleStart (gL F env guardq cutsq : Formula (Var n)) : Prop :=
   ∃ σ, Formula.sat gL σ ∧ Formula.sat (Formula.and F env) σ ∧ Formula.sat guardq σ ∧
     Formula.sat cutsq σ
@@ -128,7 +130,11 @@ noncomputable def leftProgsOf : List (Program (Var n)) :=
 
 include hgR hguards hguardR hcutsR hfR hsys hdomM hweight hgLv hfL hdomL hdomR hregR hAreg hwf H hdt hcov
   hAstart hApost comps_fv in
-/-- **Every window answered from its cover** (the `Hmulti` of the instances). -/
+/-- **Every left cycle answered from its cover** (the `Hmulti` of the instances). For every left
+cycle program `P` and right mode `q`, from a state storing `q` that satisfies the row, the
+domains, `q`'s guard and its mode facts, there is a guarded right response (`GRespC`) ending in
+the row, the domains and the landing mode's mode facts: Theorem 1 through Lemma 5, per left
+mode. -/
 theorem Hmulti_of_coverX :
     ∀ P ∈ leftProgsOf b dt domL L gL fL, ∀ (q : ℕ), q < Gr.modes.length → ∀ σ,
       σ ((Side.Aux, a) : Var n) = (q : ℝ) →
@@ -179,8 +185,9 @@ include hab had hbd hgR hguards hguardR hcutsR hfR hsys hdomM hweight hlt hgLv h
 invariance of the declared row with the evolve envelope and the right mode's region, over the
 guard-gated left windows and the CLOCKED guarded right automaton (each right cycle flows for at
 most `ε_R`, the paper's Eq. (1); mode variable `(Aux, a)`, left clock `(Aux, b)`, right clock
-`(Aux, d)`), from: Assumption 1 (`hwf`), a cover of every admissible start of every window
-(`hcov`), and the certificates each cover consumes (`H`). -/
+`(Aux, d)`), from: Assumption 1 on `reg` (`hwf`), a cover of every admissible start of every
+left mode (`hcov`) whose budget covers the left cycle (`hdt`), and the certificates each cover
+consumes (`H`). -/
 theorem theorem3_of_coverX :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsOf b dt domL L gL fL))

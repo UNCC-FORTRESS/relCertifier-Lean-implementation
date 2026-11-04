@@ -5,15 +5,14 @@ Released under Apache 2.0 license.
 # `quad_light_profiles`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr` (the file's three pilot-selectable climb
-profiles and their declared `next` lists, each profile listing all three; review round 6,
-2026-10-30, raised the `SPORT` set point from 2.4 to 2.5 m/s), the lowered right guards,
+profiles and their declared `next` lists, each profile listing all three), the lowered right guards,
 `ε_r = 1`. The right model is the reference quadrotor's climb, an affine cascade on
 altitude `h` (`Rv 0`) and climb rate `w` (`Rv 1`): `h' = w`, `w' = c_q − 4.905 w` with
-`c_q = 9.81` (`NORMAL`), `7.848` (`ECO`), `12.2625` (`SPORT`; `11.772` before), terminal climb rates
+`c_q = 9.81` (`NORMAL`), `7.848` (`ECO`), `12.2625` (`SPORT`), terminal climb rates
 `c_q / 4.905 = 2.0, 1.6, 2.5`; in every profile guard = evolve = `h ≥ 0 ∧ 0 ≤ w ≤ 3` (the
-autopilot's climb-rate limiter, since the domain audit of 2026-10-29; `2.4` before).
-The bridge dimension is `3` (the cover uses the committed mode choice, so no modal pack fixes
-it and it falls back to `max (#left state vars) 3`): coordinate `Rv 2` is a padding coordinate
+autopilot's climb-rate limiter).
+The bridge dimension is `3` (the cover uses a committed successor subset, so no modal pack
+fixes it and it defaults to `max (#left state vars) 3`): coordinate `Rv 2` is a padding coordinate
 outside `vs`, its right field lowers to `0`, and the run holds it still.
 
 * Existence (i), every profile: the explicit run. `w` is the contraction toward

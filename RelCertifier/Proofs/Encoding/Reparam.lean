@@ -2,19 +2,15 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# L7 — time reparametrization of stretched right runs
+# Time reparametrization of stretched right runs
 
-Many benchmarks certify with some window's λ ≠ 1 (in suite_v2: 17 of 45, matrix column M1
-of `docs/SUITE-REDESIGN.md`), and λ may vary per window within
-one benchmark, while the right automaton has ONE fixed system per mode. The bridge:
-for a POSITIVE CONSTANT stretch, the run relation of the stretched right block equals
-the run relation of any other positive stretch — `sem` existentially quantifies the
-duration, and runs biject under linear time scaling. With it, the Theorem 3 statement
-quantifies over the REAL (λ = 1) automaton and each window's coupling converts its
-stretched piece — without it the statement would be about a λ-stretched automaton,
-which is not even well-defined when λ differs per window.
-
-New leaf (imports `EnvelopeChain` for `rightBlock` context); no upstream edits.
+Many benchmarks certify some pairing at a stretch `λ ≠ 1`, and `λ` may differ per pairing
+within one benchmark, while the right automaton has one fixed system per mode. For a positive
+constant stretch, the run relation of the stretched right block equals the run relation of any
+other positive stretch: `sem` existentially quantifies the duration, and runs biject under
+linear time scaling (the `λ > 0` case of Lemma 1, Time Stretching; `Stretching.lean` states
+the lemma itself, including `λ = 0`). With it, the Theorem 3 statement quantifies over the real
+(`λ = 1`) automaton and each joint segment's coupling converts its stretched piece.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChain
 

@@ -12,15 +12,15 @@ kept `< 0`, the others `≤ 0`. Mixed masks are handled stratum by stratum:
   `bigLe (prefix)` / `strataDomHost D (prefix)`, exactly the tool's query domains: a strict
   prefix component is only assumed `≤ 0` (its strict truth implies that). This also keeps
   the route-B boundary query non-vacuous: its antecedent never contains `g < 0`;
-* the CONCLUSION of a strict stratum is `< 0`, produced by route A or B only
-  (`flow_cert_sound_lt`, `flow_cert_sound_strict_lt`); route C does not preserve `< 0`
-  (`routeC_counterexample`), so a strict component's verdict group is [A, B].
+* the CONCLUSION of a strict stratum is `< 0`, produced by route A (`flowQuery`) or route B
+  (`flowQueryStrict`, Eq. (17)) only (`flow_cert_sound_lt`, `flow_cert_sound_strict_lt`);
+  route C (`flowQuerySuperlevel`, Eq. (18)) does not preserve `< 0` (`routeC_counterexample`),
+  so a strict component's verdict group is [A, B].
 
 `stratified_barrier_soundS`, `segPresAllS_from_strata_verdicts'`; with every flag `false`
-the verdict pack and the preservation are the existing ones
-(`verdXCoreS_allFalse`, `segPresAllOnS_allFalse`).
-
-New leaf; no upstream edits.
+the verdict pack and the preservation are the non-strict ones of `StratifiedBarrier`
+(`strataVerdS_allFalse`, `segPresAllOnS_allFalse`). The paper's components (Eq. (8)) are
+non-strict; the strict variants serve the strict-invariant exhibits of Appendix B.1.
 -/
 import RelCertifier.Proofs.Flow.StratifiedBarrier
 import RelCertifier.Proofs.Flow.DIStrictOpen
@@ -167,7 +167,8 @@ def SegPreservesAllOnS (ts : List (Bool × Term (Var n))) (sys : ODESystem (Var 
   ∀ ν, (∀ c ∈ ts, HoldsAt c.1 c.2 ν) →
     ∀ ω, Program.sem (Program.ode sys dom) ν ω → ∀ c ∈ ts, HoldsAt c.1 c.2 ω
 
-/-- **The flagged multi-component flow certificate, end to end** (fold-shaped domains). -/
+/-- **The flagged multi-component flow certificate** (fold-shaped domains): the verdict pack
+`StrataVerdS` gives `SegPreservesAllOnS ts` for the joint system at stretch `lam` on `D`. -/
 theorem segPresAllS_from_strata_verdicts' (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (D : Formula (Var n)) (ts : List (Bool × Term (Var n)))
     (hz3 : StrataVerdS fL fR lam D ts) :

@@ -2,15 +2,16 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The suite_v2 reposition verdict queries, rebuilt at the SMT-IR level, pinned
+# The suite_v2 right-only flow-certificate queries, rebuilt at the SMT-IR level, pinned
 
 `ReplayDyn.modalVerdDynX` states, at the host level, the stratified route-A pack of one
-dynamic reposition (left mode `l`, right mode `m`, the left frozen) exactly as
+right-only flow certificate (Definition 5, kind right-only: left mode `l`, right mode `m`, the
+left frozen, the product program of Eq. (15)) exactly as
 `OracleAPI.checkDynRepo` builds it. The runner rebuilds the pack at the IR level
 (`modalVerdDynXQueries`, from the same `Run.*` lowerings, the emitted extended certificate and
 the shared combinators) and prints it with `toScript`; `modalVerdDynX_of_queries` proves, once
 for every benchmark, that the rebuilt queries denote exactly the hypothesis: if every printed
-query came back `unsat`, the instance's reposition pack holds. Same discipline as
+query came back `unsat`, the instance's right-only pack holds. Same discipline as
 `ModalX.modalVerdX_of_queries` for the joint packs.
 -/
 import RelCertifier.Proofs.Encoding.ReplayDyn
@@ -22,8 +23,9 @@ open DL Parse RelCertifier.Oracle
 
 variable {n : ℕ}
 
-/-- The reposition pack, rebuilt: per component (in the cover's reposition strata order), the
-route-A query over the cut-narrowed, strata-narrowed domain, with the left guard conjoined
+/-- The right-only pack, rebuilt: per component (in the cover's right-only strata order), the
+route-A query over the domain narrowed by the mode facts and the earlier rounds, with the left
+guard conjoined
 before the first joint segment (`pre`); the left field frozen, stretch 1. `none` if anything
 fails to lower (the runner reports a SKIP, never a pass). -/
 def modalVerdDynXQueries (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
@@ -53,8 +55,8 @@ theorem hostGuard_getD (vars : List String) (side : Side) (m : PMode) :
   unfold hostGuard
   rcases Run.lowerF vars n side m.guard with _ | g <;> rfl
 
-/-- **The v2 reposition pin.** If the runner's rebuild succeeds and every printed query is
-`unsat`, the instance's reposition hypothesis `modalVerdDynX` holds. -/
+/-- **The v2 right-only pin.** If the runner's rebuild succeeds and every printed query is
+`unsat`, the instance's right-only hypothesis `modalVerdDynX` holds. -/
 theorem modalVerdDynX_of_queries {p : PProblem} {cX : EvolStrengtheningX} {invRow : ℕ}
     {order : List ℕ} {pre : Bool} {l m : ℕ} {qs : List (IForm n)}
     (hq : modalVerdDynXQueries p cX n invRow order pre l m = some qs)
@@ -157,7 +159,8 @@ theorem modalVerdDynX_of_queries {p : PProblem} {cX : EvolStrengtheningX} {invRo
   rw [iflowQuery_toHost, hdom, zeroField_toHost, hone] at hz
   exact hz
 
-/-- The pack on the pre-landing region, rebuilt: per component, a strict one (`mask`) the group
+/-- The pack on the pre-landing region, the domain of the restricted mode `m|¬T` with `T` the
+closed landing target (Lemma 4), rebuilt: per component, a strict one (`mask`) the group
 `[A]` over `D ∧ BcI`, a non-strict one the group `[A, B, C]` over `D ∧ BoI`, each narrowed by the
 strata and (pre-joint) the left guard; the left field frozen, stretch 1. `none` if anything
 fails to lower. -/
@@ -191,7 +194,7 @@ def modalVerdDynXQueriesPre (p : PProblem) (cX : EvolStrengtheningX) (n invRow :
      iflowQueryStrict g (fun _ => .rat 0) fR (.rat 1) dom,
      iflowQuerySuperlevel g (fun _ => .rat 0) fR (.rat 1) dom]))
 
-/-- **The pin on the pre-landing region.** If the rebuild succeeds and every group has an
+/-- **The pin on the pre-landing region** (the restricted mode of Lemma 4). If the rebuild succeeds and every group has an
 `unsat` member, the instance's hypothesis `modalVerdDynX` holds on the region (at the host forms
 of `BoI`, `BcI`). -/
 theorem modalVerdDynX_of_queriesPre {p : PProblem} {cX : EvolStrengtheningX} {invRow : ℕ}
@@ -323,7 +326,7 @@ theorem modalVerdDynX_of_queriesPre {p : PProblem} {cX : EvolStrengtheningX} {in
       rw [iflowQuerySuperlevel_toHost, hdomB, zeroField_toHost, hone] at hqz
       exact hqz
 
-/-- **The reposition pack's query groups, on a region** (`none`: the whole domain, the route-A
+/-- **The right-only pack's query groups, on a region** (`none`: the whole domain, the route-A
 query of each component alone, `modalVerdDynXQueries`; `some (BoI, BcI, mask)`: the
 pre-landing region, `modalVerdDynXQueriesPre`). The bridge's `dynGroups` sends exactly these. -/
 def modalVerdDynXGroups (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)

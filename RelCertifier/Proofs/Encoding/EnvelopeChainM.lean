@@ -2,22 +2,21 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# L6 — the list-invariant modal chain (multi-component Theorem 3)
+# The list-invariant modal chain (multi-component Theorem 3)
 
 The modal chain (`phiInvE`, the couplings, `hstep_*_multiE`,
 `theorem3_faithful_multiE_LR`) is single-invariant-term: `invLe g` throughout. Most
-benchmarks have multi-component relational invariants (up to 8 conjuncts at the time) —
-what the R4/R5 notes recorded as debt, and what this file pays. `AOp` has no
-`max`, so no single term denotes the conjunction; the chain must be generalized.
+benchmarks have multi-component relational invariants, the conjunct form
+`p_1 ≤ 0 ∧ … ∧ p_m ≤ 0` of Eq. (8). `AOp` has no `max`, so no single term denotes the
+conjunction, and the chain is generalized here.
 
-This file delivers the generalization as F-PARAMETRIC MIRRORS over an opaque loop
+This file gives the generalization as F-parametric mirrors over an opaque loop
 formula `F` (instantiated at `FM g gs`, the nonempty invariant conjunction): the deep
 cores (`faModal_ODE_G'_bounded`, `faithful_rights_bridge`, `relational_loop_multi`,
 `multiseg_clocked`) are already formula-parametric, so each mirror is thin. The one
-g-specific device (`box_joint_to_clocked`) is reused PER COMPONENT — boxes distribute
-over conjunction (`sat_box_and`), so the `FM` box folds from component boxes.
-
-New leaf (imports `EnvelopeChain` + `CanonicalInv`); no upstream edits.
+g-specific device (`box_joint_to_clocked`) is reused per component: boxes distribute
+over conjunction (`sat_box_and`), so the `FM` box folds from component boxes, one flow
+certificate component per conjunct (Definition 5, Lemma 2).
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChain
 import RelCertifier.Proofs.Encoding.CanonicalInv
@@ -342,8 +341,8 @@ theorem theorem3_faithful_multiF_LR (G : SearchGraph (Var n)) (mv : Var n)
 
 /-! ## The F-parametric one-piece prefixed window -/
 
-/-- `Hmulti_window1_prefixed` over an opaque loop formula (the L6 window form; the L2
-right-only variant composes via `faModalB_repoPathR`'s φ-parametricity). -/
+/-- `Hmulti_window1_prefixed` over an opaque loop formula (the right-only variant composes
+via `faModalB_repoPathR`'s φ-parametricity). -/
 theorem Hmulti_window1_prefixedF (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
     (F env : Formula (Var n)) (a : Fin n) (dt : ℝ)
     (htgF : ((Side.Aux, a) : Var n) ∉ F.fv) (htgenv : ((Side.Aux, a) : Var n) ∉ env.fv)

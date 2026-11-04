@@ -30,8 +30,7 @@ the domain); `next` is the rate and its neighbours (`R1800` and `R1440` both rea
   `[20, 37.5 − 8.5 · 0.8] = [20, 30.7]`, `R960` in `[18 + 11 · 0.8, 35.5] = [26.8, 35.5]`,
   `R720` in `[16 + 18 · 0.8, k₀] = [30.4, k₀]`, `R480` above `14 + 25 · 0.8 = 34`, each inside
   the bands of its declared successors.
-Z3-free; modelled on `InsulinBasalCgmloss.lean` (band steps over levels) and
-`FurnaceProgramTimebase.lean` (layout).
+Z3-free; modelled on `FurnaceProgramTimebase.lean` (layout).
 -/
 
 import RelCertifier.Trusted.Parse

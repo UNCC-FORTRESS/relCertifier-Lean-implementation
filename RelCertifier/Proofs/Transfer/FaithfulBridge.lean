@@ -2,14 +2,15 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The Faithful-soundness bridge, part 1: `QF` denotation
+# The Faithful-soundness bridge
 
-**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
-affine models of the legacy suite, kernel-certified against the parsed IR). Its
-per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
-`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
-suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
-compiled as part of the soundness development.
+**Scope.** This file belongs to the per-mode settling route (`GuardSettlingB`,
+`GuardThreaded.lean`), which checks an integer-scaled transcription of a parsed model
+(`Faithful.lean`). The settling statement it concludes is not used by the theorems of
+Theorem 3's mechanization (Appendix B.1), which run on the encoded ∀∃ modality over the
+lowered programs; its denotation lemmas for `QF`, monomials and polynomials are general.
+
+Part 1 is the `QF` denotation.
 
 `Faithful.lean` computes with raw `ℤ × ℤ` fractions (`QF`) so its verdicts kernel-reduce.
 This file gives those computations meaning: `QF.val` denotes a fraction in ℝ, every
@@ -1053,7 +1054,7 @@ theorem scaleState_rhoOf {vs : List String} (hnod : vs.Nodup) (hlen : vs.length 
   rw [rhoOf_getD hnod hlen _ hj]
   rfl
 
-/-! ### Wave 1 shape bridges -/
+/-! ### Shape bridges: `frozen`, `constRate`, `contract`, `contractQ`, `driven`, `chase`, `riccati` -/
 
 section ShapeBridges
 
@@ -1336,7 +1337,7 @@ theorem bridge_riccati (hnod : vs.Nodup) (hlen : vs.length = n)
 
 end ShapeBridges
 
-/-! ### Wave 2 shape bridges: `pairSym` and `drivenDamp` -/
+/-! ### Shape bridges: `pairSym` and `drivenDamp` -/
 
 /-- Value of a three-monomial-support polynomial. -/
 theorem evalR_support_three {p : QPoly} (hp : PolyInv p) (m1 m2 m3 : Mono)
@@ -2268,7 +2269,8 @@ theorem fieldOf_bridge {vs : List String} {σq : List QF} {uq : QF}
 /-! ### The assembly -/
 
 /-- **The Faithful-soundness bridge, assembled.** A `faithfulSettling` verdict upgrades
-the scaled model's per-mode settling certificate to the REAL parsed model — real fields
+`GuardSettlingB` for mode `q` of the scaled model at duration `dts` to the real parsed model,
+with real fields
 (`realFieldOf`), real evolution domain (`realEnvOf`), real guard map (`realGdOf`) — at
 the real duration `u·dts`, where `u = (ε_R/λ)/dtQ` is the transcription's time unit.
 Residual side conditions are per-benchmark decidables: distinct variable names,

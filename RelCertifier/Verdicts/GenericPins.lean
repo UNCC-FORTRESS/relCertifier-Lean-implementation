@@ -6,7 +6,7 @@ Released under Apache 2.0 license.
 
 Verdict hypotheses quote `getD`-lowered components (`hostDyn`, `hostEvolve`,
 `hostGuard`, `hostComps`, `hostAtomF/G`). A verdict runner rebuilds the same queries at
-runtime from the emitted IR and cut certificates; the pins below prove, ONCE and
+runtime from the emitted IR and mode-fact certificates; the pins below prove, ONCE and
 generically, that whenever the
 lowerings succeed (`some`-facts, observable at runtime and kernel-established per
 instance), the printed IR query denotes exactly the hypothesized host query. No
@@ -67,10 +67,13 @@ theorem hostAtomF_pin {vars : List String} {side : Side} {a : PForm}
 
 /-! ## Query-shape pins
 
-Each mirrors one hypothesis shape of the cut instances (and the O2 probes), assembled
+Each mirrors one hypothesis shape of the mode-fact instances (and the O2 probes, the
+preservation query of one mode-fact atom along its mode's flow, Definition 2), assembled
 from the component pins, the fold mirrors, and the route-query mirrors. -/
 
-/-- The O2 probe (any of the three routes, selected by the caller's builder). -/
+/-- The O2 probe, the preservation query of a mode-fact atom along its own mode's flow, the
+other side frozen, at unit stretch (any of the three routes, selected by the caller's
+builder). -/
 theorem o2_probe_pin {vars : List String} {side : Side} {m : PMode} {a : PForm}
     {fI : Fin n → ITerm n} {evI : IForm n} {gI : ITerm n}
     (hdyn : Run.dynOf vars n side m = some fI)
@@ -108,7 +111,7 @@ theorem o2_probeL_pin {vars : List String} {m : PMode} {a : PForm}
   · rw [iflowQuery_toHost, zeroField_toHost, oneConst_toHost]
   · rw [iflowQuerySuperlevel_toHost, zeroField_toHost, oneConst_toHost]
 
-/-- The instance-side cut fold, pinned: the IR fold over the atoms' lowered forms
+/-- The instance-side mode-fact fold, pinned: the IR fold over the atoms' lowered forms
 denotes `cutF` of the instance's `CutAtomP` pairs (whose `.1` are the `hostAtomF`s). -/
 theorem cutFold_pin {vars : List String} {side : Side} (atoms : List PForm)
     (aIs : List (IForm n))

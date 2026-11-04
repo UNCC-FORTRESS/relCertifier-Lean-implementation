@@ -10,7 +10,7 @@ CSF'21 sensor-attack example with its thermostat: six modes action × setting, `
 `AccHeat`, `CoastCool`, `CoastHeat`, `BrkCool`, `BrkHeat` (indices `0..5`), field
 `d' = −v`, `v' = c_q ∈ {1, 0, −1}`, `temp' = h_q ∈ {−1, 1}`, evolve domain `0 ≤ v ≤ 40`.
 `Acc*` guards contain `0 ≤ v ≤ 39`, `Brk*` guards `1 ≤ v`, `Coast*` guards `0 ≤ v ≤ 1` (the
-low-speed stand-in for braking to rest; 2026-10-28), and `Cool` asks `temp ≥ 20`, `Heat` asks
+low-speed stand-in for braking to rest), and `Cool` asks `temp ≥ 20`, `Heat` asks
 `temp ≤ 20`. Existence: the explicit polynomial run `d − v t − c t²/2`, `v + c t`, `temp + h t`
 (`trajRs_sol`), inside the domain for one period by the guard's speed bounds. Completeness:
 the end state is in the domain, so `v ≥ 0` holds there; `v ≤ 1` enables a `Coast*` mode and

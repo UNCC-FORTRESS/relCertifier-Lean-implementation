@@ -1,13 +1,13 @@
 /-
-The transition-faithful loop close (single-flow bridge, units 3+4).
+# The loop close of the single-flow chain
 
 `relational_loop` (EncodingBridge) hardcodes `φinv = ψ = encode ψ` (its `faModal_LOCK` call
 passes `(fun _ h => h)` as `hpost`), so it CANNOT carry the strengthened loop invariant
 `φinv' = invLe g ∧ mvValid`. We therefore inline the two exposed, proven lemmas directly:
 
-  unit 3: `faModal_LOCK` with `φinv := phiInv g mv numModes`, `ψ := invLe g`, `hpost := .1`
+  loop:  `faModal_LOCK` with `φinv := phiInv g mv numModes`, `ψ := invLe g`, `hpost := .1`
           → `faModal id (star leftBody) (star rightBody) (invLe g)` at ν
-  unit 4: `faModal_to_faShape` → bi-state `faShape (star leftBody) (star rightBody) ψ`
+  shape: `faModal_to_faShape` → bi-state `faShape (star leftBody) (star rightBody) ψ`
 
 `star (rightAutomatonBody G mv) = R_real G mv` definitionally, so the right side is the
 transition-faithful automaton, not the flat over-approximation. `encode id ψ = invLe g`
@@ -23,8 +23,7 @@ open DL DLCalTiming DLRel Function
 
 variable {n : ℕ}
 
-/-- **Units 3+4 — transition-faithful loop close.** From the assembled loop step (unit 2,
-carrying `φinv' = phiInv = invLe g ∧ mvValid`), close the `faModal_LOCK` loop against the real
+/-- **The loop close.** From the assembled loop step (`hstep_assembled`, carrying `φinv' = phiInv = invLe g ∧ mvValid`), close the `faModal_LOCK` loop against the real
 right automaton `star (rightAutomatonBody G mv) = R_real G mv` and lift to the bi-state `faShape`.
 The postcondition `ψpost` encodes to the *full* strengthened invariant (`encode id ψpost = phiInv`,
 via `hψp`), so `mvValid` is carried to the exit and `hpost` is the identity — matching a

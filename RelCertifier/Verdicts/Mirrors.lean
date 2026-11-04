@@ -10,9 +10,10 @@ wording: parser + printer + Z3-on-unsat + kernel). A runner therefore needs, per
 shape, an IR mirror with a kernel identity `mirror.toHost = hypothesis-query`, so what Z3
 sees IS what the theorem assumes.
 
-Routes A and B have their mirrors in `Trusted/Smt.lean` / `Proofs/Soundness/CutLift.lean`;
-this file supplies route C (`iflowQuerySuperlevel`, the superlevel route), used by the
-legacy-pack runner (`Verdicts/RunModal`) and the suite_v2 runner (`VerdictsV2/ModalX`).
+Routes A (domain-wide `ġ ≤ 0`) and B (strict boundary, Eq. (17)) have their mirrors in
+`Trusted/Smt.lean` / `Proofs/Soundness/CutLift.lean`; this file supplies route C
+(`iflowQuerySuperlevel`, the superlevel route, Eq. (18)), used by the suite_v2 runner
+(`VerdictsV2/ModalX`).
 -/
 import RelCertifier.Proofs.Soundness.CutLift
 

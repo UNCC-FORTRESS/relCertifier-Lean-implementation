@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The handoff check: the cross-mode implication, per declared left transition
+# The handoff check: Eq. (13), per declared left mode change
 
 `runHandoffBench` builds, for one benchmark and every declared left transition `m' → m`
 (self-loops included), the domain-conditioned handoff query of `Trusted/Handoff.lean`,
@@ -10,12 +10,12 @@ Released under Apache 2.0 license.
     UNSAT( φ_inv(m') ∧ evolve_{m'}(x_L) ∧ guard_m(x_L) ∧ evolve_R(x_R) ∧ ¬φ_inv(m) ),
 
 prints it through the tool's own `toScript`, and reports Z3's verdict. The query is the
-one the composition theorem's handoff hypothesis denotes (`ModeHandoff.handoff_of_unsat`
+one the handoff hypothesis of Theorem 2 (Composition) denotes (`ModeHandoff.handoff_of_unsat`
 takes `z3solve (ihandoffQuery …).toHost = unsat`), so a green line is evidence about that
 hypothesis and not about a lookalike.
 
 Two callers: `relcert --handoff <input.txt>…` (per-benchmark report), and the suite_v2
-handoff phase `VerdictsV2.runHandoffAllV2` of `--run-verdicts-v2`, which walks all 45
+handoff phase `VerdictsV2.runHandoffAllV2` of `--run-verdicts-v2`, which walks all 50
 suite_v2 files and checks the total against the declared `expectedHandoffV2` and the
 failure set against `expectedHandoffFailuresV2` (empty). A benchmark whose `next` lists do
 not all resolve shows up as a per-benchmark count mismatch. A mode-independent invariant

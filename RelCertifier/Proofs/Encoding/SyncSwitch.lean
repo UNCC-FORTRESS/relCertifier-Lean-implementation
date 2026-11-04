@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Synchronized responses that switch inside a window
+# Joint responses that switch inside a left cycle
 
 A guarded right automaton may have to switch inside a left window (its band guard stops
 holding while the left still flows). When the declared rows force the right to keep time with
@@ -11,7 +11,7 @@ the response cannot run ahead: it follows the left window's own clock, and at th
 points it changes mode. The certified couplings still apply piecewise: on every stretch where
 the right stays in mode `q`, the joint trajectory (left coordinates from the left run, right
 coordinates from the right run) is a run of the joint system of the pair `(l, q)`, along
-which the pair's anchor (rows and both sides' kept cut atoms) is preserved.
+which the pair's anchor (rows and both sides' kept mode-fact atoms) is preserved.
 
 * `couple_box_cutX`: the anchor of a certified pair is preserved along every run of the joint
   system (the first half of `couple_cutX`, without the existence part).
@@ -19,8 +19,6 @@ which the pair's anchor (rows and both sides' kept cut atoms) is preserved.
 * `mergeLR`, `joint_of_sols`: a clocked left solution and a right solution of the same
   duration make a run of the joint system between the merged states (the clock and the other
   auxiliary variables frozen).
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedClimb
@@ -33,7 +31,8 @@ variable {n : ℕ}
 /-- **The anchor of a certified pair is a box invariant of the joint flow.** Same premises as
 `couple_cutX` without the existence part: along every run of the joint system (left field
 `fL`, right field stretched by `λ`), from a state satisfying the rows and both sides' kept
-atoms, the rows and atoms hold at the end. -/
+atoms, the rows and atoms hold at the end: the joint flow certificate of Definition 5, from the
+Lie conditions of Lemma 2. -/
 theorem couple_box_cutX (g : Term (Var n)) (gs comps : List (Term (Var n)))
     (cL cR : List (CutAtomP n)) (fL fR : Fin n → Term (Var n)) (lamv : ℝ)
     (domL domR : Formula (Var n))
@@ -184,8 +183,9 @@ theorem joint_of_sols {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var
 
 /-- **The joint run of two solutions, the right stretched by `λ ≥ 0`.** A clocked left solution
 of duration `r` and a right solution of duration `λ r` make a run of the joint system with the
-right field stretched by `λ` (the right read at time `λ t`). At the stutter stretch `λ = 0` the
-right solution has duration `0` and the right waits at its start. -/
+right field stretched by `λ` (the right read at time `λ t`), the direction of Lemma 1 (Time
+Stretching) that the joint segments of Lemma 3 use. At stretch `λ = 0` the right solution has
+duration `0` and the right stands still at its start. -/
 theorem joint_of_sols_lam {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var n)}
     (tg : Var n) (lam : ℝ) (hlam : 0 ≤ lam)
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hfR : ∀ i, (fR i).fv ⊆ range Rv)

@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # Assumption 1 for the terrain ladders (`STEEP → MODER → FLAT`), proved once
 
-Eighteen suite_v2 benchmarks share one right model shape: three bands of the odometer `s`
+This file covers right models of one shape: three bands of the odometer `s`
 (`STEEP` `0 ≤ s < 0.6`, `MODER` `0.6 ≤ s < 1.4`, `FLAT` `s ≥ 1.4`, optionally with the speed
 caps `v ≤ 0.3 / 0.5 / 0.65`), the speed a contraction `v' = 3 (c_q − v)` toward the band's
 set point `c_q = ladC q` (0.3, 0.5, 0.65), the odometer rate `s'` between 0 and 0.8 on the
@@ -17,10 +17,8 @@ coordinates whatever the file declares, the declared successors `STEEP → {MODE
 and the set point (so a speed cap of the band is kept and implies the next band's cap), the
 odometer does not decrease, and over one interval it grows by at most `0.8`, so a `STEEP`
 run ends below `0.6 + 0.8 = 1.4` (inside `STEEP` or `MODER`), a `MODER` run ends in `MODER`
-or `FLAT`, and `FLAT` is forward invariant. Style (b) for `STEEP`, `MODER`; (a) for `FLAT`.
+or `FLAT`, and `FLAT` is forward invariant.
 Z3-free.
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.WellFormedR
 import RelCertifier.Proofs.Encoding.LadderClimb

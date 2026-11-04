@@ -1,5 +1,5 @@
 /-
-The single-flow transition-faithful Theorem 3 (`rvalid` form) — the base case GAP 1-3 lift.
+# The single-flow ∀∃ claim in `rvalid` form, with mode validity in the invariant
 
 `rvalid` quantifies over ALL bi-states, including ones whose fresh mode variable `mv` holds an
 undeclared index. The relational invariant `ϕinv` never mentions `mv`, so at such a bi-state the
@@ -11,14 +11,14 @@ The sound target carries mode-validity in `theorem3Form`'s `ϕinv`:
 
     rvalid (theorem3Form (bigChoice leftProgs) (rightAutomatonBody G mv) (ϕinv ∧ mvValidR))
 
-read: "for initial states where the reasoning automaton is in a declared mode, the finer system
-refines the coarser within tolerance." `mvValidR := ⌊mvValid⌋_R` (mode-validity read on the right
-execution). `encode id mvValidR = mvValid`, so the encoded precondition is exactly the loop
-invariant `phiInv = invLe g ∧ mvValid` (unit 2/3), and the `rvalid` lift bridges every bi-state to
-its canonical join (`exists_bridge`) where `relational_loop_faithful` (units 1-4) applies.
+read: "from every bi-state whose right mode variable holds a declared mode and that satisfies
+`ϕinv`, the ∀∃ modality of Eq. (10) holds". `mvValidR := ⌊mvValid⌋_R` (mode validity read on the
+right execution). `encode id mvValidR = mvValid`, so the encoded precondition is the loop invariant
+`phiInv = invLe g ∧ mvValid` (`BridgeUnit2.lean`, `BridgeUnit3.lean`), and the `rvalid` lift bridges
+every bi-state to its canonical join (`exists_bridge`), where `relational_loop_faithful` applies.
 
-Var-disjointness / the Z3 cert-family (`hstep`) enter as hypotheses, exactly as
-`certified_relational` (the flat pipeline) leaves them — same trust boundary, transition-faithful.
+Variable disjointness and the per-step certificate family (`hstep`) are hypotheses, as in
+`certified_relational`.
 -/
 import RelCertifier.Proofs.Encoding.BridgeUnit3
 import RelCertifier.Checker.Cover.Encoding
@@ -69,11 +69,11 @@ theorem varsR_subset_faShape (α β : Program (Var n)) (ϕ : RFormula (Var n)) :
   simp only [faShape, RFormula.rdiamond, RFormula.varsR, RProgram.varsR]
   intro x hx; exact Or.inr (Or.inr hx)
 
-/-- **Unit 5 — transition-faithful Theorem 3, `rvalid` form.** With mode-validity carried in the
-invariant, the checker's positive verdict (packaged as the loop-step hypothesis `hstep`, the
-var-disjointness `hd`, and the shape disjointness `hddF`) yields the paper's ∀∃ refinement
-modality over the *real* automaton `R_real G mv = star (rightAutomatonBody G mv)`, valid at every
-bi-state. -/
+/-- **The single-flow ∀∃ claim, `rvalid` form.** If `ϕinv` encodes to `invLe g`, the left and right
+programs have disjoint variables (`hd`, `hddF`), and one step preserves the loop invariant
+(`hstep`: `phiInv` implies the one-step `faModal` of `bigChoice leftProgs` and
+`rightAutomatonBody G mv` for `phiInv`), then `theorem3Form` (the form of Eq. (10)) over these
+programs, with invariant `ϕinv ∧ mvValidR`, is valid at every bi-state. -/
 theorem theorem3_faithful (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)

@@ -2,35 +2,29 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# L4 — the region-carrying modal chain (the `rung2c` conditioning)
+# The region-carrying modal chain
 
-The E/F chains carry `mvValid mv k` — the mode variable holds SOME declared index —
-so the loop invariant tells the step provider nothing about WHERE the right execution
-is while it holds a given mode. `rover_ladder_4to6` needs more: its
-right graph is the one-way chain `STEEP → MODER → FLAT`, and the three backward
-(window, start) pairs are dischargeable only by VACUITY, which requires the invariant
-to pin each mode's PRESERVED region (`s_r ≥ b(q)`, forward-invariant by
-`lowR_preserved`) so that the guard-gated left window (`gwindowSeg`, R2) cannot fire
-against a right state that has already crossed the window's band.
-
-This file upgrades `mvValid` to `mvRegion mv regions k` — the big-or of
-`mv = q ∧ regions q` — through the whole F-parametric chain:
+The E/F chains carry `mvValid mv k` (the mode variable holds some declared index), so the
+loop invariant tells the step provider nothing about where the right execution is while it
+holds a given mode. This file upgrades `mvValid` to `mvRegion mv regions k`, the big-or of
+`mv = q ∧ regions q`, through the whole F-parametric chain. Instantiated at
+`regions = regionG guard cuts` (the mode's guard and its mode facts, `GuardedSwitch.lean`),
+the conjunct is the right half of the operating region `op_R` of Section 3 at the rotated
+loop head (Appendix B.2, Rotation):
 
 * `qfOf` + `faithful_rights_bridge_pinned`: the bigSeq→star bridge with the final
-  mode PINNED to the last segment's target (the existing bridge's existential hides
-  it, and the region fact at the loop's close is per-final-mode). Mirror induction of
-  `faithful_rights_bridge` — new leaf, `BridgeReposition` untouched.
-* `hstep_single_multiR` / `hstep_assembled_multiR`: the step provider now RECEIVES
-  the start mode's region fact and OWES the landing mode's (`regions (qfOf segs q)`)
+  mode pinned to the last segment's target (the bridge's existential hides
+  it, and the region fact at the loop's close is per final mode). Mirror induction of
+  `faithful_rights_bridge`.
+* `hstep_single_multiR` / `hstep_assembled_multiR`: the step provider receives
+  the start mode's region fact and owes the landing mode's (`regions (qfOf segs q)`)
   in its `faModal` target.
 * `theorem3_faithful_multiR_LR` + `hddF_multiR`: the `rvalid` assembly with
-  `mvRegionR` in the postcondition and guard-gated windows on the left.
+  `mvRegionR` in the postcondition and guard-gated windows on the left. `theorem3_of_coverX`
+  (Theorem 3) assembles through it.
 
-The suite-wide caveat from `ModeRegion.lean` stands: only 95 of 129 right-mode guard
-lower bounds are forward-invariant, so this chain is for instances whose regions ARE
-preserved — it is not a shared default.
-
-New leaf; no upstream edits.
+The region must be preserved by each step (owed at the landing mode), which holds for the
+guard-and-mode-fact region because every landing re-tests the guard.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChainM
 import RelCertifier.Proofs.Encoding.CoverExtract
@@ -119,8 +113,8 @@ theorem faithful_rights_bridge_pinned (G : SearchGraph (Var n)) (mv : Var n)
 
 /-! ## The region-carrying mode conjunct -/
 
-/-- `mv` holds a declared index AND the right execution sits in that mode's
-(preserved) region: `⋁_{q<k} (mv = q ∧ regions q)`. -/
+/-- `mv` holds a declared index and the right execution sits in that mode's
+region: `⋁_{q<k} (mv = q ∧ regions q)`. -/
 def mvRegion (mv : Var n) (regions : ℕ → Formula (Var n)) (k : ℕ) : Formula (Var n) :=
   bigOr ((List.range k).map (fun q => Formula.and (modeIs mv q) (regions q)))
 
@@ -158,7 +152,7 @@ def phiInvR (F env : Formula (Var n)) (mv : Var n) (regions : ℕ → Formula (V
 /-! ## The step and loop lemmas -/
 
 /-- `hstep_single_multiF` with the region conjunct: the provider's `faModal` target
-owes the LANDING mode's region (`regions (qfOf segs q)`), and the pinned bridge
+owes the landing mode's region (`regions (qfOf segs q)`), and the pinned bridge
 carries it to the mv-updated loop-close witness. -/
 theorem hstep_single_multiR (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ)
     (F env : Formula (Var n)) (regions : ℕ → Formula (Var n)) (P : Program (Var n))
@@ -208,7 +202,7 @@ theorem hstep_single_multiR (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ)
       Function.update_of_ne (fun hc => hregf _ (by rw [← hc]; exact hy)) _ _) :
         Formula.sat (regions (qfOf segs q)) _ ↔ _)]
 
-/-- `hstep_assembled_multiF` with the region conjunct: the provider RECEIVES the
+/-- `hstep_assembled_multiF` with the region conjunct: the provider receives the
 start mode's region fact and owes the landing mode's. -/
 theorem hstep_assembled_multiR (G : SearchGraph (Var n)) (mv : Var n)
     (F env : Formula (Var n)) (regions : ℕ → Formula (Var n))

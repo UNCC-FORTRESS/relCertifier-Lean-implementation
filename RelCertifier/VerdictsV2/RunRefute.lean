@@ -2,13 +2,14 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The refutation verdict runner (branch `refutation`)
+# The refutation verdict runner (Appendix B.6)
 
 Per refutation record (`InstancesV2/Refute/Table.lean`), every group of `Emitted.refGroups`
 (the no-partner queries of kind C, the rigidity queries of kind A, one per right mode) is sent
 to Z3; a group is discharged when its member is `unsat`. The groups are exactly the queries
 `Emitted.RefVerdicts` reads, the hypothesis of each instance's `refuted`; so the runner's green
-light (with the declared total met) is that hypothesis.
+light (with the declared total `expectedRefuteGroups` met, 416 groups over the 140
+refutations in Appendix B.6) is that hypothesis.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteData
 import RelCertifier.InstancesV2.Refute.Table

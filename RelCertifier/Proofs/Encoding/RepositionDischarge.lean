@@ -1,13 +1,17 @@
 /-
-GAP 1 — the `Hmulti` discharge: derive the genuine-multi-flow emit from `cert.segPres`, making the
-reposition-inclusive multi Theorem 3 **checker-entailed** (`decideCovered`/`cert ⟹ Theorem 3`)
-rather than emit-conditional. Mirror of `hpair_from_cover` (single-flow), multi-flow version.
+# The `Hmulti` discharge: multi-flow couplings from the certificate
 
-The new plumbing vs single-flow: the bounded per-segment coupling (`faModal_ODE_G'_bounded`) runs the
-left under a fresh clock (`clk tg leftBlock`), but `cert.segPres` is an **unclocked** joint `BoxLe`.
-This file lifts the certificate across the clock — `sem_ode_perm` (semantics is permutation-invariant),
-`box_ode_perm`, and `boxLe_clock_lift` (reuse `clockReduce`) — so the segment certs come from `cert`,
-not re-assumed.
+Derives the multi-flow emit `Hmulti` from the flow certificates in `cert` (`cert.segPres` for
+joint segments, `cert.repoDynPresPre` for right-only ones), so the multi-flow Theorem 3 assembly
+with right-only segments (`theorem3_faithful_multi_of_emit`) follows from the checker
+(`decideCovered`/`cert`) instead of an assumed emit. The multi-flow counterpart of
+`hpair_from_cover`.
+
+The per-segment bounded coupling (`faModal_ODE_G'_bounded`) runs the left under a fresh clock
+(`clk tg leftBlock`), but `cert.segPres` is an unclocked joint `BoxLe` (Definition 5). This file
+lifts the certificate across the clock (`sem_ode_perm`: semantics is permutation-invariant;
+`box_ode_perm`; `boxLe_clock_lift`, reusing `clockReduce`), so the segment certificates come
+from `cert`, not re-assumed.
 -/
 import RelCertifier.Proofs.Encoding.BridgeReposition
 import RelCertifier.Proofs.Encoding.BridgeDischarge
@@ -299,12 +303,11 @@ theorem segment_faModalB_from_cert (g : Term (Var n)) (fL fR : Fin n → Term (V
     exact hExist_clocked_of_HExistSeg fL fR lam domL domR tg dt htgLb htgLr htgRb htgRr htgdL htgdR
       hES
 
-/-- **Dynamic reposition coupling, cert-sourced — a direct instantiation at `fL0 = 0`.** The
-dynamic reposition's right segment evolves under the frozen-left field (`m.dynSys = jointSys 0 fR lam`);
-its cert `repoDynPresPre/Post` (`SegPreservesOn g m.dynSys m.dynDomPre`) is the joint box at the frozen
-left. So the bounded coupling is `segment_faModalB_from_cert` with `fL0 := (fun _ => Term.const 0)` and
-the box from **`cert.repoDynPres`** — NO new lemma, NO assumed reposition fact. Confirms the reposition
-coupling is cert-sourced the same way the flow coupling is. -/
+/-- **Right-only (dynamic reposition) coupling, from the certificate: `fL0 = 0`.** A right-only
+segment evolves under the frozen-left field (`m.dynSys = jointSys 0 fR lam`, Eq. (15)); its
+right-only flow certificate `repoDynPresPre/Post` (`SegPreservesOn g m.dynSys m.dynDomPre`) is the
+joint box at the frozen left. So the bounded coupling is `segment_faModalB_from_cert` with
+`fL0 := (fun _ => Term.const 0)` and the box from the certificate: no assumed reposition fact. -/
 theorem dynreposition_faModalB_from_cert (g : Term (Var n)) (fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
     (hdisj0 : Disjoint ((leftBlock (fun _ => Term.const 0)).boundSet ∪

@@ -2,25 +2,21 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The scaling-transfer lemma (seam #6): `GuardSettlingB` under state/time rescaling
+# The scaling-transfer lemma: `GuardSettlingB` under state/time rescaling
 
-**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
-affine models of the legacy suite, kernel-certified against the parsed IR). Its
-per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
-`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
-suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
-compiled as part of the soundness development.
+**Scope.** These lemmas belong to the per-mode settling route of `GuardThreaded.lean`
+(`GuardSettlingB`, checked against an integer-scaled model through `Faithful`,
+`FaithfulBridge.lean`). They are not used by the theorems of Theorem 3's mechanization
+(Appendix B.1), which run on the encoded ∀∃ modality; they stay as general facts about
+the settling obligation.
 
-The kernel settling certificates hold for the SCALED model (integer data: values ×σᵢ,
-time in `dt`-units of `u` real seconds). The benchmark's own claim lives at real values
-and real time. This file proves the transfer once and for all: if the scaled model's
-per-mode settling obligation holds, so does the real one, PROVIDED the two sides
-correspond — fields by the pushforward law `f(σ·x) = σᵢ·u·f'(x)` (exactly the
-coefficient laws `Faithful` checks), guards/envelopes by satisfaction under the state
-scaling. The witness flow transports by `Φ'(t) = σ⁻¹ · Φ(t/u)` (chain rule); staying and
-landing transport pointwise. With `Faithful` (kernel, per benchmark) discharging the
-correspondence numerically and this lemma discharging it analytically, the ×1000/w=u/2
-"units" comments stop being trust-me math.
+A settling certificate may hold for a SCALED model (integer data: values ×σᵢ, time in
+`dt`-units of `u` real seconds) while the claim lives at real values and real time. This
+file proves the transfer: if the scaled model's per-mode settling obligation holds, so does
+the real one, provided the two sides correspond: fields by the pushforward law
+`f(σ·x) = σᵢ·u·f'(x)` (the coefficient laws `Faithful` checks), guards and envelopes by
+satisfaction under the state scaling. The witness flow transports by
+`Φ'(t) = σ⁻¹ · Φ(t/u)` (chain rule); staying and landing transport pointwise.
 -/
 import RelCertifier.Proofs.Soundness.GuardThreaded
 
@@ -231,9 +227,8 @@ theorem GuardSettlingB_rescale {n : ℕ} (G : SearchGraph (Var n))
 `GuardSettlingB_rescale`: a real-side certificate `g' ≤ 0` along the real field
 transfers to the scaled model at the scaled state, given the same pushforward law
 for the fields, the domain correspondence, and a positively-scaled invariant
-correspondence `⟦g⟧(σ·ν) = c·⟦g'⟧(ν)` (`c > 0`). This is the `hcert` discharger's
-final step: the tool's certificates live at the parsed (real) level; the checker's
-`H` consumes them at the scaled model. -/
+correspondence `⟦g⟧(σ·ν) = c·⟦g'⟧(ν)` (`c > 0`). It moves a certificate proved at the
+parsed (real) level to the scaled model that the settling checker consumes. -/
 theorem BoxLe_rescale {n : ℕ} (fR fR' : Fin n → Term (Var n))
     (domR domR' : Formula (Var n)) (g g' : Term (Var n)) (σ : Fin n → ℝ) (u c : ℝ)
     (hσ : ∀ i, σ i ≠ 0) (hu : 0 < u) (hc : 0 < c)

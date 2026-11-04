@@ -2,14 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# L1 — stratified face invariance and the stratified existence consumer
+# Stratified face invariance and the stratified existence consumer
 
 The bounded viability layer (`BoxViabilityBounded`) admits two face classes: STRICT
 (box-conditioned strict inflow on the face) and GROWTH (Lie bound `≤ M` with an entry
-budget). The face census of the legacy suite (`docs/history/VIABILITY-FACE-CENSUS.md`)
-showed the dominant
-class is neither: NON-STRICT inward faces — `Lie ≤ 0` over a region, `= 0` allowed on
-the face — 519 of 1133 faces, present at nearly every benchmark's landing modes.
+budget). Many domain faces of the suite are of a third class: NON-STRICT inward faces,
+`Lie ≤ 0` over a region with `= 0` allowed on the face. These enter the nonblocking
+clause of Assumption 1 (`WellFormedR.lean`, Appendix B.5).
 
 A non-strict face cannot enter the strict list (its Lie vanishes on the face) nor the
 growth list (`M = 0` makes the entry budget demand strictly negative face value, false
@@ -21,14 +20,10 @@ already proven. Because the earlier faces then hold POINTWISE along the whole cu
 a boundary-only check, so the `nonstrict_boundary_insufficient` t² trap does not arise
 and no Nagumo sub-tangency is needed.
 
-`HExistSegB_of_viability_stratified` is the existence consumer: it reuses the EXISTING
-`box_viability_bounded_chain` (with a trivial domain) purely to produce the right run,
-then re-derives the full face box — including the non-strict faces — post hoc on that
-run, and only then concludes the evolve domain. No re-proof of the Picard/chain layer.
-
-Measured grounding (`docs/history/LEMMA-SCOPE.md`): at census time (legacy suite,
-47 benchmarks) the stratification closed for every benchmark measured, with strata depth
-≤ 3 beyond the strict core and zero stuck faces.
+`HExistSegB_of_viability_stratified` is the existence consumer: it uses
+`box_viability_bounded_chain` (with a trivial domain) to produce the right run, then
+re-derives the full face box, non-strict faces included, on that run, and from it
+concludes the evolution domain.
 -/
 import RelCertifier.Proofs.Flow.ViabilityWiring
 
@@ -99,9 +94,9 @@ theorem stratified_faces_raw {sys : ODESystem V} (hwf : sys.WellFormed)
 strata order. The run is produced by the EXISTING `box_viability_bounded_chain` over a
 trivial domain (the chain's own faces argument covers `gsS`/`gsG`); the full face box —
 including `gsN` — is re-derived on that run by `stratified_faces_raw`, and the evolve
-domain `domR` follows from the full box (`hdomsat`). Face data over the FROZEN-LEFT
-joint system — the same verdict shapes as the R6/S3 layer, plus the non-strict query
-`UNSAT(region ∧ ġ > 0)` per stratum. -/
+domain `domR` follows from the full box (`hdomsat`). Face data are over the joint system
+with the left frozen, with the verdict shapes of `HExistSegB_of_viability` plus the
+non-strict query `UNSAT(region ∧ ġ > 0)` per stratum. -/
 theorem HExistSegB_of_viability_stratified
     (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domL domR : Formula (Var n))
     (gsS gsG gsN : List (Term (Var n))) (M : ℝ) (hM : 0 ≤ M)

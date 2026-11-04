@@ -2,11 +2,11 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R3 — the canonical relational invariant (docs/history/ROADMAP.md R3)
+# The canonical relational invariant
 
-The `hψ`/`hinvL`/`hinvR` residuals were per-benchmark hypotheses: SOME relational formula
-`ϕinv` with `encode ϕinv = invLe g` and side-split projections. This file constructs it
-once, generically, for ANY lowered invariant term:
+The record-level theorems need SOME relational formula `ϕinv` with `encode ϕinv = invLe g` and
+side-split projections (the hypotheses `hψ`, `hinvL`, `hinvR`). This file constructs it once,
+generically, for ANY lowered invariant term:
 
 `rsplit` projects every variable occurrence on its own side — `Lv` reads become `⌊·⌋_L`,
 `Rv` reads `⌊·⌋_R` — and `RTerm.enc` erases projections homomorphically, so the encoding
@@ -61,7 +61,8 @@ theorem rsplit_enc (t : Term (Var n)) : (rsplit t).enc = t := by
   | const c => rfl
   | binop op a b iha ihb => simp [rsplit, RTerm.enc, iha, ihb]
 
-/-- **The encoding identity, generic** — discharges every `hψ` residual. -/
+/-- **The encoding identity.** `canonInv g` encodes (`ρ = id`) to `invLe g`, for every `g`; this
+discharges every `hψ` hypothesis. -/
 theorem encode_canonInv (g : Term (Var n)) :
     encode (Equiv.refl (Var n)) (canonInv g) = invLe g := by
   unfold encode canonInv invLe
@@ -122,8 +123,9 @@ theorem rsplit_varsR_sub (t : Term (Var n)) :
       · obtain ⟨hfv, hside⟩ := ihb hx
         exact ⟨Or.inr hfv, hside⟩
 
-/-- **Left projection bound** — discharges every `hinvL` residual (Aux-freeness via
-`hgLR`, itself premise-free from the lowering). -/
+/-- **Left projection bound.** If `g` reads only `Lv` and `Rv` variables, the left variables of
+`canonInv g` are among `Lv`; this discharges every `hinvL` hypothesis (`hgLR` follows from the
+lowering, `invToG_fv_LR`). -/
 theorem canonInv_varsL (g : Term (Var n)) (hgLR : g.fv ⊆ range Lv ∪ range Rv) :
     (canonInv g).varsL ⊆ range Lv := by
   intro x hx
@@ -136,7 +138,8 @@ theorem canonInv_varsL (g : Term (Var n)) (hgLR : g.fv ⊆ range Lv ∪ range Rv
   · simp only [RTerm.varsL, Term.fv] at hx
     exact absurd hx (by simp)
 
-/-- **Right projection bound** — discharges every `hinvR` residual. -/
+/-- **Right projection bound.** The right variables of `canonInv g` are among `Rv`; this discharges
+every `hinvR` hypothesis. -/
 theorem canonInv_varsR (g : Term (Var n)) :
     (canonInv g).varsR ⊆ range Rv := by
   intro x hx

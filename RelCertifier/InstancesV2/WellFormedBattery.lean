@@ -4,59 +4,39 @@ Released under Apache 2.0 license.
 
 # The Assumption 1 battery: `WellFormedR` per benchmark, axiom-audited on every build
 
-The paper's Assumption 1 (Well-Formedness), restated 2026-10-10: *the right model is
-nonblocking and complete with respect to its declared successor relation: from every state
-satisfying a source-mode guard, an evolution spanning the control interval `ε_r` exists, and
-every evolution of duration at most `ε_r`, including the empty one, ends in a state
-satisfying the guard of at least one declared successor mode.*
+Assumption 1 (Well-Formedness) of the paper: *the right model is nonblocking and complete with
+respect to its declared successor relation: for every mode and every state satisfying its guard,
+some evolution of the mode spans the control interval `ε_r`, and every evolution of duration at
+most `ε_r`, including the empty one, ends in the guard of some declared successor.*
 
 `WellFormedR G guard ε` (`Proofs/Encoding/WellFormedR.lean`): for every mode `q` of the right
 graph `G` and every state `x` in `q`'s lowered guard and `q`'s evolve domain, (i) a run of
 `q`'s flow of duration `ε` exists inside the domain, and (ii) every run of duration
 `t ≤ ε` ends in the lowered guard of some `e.tgt`, `e ∈ G.edgesFrom q` (self-loop
-included). `G` is each benchmark's guarded right automaton (the graph of its Theorem 3:
-the file's modes, flows, evolve domain, `next` lists), `guard q` the lowered right guard of
-mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model fact,
-independent of the relational invariant and of every Theorem 3 (none takes it as a
-hypothesis); this battery is a separate audit.
+included). `G` is each benchmark's guarded right automaton (the file's modes, flows, evolve
+domain and `next` lists), `guard q` the lowered right guard of mode `q`, `ε = epsR` (the file's
+`epsilon`, read as the tool reads it). A model fact, independent of the relational invariant.
+Each bridge instance (`InstancesV2/Bridge/<B>.lean`) transports its benchmark's proof onto the
+pruned graph of the cover and lifts it by the right-clock coordinate (`wellFormedR_lift`), which
+discharges the `WellFormedRIn` hypothesis of its record-level Theorem 3 (Appendix B.5).
 
 **Results (all 50 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 46** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
-  the literature benchmarks `lit_drl_car_stop` (skipped 2026-10-29), `lit_drl_lane_control` and
-  `lit_freedm_meter` added 2026-10-15, proved directly over the bridge's automaton,
-  `_wellFormedR_direct`; `lit_gpt10_boost_converter` and `lit_csf25_salt_tank_hold` added
-  2026-10-29, also direct; `rampmeter_poll_2to1` back from the reserve the same day; `lit_hypercert_vehicle`, added with them, left the suite on 2026-10-28,
-  `benchmarks/skipped/`; the literature case studies of batch I8, 2026-10-27, `lit_csf21_vehicle_thermo`,
-  `lit_csf21_vehicle_bus`, `lit_lz21_vehicle_position`, `lit_girard08_robot` and `lit_nahs25_salt_tank`, also direct). Z3-free (no verdict leaf). None of the nine models repaired on
-  2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted here with exhibited blocking
-  states, declared counts `(30, 9, 6)`) is in the suite in its repaired form any more:
-  `arm_plateau_{crit,profiles,slow}` and `platoon3_{linkloss,profiles}` moved to
-  `benchmarks/reserve/` on 2026-10-27 with their proofs (history) and the shared `Platoon3Link`
-  lemmas, `platoon_delay_linkloss` was replaced by `platoon_linkloss`, whose CACC/AEB follower it
-  shares with `platoon_latency` (and shared with `platoon_profiles`, in the reserve since batch I8)
-  through `PlatoonCaccAeb`,
-  `platoon_delay_profiles` by `platoon_profiles`, and `quad_light_{airframe_20,profiles}` were
-  redesigned on 2026-10-27 with the altitude coordinate and no limiter mode (`quad_light_airframe_20`
-  moved to `benchmarks/reserve/` in batch I7 the same day, its proof in history, as did
-  `rampmeter_poll_2to1` of batch I6, and `hvac_fan_staging`, `platoon_profiles`, `rover_rollover_payload`, `flaps_slow_approach`
-  and `canal_gate_notches` in batch I8).
+* **Proved, 47** (`<bench>_wellFormedR`): every mode. The literature benchmarks are proved
+  directly over the bridge's automaton (`_wellFormedR_direct`). Z3-free (no verdict leaf).
 * **Refuted, 0.**
 * **The detumble family, 3** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
-  `sat_detumble_{weak,phases}`, `sat3w_detumble_phases` (`sat_detumble_nominal` and
-  `sat3w_detumble_{nominal,weak}` moved to `benchmarks/reserve/` on 2026-10-27). From 2026-10-15
-  to 2026-10-29 their right evolve domains carried the conserved momentum band
-  `|h_i + J_i w_i| ≤ 2` (without it clause (i) failed at the edge of the wheel-momentum box,
-  `h = 2`, `w3 = 0.4`). Since 2026-10-29 (one physical domain per benchmark, the same on both
-  sides) the domain is the gyro box `|w_i| ≤ 1` alone: the band is not a first integral of the
-  left and the wheel box is crossed by the design model's own flow, so both left the domain; the
-  explicit solution stays in the gyro box (the rates decay), and the band is still kept by every
-  right mode's flow (`_band_invariant`, a model fact).
+  `sat_detumble_{weak,phases}` and `sat3w_detumble_phases`, the satellite benchmarks. Their
+  evolve domain is the gyro box `|w_i| ≤ 1` alone, the same on both sides; the explicit
+  solution stays in it (the rates decay). The conserved momentum band `|h_i + J_i w_i| ≤ 2` is
+  not in the domain and is kept by every right mode's flow (`_band_invariant`, a model fact).
 
-Expected axioms: `propext`, `Classical.choice`, `Quot.sound`, nothing else (every proof is
-Z3-free). `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on
-axioms"`.
+Expected axioms: `propext`, `Classical.choice`, `Quot.sound`, nothing else, for every proof of
+this file (all Z3-free). The build of this module also replays the axiom lines of imported
+modules, two of which, for the `CutLiftX` lift of the mode facts, add `z3_unsat_sound`
+(Appendix B.5 counts 78 lines in all, 76 at the three standard axioms).
+`lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"`.
 -/
 import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.WellFormed.LitDrlLaneControl
@@ -139,73 +119,17 @@ def wfProved : List String :=
    "lit_csf25_salt_tank_hold",
    "lit_nahs25_engine_cooling"]
 
-/-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
-repairs; the nine refuted until then are in `wfProved`). -/
+/-- The benchmarks whose right model violates Assumption 1 (none). -/
 def wfRefuted : List String := []
 
-/-- The detumble family: Assumption 1 holds at every mode (over the gyro box `|w_i| ≤ 1` since
-2026-10-29; with the momentum band in the right evolve domain from 2026-10-15; before, only on the
-band), and the band is kept by every right flow (`_band_invariant`). -/
+/-- The detumble family: Assumption 1 holds at every mode (over the gyro box `|w_i| ≤ 1`), and
+the momentum band is kept by every right flow (`_band_invariant`). -/
 def wfBand : List String :=
   ["sat_detumble_weak", "sat_detumble_phases",
    "sat3w_detumble_phases"]
 
 /-- **Declared counts**: proved outside the detumble family, refuted (model defects), the
-detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` until the
-2026-10-10 repairs of the nine refuted models; `(39, 0, 6)` then, `(40, 0, 6)` with
-`watertank_twospeed` (2026-10-11); `(44, 0, 6)` with the 2026-10-26 additions; `(40, 0, 6)`
-after the 2026-10-27 reserve moves (`airheader_dos_3to1`, `arm_plateau_profiles`,
-`platoon3_{linkloss,profiles}`); `(41, 0, 6)` with `platoon_linkloss` (replacing
-`platoon_delay_linkloss`) and `platoon_latency`; `(43, 0, 6)` with `engine_start_highidle` and
-`train_ato_odometry`; unchanged by `gantry_speed_zones` (replacing `match_multi_rate`) and
-`platoon_profiles` (replacing `platoon_delay_profiles`), and by the redesigned
-`quad_light_{airframe_20,profiles}` and `watertank_twospeed`; `(46, 0, 6)` with
-`bms_chiller_undercharge`, `canal_gate_notches` and `turbine_startup_gearratio`; `(36, 0, 6)`
-after the rover hierarchy of 2026-10-27 (ten rover files left the suite: `rover_rollover_6to7`,
-`_7to12`, `_6to12`, `rover_lateral_6to8`, `_8to12`, `rover_attitude_6to8`, `_8to12`,
-`rover_ladder_2to4`, `_2to6`, `rover_patrol_zones`; the four ladder rungs and
-`rover_patrol_lag` were reinstalled on new right models, `L2`, `L3`, `L6`, `L8` with pinned
-coordinates and the planning model); `(32, 0, 3)` after the reserve moves of batch I4
-(2026-10-27: `charger_fast_{setpoints,tapers}`, `arm_plateau_{crit,slow}`,
-`sat_detumble_nominal`, `sat3w_detumble_{nominal,weak}`), unchanged by the batch I4 installs (the
-`acc_*` files at the 0.1 s period, the satellite phases' three-mode right models); `(41, 0, 3)`
-with the nine new benchmarks of batch I5 (`molding_pack_checkring`, `fuelcell_chp_dos`,
-`elevator_start_discbrake`, `furnace_program_timebase`, `compressor_station_recycle`,
-`syringe_relay_prearm`, `hydro_rejection_gatecal`, `ventilator_vc_cuffleak`,
-`insulin_basal_cgmloss`); `(42, 0, 3)` with `rover_rollover_payload` (the first right model with a
-coupled block, proved by Picard on an enlarged strictly inflowing box); `(47, 0, 3)` with the five
-new benchmarks of batch I6 (`flaps_slow_approach`, `tunnel_jetfan_pairout`, whose right model has
-the polynomial terms `u^2` and `u c` and is proved with an explicit Riccati run,
-`rampmeter_poll_2to1`, `bottling_fill_strainer`, `antenna_track_kvretune`); unchanged by the swaps
-of batch I7 (`charger_fast_tapers`, reinstalled at the minute time scale with its round-2 proof
-at the new interval, for `quad_light_airframe_20`; `grid_ffr_dos`, a new proof with an explicit
-run and a non-strict barrier for the FFR release line, for `rampmeter_poll_2to1`); unchanged by the
-swaps of batch I8 (the literature case studies `lit_csf21_vehicle_thermo` and `lit_csf21_vehicle_bus`,
-direct proofs with explicit polynomial runs and an exit into a coast mode, for `hvac_fan_staging`
-and `platoon_profiles`; then `lit_lz21_vehicle_position`, `lit_girard08_robot`, whose right evolve domain is
-the constant atom `0.0 <= 1.0`, and `lit_nahs25_salt_tank`, a contraction toward 25 kept by every run,
-for `rover_rollover_payload`, `flaps_slow_approach` and `canal_gate_notches`); unchanged by the
-swaps of batches I9 to I11 (2026-10-28; batch I11: `platoon_latency`, its round-2 proof over the
-shared CACC/AEB run lemmas, `h2_refuel_ambientbias`, six 1-D contractions as `engine_start_highidle`,
-and `reactor_feed_wireless`, four exponential runs at dimension 2 as `fuelcell_chp_dos`, for
-`antenna_track_kvretune`, `molding_pack_checkring` and `compressor_station_recycle`); unchanged by fix round 4 (2026-10-29: `canal_gate_notches`, its
-batch-I5 proof restored, for `grid_ffr_dos`; the proofs adapted to the new right models of
-`engine_start_highidle` (frozen supply pressure `p`, new mode `STARTER_LOW`),
-`h2_refuel_ambientbias` (no `ABORT`, five 1-D contractions), `charger_fast_tapers` (no `FAULT`; skipped 2026-10-30, replaced by `molding_pack_checkring`),
-`rover_terrain_{2to4,4to6,6to12}` (wheel and torque floors 0.05, 0.05, 0.13) and
-`platoon_{latency,linkloss,profiles}` (no `AEB`, the single invariant mode `CACC`)); unchanged by the
-literature migration (2026-10-29: `lit_gpt10_boost_converter` and `lit_csf25_salt_tank_hold`, new
-proofs, affine runs of every length via `Proofs/Flow/LipschitzRun.lean`, for `lit_drl_car_stop` and
-`zone_lightmass_schedule`; `rampmeter_poll_2to1`, its batch-I6 proof restored, for
-`insulin_basal_cgmloss`); unchanged by batch 11 (2026-10-30: `lit_nahs25_engine_cooling`, the
-pre-landing demo's direct proof under the suite name, and `extruder_pe100_manualstart`, four
-exponential runs at dimension 2 as `reactor_feed_wireless` with the recipe range from the guards, for
-`fuelcell_chp_dos` and `rover_terrain_6to12`); unchanged by batch 14 (2026-11-01: the stop-line
-ladder `stopline_{lag,friction,tyre,drag}`, four explicit-run proofs through the shared
-`wellFormedR_stopline`, for `rover_ladder_{2to3,3to6,6to8,8to12}`); unchanged by batch 15
-(2026-11-01: `rover_ladder_{2to3,3to6,6to8,8to12}` back, their proofs of d9f0223 through the shared
-`wellFormedR_terrain`, for `rover_terrain_{2to4,4to6}`, `platoon_linkloss` and `acc_tune_lag`;
-the four `stopline_*` proofs now the full-fidelity rungs', from cd7499f adapted to the shared box). -/
+detumble family (also proved, listed apart for its band audit). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
@@ -237,7 +161,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (46 outside the detumble family, with the next section): Assumption 1 at every mode -/
+/-! ## Proved (47 outside the detumble family, with the next section): Assumption 1 at every mode -/
 
 #print axioms V2LitDrlLaneControl.lit_drl_lane_control_wellFormedR_direct
 #print axioms V2LitFreedmMeter.lit_freedm_meter_wellFormedR_direct
@@ -267,7 +191,7 @@ end WellFormedBattery
 #print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR
 #print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
 
-/-! ## The later additions: Assumption 1 at every mode -/
+/-! ## Assumption 1 at every mode (continued) -/
 
 #print axioms V2PlatoonProfiles.platoon_profiles_wellFormedR
 #print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
@@ -294,8 +218,7 @@ end WellFormedBattery
 #print axioms PlatoonCaccAeb.cacc_box
 #print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR
 
-/-! ## The detumble family (3): Assumption 1 unconditional (over the gyro box since 2026-10-29;
-the momentum band was part of the right evolve domain from 2026-10-15 to 2026-10-29), and the band
+/-! ## The detumble family (3): Assumption 1 unconditional (over the gyro box), and the band
 invariant as a model fact -/
 
 #print axioms V2SatDetumbleWeak.sat_detumble_weak_wellFormedR

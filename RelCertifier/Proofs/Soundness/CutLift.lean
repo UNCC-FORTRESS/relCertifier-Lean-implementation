@@ -2,24 +2,28 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The checked-cut lift (phase 3): per-atom staying and the narrowed-query repair
+# The mode-fact lift: per-atom staying and the narrowed flow queries
 
-The tool narrows its flow-query domains by checked cuts; the Z3 UNSAT it obtains is for
-the NARROWED query. This file lifts that verdict back to the bare-evolution-domain
-`BoxLe` the proof chain consumes, at bases where the cut atoms hold (guard bases, by O1):
+The tool narrows its flow-query domains by mode facts (Definition 2, `checkedCut`); the Z3
+UNSAT it obtains is for the NARROWED query (the conditions of Eq. (17)/(18) assume
+`φ_l ∧ φ_r`). This file lifts that verdict back to the bare-evolution-domain `BoxLe` the
+proof chain consumes, at bases where the mode-fact atoms hold (guard bases, by O1, the entry
+half of Definition 2):
 
-* per-atom staying: each atom's O2 UNSAT (route A/B, one-sided, λ = 1) upgrades to
-  flow-invariance of the atom along the λ-stretched JOINT system — `Lie` locality for
+* per-atom staying: each atom's O2 UNSAT (the preservation half of Definition 2; route A/B,
+  one-sided, λ = 1) upgrades to flow-invariance of the atom along the λ-stretched JOINT
+  system — `Lie` locality for
   one-sided atoms plus the λ-scaling `Lie_λ = λ·Lie_1` (sign-preserving for λ ≥ 0),
   then the same `DI_nonstrict_domain`/`DI_strict` the main certificates use;
 * trace staying: endpoint `BoxLe` at every run prefix gives pointwise staying along the
-  trace, so every bare-domain run IS a cut-domain run (`CutChannel.sem_ode_and_of_stays`);
+  trace, so every bare-domain run is a run on the narrowed domain
+  (`CutChannel.sem_ode_and_of_stays`);
 * the lift: the narrowed certificate then applies to everything reachable
-  (`CutChannel.boxLe_cut_lift`, finally consumed).
+  (`CutChannel.boxLe_cut_lift`).
 
-Scope note (load-bearing): O1 covers GUARD bases only, so narrowed verdicts lift into the
-guard-threaded story (`hcert` at `Gd`-states). The flat CSF chain (`pair_faModal`,
-quantified over ALL invariant states) must keep consuming un-narrowed queries.
+Scope: O1 covers guard bases only, so narrowed verdicts lift into the guard-threaded chain
+(`hcert` at `Gd`-states). The flat chain (`pair_faModal`, quantified over all invariant
+states) consumes un-narrowed queries.
 -/
 import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Proofs.Soundness.CutChannel
@@ -145,7 +149,7 @@ theorem atom_boxle_R_strict (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
       by simpa [Formula.sat, CompOp.interp, Term.eval] using hge⟩
   exact mul_neg_of_pos_of_neg hc hlt
 
-/-- **Frozen right** (stretch `0`, the stutter segment): along the joint system at stretch `0`
+/-- **Frozen right** (stretch `0`, the witness stands still): along the joint system at stretch `0`
 the right field is scaled to `0`, so a right-sided term has Lie derivative `0` and stays where
 it starts. No verdict is needed. -/
 theorem atom_boxle_R_stutter (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
@@ -159,7 +163,7 @@ theorem atom_boxle_R_stutter (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
   rw [← lieDeriv_correct, lieDeriv_one_sided_R g fL fR 0 hfv, zero_mul]
 
 /-- Right-sided atom, strict boundary route (B), at any stretch `c ≥ 0`: the positive case is
-`atom_boxle_R_strict`, the stutter case `c = 0` is `atom_boxle_R_stutter`. -/
+`atom_boxle_R_strict`, the stretch-`0` case `c = 0` is `atom_boxle_R_stutter`. -/
 theorem atom_boxle_R_strict0 (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
     (c : ℝ) (hc : 0 ≤ c) (dom evR : Formula (Var n))
     (hfv : ∀ i : Fin n, Lv i ∉ g.fv)
@@ -234,7 +238,7 @@ theorem boxLe_trace {sys : ODESystem (Var n)} {dom : Formula (Var n)}
 
 /-! ## Atom facts and the assembled lift -/
 
-/-- One lifted cut atom: its lowered formula, its safe-side term, the ≤-normal-form
+/-- One lifted mode-fact atom: its lowered formula, its safe-side term, the ≤-normal-form
 equivalence, and its staying fact along the target system. -/
 structure AtomFact (n : ℕ) (sys : ODESystem (Var n)) (dom : Formula (Var n)) where
   form : Formula (Var n)
@@ -243,7 +247,7 @@ structure AtomFact (n : ℕ) (sys : ODESystem (Var n)) (dom : Formula (Var n)) w
   hstay : ∀ ν, Term.eval gT ν ≤ 0 →
     BoxLe (Program.ode sys dom) (fun ω => Term.eval gT ω) ν
 
-/-- The conjoined cut formula, mirroring the tool's fold. -/
+/-- The conjoined mode-fact formula, mirroring the tool's fold. -/
 def hostCut {sys : ODESystem (Var n)} {dom : Formula (Var n)}
     (afs : List (AtomFact n sys dom)) : Formula (Var n) :=
   afs.foldl (fun d af => Formula.and d af.form) Formula.tt
@@ -280,10 +284,10 @@ theorem sem_ode_congr {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
   obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hsem
   exact ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => (h (Φ t)).mp (hdom t ht)⟩
 
-/-- **The assembled cut lift.** From the NARROWED certificate (`BoxLe` over
-`(dom ∧ cutL) ∧ cutR` — what the tool's Z3 UNSAT establishes through
-`flow_certified`) and the per-atom facts, the bare-domain `BoxLe` holds at every
-base where the cut atoms hold (guard bases, by O1). -/
+/-- **The assembled mode-fact lift.** From the NARROWED certificate (`BoxLe` over
+`(dom ∧ cutL) ∧ cutR`, the left and right mode facts, what the tool's Z3 UNSAT establishes
+through `flow_certified`) and the per-atom facts, the bare-domain `BoxLe` holds at every base
+where the mode-fact atoms hold (guard bases, by O1). -/
 theorem cut_lift_boxle {sys : ODESystem (Var n)} {dom : Formula (Var n)}
     (afsL afsR : List (AtomFact n sys dom)) (gv : DL.State (Var n) → ℝ)
     {ν : DL.State (Var n)}
@@ -291,7 +295,7 @@ theorem cut_lift_boxle {sys : ODESystem (Var n)} {dom : Formula (Var n)}
       (Formula.and (Formula.and dom (hostCut afsL)) (hostCut afsR))) gv ν)
     (hbase : ∀ af ∈ afsL ++ afsR, Formula.sat af.form ν) :
     BoxLe (Program.ode sys dom) gv ν := by
-  -- staying of the conjoined cut along every bare-domain trace
+  -- staying of the conjoined mode facts along every bare-domain trace
   have hstays : ∀ (r : ℝ) (Φ : ℝ → DL.State (Var n)), 0 ≤ r → Φ 0 = ν →
       (∀ t ∈ Icc (0 : ℝ) r, ∀ p ∈ sys,
           HasDerivWithinAt (fun u => Φ u p.1) (Term.eval p.2 (Φ t)) (Icc 0 r) t) →
@@ -308,7 +312,7 @@ theorem cut_lift_boxle {sys : ODESystem (Var n)} {dom : Formula (Var n)}
     refine ⟨(sat_hostCut afsL (Φ t)).mpr ?_, (sat_hostCut afsR (Φ t)).mpr ?_⟩
     · intro af haf; exact hone af (List.mem_append_left _ haf)
     · intro af haf; exact hone af (List.mem_append_right _ haf)
-  -- every bare-domain run is a cut-domain run; the narrowed certificate applies
+  -- every bare-domain run is a run on the narrowed domain; the narrowed certificate applies
   intro ω hsem
   refine hnarrow ω (sem_ode_congr ?_ (sem_ode_and_of_stays sys dom
     (Formula.and (hostCut afsL) (hostCut afsR)) hsem
@@ -320,7 +324,7 @@ theorem cut_lift_boxle {sys : ODESystem (Var n)} {dom : Formula (Var n)}
   · rintro ⟨⟨hd, hl⟩, hrr⟩
     exact ⟨hd, hl, hrr⟩
 
-/-! ## O1: cut atoms hold wherever the guard holds -/
+/-! ## O1: mode-fact atoms hold wherever the guard holds -/
 
 /-- Every `cutAtoms` element is a nonstrict comparison. -/
 theorem cutAtoms_nonstrict {f a : Parse.PForm} (ha : a ∈ cutAtoms f) :
@@ -344,7 +348,8 @@ theorem cutAtoms_nonstrict {f a : Parse.PForm} (ha : a ∈ cutAtoms f) :
   | or p q ihp ihq => exact absurd ha (by simp [cutAtoms])
   | not p ihp => exact absurd ha (by simp [cutAtoms])
 
-/-- The lowering of a guard implies the lowering of each of its cut atoms. -/
+/-- The lowering of a guard implies the lowering of each of its `cutAtoms` (the entry half
+of Definition 2 for guard-conjunct atoms). -/
 theorem cutAtoms_sat {vars : List String} {side : Side} {f a : Parse.PForm}
     (ha : a ∈ cutAtoms f) : ∀ {fI aI : IForm n},
     Run.lowerF vars n side f = some fI → Run.lowerF vars n side a = some aI →
@@ -415,7 +420,7 @@ theorem cutAtomG_sat {vars : List String} {side : Side} {op : String}
     · intro h; linarith
     · intro h; linarith
 
-/-! ## Phase 4: the strict-query IR mirror and the guard-base packaging -/
+/-! ## The strict-query IR mirror and the guard-base packaging -/
 
 /-- IR mirror of the strict boundary query (the tool's route-B probe shape). -/
 def iflowQueryStrict {n : ℕ} (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITerm n)
@@ -510,7 +515,7 @@ noncomputable def AtomFact.ofLie (sys : ODESystem (Var n)) (dom : Formula (Var n
 
 /-! ### The guard-base packaging -/
 
-/-- **The cut-`hcert` packaging.** From the NARROWED main-query Z3 verdict (the exact
+/-- **The mode-fact `hcert` packaging.** From the NARROWED main-query Z3 verdict (the
 fold the tool sends: `(dom ∧ cutL) ∧ cutR`) and the per-atom facts, the bare-domain
 `BoxLe` holds at every guard base — the shape the guard-threaded chain consumes. `hO1`
 is the entry fact (each atom's formula holds wherever the guard's lowering holds),

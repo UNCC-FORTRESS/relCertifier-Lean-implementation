@@ -5,24 +5,24 @@ Released under Apache 2.0 license.
 # The paper's left program for a mode-independent invariant: from a window choice to the
 # guard-gated left automaton
 
-The mode-keyed instances state Theorem 3 over the LEFT AUTOMATON `leftAutomatonBody A u_L`
+The mode-keyed instances state Theorem 3 over the left automaton `leftAutomatonBody A u_L`
 (`ModeHandoff.lean`): `?(u_L = m') ; ⋃_{t ∈ next m'} ?guard_t ; u_L := t ; window_t`, the
-paper's `cpsProg` body (jump, then flow). The mode-independent instances were first stated
-over the plain choice of their windows, `bigChoice Ps`. This leaf is the generic bridge from
-the second form to the first, proved once:
+left cycle of Eq. (1) (select a declared successor whose guard holds, then flow). A
+mode-independent invariant can be proved over the plain choice of the windows, `bigChoice Ps`.
+This file is the generic bridge from the second form to the first, proved once:
 
 * `theorem3_leftAut_of_choice`: if `ψ = (ϕ ∧ env) ∧ Bk` is a Theorem 3 invariant for the
   left program `bigChoice Ps`, and every guard-gated left edge is a run of `bigChoice Ps`
   (`hsim`: from a state where `guard_t` holds, a run of `window_t` is a run of some member of
   `Ps`), then `psiK u_L (fun _ => ϕ) … Bk` (the same rows for every left mode, plus
   `u_L ∈ modes`) is a Theorem 3 invariant for the left automaton. The left automaton only
-  REMOVES left runs (a declared successor, its guard tested, the window run) and adds the
+  removes left runs (a declared successor, its guard tested, the window run) and adds the
   mode variable `u_L`, which the windows, the guards and `ψ`'s left side never read.
 
 The proof is relational (bi-state semantics, `faShape`): a run of `L_A*` from `σ_L`, with
 `u_L` reset to its start value, is a run of `(bigChoice Ps)*` (`leftStar_project`); the
 given theorem answers it; `ψ`'s truth does not depend on the left `u_L`
-(`rsat_congr_left`). No encoding of the NEW formula is needed, so `u_L` only has to be a
+(`rsat_congr_left`). No encoding of the new formula is needed, so `u_L` only has to be a
 left variable the windows do not touch: the right state's mode variable may have the same
 name (the bi-state keeps the two executions' states apart). This is what the `Var 2`
 instances use (`u_L = (Aux, 0)` on the left, `mv = (Aux, 0)` on the right: `Var 2` has two
@@ -34,8 +34,6 @@ auxiliary slots per state, the left's clock takes the other).
 * `LeftAut.ofG` / `LeftAut.ofP`: the left automaton from an instance's window data (guarded
   windows with their own guard, or plain windows with the IR guards), with `hsim` and the
   footprint facts proved once.
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 

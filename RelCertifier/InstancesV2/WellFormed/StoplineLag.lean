@@ -13,11 +13,9 @@ Over the guarded right automaton `GrG` (the file's `CRUISE`, `BRAKE`, `STOP` and
 odometer backwards, a `BRAKE` run keeps `p ≥ 100`, `STOP` is constant). Existence: the explicit
 runs (`intSol` for `p`; `v` constant while cruising, `v₀ − 3t ≥ 0.35 − 0.3` while braking;
 `const_sol` at standstill). Z3-free.
-Batch 15 (2026-11-01): the full-fidelity rung under the suite name, from the branch proof
-`StoplineRover2to5` (cd7499f) adapted to the one shared box: the right declares the left's
-extra states (frozen at their start values, which stay in the box; host order = the left's
-state list) and the box reads `0 ≤ b, c ≤ 3` on every mode of both sides (the bounds above
-that differ are the branch's per-side boxes).
+The right also declares the left's extra states (frozen at their start values, which stay in
+the box; host order = the left's state list), and the evolve box is one box on every mode of both
+sides, with `0 ≤ b, c ≤ 3`.
 -/
 import RelCertifier.InstancesV2.BenchIR.stopline_lag
 import RelCertifier.Proofs.Encoding.WellFormedStopline

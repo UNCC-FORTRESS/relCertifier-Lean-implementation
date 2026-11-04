@@ -2,31 +2,33 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# From an extended cover to the window response (Theorem 1's induction, generically)
+# From a cover to the left-cycle response (Theorem 1's induction, generically)
 
 `coverX_piece` is the induction of Theorem 1's proof (Soundness of Witness Strategies, which
-Theorem 3's proof applies through Lemma 5): from a configuration covered by
-`CoveredX` (Definition 8 with committed subsets and hops, `Checker/CoverX.lean`), the right
+Theorem 3's proof applies through Lemma 5; Appendix B.3): from a configuration covered by
+`CoveredX` (Definition 8 with committed subsets and zero-duration hops, `Checker/CoverX.lean`), the right
 answers one clocked left piece of duration `r` with a chain of declared, guard-legal CLOCKED
 segments (`RRespPC`, `ClockedRight.lean`: each right cycle is `tr := 0 ; {flow, tr' = 1} ;
 ?(tr ≤ ε_R)`), provided the piece fits the budget (`r − a ≤ B · δ`, `δ` the common segment
 span). Per case:
 
-* **base**: the joint segment of `q` runs to the piece's end (its right duration `λ_q (r − a)
+* **base** (the finish case): the joint segment of `q` runs to the piece's end (its right duration `λ_q (r − a)
   ≤ λ_q δ ≤ ε_R`, so Assumption 1 gives the run, the cap passes, and at its end an enabled
   declared successor); the anchor is preserved by the pairing's flow certificate (`hbox`,
   Definition 5, Lemma 2);
-* **step**: the joint segment runs its span `δ` (right duration `λ_q δ ≤ ε_R`, `hspan`);
+* **step** (the continue case, joint): the joint segment runs its span `δ` (right duration `λ_q δ ≤ ε_R`, `hspan`);
   Assumption 1 gives an enabled declared successor at its end, the non-connection certificate
   (`hprune`, Definition 6) excludes the pruned ones, so the successor is retained and covered at
   budget `B − 1`;
-* **chosen successors**: as step, but the successor comes from the coverage certificate: the
-  end state satisfies the region `RJ q` (the anchor implies it), hence some chosen guard;
-* **right-only step**: the right runs alone (left frozen) until a retained exit is enabled
-  (`hrepoProg`, the reposition-progress premise; Assumption 1 alone does not provide an exit),
-  the anchor preserved by the reposition certificate (`hboxD`);
-* **chosen exits / hop**: a zero-duration clocked run of `q`; the start state satisfies the
-  region (`RR`/`RS`), so a chosen guard holds and the switch is legal.
+* **committed subset (joint)**: as step, but the successor comes from the committed subset's
+  coverage query: the end state satisfies the region `RJ q` (the anchor implies it), hence the
+  guard of some mode of the subset;
+* **right-only step** (the continue case, right-only): the right runs alone (left frozen) until a
+  retained successor is enabled, with the anchor of `q` at the switch state (`hrepoProg`, the
+  conclusion of Lemma 4 as `RepoProgress`; Assumption 1 alone does not provide an exit);
+* **committed subset (right-only) / hop**: a zero-duration clocked run of `q`; the start state
+  satisfies the region (`RR`/`RS`), so the guard of some mode of the subset holds and the switch is
+  legal.
 
 The right clock `tr` is a coordinate outside both sides (`htrL`, `htrR`); every fact the
 chain carries (guards, anchors at merged states, the frozen left coordinates) is insensitive
@@ -35,7 +37,7 @@ to it (`post_update_tr`), so the clocked end state `Φ T [tr ↦ T]` carries wha
 Every switch enters its target's guard (`SwitchLegal`), and the entered mode's anchor holds
 by the entry condition (`hhand`: the anchor of `q` and the guard of `q'` give the anchor of
 `q'`). `coverX_gresp` lifts the piece response to the clocked guarded step obligation `GRespC`
-of the gated one-piece window, the shape the outer loop rule consumes.
+of the gated one-piece left cycle (window), the shape the outer loop rule consumes.
 -/
 import RelCertifier.Proofs.Encoding.ReplayEngineQ
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -137,12 +139,15 @@ theorem mem_exitSucc_of_edge {G : SearchGraph (Var n)} {q : ℕ} {e : REdge (Var
   simp only [Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true'] at he ⊢
   exact ⟨he.1, ⟨he.2, hp⟩, hne⟩
 
-/-- **Reposition progress** at `q` (setting `pre`): from a start whose merged state `y` carries
-the anchor (and the left guard, pre-joint) and whose right part `ρ` is in `q`'s guard, the right
-runs declared CLOCKED segments of `q` (self-loops, each a right cycle of duration `≤ ε_R`,
-the clock `tr`) and finally switches along a non-self, non-pruned exit `e`, the anchor of `q`
-holding at the switch state and the left untouched. Discharged per node from the progress
-certificate (`Proofs/Encoding/Progress.lean`) or from an explicit solution. -/
+/-- **Reposition progress** at `q` (setting `pre`, pre-joint when `true`): from a start whose
+merged state `y` carries the anchor (and the left guard, pre-joint) and whose right part `ρ` is
+in `q`'s guard, the right runs declared CLOCKED segments of `q` (each a right cycle of duration
+`≤ ε_R`, clock `tr`) and finally switches along a non-self, non-pruned edge `e` (a retained
+successor of the right-only kind), the anchor of `q` holding at the switch state and the left
+coordinates untouched. It is the right-only segment of Lemma 4 with the retained successors as
+landing set, discharged per node from the reposition certificate (Definition 7, stage list) and
+the right-only flow certificate (`Proofs/Encoding/Progress.lean`), or from an explicit
+solution. -/
 def RepoProgress (G : SearchGraph (Var n)) (tr : Var n) (epsR : ℝ) (A : ℕ → Formula (Var n))
     (gL guardq : Formula (Var n)) (q : ℕ) (pre : Bool) : Prop :=
   ∀ ρ y : State (Var n), (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (A q) y →
@@ -171,11 +176,11 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   -- the anchors (the pairing's row, both sides' kept atoms, the envelope)
   (A : ℕ → Formula (Var n)) (hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv)
   (hAdom : ∀ q y, Formula.sat (A q) y → Formula.sat domR y)
-  -- Lemma 2 at each pairing (the flow certificate of Definition 5: the joint flow at the pairing's stretch keeps the anchor)
+  -- the joint flow certificate of each pairing (Definition 5, by Lemma 2): the joint flow at the pairing's stretch keeps the anchor
   (hbox : ∀ q m, G.modeAt q = some m → ch.jointOK q = true → ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
       σ ω → Formula.sat (A q) ω)
-  -- entry: the anchor of `q` and the guard of the entered mode give its anchor
+  -- entry: the anchor of `q` and the guard of the entered mode give its anchor (the handoff of Eq. (13) is separate)
   (hhand : ∀ q, ∀ e ∈ G.edgesFrom q, ∀ y, Formula.sat (A q) y → SwitchLegal e y →
     Formula.sat (A e.tgt) y)
   -- the region Assumption 1 is relative to (right-only, implied by every anchor)
@@ -183,16 +188,16 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (hAreg : ∀ q y, Formula.sat (A q) y → Formula.sat reg y)
   -- Assumption 1 (the right model is well formed on `reg`)
   (hwf : WellFormedRIn G guard reg epsR)
-  -- Definition 6: pruned edges are never enabled after the segment (joint and right-only kinds)
+  -- Definition 6 (joint kind): pruned edges are never enabled along the joint flow
   (hprune : ∀ q m, G.modeAt q = some m → ∀ e ∈ G.edgesFrom q, e.pruned = true →
     ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
       σ ω → ¬ Formula.sat e.guard ω)
-  -- reposition progress (`RepoProgress`): a reposition node's right-only cycles reach an exit
+  -- reposition progress (`RepoProgress`): a right-only node's cycles reach a retained successor
   (hrepoProg : ∀ q m, G.modeAt q = some m → ∀ pre : Bool,
     (if pre then ch.repoPre q else ch.repoPost q) = true →
     RepoProgress G tr epsR A gL (guard q) q pre)
-  -- the coverage certificates, as regions implied by the anchor and sets they cover
+  -- the committed subsets' coverage queries, as regions implied by the anchor and the subsets they cover
   (RJ : ℕ → Formula (Var n)) (hRJ : ∀ q y, Formula.sat (A q) y → Formula.sat (RJ q) y)
   (hcovJ : ∀ q S, S ∈ ch.jointS q → ∀ y, Formula.sat (RJ q) y → ∃ q' ∈ S, Formula.sat (guard q') y)
   (RR : ℕ → SrcSetting → Formula (Var n))
@@ -270,8 +275,8 @@ theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)
   exact hhand q e he _ hAend ((switchLegal_merge hgR he ω₀ (ΦL r)).mpr hleg)
 
 include hgR hguards hfL hdomL hdomR hgL hfR hsys hdomM hAfv hhand hrepoProg in
-/-- **The right-only step.** From a reposition node, the right cycles in `q` until a non-self
-retained exit is enabled (`RepoProgress`), switches into it (the entered anchor by entry), and
+/-- **The right-only step.** From a right-only node, the right cycles in `q` until a non-self
+retained successor is enabled (`RepoProgress`), switches into it (the entered anchor by entry), and
 continues from the exit's covered configuration. -/
 theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     (hL : ODESol (clk tg (leftBlock fL)) domL x r ΦL) (ω₀ : State (Var n))
@@ -311,8 +316,10 @@ theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
 
 include hgR hguards hguardR hfL hdomL hdomR hgL hfR hsys hdomM hweight hδ hlam hspan hAfv hAdom
   hbox hhand hregR hAreg hwf hprune hrepoProg hRJ hcovJ hRR hcovR hRS hcovS htrL htrR in
-/-- **The induction of Theorem 1's proof** (the step Theorem 3's proof takes through Lemma 5). A covered configuration answers one clocked left
-piece from left time `a`, if the rest of the piece fits the budget. -/
+/-- **The induction of Theorem 1's proof** (Lemma 6, Node Claim; the step Theorem 3's proof
+takes through Lemma 5). A configuration `(q, B, σs)` covered by `CoveredX` answers one clocked
+left piece from left time `a` with a clocked right response (`RRespPC`), if the rest of the
+piece fits the budget (`r − a ≤ B · δ`). -/
 theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     (hL : ODESol (clk tg (leftBlock fL)) domL x r ΦL) (ω₀ : State (Var n))
     (hx : Formula.sat gL (ΦL 0)) :
@@ -513,7 +520,7 @@ open DL DLCalTiming DLRel Set Function
 
 variable {n : ℕ}
 
-/-- **The gated one-piece window, answered from a cover.** The window's own guard test puts
+/-- **The gated one-piece left cycle (window), answered from a cover.** The window's own guard test puts
 the left in its guard at the start; the start configuration `(q, B, preJ)` is covered and the
 window's duration fits the budget (`dt ≤ B · δ`); the instance turns the end facts (the entered
 guard and the entered mode's anchor at the merged end state) into the loop postcondition. The

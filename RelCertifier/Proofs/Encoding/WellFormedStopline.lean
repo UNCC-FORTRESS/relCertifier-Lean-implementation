@@ -14,7 +14,7 @@ coordinates whatever the level declares, the declared successors `CRUISE → {CR
 explicit runs), `WellFormedR`. Clause (ii) per mode: a `CRUISE` run keeps its speed and does
 not move the odometer backwards, so it ends in `CRUISE` (`p < 100`) or `BRAKE` (`p ≥ 100`); a
 `BRAKE` run keeps `p ≥ 100` and ends with `v ≥ 0.35` (`BRAKE`) or `v ≤ 0.35` (`STOP`); a `STOP`
-run is constant. Z3-free. New leaf; no upstream edits.
+run is constant. Z3-free.
 -/
 import RelCertifier.Proofs.Encoding.WellFormedR
 

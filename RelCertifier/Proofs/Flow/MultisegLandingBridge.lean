@@ -1,20 +1,21 @@
 /-
-LIFT 1 — the `sat`→`rvalid` reification bridge for the landing-selected proof.
+The `sat`→`rvalid` reification bridge for the landing-selected proof.
 
 `multiseg_landing`/`tooling_sound_landing` prove the ∀∃ modality at the `sat`/`faModal` layer with the
-strengthened invariant `starInvF = invLe g ∧ mvValid ∧ inModeDomF`. The shipped soundness theorem
-(`theorem3_faithful`) is at the encoded `rvalid`/`theorem3Form` layer with the WEAKER invariant `phiInv =
-invLe g ∧ mvValid`, whose `hstep` quantifies over ALL `phiInv`-states (incl. out-of-domain ones) — which
-the landing discharge cannot cover (it needs the in-domain `inModeDomF`).
+invariant `starInvF = invLe g ∧ mvValid ∧ inModeDomF`. `theorem3_faithful` states the encoded
+`rvalid`/`theorem3Form` claim (the shape of Eq. (10)) with the weaker invariant `phiInv = invLe g ∧
+mvValid`, whose `hstep` quantifies over all `phiInv`-states, including out-of-domain ones, which the
+landing discharge cannot cover (it needs `inModeDomF`).
 
-The bridge re-uses the EXISTING reification machinery (`faModal_LOCK`, `faModal_to_faShape`,
-`encoding_correct`, `exists_bridge`) verbatim, only STRENGTHENING the threaded loop invariant from
-`phiInv` to `starInvF`. The strengthened precondition is carried in the RFormula `ψpostL = ϕinv ∧ mvValidR
-∧ inModeDomR`, which encodes exactly to `starInvF` (`encode_ψpostL`). So the shipped `rvalid(theorem3Form
-… ψpostL)` conclusion is now produced from the landing `hstep` (at `starInvF`) — narrowing discharged via
-landing-selection all the way to the encoded layer. The cost is an honest, satisfiable stronger
-precondition: the tool's user provides an initial state in some mode's domain (`inModeDomR`), which every
-well-formed benchmark config is.
+This file reuses the reification machinery (`faModal_LOCK`, `faModal_to_faShape`,
+`encoding_correct`, `exists_bridge`) with the loop invariant strengthened from `phiInv` to
+`starInvF`, carried in the RFormula `ψpostL = ϕinv ∧ mvValidR ∧ inModeDomR`, which encodes exactly to
+`starInvF` (`encode_ψpostL`). The `rvalid(theorem3Form … ψpostL)` conclusion is then produced from the
+landing `hstep` at `starInvF`. The stronger precondition asks the initial state to lie in some
+mode's domain (`inModeDomR`); the strengthened invariant of Eq. (10) includes the stored domains.
+
+These statements feed `UniformEvol.lean`; the paper's Theorem 3 is mechanized by
+`theorem3_of_coverX` (Appendix B.1).
 -/
 import RelCertifier.Proofs.Flow.MultisegLanding
 import RelCertifier.Proofs.Encoding.BridgeFinish
@@ -77,12 +78,12 @@ theorem relational_loop_faithful_landing (G : SearchGraph (Var n)) (mv : Var n) 
   exact faModal_LOCK (Equiv.refl (Var n)) (bigChoice leftProgs) (rightAutomatonBody G mv)
     (starInvF G mv g) (starInvF G mv g) ν hd hinv hstep (fun _ h => h)
 
-/-- **LIFT 1 — the landing-selected transition-faithful Theorem 3, `rvalid` form.** The shipped encoded
-soundness conclusion `rvalid(theorem3Form (bigChoice leftProgs) (rightAutomatonBody G mv) ψpostL)`, produced
-from the landing `hstep` (single-body `faModal` at `starInvF` — what `hdispatch_of_modeResp`/the per-mode
-dispatch supplies). Mirrors `theorem3_faithful`'s body with the strengthened invariant. This is the endpoint
-that connects `tooling_sound_landing`'s `sat` output to the `rvalid` layer the tool consumes: narrowing
-discharged by landing-selection, reified to the encoded theorem. -/
+/-- **The landing-selected encoded claim, `rvalid` form.** If every `starInvF`-state satisfies the
+single-body `faModal` of `bigChoice leftProgs` and `rightAutomatonBody G mv` at `starInvF` (`hstep`,
+what the per-mode dispatch supplies), then `rvalid(theorem3Form (bigChoice leftProgs)
+(rightAutomatonBody G mv) ψpostL)`, under the variable-disjointness side conditions. Mirrors
+`theorem3_faithful`'s body with the strengthened invariant, connecting `tooling_sound_landing`'s
+`sat` output to the encoded layer. -/
 theorem theorem3_faithful_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
@@ -116,7 +117,7 @@ theorem theorem3_faithful_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Te
     rw [← hencψ]; exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
   exact relational_loop_faithful_landing G mv g leftProgs ψpost ν bs hencψ hd hInvν hstep hddF hbdg
 
-/-! ## LIFT 2 Phase A — single-left-mode enumeration (the wiring proof)
+/-! ## Single left mode
 
 Discharge `theorem3_faithful_landing`'s `hstep` (∀`starInvF`-state, single-body `faModal` at `starInvF`)
 for ONE left mode, with the right dispatching over all its modes. `hresp` is the per-(right-)mode response —
@@ -143,11 +144,10 @@ theorem hstep_landing_single (G : SearchGraph (Var n)) (mv : Var n) (g : Term (V
   obtain ⟨q, m, hqmv, hmode, hmdom⟩ := hstar.2.2
   exact hresp σ hstar q m hmode hqmv hmdom
 
-/-- **LIFT 2 Phase A — the single-left-mode end-to-end (wiring proof).** Composes the FULL path
-`dispatch (hresp) → hstep_landing_single → theorem3_faithful_landing (faModal_LOCK + reification bridge) →
-rvalid`. Produces the shipped encoded conclusion `rvalid(theorem3Form …)` for one left mode, with narrowing
-discharged via landing-selection under `SuccReach` (inside `hresp`'s narrowing branch) and widening by
-construction. Confirms the landing-selected proof reaches the tool's `rvalid` layer sorry-free. -/
+/-- **The single-left-mode encoded claim.** Composes `dispatch (hresp) → hstep_landing_single →
+theorem3_faithful_landing (faModal_LOCK + reification bridge) → rvalid`: the encoded conclusion
+`rvalid(theorem3Form …)` for one left mode, with narrowing edges discharged by landing-selection under
+`SuccReach` (inside `hresp`'s narrowing branch) and widening edges by construction. -/
 theorem tooling_sound_landing_rvalid (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (ϕinv : RFormula (Var n))
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
@@ -166,14 +166,13 @@ theorem tooling_sound_landing_rvalid (G : SearchGraph (Var n)) (mv : Var n) (g :
   theorem3_faithful_landing G mv g [Program.ode (leftBlock fL) domL] ϕinv hψ hd
     (hstep_landing_single G mv g fL domL hresp) hddF
 
-/-! ## LIFT 2 Phase B — full family (the goal)
+/-! ## The full left family
 
 `leftBody = bigChoice leftProgs` over the WHOLE left automaton (multiple left modes). `hstep` folds via
 `faModal_bigChoiceL` over `leftProgs`: for each left mode `P`, the right dispatches on `σ`'s mode
 (`StarInModeDom`) and responds (widening → `landing_step_faModal`, narrowing → `landing_step_narrowing`).
-`hresp` is the per-(left-mode × right-mode) response bundle — the family analog of the existing chain's
-`Hmulti`, with `SuccReach` living inside its narrowing responses. This is what a real benchmark automaton
-instantiates. -/
+`hresp` is the per-(left-mode × right-mode) response bundle, the family analog of the chain's
+`Hmulti`, with `SuccReach` inside its narrowing responses. -/
 
 /-- `hstep` for the full left family, from the per-(left-mode × right-mode) dispatch `hresp`. -/
 theorem hstep_landing_family (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
@@ -192,15 +191,13 @@ theorem hstep_landing_family (G : SearchGraph (Var n)) (mv : Var n) (g : Term (V
   obtain ⟨q, m, hqmv, hmode, hmdom⟩ := hstar.2.2
   exact hresp P hP σ hstar q m hmode hqmv hmdom
 
-/-- **LIFT 2 Phase B — the full-family end-to-end (the goal).** The shipped encoded soundness conclusion
-`rvalid(theorem3Form (bigChoice leftProgs) (rightAutomatonBody G mv) ψpostL)` over the WHOLE left×right
-automaton, produced from the landing-selected proof: `hstep_landing_family` (per-(left×right) dispatch,
-folded by `faModal_bigChoiceL`) → `theorem3_faithful_landing` (`faModal_LOCK` + reification bridge) →
-`rvalid`. Narrowing edges discharge under `SuccReach` (inside `hresp`'s narrowing branch), shared/widening
-by construction. This is `relCertifier`'s soundness theorem re-pointed at landing-selection for the full
-family — no `∀ν HExistSeg`, no `WFBoundary` assumption; the only carried reachability is `SuccReach`, scoped
-to narrowing edges. Non-breaking: the encoded `tooling_sound` and `multiseg_het` remain as the trivial
-(all-widening / `EmitSegs`) special cases. -/
+/-- **The full-family encoded claim.** `rvalid(theorem3Form (bigChoice leftProgs)
+(rightAutomatonBody G mv) ψpostL)` over all left and right modes, from the landing-selected proof:
+`hstep_landing_family` (per-(left×right) dispatch, folded by `faModal_bigChoiceL`) →
+`theorem3_faithful_landing` (`faModal_LOCK` + reification bridge) → `rvalid`. Narrowing edges discharge
+under `SuccReach` (inside `hresp`'s narrowing branch), shared/widening ones by construction; there is
+no `∀ν HExistSeg` and no `WFBoundary` hypothesis. The encoded `tooling_sound` and `multiseg_het` are
+the all-widening / `EmitSegs` special cases. -/
 theorem tooling_sound_landing_family (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
@@ -218,14 +215,13 @@ theorem tooling_sound_landing_family (G : SearchGraph (Var n)) (mv : Var n) (g :
   theorem3_faithful_landing G mv g leftProgs ϕinv hψ hd
     (hstep_landing_family G mv g leftProgs hresp) hddF
 
-/-! ## WRAP 3 — re-point the shipped `rvalid` theorem at the CLOCKED H-combiner (checkpoint b)
+/-! ## The clocked combiner
 
 The clocked physical modality `multiseg_landing_clocked_physical` already produces `faModal (star (ode
-leftBlock))(star R) starInvF` — the star is built (no `faModal_LOCK` needed). So the reification is just
-`faModal_to_faShape` (lift the pre-starred `faModal` to the bi-state `faShape`) + the bridge machinery.
-`theorem3_faithful_landing_clocked` routes it to the shipped `rvalid(theorem3Form …)` on the honest
-bounded/clocked/membership foundation: `LandingH`-membership + `WellFormedFlowB` `≤dt` invariance, no `∀s`,
-no first-passage. -/
+leftBlock))(star R) starInvF` (the star is built, so no `faModal_LOCK` is needed). The reification is
+`faModal_to_faShape` (lift the pre-starred `faModal` to the bi-state `faShape`) plus the bridge
+machinery. `theorem3_faithful_landing_clocked` routes it to `rvalid(theorem3Form …)` from
+`LandingH`-membership and duration-bounded (`≤ dt`) invariance `WellFormedFlowB`. -/
 
 /-- The pre-starred bridge: lift `faModal (star L)(star R) starInvF` to `faShape (star L)(star R) ψpost`
 (reification, `tg`/encoding-free — skips `faModal_LOCK` since the star is already present). -/
@@ -245,15 +241,13 @@ theorem faShape_of_faModal_landing (G : SearchGraph (Var n)) (mv : Var n) (g : T
     (Program.star (rightAutomatonBody G mv)) ψpost ν bs hdd hb ?_
   rw [hψp]; exact hphys
 
-/-- **WRAP 3 (checkpoint b) — the shipped `rvalid` theorem on the CLOCKED H-foundation.** The encoded
-soundness `rvalid(theorem3Form (ode leftBlock fL domL) (rightAutomatonBody G mv) ψpostL)`, produced from
-`multiseg_landing_clocked_physical` (the collapsed physical modality) via `faModal_to_faShape` + the bridge.
-Honest hypotheses: `hHcouple` = the clocked H dispatch (`LandingH` membership + `WellFormedFlowB` `≤dt`,
-first-passage-free), `hbudgetAll` = the cover's per-residence budget `r ≤ k·dt`. NOT `SuccReachB`, NOT `∀s`.
-
-Honest statement note: this is sound HOWEVER the flow dispatches — it dispatches correctly wherever the flow
-lands (membership + bounded invariance). It does NOT assert narrowing switches FIRE; switch-firing is
-benchmark-satisfaction (does the endpoint land in a successor's overlap), out of the machinery. -/
+/-- **The encoded claim on the clocked combiner.** `rvalid(theorem3Form (ode leftBlock fL domL)
+(rightAutomatonBody G mv) ψpostL)`, produced from `multiseg_landing_clocked_physical` via
+`faModal_to_faShape` + the bridge. Hypotheses: `hHcouple`, the clocked dispatch (a `faModalB` with the
+left clocked by `tg` and capped at `dt`, from every `starInvF`-state), and `hbudgetAll`, every left run's
+duration is at most `k·dt` (the budget of `k` equal segments, Appendix B.2), plus clock freshness
+and variable disjointness. The statement holds wherever the flow lands; it does not assert that a
+narrowing switch is taken. -/
 theorem theorem3_faithful_landing_clocked (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
     (ϕinv : RFormula (Var n)) (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
@@ -297,13 +291,12 @@ theorem theorem3_faithful_landing_clocked (G : SearchGraph (Var n)) (mv : Var n)
     hHcouple hdis hdMULTI hbudgetAll hInvν
   exact faShape_of_faModal_landing G mv g (Program.ode (leftBlock fL) domL) ψpost ν bs hencψ hddF hbdg hphys
 
-/-- **PART 1 re-point — the shipped `rvalid` theorem on the UNIVERSAL well-formedness `LandingWellFormed`.**
-`theorem3_faithful_landing_clocked` with the opaque `hHcouple` dispatch bundle replaced by the single
-model-level `LandingWellFormed` (uniform `∀modes`: bounded-`dt` staying + `LandingH` membership over each
-mode's `retainedSucc`). `hHcouple` is derived (`hHcouple_of_LandingWellFormed`); the remaining hypotheses
-(`tg`-freshness for the collapse/reification, per-residence budget, disjointness) are the clocking/bridge
-plumbing, not landing content. This is the clean entry point: `LandingWellFormed` is what a benchmark
-discharges (Part 2). -/
+/-- **The encoded claim from `LandingWellFormed`.** `theorem3_faithful_landing_clocked` with the
+dispatch bundle `hHcouple` replaced by the model-level `LandingWellFormed` (for every mode:
+duration-bounded staying + `LandingH` membership over its retained successors `retainedSucc`).
+`hHcouple` is derived (`hHcouple_of_LandingWellFormed`); the remaining hypotheses (clock freshness,
+the budget `r ≤ k·dt`, disjointness) are clocking and bridge side conditions. `UniformEvol.lean`
+discharges `LandingWellFormed`. -/
 theorem theorem3_faithful_landing_clocked_wf (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
     (lam : Term (Var n)) (ϕinv : RFormula (Var n)) (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)

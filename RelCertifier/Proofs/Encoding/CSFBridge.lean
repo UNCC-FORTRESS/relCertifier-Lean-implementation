@@ -2,19 +2,19 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `faModal_ODE_G'` — the domain-restricted ∀∃-ODE base rule (outcome-3 fix)
+# `faModal_ODE_G'`: the domain-restricted ∀∃-ODE base rule
 
 dL-caltiming's `faModal_ODE_G` (`DLCalTiming.ODEJoint`) discharges the ∀∃-ODE step from three
 premises, the third of which — `hP3 : [x'=θ, ξ(y'=δ)]⊤ (φx → ξφy)` — asserts that along the
 **unconstrained** joint flow the left evolution domain `φx` forces the right one `ξφy`. Its only
 use site in dL-caltiming is `faModal_ODE_I`, where `φx = φy = ⊤` makes `hP3` trivial.
 
-For the **relational cover**, the left/right evolution domains constrain **disjoint** variable
+For a cover (Definition 8), the left/right evolution domains constrain **disjoint** variable
 blocks (`Side.L`/`Side.R`) and are tight and divergent (e.g. `θ_L∈[0,1]` vs `θ_R∈[0,1]`;
 `px_L≤5` vs `px_R≤15`), so `hP3` is **false** — `φx` (over left vars) cannot imply `ξφy` (over
 disjoint right vars) along the free flow. `faModal_ODE_G` is therefore the wrong base rule here.
 
-The fix is sound and bounded. `hP3` is used at exactly **one** spot in `faModal_ODE_G`'s proof:
+`hP3` is used at exactly **one** spot in `faModal_ODE_G`'s proof:
 to build `hξyΦ : ∀ t∈[0,s], sat ξφy (Φ t)` — the joint trajectory stays in the **right** domain.
 The cover's co-execution `Program.sem (ode jointSys (evolveL∧evolveR))` already stays in
 `evolveR = ξφy` throughout (its ODE domain constraint). So we **drop `hP3`** and instead
@@ -24,7 +24,7 @@ agreement (`hagR`) already in the proof — `Φ ≡ ΦR` on right vars. The obli
 not removed**: from "prove `φx → ξφy` along the free flow" (false for divergent domains) to "the
 witness stays in its own domain" (supplied by the cover's joint-domain co-execution).
 
-Conclusion identical to `faModal_ODE_G`; delta is a single `have`. No new axioms.
+Conclusion identical to `faModal_ODE_G`; the proof differs in a single `have`. No new axioms.
 -/
 import DLCalTiming.ODEJoint
 
@@ -36,9 +36,10 @@ variable {V : Type*}
 
 /-- **`∀∃-ODE-G'` — domain-restricted ∀∃-ODE base rule.** As `faModal_ODE_G`, but `hP3`
 (domain compatibility along the free flow) is **dropped** and `hExist` is **strengthened** to
-require the right witness `ΦR` to stay in its own domain `φy.rename ρ` throughout `[0,s]`. Sound
-for the relational cover, whose divergent left/right domains make `faModal_ODE_G`'s `hP3` false
-but whose joint-domain co-execution supplies exactly this in-domain right witness. -/
+require the right witness `ΦR` to stay in its own domain `φy.rename ρ` throughout `[0,s]`. With
+disjoint footprints and the joint box `hP2`, the ∀∃ step holds at `ω`. It fits joint segments,
+whose distinct left/right domains make `faModal_ODE_G`'s `hP3` false but whose joint product
+program (Eq. (14)) supplies this in-domain right witness. -/
 theorem faModal_ODE_G' (ρ : V ≃ V) (sysX sysY : ODESystem V) (φx φy φ : Formula V)
     (ω : State V)
     (hdisj : Disjoint (sysX.boundSet ∪ sysX.readVars)

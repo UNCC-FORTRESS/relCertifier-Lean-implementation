@@ -2,22 +2,23 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S1 — the reposition prefix inside a window (multi-mode responses)
+# The reposition prefix inside a left cycle (multi-mode witness runs)
 
-The paper's witness for a mismatched (window, right-start) pair opens with repositions:
-the right hops (frozen-left dynamic flows) to a joint-certified mode, THEN tracks the
-window's pieces. In the endpoint-based `faModalB` coupling this composes because of
-three structural facts:
+A witness strategy whose start mode has no joint certificate opens with right-only segments
+(Definition 3): the right hops (frozen-left flows, Eq. (15)) to a joint-certified mode, then
+tracks the left cycle's pieces. This is the right-only case of the proof of Theorem 1, where a
+right-only node lands at a child with the left unchanged. In the endpoint-based `faModalB`
+coupling this composes because of three structural facts:
 
 * the left run MASKS right coordinates — so the right's endpoint coordinates at the
   left's endpoint `ν` equal the anchor's, and the reposition run from the anchor
-  REPLAYS verbatim from `ν` (rights identical; lefts constant under the 0-field);
-* the replay's domain is the POST-J dyn domain (`evolveL ∧ evolveR`, no `guardL`) —
-  correct, because the replay happens at the left's endpoint where the guard may have
-  expired; `evolveL` holds there by the left run's own domain;
+  replays unchanged from `ν` (rights identical; lefts constant under the 0-field);
+* the replay's domain is the post-joint right-only domain (`evolveL ∧ evolveR`, no
+  `guardL`), because the replay happens at the left's endpoint where the guard may no longer
+  hold; `evolveL` holds there by the left run's own domain;
 * left runs are right-frame-invariant (side-splits), so the anchor patches to the
   repositioned state `ρ₁` and the joint piece's cert-sourced coupling fires from `ρ₁`
-  (where the invariant holds by the post-j dyn certificate).
+  (where the invariant holds by the post-joint right-only flow certificate).
 
 `faModalB_repoPrefix` is the composition; iterating it gives multi-hop prefixes.
 -/
@@ -122,9 +123,9 @@ theorem aux_not_jointSys_bound (fL fR : Fin n → Term (Var n)) (lam : Term (Var
   · obtain ⟨i, hi⟩ := rightBlock_bound_sub fR lam _ h
     exact aux_ne_Rv a i hi
 
-/-- **The reposition replay.** A frozen-left run from the anchor replays verbatim from
-any state with the same right coordinates whose lefts satisfy `domL` — lefts constant
-at the new state's values (0-field), rights identical, post-j domain valid. -/
+/-- **The reposition replay.** A frozen-left run from the anchor replays unchanged from
+any state with the same right coordinates whose lefts satisfy `domL`: lefts constant
+at the new state's values (0-field), rights identical, post-joint domain valid. -/
 theorem sem_frozen_replay {fR : Fin n → Term (Var n)} {lam : Term (Var n)}
     {domL domR : Formula (Var n)} {ω₀ ρ₁ ν : State (Var n)}
     (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hlam : lam.fv ⊆ range Rv)
@@ -279,10 +280,10 @@ theorem plantT_rpatch {fL : Fin n → Term (Var n)} {domL : Formula (Var n)}
   · show rpatch ν ρ ((Side.Aux, a) : Var n) - rpatch ω ρ ((Side.Aux, a) : Var n) ≤ dt
     simpa using hclk
 
-/-- **The reposition prefix (S1 core).** A window piece's coupling extends to a
-reposition-prefixed response: the frozen-left hop runs at the anchor (invariant
-preserved by the POST-J dynamic certificate), replays verbatim at the left's endpoint,
-and the joint coupling fires from the repositioned anchor by right-frame-invariance. -/
+/-- **The reposition prefix.** A left piece's coupling extends to a reposition-prefixed
+witness run: the frozen-left hop runs at the anchor (invariant preserved by the post-joint
+right-only flow certificate), replays unchanged at the left's endpoint, and the joint
+coupling fires from the repositioned anchor by right-frame-invariance. -/
 theorem faModalB_repoPrefix {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
     {domL domR : Formula (Var n)} {φ : Formula (Var n)} {Q : Program (Var n)}
     {a : Fin n} {dt : ℝ} {ω₀ : State (Var n)}
@@ -352,7 +353,7 @@ structure RepoHop (n : ℕ) where
   lam : Term (Var n)
   domR : Formula (Var n)
 
-/-- The hop's frozen-left program (post-j domain). -/
+/-- The hop's frozen-left program (post-joint domain). -/
 def RepoHop.prog (h : RepoHop n) (domL : Formula (Var n)) : Program (Var n) :=
   Program.ode (jointSys (fun _ => Term.const 0) h.fR h.lam) (Formula.and domL h.domR)
 

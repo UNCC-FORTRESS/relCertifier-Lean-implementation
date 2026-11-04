@@ -1,5 +1,7 @@
 /-
-The right-wrapping (single-flow bridge, unit 1): turn the bare ⟨ode rightBlock⟩ φinv that
+# The right wrapping of the single-flow chain
+
+Turn the bare ⟨ode rightBlock⟩ φinv that
 segment_faModal produces into ⟨rightAutomatonBody⟩ φinv (the mv-decorated transition body
 faModal_LOCK loops). The mv test/jump/assign are invisible to the host invariant φinv
 (mv ∉ φinv.fv), and the mode-q branch is selected by the state's mv value.
@@ -58,7 +60,7 @@ theorem diamond_bigChoiceP_of_mem {ps : List (Program (Var n))} {p : Program (Va
   obtain ⟨ν', hsem, hφ⟩ := h
   exact ⟨ν', bigChoiceP_sem_of_mem hp hsem, hφ⟩
 
-/-- **The right-wrapping (unit 1 core).** From the responding mode `q`'s bare right-flow
+/-- **The right wrapping.** From the matching mode `q`'s bare right-flow
 diamond `⟨ode (rightBlock fR lam) domR⟩ (invLe g)` at a state whose mode variable reads `q`,
 plus a declared `⊤`-guarded edge out of `q`, derive the transition-body diamond
 `⟨rightAutomatonBody G mv⟩ (invLe g)`. The `mv` test/jump/assign are invisible to `invLe g`
@@ -112,19 +114,18 @@ theorem diamond_right_wrap (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m :
 
 /-- The mode variable is **outside the left block** (`mv ∉ leftBlock.bound`): the left flow does not
 evolve it, so it is held constant (carries the right automaton's mode index across the left residence).
-Satisfiable once the state space has a coordinate outside `Lv ∪ Rv` — the auxiliary (`Aux`) slot `mv`
-shares with the clock `tg`. NB: this SUPERSEDES the frozen-coordinate route (`∃ j, mv = Lv j ∧ …`),
-which — while it satisfies the three freshness uses — makes `mv` a bound left coordinate, so it lands
-in `Program.vars` of the left program and the `∀∃` disjointness (`hd : Disjoint (vars left) (vars
-right)`, with the right automaton reading/assigning `mv`) becomes UNSATISFIABLE. The `∉ bound`/`Aux`
-form is compatible with `hd` (disjointness holds by side split: left = `Lv`, right = `Rv ∪ Aux`). -/
+Satisfiable once the state space has a coordinate outside `Lv ∪ Rv`, the auxiliary (`Aux`) slot `mv`
+shares with the clock `tg`. A frozen left coordinate for `mv` would not do: it would be a bound left
+variable, so the `∀∃` disjointness `hd : Disjoint (vars left) (vars right)` (the right automaton
+reads and assigns `mv`) would fail. The `Aux` form is compatible with `hd` (left = `Lv`, right =
+`Rv ∪ Aux`). -/
 theorem leftBlock_frames_mv (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (mv : Var n)
     (hmv : mv ∉ (leftBlock fL).bound) {σ ν : State (Var n)}
     (h : Program.sem (Program.ode (leftBlock fL) domL) σ ν) : ν mv = σ mv := by
   obtain ⟨r, Φ, hr, hΦ0, hΦr, _, hmask, _⟩ := h
   rw [← hΦr, hmask r ⟨hr, le_refl r⟩ mv hmv]
 
-/-- **Unit 1-finish — the box wrapping.** From `segment_faModal`'s bare
+/-- **The box wrapping.** From `segment_faModal`'s bare
 `faModal (ode leftBlock) (ode rightBlock) (invLe g)` at `σ` (with `σ mv = q`), derive
 `faModal (ode leftBlock) (rightAutomatonBody G mv) (invLe g)`. The mode variable survives
 the left-block box (`mv ∉ leftBlock.bound`), so `ν mv = q` at each post-left state and

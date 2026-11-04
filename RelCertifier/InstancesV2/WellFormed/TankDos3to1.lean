@@ -23,8 +23,7 @@ bands `[6, 10)`, `[10, 14)`, `[14, 18)`, `[18, 22]` (each with `0 ≤ h ≤ 2.5`
   stage's own band or the next one, both declared successors (`P4`: the next band `[18, 22]`
   reaches the domain's top). Style (a) for `P5` (`next = [P5]`): `w ≥ 18` is kept and the
   domain gives `w ≤ 22`, `0 ≤ h ≤ 2.5`.
-Z3-free; modelled on the old `TankDos3to1.lean` (guards, edges), `AirheaderDos3to1.lean`
-(bilinear field), `QuadLightLag.lean` (run over an auxiliary domain, then barriers) and
+Z3-free; modelled on `QuadLightLag.lean` (run over an auxiliary domain, then barriers) and
 `WellFormedTerrain.forcedSol` (variation of constants).
 -/
 import RelCertifier.Trusted.Parse

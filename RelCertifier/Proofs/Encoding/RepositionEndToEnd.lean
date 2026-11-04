@@ -1,10 +1,13 @@
 /-
-GAP 1 — the end-to-end theorem for genuine multi-flow covers: `decideCovered`/`cert ⟹ Theorem 3`.
+# The end-to-end multi-flow theorem: `decideCovered`/`cert ⟹` the ∀∃ modality
 
-Composes `Hmulti_from_cover` (the emit, cert-sourced) into `theorem3_faithful_multi_of_emit` (the
-reposition-inclusive multi Theorem 3). Mirror of `decideCovered_implies_theorem3_faithful` (single
-flow), now for covers where the right switches modes mid-residence. The Z3 leaf lives at `cert`
-construction (parametric here — 3 axioms); `cert` is load-bearing for the `rvalid` conjunct.
+Composes `Hmulti_from_cover` (the emit, from the certificate) into
+`theorem3_faithful_multi_of_emit` (the multi-flow assembly with right-only segments, for a
+single-component invariant `invLe g`). The multi-flow counterpart of
+`decideCovered_implies_theorem3_faithful`, for covers where the right switches modes within one
+left cycle. The Z3 verdicts enter where `cert` is constructed (parametric here: the three
+standard axioms); `cert` is load-bearing for the `rvalid` conjunct. The generic Theorem 3 of
+Appendix B.1 is `theorem3_of_coverX` (`Theorem3General.lean`).
 -/
 import RelCertifier.Proofs.Encoding.RepositionDischarge
 import RelCertifier.Proofs.Encoding.RepositionFinish
@@ -17,8 +20,8 @@ variable {n : ℕ}
 /-- **The end-to-end multi-flow theorem.** From the cover certificate (`cert`, where the Z3 leaf
 lives), the structural R-projection alignment (`RightProjAlign`, no Z3), and the multi-flow emit
 (`EmitSegs`, the declared-edge mode-switch sequences), the transition-faithful ∀∃ refinement modality
-over the real automaton `R_real Gr mv` holds at every bi-state — for **genuine multi-flow** covers
-(the right switches modes within one left residence). AND the co-execution invariant holds
+over the real automaton `R_real Gr mv` holds at every bi-state, for multi-flow covers
+(the right switches modes within one left cycle); and the co-execution invariant holds
 throughout, from `decideCovered Gj = true` via `check_sound`.
 
 Each per-segment `faModal` is drawn from **`cert.segPres`** (`Hmulti_from_cover` ← `box_joint_to_clocked`
@@ -66,7 +69,7 @@ theorem decideCovered_implies_theorem3_faithful_multi
 `cert.segPres` (via `Hmulti_from_cover`), reposition → `cert.repoDynPresPre` (via `Hmulti_from_cover_dyn`,
 `fL0=0`). Both couplings cert-sourced; the declared-edge `IsChain` faithfulness holds per residence and
 the `faModal_MULTI` loop rides `mvValid`/`invLe g` across the interleaved star. This reaches the
-reposition-**using** benchmarks. `#print axioms = [propext, Classical.choice, Quot.sound]` (parametric
+covers that use right-only segments. `#print axioms = [propext, Classical.choice, Quot.sound]` (parametric
 in `cert`). -/
 theorem theorem3_faithful_multi_reposition
     (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)

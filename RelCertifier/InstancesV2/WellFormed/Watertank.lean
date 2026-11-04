@@ -4,10 +4,10 @@ Released under Apache 2.0 license.
 
 # `watertank`: Assumption 1 of the right model (`WellFormedR`)
 
-Model fact, independent of the relational invariant: over the right automaton `Gr` of the
-Theorem 3 instance (`InstancesV2/Modal/Watertank.lean`: the file's modes, flows, evolve
-domain and `next` lists, every edge testing the entered mode's lowered guard), the lowered
-right guards, and `ε_r = 1` read from the file.
+Model fact, independent of the relational invariant: over the right automaton `Gr` (the
+file's modes, flows, evolve domain and `next` lists, every edge testing the entered mode's
+lowered guard), the lowered right guards, and `ε_r = 1` read from the file. The Theorem 3
+instance `InstancesV2/Bridge/Watertank.lean` transports it onto the pruned graph of its cover.
 
 Every mode is a contraction `x' = k (c − x)` (PumpOff: `x' = 0`) inside the tank `[0, 25]`.
 * Existence (i): the explicit exponential (`hwfB`, unit stretch).
@@ -88,7 +88,7 @@ noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, exactly as the left windows' guards are lowered): the right switches into
+right mode `t`, exactly as the left modes' guards are lowered): the right switches into
 `t` only where `t`'s guard holds. -/
 noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
   { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
@@ -139,7 +139,7 @@ theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
 theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
   List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
 
-/-! ## The stretch of each left window (the emitted cover's λ) -/
+/-! ## The stretch of each left mode (the emitted cover's λ) -/
 
 noncomputable def lam (l : ℕ) : ℝ := if l = 2 then 1 else 2
 
@@ -170,7 +170,7 @@ theorem hwfB (l q : ℕ) (hq : q < 5) (dt : ℝ) :
     · unfold cRc; split_ifs <;> norm_num
 
 
--- `hp10` comes from the standalone instance (the rates are 1, 2 and 1/2 since gain 1).
+-- The rates are 1, 2 and 1/2 (gain 1).
 
 /-- `ε_r` of the file. -/
 theorem epsR_eq : epsR watertank_IRv2 = 1 := by

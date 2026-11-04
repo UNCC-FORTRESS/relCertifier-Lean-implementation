@@ -4,16 +4,15 @@ Released under Apache 2.0 license.
 
 # `watertank_choice`: the right model, the pruned automaton and Assumption 1
 
-The running example with the economy profile: the right model (state variables, right modes,
+The running example with the economy profile, one of the two exhibits of committed successor
+subsets outside the suite (Appendix B.1): the right model (state variables, right modes,
 fields, evolve domain, parse pins, field evaluations), the search graph with the edge
 `Low → PumpOff` pruned (`GrP`), and Assumption 1 proved for the nominal model with the
 economy set point (`wellFormedR`, at dimension 2; the bridge instance
 `InstancesV2/Bridge/WatertankChoice.lean` transports it and lifts it by one for the right
-clock; the bridge instance reads the emitted cut table `Choice/Cuts/watertank_choice` through this
-file, so that leaf is imported here). Self-contained; the standalone Theorem 3 leaf `Choice/Modal/WatertankChoice` imports
-this file for the right model. The kernel-decided covers, the window data and the hop
-certificate of the retired standalone route were dropped on 2026-10-22 (history: git show
-212cd42:RelCertifier/InstancesV2/Choice/General/WatertankChoice.lean).
+clock; the bridge instance reads the emitted mode-fact table `Choice/Cuts/watertank_choice`
+through this file, so that leaf is imported here). The exhibit's Theorem 3 is that bridge
+instance; this file supplies its right model and Assumption 1.
 -/
 import RelCertifier.InstancesV2.Choice.BenchIR.watertank_choice
 import RelCertifier.InstancesV2.Choice.Cuts.watertank_choice
@@ -139,8 +138,9 @@ theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
     rfl | rfl <;> simp [edgeW, Gr]
 
-/-- `Low` pairs with `Low` at 2, `MidEco` at 7/2, `MidBoost` and `High` at 1 (the per-pairing
-fallback); `Mid` and `High` at 1. -/
+/-- The stretch of each pairing (left window `l`, right mode `q`): left window 0 pairs with
+right `Low` at 2, `MidEco` at 7/2 and every other right mode at 1 (per-pairing stretches,
+Section 6.1); every other left window at 1. -/
 noncomputable def lam (l q : ℕ) : ℝ :=
   if l = 0 then (if q = 0 then 2 else if q = 1 then 7/2 else 1) else 1
 
@@ -176,7 +176,7 @@ theorem epsR_eq : epsR watertank_choice_IRc = 1 := by
 noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
 
 /-- The declared edge, pruned iff it is `Low → PumpOff` (the tool's non-connection
-certificate). -/
+certificate, Definition 6). -/
 noncomputable def edgeWP (s t : ℕ) : REdge (Var 2) :=
   { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t),
     pruned := decide (s = 0 ∧ t = 4) }
@@ -264,10 +264,8 @@ theorem wellFormedR : WellFormedR GrP guardR 1 := by
       exact pick 4 (by decide) (by norm_num) ((sat_guardR 4 (by norm_num) _).mpr
         (by norm_num; linarith))
 
-/- Theorem-3 part retired 2026-10-21 with the clocked right automaton (the file was fixed at
-`Var 2`, no slot for the right clock); the benchmark's Theorem 3 is the generated bridge
-instance `InstancesV2/Bridge/WatertankChoice.lean`.
-History: git show 61d7389:RelCertifier/InstancesV2/Choice/General/WatertankChoice.lean. -/
+/- The exhibit's Theorem 3, with the right clock (dimension 3), is the generated bridge
+instance `InstancesV2/Bridge/WatertankChoice.lean`. -/
 
 end ChoiceWatertank
 end RelCertifier

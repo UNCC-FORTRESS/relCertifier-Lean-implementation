@@ -1,6 +1,8 @@
 /-
-The transition-faithful right automaton (`rightAutomatonBody`/`R_real`) — definitions + the
-Transition-faithful right automaton (mode variable) so the ∃-right diamond is a real G-run.
+The transition-faithful right automaton (`rightAutomatonBody`, `R_real`): a mode variable `mv`
+records the stored right mode, and each step tests it, runs the mode's flow, then takes a
+declared edge whose guard holds (Eq. (1) up to rotation, Appendix B.2). With it the ∃-right
+diamond of the ∀∃ modality ranges over genuine runs of the right model.
 -/
 import RelCertifier.Checker.Cover
 import RelCertifier.Checker.Cover.Coexec
@@ -162,9 +164,9 @@ theorem rightReach_is_R_real_run (G : SearchGraph V) (mv : V)
       exact absurd hrepo (by rw [(hnorepo q m hm).2]; simp)
 
 
-/-! ## Piece 1 — the mode variable is invisible to the invariant (framing from freshness) -/
+/-! ## The mode variable is invisible to the invariant (framing from freshness) -/
 
-/-- Modality-free relational formulas — the fragment the invariant `ϕinv` lives in. -/
+/-- Modality-free relational formulas, the fragment the invariant `ϕinv` lives in. -/
 def noRbox {V : Type*} : RFormula V → Prop
   | .cmp _ _ _ => True
   | .neg ϕ     => noRbox ϕ
@@ -207,7 +209,7 @@ theorem rformula_coincidence : ∀ (ϕ : RFormula V), noRbox ϕ →
       | L => simpa only [RFormula.sat] using Formula.coincidence ϕ hL
       | R => simpa only [RFormula.sat] using Formula.coincidence ϕ hR
 
-/-- **(b) ψ ignores the mode variable** — proven from freshness (`mv ∉ ψ.varsL ∪ ψ.varsR`):
+/-- **ψ ignores the mode variable**, proven from freshness (`mv ∉ ψ.varsL ∪ ψ.varsR`):
 updating `mv` on either bi-state component leaves the invariant's truth unchanged. -/
 theorem psi_ignores_mv (mv : V) (ϕ : RFormula V) (hnb : noRbox ϕ)
     (hL : mv ∉ ϕ.varsL) (hR : mv ∉ ϕ.varsR) {ωL ωR : State V} (a b : ℝ) :
@@ -216,7 +218,7 @@ theorem psi_ignores_mv (mv : V) (ϕ : RFormula V) (hnb : noRbox ϕ)
     (fun x hx => update_of_ne (by intro h; subst h; exact hL hx) a ωL)
     (fun x hx => update_of_ne (by intro h; subst h; exact hR hx) b ωR)
 
-/-- **Piece 1 — the projection/commutation lemma.** The witness run is the diamond's `.2`
+/-- **The projection/commutation lemma.** The witness run is the diamond's `.2`
 run, and the invariant at its endpoint reduces to the cover's observable endpoint `ω`
 (the mode variable, threaded on `.2`, is invisible to `ψ`). Built on the verified witness. -/
 theorem witness_endpoint_obs (G : SearchGraph V) (mv : V)

@@ -8,7 +8,7 @@ Stated directly over the generic bridge's automaton `grOf IR 3 pruned` (no stand
 instance): the lowered right guards, `ε_r = 1`. The right model is the genuine controller of
 the brine tank: `On` (`xp' = 0.1 (25 − xp)`, guard `xp ≥ 25`) and `Off` (`xp' = 0`, guard
 `xp < 25`, a strict atom), evolve domain the constant atom `0 ≤ 1` (the source's plant has no
-state domain; the `xp ≥ 0` of the first install was dropped 2026-10-28); the padding
+state domain); the padding
 coordinates have field 0. Existence: `On`'s explicit exponential approach
 `25 + (xp − 25) e^{−t/10}` (`exists_contract_run`), trivially in the domain; `Off`'s constant
 run (`const_sol`). Completeness, for EVERY run (not only the explicit

@@ -2,20 +2,20 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# B>1 — the multi-segment ∀∃ witness composition (clock-free)
+# B>1: the multi-segment ∀∃ witness composition (clock-free)
 
-The non-trivial ∀∃ case: the right switches modes mid-residence to respond to the left. Per
-Gate 0, this is **clock-free** — no `tg` coordinate, no `ExtVar`. The composition `multiseg`
-assembles `B` per-segment couplings (`pair_faModal`, proven) into a `B`-fold lockstep `faModal`,
-via the proven `faModal_seq` (both-sides sequential) + `faModal_MR` (rule of consequence),
-by induction on `B`. Each step peels one right segment coupled with one left `piter` factor.
+The multi-step case (a budget of `B > 1` joint segments): the right switches modes within one
+left cycle to match the left. This file is **clock-free**: no clock coordinate, no `ExtVar`. The
+composition `multiseg` assembles `B` per-segment couplings (`pair_faModal`) into a `B`-fold
+lockstep `faModal`, via `faModal_seq` (both-sides sequential) and `faModal_MR` (rule of
+consequence), by induction on `B`. Each step peels one right segment coupled with one left
+`piter` factor.
 
-Historical note: this clock-free route needed `ode` self-concatenation
-(`sem (ode sys ϕ ; ode sys ϕ) = sem (ode sys ϕ)`) to collapse the `B`-fold left residence.
-That analytic piece was never needed in the end — the live chain went the clocked way
-instead (`multiseg_clocked`, `BridgeReposition`), where the clock makes each segment's
-duration explicit and the collapse question does not arise. Kept because the clock-free
-composition lemmas here are still the readable statement of how segments compose.
+The left program here is a bare ODE (no clock, no guard test), so these lemmas are not the
+paper's Eq. (1) programs. The theorems of Appendix B.1 go the clocked way (`multiseg_clocked`,
+`BridgeReposition`), where the clock makes each segment's duration explicit, as in the proof of
+Theorem 1 (Soundness of Witness Strategies). The clock-free lemmas are kept as the plain
+statement of how segments compose.
 -/
 import RelCertifier.Proofs.Encoding.ToolLevel
 
@@ -25,7 +25,7 @@ open DL DLCalTiming DLRel Set RelCertifier.Parse RelCertifier.Run
 
 variable {n : ℕ}
 
-/-! ## `ode` split into `piter` — the left doesn't multiply (only the right does)
+/-! ## `ode` split into `piter`: the left does not multiply (only the right does)
 
 For `multiseg → hstep` we only need `sem leftOde ⊆ sem (piter leftOde B)` (the **split**
 direction: one ODE run realized as a `B`-fold `piter` run), which collapses the box
@@ -129,7 +129,7 @@ theorem multiseg (leftOde rightStep : Program (Var n)) (φinv : Formula (Var n))
 
 /-- **The B>1 core (one left mode ↔ right star).** From the per-segment coupling `hcouple`
 (discharged by `pair_faModal` + `unionR`), the left mode coupled with the **right star**
-(the right's multi-mode response) preserves `φinv`. Chains: `multiseg` (B-fold lockstep) →
+(the right's multi-mode witness run) preserves `φinv`. Chains: `multiseg` (B-fold lockstep) →
 `faModal_left_collapse` (the left `piter` collapses to the single residence — `sem_ode_zero`,
 no junction concat) → `faModal_loopN` (the right `piter` lifts to `star`). Clock-free; reuses
 only proven pieces. This is `faModal_MULTI`'s per-left-cycle hypothesis for B>1. -/
@@ -147,13 +147,13 @@ theorem hstep_multiseg (leftSys : ODESystem (Var n)) (leftDom : Formula (Var n))
   exact faModal_loopN (Equiv.refl (Var n)) (Program.ode leftSys leftDom) rightStep φinv ω
     ⟨B' + 1, hc⟩
 
-/-! ## Heterogeneous multi-segment — genuine mode-switching (the real B>1 content)
+/-! ## Heterogeneous multi-segment: genuine mode switching (the B>1 content)
 
 `multiseg` is homogeneous (same right step per segment). The B>1 benchmarks switch right modes
-mid-residence (`visited ≥ 2`), so the right response is a sequence of **different** modes.
+within one left cycle (`visited ≥ 2`), so the right witness run is a sequence of **different** modes.
 `multiseg_het` composes such a sequence via the same `faModal_seq` + `faModal_MR`, but each
 segment carries its **own** right mode with its **own** coupling (its own evolution-domain
-`pair_faModal`). This is where the fixed-branch `bigChoiceR` was insufficient. -/
+`pair_faModal`), which a fixed-branch `bigChoiceR` cannot express. -/
 
 /-- Sequential composition over a list of programs (the right's mode-switch sequence). -/
 def bigSeq : List (Program V) → Program V
@@ -248,7 +248,7 @@ theorem hstep_multiseg_het (leftSys : ODESystem (Var n)) (leftDom : Formula (Var
   rw [Program.rename_refl] at hμ ⊢
   exact sem_bigSeq_sub_star rightBody (R :: rs) hstepR ν μ hμ
 
-/-! ## Tool-level B>1 threading — `reified_relational_multi`
+/-! ## Tool-level B>1 threading: `reified_relational_multi`
 
 Mirror of B=1's `reified_relational`, over the heterogeneous mode-switching core. Per left mode:
 its right mode-switch sequence + per-mode couplings feed `hstep_multiseg_het`; `faModal_bigChoiceL`
@@ -285,9 +285,10 @@ def MultiLeft.leftProg {n : ℕ} {rightProgs : List (Program (Var n))} {φinv : 
     (d : MultiLeft n rightProgs φinv) : Program (Var n) :=
   Program.ode d.leftSys d.leftDom
 
-/-- **Tool-level B>1 (all-17 form).** Given per-left-mode mode-switch data and the structural
-`Bridges`/disjointness, the paper's ∀∃ relational modality over the looped choice-automata holds
-— with genuine multi-segment mode-switching witnesses. Mirror of `reified_relational` via
+/-- **Tool-level B>1.** Given per-left-mode mode-switch data (`MultiLeft`) and the
+disjointness side conditions, the ∀∃ relational modality `[|(L*, R*)⟩⟩ψ` over the looped choice
+automata (left modes as bare ODEs, right modes from `rightProgs`) holds at a state satisfying
+`ψ`, with multi-segment mode-switching witnesses. Mirror of `reified_relational` via
 `faModal_bigChoiceL` + `hstep_multiseg_het` + `relational_loop_multi`. `φinv = encode id ψ`. -/
 theorem reified_relational_multi {n : ℕ}
     (rightProgs : List (Program (Var n))) (ψ : RFormula (Var n))
@@ -319,11 +320,11 @@ theorem reified_relational_multi {n : ℕ}
     (fun Q hQ a b hsem => sem_mem_bigChoice Q hsem rightProgs (d.hmem Q hQ))
     d.hdis d.hcouple hσ
 
-/-! ## Parser emit — `PProblem → MultiLeft` (B>1), same boundary as B=1
+/-! ## Parser emit: `PProblem → MultiLeft` (B>1), same boundary as B=1
 
 Mirror of B=1's `lowerSeg`/`SegData.toCertSeg`. `lowerMultiLeft` lowers a left mode + its right
 **mode-switch sequence** (from the cover) to **pure data** (`leftSys`/`leftDom` via `dynOf`/
-`lowerF` on the **evolve** fields — guard-bug barred; each right segment `ode (rightBlock …) domR`).
+`lowerF` on the **evolve** fields, never the guards; each right segment `ode (rightBlock …) domR`).
 The `MultiLeft` proofs (`hcouple` per segment via `pair_faModal`/`z3_unsat_sound`, `hmem`, `hdis`,
 `hne`) enter at the smart constructor — the same Z3 trust boundary. A complete pure emit is
 impossible for the same reason as B=1 (`hcouple`/`hz3` mention the opaque `z3solve`). -/

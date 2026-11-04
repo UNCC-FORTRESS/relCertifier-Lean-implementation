@@ -9,7 +9,7 @@ Released under Apache 2.0 license.
 # `acc_spoof_limp`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
-The right model (2026-10-30, r10: the `DISENGAGE` hand-back mode and its edges removed) has the
+The right model has the
 three set-speed modes `NORMAL` / `ECO` / `SPORT` (indices 0, 1, 2), each with guard `20 ≤ v ≤ 40`
 and field `v' = (c − v)/2` with `c = 30, 27, 33`; declared edges `NORMAL → NORMAL, ECO, SPORT`,
 `ECO → ECO, NORMAL`, `SPORT → SPORT, NORMAL`.
@@ -90,7 +90,7 @@ noncomputable def modeW (q : ℕ) : RMode (Var 3) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+right mode `t`, lowered exactly as the left modes' guards are): the right switches into
 `t` only where `t`'s guard holds. -/
 noncomputable def edgeW (s t : ℕ) : REdge (Var 3) :=
   { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }

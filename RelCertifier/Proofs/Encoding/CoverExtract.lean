@@ -2,10 +2,9 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R1 — the window witness from the graph structure; the cover from the checker
+# The left-cycle witness from the graph structure; the cover from the checker
 
-Replaces the ASSUMED `EmitWindows` device (docs/history/ROADMAP.md R1). Two honest halves,
-mirroring `rvalid_from_cert`'s finding:
+Derives the `EmitWindows` fact instead of assuming it. Two halves, as in `rvalid_from_cert`:
 
 * **The modal witness needs no budget walk.** For an all-joint graph, the per-window
   response is the code's own `retainedSucc` self-loop: stay `k` clock-capped pieces in
@@ -14,7 +13,7 @@ mirroring `rvalid_from_cert`'s finding:
   that structure — no `Covered` needed, because each piece's certificate is consumed
   downstream through `RightProjAlignV` (`cert.segPres`), and `theorem3Form`'s content is
   invariant preservation, for which the budget is witness *strategy*, not statement.
-* **The budget walk is the tool's CERTIFIED gate.** `decideCovered` (which the tool
+* **The budget walk is the checker's.** `decideCovered` (which the tool
   itself runs) re-validated in kernel yields `Covered` (`decideCovered_sound`) and the
   semantic throughout-invariant (`check_sound`) — carried as the second conjunct of the
   top theorem, exactly as `decideCovered_implies_theorem3_faithful_multi` does.
@@ -22,8 +21,8 @@ mirroring `rvalid_from_cert`'s finding:
 `Covered.jointOK_head` is the inversion tying the two: on a no-reposition graph, a
 covered start mode is joint-certified — the checker cannot accept an uncertified stay.
 
-Scope: all-joint graphs (`jointOK` everywhere, reposition flags false). Reposition-node
-windows land with R2's statement conditioning (the interleaved-left family).
+Scope: all-joint graphs (`jointOK` everywhere, reposition flags false); right-only segments
+are handled by the guarded chains (`GuardedSwitch.lean`, `CoverResp.lean`).
 -/
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Checker.Checker
@@ -35,7 +34,7 @@ variable {n : ℕ}
 
 /-! ## The `Covered` inversion (no-reposition graphs) -/
 
-/-- On a graph with no reposition certificates, a covered configuration's head mode is
+/-- On a graph with no right-only certificates, a covered configuration's head mode is
 joint-certified: the verified checker cannot accept a stay in an uncertified mode. -/
 theorem Covered.jointOK_head (G : SearchGraph (Var n)) {q B : ℕ} {σs : SrcSetting}
     (hnorepo : ∀ q' m, G.modeAt q' = some m →
@@ -50,7 +49,7 @@ theorem Covered.jointOK_head (G : SearchGraph (Var n)) {q B : ℕ} {σs : SrcSet
   | stepRepositionDynPost m hm hrepo _ _ _ =>
       exact absurd hrepo (by simp [(hnorepo q m hm).2])
 
-/-! ## The self-stay window witness -/
+/-! ## The self-stay witness for a left cycle -/
 
 /-- A constant list is a chain of any reflexive-at-`x` relation. -/
 theorem isChain_replicate {α : Type*} {R : α → α → Prop} (x : α) (hx : R x x) :
@@ -70,7 +69,7 @@ theorem isChain_replicate {α : Type*} {R : α → α → Prop} (x : α) (hx : R
           rw [← hy]
           exact hx
 
-/-- **The window response, from the declared self-loop.** Every benchmark mode declares
+/-- **The left-cycle response, from the declared self-loop.** Every benchmark mode declares
 its self-edge (`next` contains the mode itself — checked per instance); the response to a
 `k`-piece window is `k` residences in the current mode along that edge — the code's
 `retainedSucc q = q :: …` self-loop, realized on the declared edge. Produces the
@@ -104,11 +103,11 @@ theorem emitWindows_self (Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv tg : 
     rw [List.eq_of_mem_replicate hs]
     exact hdis q m hm
 
-/-! ## The top theorem, Emit-free — the checker in the conjunction -/
+/-! ## The uniform claim with the checker in the conjunction -/
 
-/-- **The uniform multi-flow theorem from the checker's cover (R1 gate).** Relative to
-`theorem3_uniform_multiflow`: the ASSUMED `EmitWindows` is GONE — the window response is
-the declared-self-edge stay (`emitWindows_self`); and the verified checker's acceptance
+/-- **The uniform multi-flow claim from the checker's cover.** Relative to
+`theorem3_uniform_multiflow`, the `EmitWindows` hypothesis is replaced: the left-cycle response
+is the declared-self-edge stay (`emitWindows_self`); and the verified checker's acceptance
 (`decideCovered`, the very function the tool runs) enters as a per-start hypothesis whose
 kernel re-run yields the semantic throughout-invariant conjunct (`check_sound`), exactly
 as in `decideCovered_implies_theorem3_faithful_multi`. On a no-reposition graph the
@@ -163,7 +162,7 @@ theorem theorem3_uniform_from_covered (Gr : SearchGraph (Var n)) (g : Term (Var 
   · intro q hq ν hinit
     exact check_sound Gj g cert fuel ⟨q, B, SrcSetting.preJ⟩ (hchk q hq) ν hinit
 
-/-! ## R2 — guard-gated windows (the left automaton's entry semantics) -/
+/-! ## Guard-gated left cycles (the left automaton's entry semantics) -/
 
 /-- The guard-gated window: `test guardL ; k clocked pieces` — the mode is enterable
 only where its guard holds, matching the automaton (and making guard-incompatible
@@ -204,7 +203,7 @@ theorem vars_gwindowSegL_sub (guardL : Formula (Var n)) (fL : Fin n → Term (Va
     exact Or.inr (hguard hx)
   · exact vars_windowSegL_sub fL domL b dt k hfL hdomL hx
 
-/-- **The guarded uniform theorem (R2 gate).** Left = guard-gated windows, one per left
+/-- **The guarded uniform claim.** Left = guard-gated left cycles (windows), one per left
 mode; response = the declared-self-edge stay; checker cover in the conjunction. Relative
 to `theorem3_uniform_from_covered`: `leftData` carries each mode's lowered guard, the
 window is enterable only where it holds (`faModal_seqL` discharges the gate: the response

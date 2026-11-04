@@ -10,7 +10,7 @@ The right models of the terrain chain (`rover_terrain_2to4`, `rover_terrain_4to6
 contraction coordinate `x_c' = k (c_q − x_c)` (the wheel-speed command `w` in `4to6`, the
 motor torque state `u` in `6to12`), the odometer rate `s'` between `0` and `B` on the evolve
 domain, the declared successors `MUD → {GRAVEL, MUD}`, `GRAVEL → {PAVED, GRAVEL}`,
-`PAVED → {PAVED}`, and `ε_r = 1`. Since 2026-10-27 the four rover ladder rungs
+`PAVED → {PAVED}`, and `ε_r = 1`. The four rover ladder rungs
 (`rover_ladder_2to3`, `_3to6`, `_6to8`, `_8to12`: zones `STEEP`, `MODER`, `FLAT` with bands
 `[0, 60)`, `[60, 140)`, `[140, ∞)`, no cap, `B = 8`) share the same shape and use it too.
 
@@ -25,8 +25,6 @@ Clause (i) uses the explicit runs of affine cascades: `forcedSol k y₀ F` (vari
 constants, `y' = F t − k y`) and `intSol y₀ G` (`y' = G t`), and the comparison bounds
 `forcedSol_between` (a forced contraction stays between its start and `F/k`) and
 `mono_of_deriv_nonneg`. Z3-free.
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.WellFormedR
 

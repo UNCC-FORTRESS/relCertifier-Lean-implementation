@@ -4,9 +4,10 @@ Released under Apache 2.0 license.
 
 # `DI_nonstrict_superlevel` — the Lyapunov-barrier differential invariant
 
-The sound route that certifies the marginal contraction / Lyapunov-energy class (the 22
-Cat-1 declines): `Lie(g) ≤ 0` **wherever `g ≥ 0`** (the superlevel side, within the domain
-`ψ`) ⟹ `g ≤ 0` is forward-invariant. This is elementary Lyapunov invariance — strictly
+The sound route that certifies the marginal contraction / Lyapunov-energy class:
+`Lie(g) ≤ 0` **wherever `g ≥ 0`** (the superlevel side, within the domain `ψ`) ⟹ `g ≤ 0` is
+forward-invariant. This is the condition of Eq. (18), one of the two Lie conditions of
+Lemma 2. This is elementary Lyapunov invariance — strictly
 weaker in hypothesis than `DI_nonstrict_domain` (which needs `Lie ≤ 0` on ALL of `ψ`), so
 it sees contraction invariants whose Lie is `≤ 0` only on `{g ≥ 0}`.
 

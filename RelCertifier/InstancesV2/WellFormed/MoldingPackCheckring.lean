@@ -19,7 +19,7 @@ The right model is the validated cycle with a sealing check ring: the phase cloc
   (`forcedSol_between`); `COOL`: the clock and two exponential decays.
 * (ii): `HOLD` ends in the domain, where `t < 5` is `HOLD`'s guard and `t ≥ 5` is `COOL`'s
   (style (b), exit); `COOL`: the clock does not fall, so `t ≥ 5` is kept (style (a)).
-Z3-free; modelled on `TankDos3to1.lean` (forced coordinate) and `CompressorStationRecycle.lean`.
+Z3-free; modelled on `TankDos3to1.lean` (forced coordinate).
 -/
 
 import RelCertifier.Trusted.Parse

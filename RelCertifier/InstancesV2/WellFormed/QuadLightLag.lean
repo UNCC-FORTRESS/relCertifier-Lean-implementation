@@ -20,8 +20,7 @@ evolve domain shared with the left; `14.715 = 3 · 4.905`).
 * (ii), style (a): the guard is the evolve domain, so every run (of any duration) ends in
   `CLIMB`'s guard (`ODESol.end_dom`), and the self-loop `CLIMB → CLIMB` is declared.
 
-Z3-free; modelled on `RoverTerrain2to4.lean` (the cascade runs) and the old
-`QuadLightLag.lean` (the one-mode graph and clause (ii)).
+Z3-free.
 -/
 import RelCertifier.Trusted.Parse
 import RelCertifier.Proofs.Encoding.WellFormedR

@@ -20,7 +20,7 @@ Every right mode is a proportional pump controller `x' = k (c − x)` inside the
 * (ii), style (a) for `MidEco` and `MidBoost` (the run rises from `x₀ ≥ 10` and stays strictly
   below `17`, as `x₀ < 17`), `High` (it falls toward `17` and stays `≥ 17`) and `PumpOff`
   (frozen: `x < 2` is kept); the self-loop is declared in every mode.
-Z3-free; modelled on the old three-mode `WatertankTwospeed.lean` (same lowering, run lemmas).
+Z3-free.
 -/
 import RelCertifier.Trusted.Parse
 import RelCertifier.Proofs.Encoding.WellFormedR

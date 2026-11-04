@@ -2,52 +2,27 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Cut composition — the declared invariant with the checked cut carried as a MODE REGION
+# Generic lemmas for a mode fact carried as a mode region
 
-**Status.** Written for two legacy benchmarks (`arm_chain_rung3`, `arm_fidelity_mid`) whose
-cut-composed theorems were retired with the legacy suite (record:
-`docs/history/CUT-COMPOSITION.md`). None of its lemmas has a live consumer today (the last one,
-a legacy instance of `hddF_multiR_plain`, was archived; `GuardedSwitch.hddF_multiR_plain_G` is
-its guarded counterpart); `hddF_multiR_plain`, `sem_bigSeq_identity` and `sem_rightBlock_rate`
-are kept as generic lemmas. The rest of this note is the original rationale.
+Three generic lemmas, kept for reuse; no record-level theorem of Appendix B.1 depends on them.
+They were written for statements that carry a mode fact (Definition 2) only at the right mode it
+was checked for, through the mode-region bookkeeping `mvRegion mv regions k`
+(`EnvelopeChainR.lean`): the fact's entry obligation makes a switch INTO the mode land in the
+region, and its preservation obligation keeps the region along the mode's own flow. Carrying the
+fact as a conjunct of the invariant for EVERY right mode would instead restrict the claim to states
+already inside that mode's region.
 
-Those two benchmarks were certified by the tool at a CHECKED CUT: the right
-`Hold` mode's flow certificate is discharged on the domain narrowed by `Hold`'s guard
-atom `θ_R ≥ 0.6` (entry by O1, invariance by O2 — `Trusted/OracleAPI.lean`
-`checkedCut`/`andCuts`). Their first modal statements carried that cut as a conjunct of
-the invariant for EVERY right mode (`docs/history/VERDICT-EVIDENCE-AUDIT.md` Part II), which
-reads: from states where the right is already inside `Hold`'s region.
+* `hddF_multiR_plain`: the `hddF` discharger for the region-carrying postcondition over PLAIN
+  (not guard-gated) left cycles: `hddF_multiE`'s left side with `hddF_multiR`'s postcondition side
+  (`GuardedSwitch.hddF_multiR_plain_G` is the guarded counterpart).
+* `sem_bigSeq_identity`: a list of programs that each admit the identity run from any state in
+  `domR` runs as a whole from such a state to itself (the zero-duration hops).
+* `sem_rightBlock_rate`: the explicit witness for a right-only flow in a mode whose field is
+  constant on one coordinate and zero elsewhere: the coordinate moves linearly for the chosen
+  duration, every other coordinate is untouched. A right-only (left frozen) flow written down as a
+  curve rather than certified through Z3, so it adds no verdict hypothesis.
 
-The statement with the plain `mvValid` bookkeeping — the declared invariant from EVERY
-state satisfying it, the right in any declared mode — is FALSE for these benchmarks:
-at `(mv = Hold, θ_R < 0.6)` the right is frozen (`θ' = 0`) or decays (`θ' = ½(0.6 − θ)`)
-while the left can still rise, so no response exists (`docs/history/CUT-COMPOSITION.md`,
-countermodel). What IS true, and what the cut certificate supports, is the declared
-invariant with the cut carried ONLY at the mode it was checked for: the mode-region
-bookkeeping `mvRegion mv regions k` (`EnvelopeChainR.lean`) with `regions Hold = ⌊θ_R ≥
-0.6⌋` and `regions q = ⊤` elsewhere. That is exactly the composition of the two cut
-obligations: O1 says a switch INTO `Hold` lands in the region (the trust base's
-guard-gated switching), O2 says `Hold`'s own flow keeps it — so the region is a sound
-per-mode bookkeeping fact, and the declared invariant is unconditioned at the three
-approach modes.
-
-This leaf supplied the generic pieces the (retired) `Instances/<Name>Declared.lean` leaves
-composed:
-
-* `hddF_multiR_plain` — the `hddF` discharger for the region-carrying postcondition
-  over PLAIN (not guard-gated) left windows: `hddF_multiE`'s window side with
-  `hddF_multiR`'s postcondition side. Both parents exist; this is their combination.
-* `sem_bigSeq_identity` — a list of programs that each admit the identity run from any
-  state in `domR` runs as a whole from such a state to itself (the zero-duration hops).
-* `sem_rightBlock_rate` — the explicit witness for a right-only flow in a mode whose
-  field is constant on one coordinate and zero elsewhere: the coordinate moves linearly
-  for the chosen duration, every other coordinate is untouched. This is the response's
-  REPOSITIONING phase in-kernel — the right-only (left frozen) flow the tool's
-  `checkDynRepo` certifies by route A, written down as a curve rather than taken from
-  Z3, so the composed theorems add NO verdict hypothesis.
-
-New leaf over `EnvelopeChainR` and `UniformFvDischarge`; no upstream edits; the three
-standard axioms.
+Standard axioms only.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChainR
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
@@ -57,7 +32,7 @@ open DL DLCalTiming DLRel Set
 
 variable {n : ℕ}
 
-/-! ## The `hddF` discharger — plain windows, region-carrying postcondition -/
+/-! ## The `hddF` discharger: plain left cycles, region-carrying postcondition -/
 
 /-- `hddF_multiE` with `mvRegionR` in place of `mvValidR`: plain clock-capped windows on
 the left, the region conjunct on the right (regions read only right variables). -/

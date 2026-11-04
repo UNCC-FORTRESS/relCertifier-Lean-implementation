@@ -2,39 +2,38 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The mode-keyed Theorem 3 — composing per-left-mode ∀∃ theorems across left switches
+# Theorem 2 (Composition): per-left-mode ∀∃ steps composed across left mode changes
 
-A benchmark may declare one relational invariant per LEFT mode. Each left mode's window
-family is certified at its own row (`theorem3_faithful_multiF_LR` and friends, one
-`hstep` per left mode); what those per-mode statements leave open is the SWITCH: when the
-left program moves from mode `m'` to a declared successor `m`, the state is unchanged and
-only the left mode variable changes, so the new mode's row must already hold. That is the
-paper's Theorem 3 in its general form:
+A benchmark may declare one relational invariant per left mode (Eq. (9)). Each left mode's
+cycle is certified at its own row (Eq. (12), one `hstep` per left mode, from Theorem 1);
+what those per-mode statements leave open is the mode change: when the left program moves
+from mode `m'` to a declared successor `t`, the state is unchanged and only the left mode
+variable changes, so the new mode's row must already hold. That is Theorem 2 (Composition):
 
-> For every left mode `m_L`, every admissible initial right mode admits an all-successors
-> cover at `φ_inv(m_L)` (hypothesis (i), the per-mode `hstep`); for every declared left
-> transition `m' → m`, `φ_inv(m') ∧ guard_m → φ_inv(m)` (hypothesis (ii), the HANDOFF);
-> then `Φ ≡ ⋀_m (u_L = m → φ_inv(m))` is a ∀∃ invariant: `Φ → [|(L*, R*)⟩⟩ Φ`.
+> If every left mode `m_L` satisfies Eq. (12) at its row `φ_inv(m_L)` (`hstepM`, the
+> per-mode step), and every declared left mode change `m' → t` satisfies the handoff
+> Eq. (13), `φ_inv(m') ∧ domL ∧ guard_t ∧ domR → φ_inv(t)` (`hhand`), then
+> `Φ ≡ ⋀_m (u_L = m → φ_inv(m))` is a ∀∃ invariant: `Φ → [|(L*, R*)⟩⟩ Φ` (Eq. (10)).
 
-This leaf states and proves exactly that. The left program is the LEFT AUTOMATON
-`leftAutomatonBody`, mirroring the paper's `cpsProg` body
-`⋃_m ?(m ∈ next(u_L)) ; ?guard_m(x) ; u_L := m ; {x' = f_m & evolC_m}` — jump, then flow —
-with the per-mode flow being the clock-capped window family the per-mode theorems already
+This file states and proves that (`hstep_modeKeyed`, the composition step, and
+`theorem3_modeKeyed`, the loop). The left program is the left automaton
+`leftAutomatonBody`, the left cycle of Eq. (1),
+`⋃_m ?(m ∈ next(u_L)) ; ?guard_m(x) ; u_L := m ; {x' = f_m & evolC_m}` (select, then flow),
+with the per-mode flow being the clock-capped window family the per-mode theorems
 quantify over, and `u_L` a fresh `Aux` coordinate. The loop invariant is `Φ` plus the
 bookkeeping the per-mode chains carry (`env`, the right-side `mvValid`/`mvRegion`, and
-`u_L ∈ modes`). A MODE-INDEPENDENT invariant is the special case `F m = F` for all `m`, where
-the handoff hypothesis is trivial.
+`u_L ∈ modes`). A mode-independent invariant is the special case `F m = F` for all `m`,
+where the handoff is trivial. The clocked generalization used by the record-level
+theorems is `theorem3_modeKeyed_gen` (`ClockedKeyed.lean`).
 
-The handoff hypothesis is DOMAIN-CONDITIONED — `φ_inv(m') ∧ env ∧ guard_m → φ_inv(m)`
-with `env = domL ∧ domR` the envelope the loop invariant carries at the switch — and has
-two discharge routes: as a Z3 verdict on EXACTLY the query the runner prints
-(`Trusted/Handoff.lean`'s `ihandoffQuery`, bridged by `handoff_of_unsat` — the
-verdict-pin discipline), or in-kernel when the rows are constant-offset bounds or
-nested conjunctions (`linarith`/membership; this is what the seven mode-dependent
-benchmarks use, so their composed theorems add no verdict beyond the per-mode packs).
+The handoff hypothesis is conditioned on the stored domains, `env = domL ∧ domR` (one
+evolution domain per system, Appendix B.2), as Eq. (13) allows, and has two discharge
+routes: as a Z3 verdict on the query the runner prints (`Trusted/Handoff.lean`'s
+`ihandoffQuery`, bridged by `handoff_of_unsat`, Appendix B.4), or in the kernel when the
+rows are constant-offset bounds or nested conjunctions (`linarith`/membership, `FM_mono`).
 
-Trust base unchanged: the only axiom that can enter is `z3_unsat_sound`, and only through
-`handoff_of_unsat` when a handoff is discharged by Z3. New leaf; no upstream edits.
+The only axiom beyond Lean's standard ones that can enter is `z3_unsat_sound`, and only
+through `handoff_of_unsat` when a handoff is discharged by Z3.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChainM
 import RelCertifier.Proofs.Encoding.EnvelopeChainR
@@ -78,8 +77,8 @@ def leftEdge (A : LeftAut n) (ul : Var n) (t : ℕ) : Program (Var n) :=
   Program.seq (Program.test (A.guard t))
     (Program.seq (Program.assign ul (Term.const (t : ℝ))) (A.window t))
 
-/-- The step at left mode `m'`: `?(u_L = m') ; ⋃_{t ∈ next m'} leftEdge t` — the paper's
-`?(m ∈ next(u_L)) ; ?guard_m ; u_L := m ; flow_m`, with `?(u_L = m')` selecting the current
+/-- The step at left mode `m'`: `?(u_L = m') ; ⋃_{t ∈ next m'} leftEdge t`, the left cycle
+of Eq. (1), `?(m ∈ next(u_L)) ; ?guard_m ; u_L := m ; flow_m`, with `?(u_L = m')` selecting the current
 mode exactly as `modeStep` does on the right. -/
 def leftModeStep (A : LeftAut n) (ul : Var n) (m' : ℕ) : Program (Var n) :=
   Program.seq (Program.test (modeIs ul m'))
@@ -103,7 +102,7 @@ theorem sat_bigAnd {fs : List (Formula (Var n))} {ν : State (Var n)} :
   | cons a as ih =>
       simp only [bigAnd, sat_and, ih, List.mem_cons, forall_eq_or_imp]
 
-/-- `Φ ≡ ⋀_{m < nL} (u_L = m → F m)`, the paper's mode-keyed invariant at the host level. -/
+/-- `Φ ≡ ⋀_{m < nL} (u_L = m → F m)`, the mode-dependent invariant of Eq. (9) at the host level. -/
 def modeKeyed (ul : Var n) (F : ℕ → Formula (Var n)) (nL : ℕ) : Formula (Var n) :=
   bigAnd ((List.range nL).map (fun m => Formula.imp (modeIs ul m) (F m)))
 
@@ -204,11 +203,11 @@ theorem encode_psiK (ul : Var n) (ϕ : ℕ → RFormula (Var n)) (F : ℕ → Fo
 
 /-! ## The step: one left-automaton iteration from per-mode steps and handoffs -/
 
-/-- **The composition step.** From (i) a per-left-mode `hstep` at each mode's own row and
-(ii) the DOMAIN-CONDITIONED handoff implication at every declared left transition —
-`φ_inv(m') ∧ env ∧ guard_t → φ_inv(t)`, with `env = domL ∧ domR` the envelope the loop
-invariant carries — one iteration of the left automaton preserves the mode-keyed loop
-invariant against `R*`.
+/-- **The composition step (Theorem 2).** From (i) a per-left-mode step `hstepM` at each
+mode's own row (`F t ∧ env ∧ Bk` answered by `window t` against `R*`) and (ii) the handoff
+implication of Eq. (13) at every declared left mode change, `F m' ∧ env ∧ guard_t → F t`
+(`hhand`, with `env` the stored domains the loop invariant carries), one iteration of the
+left automaton preserves the mode-keyed loop invariant `phiInvK` against `R*`.
 
 The run of `leftAutomatonBody` from `σ` selects the current mode `m'` (`?(u_L = m')`), a
 declared successor `t` whose guard holds at `σ`, sets `u_L := t`, and runs `window t`. The
@@ -353,9 +352,11 @@ theorem hstepMode_multiR (G : SearchGraph (Var n)) (mv : Var n)
 
 /-! ## Theorem 3, mode-keyed -/
 
-/-- **Theorem 3 for a mode-dependent invariant.** `Φ → [|(L*, R*)⟩⟩ Φ` with `L` the left
-automaton (jump-then-flow over the declared transitions) and `Φ` the mode-keyed invariant
-plus bookkeeping. The `hstep` is `hstep_modeKeyed`'s conclusion; the two disjointness
+/-- **The claim for a mode-dependent invariant (Theorems 2 and 3).** `theorem3Form` of
+`psiK` (`Φ → [|(L*, R*)⟩⟩ Φ`, Eq. (10)) is valid, with `L` the left automaton (select, then
+flow, over the declared mode changes), `R` the right automaton, and `Φ` the mode-keyed
+invariant plus bookkeeping, given the encoding identities and a step `hstep` preserving the
+host loop invariant. The `hstep` is `hstep_modeKeyed`'s conclusion; the two disjointness
 side conditions are discharged by `hd_modeKeyed` / `hddF_modeKeyed` below. -/
 theorem theorem3_modeKeyed (A : LeftAut n) (ul : Var n) (G : SearchGraph (Var n)) (mv : Var n)
     (F : ℕ → Formula (Var n)) (ϕ : ℕ → RFormula (Var n))
@@ -602,7 +603,7 @@ theorem hddF_modeKeyed (A : LeftAut n) (G : SearchGraph (Var n)) (a b c : Fin n)
       · intro x hx; exact Or.inr (hdomRv hx)
 
 /-- A left mode's lowered guard reads only left coordinates (the guard mentions no
-`R_`-prefixed name — kernel-checked per instance by `decide`/`simp` on the IR literal). -/
+`R_`-prefixed name, kernel-checked per instance by `decide`/`simp` on the IR literal). -/
 theorem hostGuard_fv_L (vars : List String) (m : Parse.PMode)
     (hfree : Parse.PForm.namesFree "R_" m.guard = true) :
     (hostGuard vars n Side.L m).fv ⊆ range Lv := by
@@ -628,7 +629,7 @@ theorem notMem_bv_rightAutomatonBody (G : SearchGraph (Var n)) (mv : Var n) (x :
   · exact hxR hx'
 
 /-- A conjunction of invariant components implies any conjunction of a sub-multiset of
-them — the handoff for nested rows (a row that drops a conjunct, or an identical row). -/
+them: the handoff for nested rows (a row that drops a conjunct, or an identical row). -/
 theorem FM_mono {g₁ g₂ : Term (Var n)} {gs₁ gs₂ : List (Term (Var n))}
     (hsub : ∀ g ∈ g₂ :: gs₂, g ∈ g₁ :: gs₁) {ν : State (Var n)}
     (h : Formula.sat (FM g₁ gs₁) ν) : Formula.sat (FM g₂ gs₂) ν := by
@@ -639,7 +640,8 @@ theorem FM_mono {g₁ g₂ : Term (Var n)} {gs₁ gs₂ : List (Term (Var n))}
 
 `Trusted/Handoff.lean`'s `ihandoffQuery` is what `relcert --run-verdicts-v2` (and `--handoff`) prints to Z3 for
 each declared left transition. Its host denotation says: no state satisfies the source
-row, the target guard, and the negated target row — i.e. the handoff implication. -/
+row, the source and right domains, the target guard, and the negated target row, i.e. the
+handoff implication of Eq. (13). -/
 
 theorem sat_iinvConj_toHost (comps : List (ITerm n)) (base : IForm n) (σ : State (Var n)) :
     Formula.sat (Handoff.iinvConj comps base).toHost σ ↔
@@ -656,7 +658,7 @@ theorem sat_iinvConj_toHost (comps : List (ITerm n)) (base : IForm n) (σ : Stat
 
 /-- **The handoff implication from a Z3 `unsat` on the runner's query.** `cs`/`ct` are the
 lowered components of the source/target rows, `eL`/`gT` the lowered source evolve and
-target guard, `eR` the lowered right evolve — exactly what `ihandoffQuery` assembles. The
+target guard, `eR` the lowered right evolve, the pieces `ihandoffQuery` assembles. The
 conclusion is the conditioned implication `hstep_modeKeyed` consumes once `env` is
 `eL.toHost ∧ eR.toHost`. -/
 theorem handoff_of_unsat (cs ct : List (ITerm n)) (eL gT eR : IForm n)

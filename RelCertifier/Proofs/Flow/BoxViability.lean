@@ -2,12 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R6 — box viability: the last analytic hypothesis becomes certificates
+# Box viability: existence of runs inside an evolve box from face certificates
 
-The frozen hypothesis contract keeps ONE analytic obligation out of the trusted column:
-right flows don't die early — from any admissible state, solutions of a mode's field
-exist and stay in the evolve box for the piece duration. This file discharges it from
-Z3-checkable face certificates:
+Right flows do not stop early: from any state of the evolve box, solutions of a mode's field
+exist and stay in the box for the piece duration (the existence that the nonblocking clause
+of Assumption 1 and the joint runs of Lemma 3 need). This file derives it from Z3-checkable
+face certificates:
 
 * **face queries** — per evolve-box face `g ≤ 0`, the STRICT boundary query
   `UNSAT(box ∧ g = 0 ∧ ġ ≥ 0)` — literally `flowQueryStrict` with the LEFT FROZEN
@@ -24,10 +24,9 @@ Z3-checkable face certificates:
   `odeField_lipschitzOnWith`), the step staying in the box by the faces argument,
   glued to ANY duration by `chainN`.
 
-Equilibrium-on-a-face modes (the face query legitimately declines — e.g. the legacy
-watertank's `Mid`, `3(1 − 0.04x)` vanishing at the evolve bound) take per-shape closed-form lemmas
-(affine chase; follow-up), or remain a named per-mode single-system hypothesis —
-within the frozen contract either way.
+Equilibrium-on-a-face modes (the face query legitimately declines, e.g. a field
+`3(1 − 0.04x)` vanishing at the evolve bound) take per-shape closed-form lemmas or a named
+per-mode single-system hypothesis instead.
 -/
 import RelCertifier.Proofs.Flow.PicardBridge
 import RelCertifier.Proofs.Flow.StratifiedBarrier
@@ -139,7 +138,7 @@ theorem strict_faces_endpoint {sys : ODESystem V} (hwf : sys.WellFormed)
   exact absurd (ge_of_tendsto hslope (hslopepos.mono fun t h => le_of_lt h))
     (not_le.mpr hLie)
 
-/-- All-times form (apply the endpoint form to every cut). -/
+/-- All-times form (apply the endpoint form to every truncation time). -/
 theorem strict_faces_raw {sys : ODESystem V} (hwf : sys.WellFormed)
     (gs : List (State V → ℝ))
     (hg : ∀ g ∈ gs, Differentiable ℝ g)
@@ -185,9 +184,9 @@ theorem box_viability_step {sys : ODESystem V} {dom : Formula V} (hwf : sys.Well
   exact strict_faces_raw hwf gs hg hbnd hcurve
     (fun g hgm => by rw [hΦ0]; exact hP g hgm) r₀ (Set.right_mem_Icc.mpr hr₀.le)
 
-/-- **Box viability (R6 core).** Strict-face certificates + on-ball Picard data give
-runs of ANY duration from any box point, staying in the box — the single-system
-non-blocking fact the frozen contract requires, now certificate-backed. -/
+/-- **Box viability.** Strict-face certificates + on-ball Picard data give runs of ANY
+duration from any box point, staying in the box: the single-system nonblocking fact, backed
+by certificates. -/
 theorem box_viability {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
     (gs : List (State V → ℝ))
     (hg : ∀ g ∈ gs, Differentiable ℝ g)

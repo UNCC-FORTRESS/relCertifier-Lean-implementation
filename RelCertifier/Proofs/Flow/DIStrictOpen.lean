@@ -20,6 +20,10 @@ Route C (superlevel, `domain ∧ g ≥ 0 ∧ ġ > 0` UNSAT) does NOT preserve `g
 `g = −(t−1)²` along `t' = 1` meets its hypothesis and reaches `0` at `t = 1`. Strict
 components are therefore never certified by route C.
 
+In the paper's terms, route B is the boundary condition of Eq. (17), route C the condition
+of Eq. (18), and route A Eq. (18) without its premise `g ≥ 0`. The paper's components are
+non-strict (Eq. (8)); strict components serve the strict-invariant exhibits of Appendix B.1.
+
 No new axiom; the only trusted leaf stays the Z3 UNSAT verdict in the IO shell.
 -/
 import RelCertifier.Core.FlowCert

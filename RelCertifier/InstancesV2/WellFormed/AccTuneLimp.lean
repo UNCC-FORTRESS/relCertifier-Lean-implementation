@@ -4,10 +4,9 @@ Released under Apache 2.0 license.
 
 # `acc_tune_limp`: Assumption 1 of the right model (`WellFormedR`)
 
-Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1/10` (the 0.1 s decision period; 1 until 2026-10-27).
-The stock controller has two modes since 2026-10-30 (review round 6 removed `COMFORT` and `SPORT`;
-`NORMAL.next = [NORMAL, DISENGAGE]`). `NORMAL` (`20 ≤ v ≤ 40`, `v' = (30 − v)/2`) and
-`DISENGAGE` (`v < 20`, `v' = −v/10`; `−v/2` until 2026-10-28) are contractions whose guard sets are forward invariant
+Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1/10` (the 0.1 s decision period).
+The stock controller has two modes (`NORMAL.next = [NORMAL, DISENGAGE]`). `NORMAL` (`20 ≤ v ≤ 40`, `v' = (30 − v)/2`) and
+`DISENGAGE` (`v < 20`, `v' = −v/10`) are contractions whose guard sets are forward invariant
 (style (a)). Existence: the explicit exponential. Z3-free.
 -/
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
@@ -89,7 +88,7 @@ noncomputable def modeW (q : ℕ) : RMode (Var 3) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+right mode `t`, lowered exactly as the left modes' guards are): the right switches into
 `t` only where `t`'s guard holds. -/
 noncomputable def edgeW (s t : ℕ) : REdge (Var 3) :=
   { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }

@@ -22,8 +22,7 @@ The right model is the extruder's automatic start-up sequence: the melt temperat
   guard's recipe range; every step declares every step, and the four guards cover
   `130 ≤ T ≤ 300` (`T < 186`, `[186, 206]`, `(206, 226]`, `T > 226`), so the end state of any run
   is in one of them.
-Z3-free; modelled on `ReactorFeedWireless.lean` (dimension 2, no padding coordinate) and on the
-guard-range argument of `FuelcellChpDos.lean` (in git history since 2026-10-30, batch 11).
+Z3-free; modelled on `ReactorFeedWireless.lean` (dimension 2, no padding coordinate).
 -/
 
 import RelCertifier.Trusted.Parse

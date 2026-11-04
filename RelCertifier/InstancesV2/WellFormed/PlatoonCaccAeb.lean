@@ -4,8 +4,8 @@ Released under Apache 2.0 license.
 
 # The CACC/AEB platoon follower along its own flow (Assumption 1 support)
 
-Shared by `WellFormed/PlatoonLinkloss` and `WellFormed/PlatoonLatency`, whose right models are
-the same follower: gap `g` (coordinate `jx`), range rate `r` (coordinate `jy`), every other
+Used by `WellFormed/PlatoonProfiles`, whose right model is this follower (its single mode
+`CACC`): gap `g` (coordinate `jx`), range rate `r` (coordinate `jy`), every other
 right field zero, evolve box `0 ≤ g ≤ 60`, `|r| ≤ 10`.
 
 * `CACC`: `g' = r`, `r' = −(1/8)(g − 20) − (3/4) r` (poles `1/4`, `1/2`). The projected stop
@@ -22,9 +22,7 @@ right field zero, evolve box `0 ≤ g ≤ 60`, `|r| ≤ 10`.
 Stated over an abstract right field `fR : Fin n → Term (Var n)` and domain `dom` whose
 evaluations are hypotheses (`CaccField`, `AebField`, a box-to-domain map); independent of
 any IR literal. Z3-free; the closed-form combination lemma is the one of
-`WellFormed/AccSpoofLag`, the link solution and its aux bounds those of
-`WellFormed/Platoon3Link` at set point 20 (the gap floor re-proved for the wider
-`w ≥ 0` start).
+`WellFormed/AccSpoofLag`.
 -/
 import RelCertifier.Proofs.Encoding.WellFormedR
 

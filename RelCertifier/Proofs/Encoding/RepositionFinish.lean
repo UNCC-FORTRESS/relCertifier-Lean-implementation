@@ -1,14 +1,15 @@
 /-
-GAP 1 finish — the transition-faithful **multi-flow** Theorem 3 (`rvalid` form).
+# The transition-faithful multi-flow assembly (`rvalid` form)
 
-`theorem3_faithful` (single-body hstep, `relational_loop_faithful`) covers single-flow-per-residence
-covers: each right mode covers the whole left residence. Genuine multi-flow (the right switches modes
+`theorem3_faithful` (single-body hstep, `relational_loop_faithful`) handles covers with one flow
+per left cycle: one right mode covers the whole left cycle. Genuine multi-flow (the right switches modes
 *mid*-residence) produces a **star-right** hstep — one left residence ↔ a mode-switching star — which
 `relational_loop_multi` (`faModal_MULTI`, star-right) consumes. `star (star R) = star R`, so the
-`R_real` is unchanged: `faShape (star L)(star R) ψ`, the same Theorem-3 shape.
+`R_real` is unchanged: `faShape (star L)(star R) ψ`, the shape of Theorem 3's conclusion.
 
 This file is the mirror of `theorem3_faithful` over `relational_loop_multi`, taking the star-right
-hstep assembled by `hstep_assembled_multi` (`BridgeReposition`).
+hstep assembled by `hstep_assembled_multi` (`BridgeReposition`). The invariant is a single
+component `invLe g`; the generic Theorem 3 of Appendix B.1 is `theorem3_of_coverX`.
 -/
 import RelCertifier.Proofs.Encoding.BridgeReposition
 import RelCertifier.Proofs.Encoding.BridgeFinish
@@ -19,7 +20,7 @@ open DL DLCalTiming DLRel Function
 
 variable {n : ℕ}
 
-/-- **Transition-faithful multi-flow Theorem 3, `rvalid` form.** With mode-validity carried in the
+/-- **Transition-faithful multi-flow ∀∃ theorem, `rvalid` form.** With mode-validity carried in the
 invariant, the **star-right** loop step (`hstep`, one residence ↔ a mode-switching star of declared
 `G`-edges — the genuine multi-flow) yields the ∀∃ refinement modality over the real automaton
 `R_real G mv = star (rightAutomatonBody G mv)`, valid at every bi-state. Mirror of `theorem3_faithful`
@@ -61,7 +62,7 @@ theorem theorem3_faithful_multi (G : SearchGraph (Var n)) (mv : Var n) (g : Term
     (by rw [hencψ]; exact hInvν)
     (fun σ hσ => by rw [hencψ] at hσ ⊢; exact hstep σ hσ) hddF hbdg
 
-/-- **The reposition-inclusive multi Theorem 3, modulo the emit `Hmulti`.** Chains the assembled
+/-- **The multi-flow ∀∃ theorem with right-only segments, modulo the emit `Hmulti`.** Chains the assembled
 star-right hstep (`hstep_assembled_multi`) into `theorem3_faithful_multi`. `Hmulti` is the emit
 boundary: per current mode `q`, the right's genuine-multi-flow response — a `segs` mode-switch
 sequence (each seg a declared `G`-edge; a **flow** a real ODE, a **reposition** the frozen-left
@@ -69,8 +70,8 @@ right-only flow) and the `bigSeq`-response `faModal` over `invLe g` (from `multi
 + `clockLift_collapse` for flow segments, `dynreposition_faModal` for reposition segments —
 the per-segment coupling **dispatch**). NO `jointOK` gate: the segments are
 flow-or-reposition, and the switch of each is still a declared `G`-edge (`faithful_rights_bridge`,
-`EdgeTargetsValid`). This puts reposition-using covers (Hold, story, rover, watertank, rung2) in
-scope of the transition-faithful ∀∃ modality. -/
+`EdgeTargetsValid`). This puts covers with right-only segments in scope of the
+transition-faithful ∀∃ modality. -/
 theorem theorem3_faithful_multi_of_emit (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n)) (hg : mv ∉ g.fv)
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)

@@ -2,14 +2,14 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S3 — bounded-time box viability (growth faces with entry budgets)
+# Bounded-time box viability (growth faces with entry budgets)
 
-R6's census: only 9/126 modes pass the ALL-strict face gate — most evolve boxes have a
+Few modes pass the all-strict face condition of `BoxViability`: most evolve boxes have a
 face the field approaches tangentially or reaches at equilibrium, where strict inflow
 (`ġ < 0` on the face) legitimately fails. But the chain never needs unbounded time:
-every window piece is clock-capped at `dt`. Bounded-time viability rescues those modes:
+every window piece is clock-capped at `dt`. Bounded-time viability covers those modes:
 
-* **strict faces** keep R6's first-exit slope contradiction;
+* **strict faces** keep the first-exit slope contradiction of `BoxViability`;
 * **growth faces** get a box-conditioned Lie BOUND `ġ ≤ M` (`M ≥ 0` allowed) and an
   ENTRY BUDGET `g(start) + M·T < 0`: within time `T` the face value cannot climb to
   `0`, so the first exit can never happen through a growth face.
@@ -266,7 +266,7 @@ theorem growth_along {sys : ODESystem V} (hwf : sys.WellFormed)
   simp only [mul_zero, sub_zero] at this
   linarith
 
-/-- **Bounded-time box viability (S3 core).** Strict + growth face certificates and an
+/-- **Bounded-time box viability.** Strict + growth face certificates and an
 entry budget give a run of ANY duration `T` within the budget horizon, staying in the
 box throughout — a SINGLE Picard step per piece (window pieces are clock-capped, so
 `T ≤ r₀` covers the chain's needs; longer horizons re-anchor with a fresh budget). -/

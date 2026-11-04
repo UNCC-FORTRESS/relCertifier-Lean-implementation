@@ -2,16 +2,19 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The progress pin: an emitted certificate's verdict, read at the host level
+# The reposition pin: an emitted reposition certificate's verdict, read at the host level
 
-`progressVerd_one` (and `progressVerd_one_down` for a downward stage) turns `ProgressVerd` of a
-single-stage certificate (`progressVerd_two` two upward stages; `progressVerd_two_unpack` any
-two-stage certificate, read by `progressVerd_two_ud` / `_du` / `_dd` for the other directions) (the runner's
-queries all `unsat`) into the facts `repoProgress_one` consumes, stated over the host
-denotations the instances use (`hostEvolve`, `hostGuard`, the checked cuts as `cutPairsX`,
-the invariant components as `hostComps`, the field as `hostDyn`): the rate on the region, and
-the landing on the crossing line and at an already-crossed start. The rebuild's `Option`
-binds are unpacked symbolically (as `modalVerdDynX_of_queries` does).
+A reposition certificate (Definition 7) is established by a stage list (Section 6.1), one stage
+or two, each a variable, a threshold and a rate, over the region of the mode facts and the
+invariant row. `progressVerd_one` (and `progressVerd_one_down` for a downward stage) turns
+`ProgressVerd` of a single-stage certificate (`progressVerd_two` two upward stages;
+`progressVerd_two_unpack` any two-stage certificate, read by `progressVerd_two_ud` / `_du` /
+`_dd` for the other directions) (the runner's queries all `unsat`) into the facts
+`repoProgress_one` consumes, stated over the host denotations the instances use (`hostEvolve`,
+`hostGuard`, the mode facts as `cutPairsX`, the invariant components as `hostComps`, the field
+as `hostDyn`): the rate on the region, and the landing on the crossing line and at an
+already-crossed start (for two stages also the keep of the first stage's crossing). The
+rebuild's `Option` binds are unpacked symbolically (as `modalVerdDynX_of_queries` does).
 -/
 import RelCertifier.VerdictsV2.ProgressX
 import RelCertifier.Verdicts.GenericPins

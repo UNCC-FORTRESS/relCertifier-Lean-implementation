@@ -3,17 +3,15 @@ Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
 # The modal verdict queries at strict rows, rebuilt at the SMT-IR level, pinned
-(extension `strict-atoms`)
 
 `modalVerdXQueriesS` is `modalVerdXQueries` with the row's strictness mask
 (`Oracle.invStrictFlags`, in the cover's strata order): a strict component's group is
-[route A, route B] (route C does not preserve `< 0`), every other group is the existing
-[A, B, C]. Each printed query is the existing string for that component (same component,
+[route A, route B] (route C, Eq. (18), does not preserve `< 0`), every other group is the
+existing [A, B, C]. Each printed query is the existing string for that component (same component,
 same fields, same closure-narrowed domain). `modalVerdXS_of_queries` pins the rebuilt
 queries to `modalVerdXS`; `modalVerdXQueriesS_eq_of_allFalse`: without strict atoms the
-groups are the existing ones.
-
-New leaf; no upstream edits.
+groups are the existing ones. The strict variants serve the two strict-invariant exhibits
+(Appendix B.1).
 -/
 import RelCertifier.VerdictsV2.ModalX
 import RelCertifier.Proofs.Encoding.StrictCouple

@@ -2,44 +2,31 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The clocked top theorem (task C, left): ε in the statement, `hbudget` retired
+# The clocked right automaton, and the settling chain over clocked left segments
 
-`theorem3_faithful_settling` states its ∀-side over the RAW left ode star — unclocked, so
-single flows of arbitrary duration exist and the physical-collapse bridge needs the
-external budget hypothesis `hbudgetAll` (unsatisfiable for autonomous benchmarks unless
-the caller smuggles a clock into `domL` — a vacuity trap).
+This file defines the clocked right automaton `rightAutomatonBodyC` (`modeStepC`): each mode
+step selects the stored mode, runs its flow as a clocked segment (reset, flow with `tg' = 1`,
+test `tg ≤ dt`), then takes a declared edge whose guard holds. It is the right program of the
+theorems of Appendix B.1 (the right clock of Appendix B.2). `sem_clockedSeg_of_flow` dresses an
+unclocked witness flow with the clock.
 
-This file re-cuts the theorem at the joint the ∀∃ CALCULUS intends (CSF'25): the
-per-segment obligation `inv → [|(one clocked left segment, R)⟩⟩ inv` extends to
-`inv → [|(L*, R*)⟩⟩ inv` by the LOOP RULE — `faModal_LOCK` (dL-caltiming), no counting,
-no budget. The ∀-side is the star of `clockedSeg (leftBlock fL) domL tg dt` — reset,
-clocked flow, `?(tg ≤ dt)` — so segment boundedness is SEMANTIC and `dt = ε_R/λ` finally
-appears in the statement as the cadence it denotes. ε_L-cadenced missions are compositions
-of `dt`-segments, hence contained in the star; nothing is lost by the finer granularity.
-
-Polarity note (why only the LEFT carries a clock here): the left is the ∀-side — the
-adversary must be CAPPED, and a cap needs a clock and a reset. The right is the ∃-side —
-the witness CHOOSES its duration (`GuardSettlingB` constructs it on exactly `[0, dt]`), so
-a clock there adds nothing to this theorem; giving the right its ε_R syntactically is the
-separate claim-fidelity upgrade (task C, right).
-
-Hypotheses relative to `theorem3_faithful_settling`: `hbudgetAll`, `htgb`, `htgr`, `htgϕ`,
-`htgR`, `htgφ`, `hdMULTI`, and `k` all GONE; what remains is the settling hypothesis
-itself, the invariant encoding, and the two variable-hygiene facts (task B's targets). 
-RETIRED (R7 decision (b), 2026-07-30). The cadenced chain has no live consumer: every
-suite_v2 benchmark carries the modal form instead (`InstancesV2/BatteryV2.lean`,
-`docs/CERTIFICATION-CHECK.md`), and the settling battery that used this chain was retired
-with the legacy suite (record: `docs/history/READING-GUIDE.md` §4–5). Kept compiled as part of
-the generic development; the modal chain (`EnvelopeChain*`) is its replacement.
+It also holds the settling chain, whose ∀-side is the star of the clocked left segment
+`clockedSeg (leftBlock fL) domL tg dt`: the per-segment obligation
+`inv → [|(one clocked left segment, R)⟩⟩ inv` extends to `inv → [|(L*, R*)⟩⟩ inv` by the loop rule
+`faModal_LOCK` (dL-caltiming), with no budget hypothesis (`theorem3_faithful_settling_clocked`,
+`_cadenced`, `_cadenced'`), and the star form of the loop rule (`faModal_LOCK_starR`). The
+record-level theorems of Appendix B.1 do not use the settling chain; it is kept compiled as part
+of the generic development (`docs/CERTIFICATION-CHECK.md`).
 -/
 import RelCertifier.Proofs.Soundness.GuardThreaded
 
 namespace RelCertifier
 open DL DLCalTiming DLRel Function Set
 
-/-- **Theorem 3, settling, clocked ∀-side.** `rvalid` of the ∀∃ modality whose left star
-ranges over clocked `dt`-segments; from `GuardSettlingH` by the per-segment coupling and
-the loop rule alone. -/
+/-- **Settling claim, clocked ∀-side.** From the settling hypothesis `GuardSettlingH`, the box
+fact `GBoxAll`, the invariant encoding and variable disjointness, `theorem3Form` over the clocked
+left segment `clockedSeg (leftBlock fL) domL tg dt` and the unclocked `rightAutomatonBody G mv`,
+with invariant `ψpostG`, is valid; by the per-segment coupling and the loop rule alone. -/
 theorem theorem3_faithful_settling_clocked (G : SearchGraph (Var n))
     (Gd : ℕ → Formula (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg : Var n)
@@ -85,17 +72,15 @@ theorem theorem3_faithful_settling_clocked (G : SearchGraph (Var n))
         (hHcoupleG_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared hH hgbox σ hσ))
     (fun _ h => h)
 
-/-! ## Task C, right: the ε-cadenced right automaton
+/-! ## The ε-cadenced right automaton
 
 The unclocked `rightAutomatonBody` admits response segments of ANY duration — a strict
 superset of the physical R's cadenced behaviors. On the ∃-side, permissiveness WEAKENS
 the claim: "∃ response in the superset" does not certify that the response is one the
-coarse model can execute. The witnesses the settling machinery constructs run exactly
-`dt` — legal — but the statement never said so. `rightAutomatonBodyC` says so: each mode
-step's flow is a clocked segment (reset, `clk`-ode, `?(tg ≤ dt)`) — the SAME clock as the
-left (the sides strictly alternate, so one clock serves both; no new coordinate, no new
-freshness). The witness is dressed with the clock ONCE here (`Φc t = Φ t [tg ↦ t]`); the
-per-shape discharge lemmas are untouched. -/
+right model can execute. `rightAutomatonBodyC` restricts the responses: each mode step's
+flow is a clocked segment (reset, `clk`-ode, `?(tg ≤ dt)`) on its own clock argument (the
+record-level theorems use the right clock `(Aux, d)`, distinct from the left clock `(Aux, b)`).
+The witness is dressed with the clock once here (`Φc t = Φ t [tg ↦ t]`). -/
 
 /-- `modeStep` with the flow as a clocked `≤ dt` segment. -/
 def modeStepC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ) (q : ℕ)
@@ -105,7 +90,7 @@ def modeStepC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ) (q : ℕ)
       (bigChoiceP ((G.edgesFrom q).map (fun e =>
         Program.seq (Program.test e.guard) (Program.assign mv (Term.const (e.tgt : ℝ)))))))
 
-/-- The ε-cadenced right automaton body. -/
+/-- The ε-cadenced right automaton body: a choice over the declared modes `q` of `modeStepC`. -/
 def rightAutomatonBodyC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ) :
     Program (Var n) :=
   bigChoiceP ((List.range G.modes.length).filterMap (fun q =>
@@ -364,9 +349,10 @@ theorem hHcoupleGC_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → For
     (Function.update σ' tg 0) hg htgg hmvLclk hmode hsys hdom hqlen hdt htgbR htgfR
     htgdom hset hgboxGd (hfrzGd q) hmvGd htrGd hself hsucc hmodeAll hωmv hωgd
 
-/-- **Theorem 3, settling, ε-CADENCED BOTH SIDES.** The ∀-side left star ranges over
-clocked `dt`-segments; the ∃-side right star over clocked `dt`-responses — the statement
-finally certifies that the responses are cadence-legal. -/
+/-- **Settling claim, clocked on both sides.** As `theorem3_faithful_settling_clocked`, with the
+right automaton clocked (`rightAutomatonBodyC G mv tr dt`, a separate clock `tr` fresh for the
+invariant, the right flows and guards): the left star ranges over clocked `dt`-segments and the
+right star over clocked `dt`-responses. -/
 theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
     (Gd : ℕ → Formula (Var n)) (mv : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg tr : Var n)
@@ -424,10 +410,9 @@ theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
 `faModal_LOCK` instantiated at `Q := body` demands LOCKSTEP — one right body step per
 left segment. That is a witness discipline, not the calculus: the ∀∃ loop rule is
 `inv → [|(L, R*)⟩⟩ inv ⟹ inv → [|(L*, R*)⟩⟩ inv`, allowing arbitrarily many right
-steps per left segment (the certifier's own route search uses solo-hops). Instantiating
-`LOCK` at `Q := star body` and collapsing `star (star body) = star body` gives exactly
-that rule. The settling witnesses are single-hop and embed by ∃-weakening; discharges
-needing multi-hop responses now have a slot to feed. -/
+steps per left segment. Instantiating `LOCK` at `Q := star body` and collapsing
+`star (star body) = star body` gives exactly that rule. The settling witnesses are single-hop
+and embed by ∃-weakening. -/
 
 /-- `⟦(α*)*⟧ = ⟦α*⟧` (reflexive-transitive closure is idempotent). -/
 theorem sem_star_star (α : Program (Var n)) (ν μ : State (Var n)) :
@@ -457,7 +442,7 @@ theorem faModal_LOCK_starR (ρ : Var n ≃ Var n) (P R : Program (Var n))
   rw [rename_star] at hsem ⊢
   exact (sem_star_star _ _ _).mp (by rwa [rename_star] at hsem)
 
-/-- **Theorem 3, settling, ε-cadenced, calculus-faithful coupling.** Identical to
+/-- **Settling claim, clocked on both sides, star coupling.** Identical to
 `theorem3_faithful_settling_cadenced`, but the per-segment obligation passes through the
 `R*` slot — the settling witness (one body step) enters by ∃-weakening, and multi-hop
 responses fit the same slot. -/

@@ -2,15 +2,16 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Progress verdicts: the queries, rebuilt, and their meaning
+# Reposition-progress verdicts: the queries, rebuilt, and their meaning
 
-`progressQueriesOf` rebuilds the progress certificate's queries from the emitted IR, the
-extended cut certificate and the emitted certificate (`ProgressE`), with the region the tool
-uses (`leftFacts ∧ rightFacts`: the left evolve domain, the left kept atoms, the invariant row,
-pre-joint the left guard; the right evolve domain and the right kept atoms). The runner prints
-them and owes one `unsat` per query. `rate_of_unsat`, `keep_of_unsat`, `line_of_unsat` and
-`start_of_unsat` read an `unsat` answer as the semantic fact the progress lemmas
-(`Proofs/Encoding/Progress.lean`) consume, at the host denotation of the region.
+`progressQueriesOf` rebuilds the queries of a reposition certificate (Definition 7, established
+by a stage list, Section 6.1) from the emitted IR, the extended mode-fact certificate and the
+emitted certificate (`ProgressE`), with the region the tool uses (`leftFacts ∧ rightFacts`: the
+left evolve domain, the left kept atoms, the invariant row, pre-joint the left guard; the right
+evolve domain and the right kept atoms), the region ρ of Section 6.1. The runner prints them and
+owes one `unsat` per query. `rate_of_unsat`, `keep_of_unsat` (each with a `_down` mirror) and
+`land_of_unsat` read an `unsat` answer as the semantic fact (rate, keep, landing) the progress
+lemmas (`Proofs/Encoding/Progress.lean`) consume, at the host denotation of the region.
 -/
 import RelCertifier.VerdictsV2.ModalDynX
 import RelCertifier.Trusted.ProgressEmit
@@ -146,7 +147,8 @@ theorem rate_of_unsat_down (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Va
   refine ⟨⟨⟨hR, hC⟩, (sat_before_down v st hup y).mpr hb⟩, ?_⟩
   simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hlt
 
-/-- **keep** (upward): at or below the threshold the field is nonnegative. -/
+/-- **keep** (upward): on the region, under the earlier crossed facts and at or below the
+threshold, the field is nonnegative. -/
 theorem keep_of_unsat (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n × ProgressStageE))
     (i : ℕ) (v : Var n) (st : ProgressStageE) (hup : st.up = true)
     (hz : z3solve (keepQuery R fR vs i v st).toHost = Verdict.unsat) :
@@ -182,7 +184,8 @@ theorem keep_of_unsat_down (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Va
   · simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hlt
 
 
-/-- The landing conjunction: some exit's guard holds. -/
+/-- **landing**: wherever `base` holds, some guard of the list holds (the landing obligation:
+a retained successor is enabled). -/
 theorem land_of_unsat (base : IForm n) (guards : List (IForm n))
     (hz : z3solve (guards.foldl (fun d g => IForm.and d (IForm.neg g)) base).toHost
       = Verdict.unsat) :

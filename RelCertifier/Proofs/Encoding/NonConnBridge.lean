@@ -2,12 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The non-connection bridge — the runner's two queries ARE Definition 6's checks
+# The non-connection bridge: the runner's two queries are Definition 6's checks
 
 `Trusted/NonConnQuery.lean` builds, at the SMT-IR level, the two pruning queries the
 certifier sends Z3 for a declared right edge `mR → mSuc` with a strict scalar successor
 guard `{g > 0}`, or a conjunction whose leading conjunct is one (`g > 0` is then that
-conjunct, which the guard implies; paper Section 4.2). `Checker/NonConn.lean` proves the
+conjunct, which the guard implies; the pruning of Section 6.1). `Checker/NonConn.lean` proves the
 soundness of Definition 6 (`nonconn_sound`): if `sourceCheck` and `barrierCheck` of a `NonConnObligation` are both
 unsatisfiable, no state the source mode's right flow reaches satisfies the successor
 guard. This leaf ties the two together, once, generically:
@@ -17,7 +17,7 @@ guard. This leaf ties the two together, once, generically:
 * `hostObligation` — the `NonConnObligation` the lowered pieces denote: `g` is the
   guard's safe-side term, `sysR` is the right field with the left frozen at `λ = 1`
   (`jointSys 0 fR 1` — the field `nonconn_sound`'s `Lie` is taken along), `domain` and
-  `source` carry the source mode's checked cut exactly as the queries do;
+  `source` carry the source mode's mode fact (Definition 2) exactly as the queries do;
 * `sourceCheck_iff` / `barrierCheck_iff` — the printed queries' host denotations are
   satisfaction-equivalent to the obligation's two checks (the only difference is the
   `ℚ`-literal zero against `Term.const 0`, and `lieDeriv g 0 fR 1` against
@@ -28,12 +28,10 @@ guard. This leaf ties the two together, once, generically:
 How the paper's route uses it: the bridge instances do not consume this lemma directly. They
 take the same two queries per pruned edge as the barrier of each pruned exit
 (`Proofs/Encoding/Emitted/Barrier.lean`, `Emitted/Anchor.lean`: `nonconn_entry`,
-`guard_pos_of_barrier`), 88 queries for the suite's 44 pruned edges. This file is the
-standalone statement of Definition 6's soundness for one edge, the kernel-checked content of
-the certificate the tool emits (`CoverEmitE.pruned`); its per-benchmark instance was part of
-the archived standalone route (commit 29663d8).
+`guard_pos_of_barrier`). This file is the standalone statement of Definition 6's soundness for
+one edge, the kernel-checked content of the certificate the tool emits (`CoverEmitE.pruned`).
 
-New leaf; the three standard axioms plus `z3_unsat_sound` where the verdicts enter.
+Axioms: the three standard ones plus `z3_unsat_sound` where the verdicts enter.
 -/
 import RelCertifier.Trusted.NonConnQuery
 import RelCertifier.Trusted.Oracle
@@ -46,11 +44,11 @@ variable {n : ℕ}
 
 /-! ## The queries, explicitly -/
 
-/-- The `sourceCheck` query the builder returns: `(source ∧ cut) ∧ g > 0`. -/
+/-- The `sourceCheck` query the builder returns: `(source ∧ cutR) ∧ g > 0`, `cutR` the mode fact. -/
 def srcQuery (gI : ITerm n) (srcI cutR : IForm n) : IForm n :=
   IForm.and (IForm.and srcI cutR) (IForm.cmp .gt gI (.rat 0))
 
-/-- The `barrierCheck` query the builder returns: `(evolve ∧ cut) ∧ g = 0 ∧ Lie_R g ≥ 0`. -/
+/-- The `barrierCheck` query the builder returns: `(evolve ∧ cutR) ∧ g = 0 ∧ Lie_R g ≥ 0`. -/
 def barQuery (gI : ITerm n) (domI cutR : IForm n) (fI : Fin n → ITerm n) : IForm n :=
   IForm.and (IForm.and domI cutR) (IForm.and (IForm.cmp .eq gI (.rat 0))
     (IForm.cmp .ge (ilieDeriv gI (fun _ => .rat 0) fI (.rat 1)) (.rat 0)))
@@ -115,8 +113,8 @@ theorem barrierCheck_iff (gI : ITerm n) (domI srcI cutR : IForm n)
 
 /-- **Definition 6's conclusion from the runner's two verdicts.** If Z3 answers `unsat` on the printed
 source and barrier queries of a pruned edge, then from every state in the source region
-(the source mode's guard, evolve and checked cut) no state reached by the source mode's
-right flow — the left frozen, inside the (cut-narrowed) evolve domain — satisfies the
+(the source mode's guard, evolve and mode fact) no state reached by the source mode's
+right flow (the left frozen, inside the evolve domain narrowed by the mode fact) satisfies the
 successor guard `g > 0`. -/
 theorem nonconn_of_unsat (gI : ITerm n) (domI srcI cutR : IForm n) (fI : Fin n → ITerm n)
     (hsrc : z3solve (srcQuery gI srcI cutR).toHost = Verdict.unsat)

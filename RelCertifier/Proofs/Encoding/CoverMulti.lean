@@ -2,12 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Multi-component covers (R5): `CoverCert` and `check_sound`, list-generalized
+# Multi-component covers: `CoverCert` and `check_sound`, list-generalized
 
 The checker layer (`Covered`, `RightReach`, `decideCovered`) is invariant-free; only the
 certificate bundle and the preservation theorems mention the invariant term. This file
-mirrors them for COMPONENT LISTS — the tool's real invariants (`invComponents`, up to 21
-conjuncts) — with the segment fields discharged by the stratified multi-barrier layer
+mirrors them for COMPONENT LISTS (the conjunct form of Eq. (8), `invComponents`), with the
+segment fields discharged by the stratified multi-barrier layer
 (`SegPreservesAllOn`, `segPresAll_from_strata_verdicts`), matching the stratified
 `checkSeg`/`checkDynRepo` queries exactly.
 
@@ -28,8 +28,8 @@ def InvAllHolds (gs : List (Term (Var n))) (ω : State (Var n)) : Prop :=
   ∀ g ∈ gs, Term.eval g ω ≤ 0
 
 /-- The multi-component certificate bundle — `CoverCert` with the invariant a list.
-Joint and dynamic-reposition segments carry `SegPreservesAllOn` (discharged by the
-stratified multi-barrier verdicts). There is no static reposition field. -/
+Joint and right-only flow certificates (Definition 5) carry `SegPreservesAllOn` (discharged by
+the stratified multi-barrier verdicts, Lemma 2). -/
 structure CoverCertM (G : SearchGraph (Var n)) (gs : List (Term (Var n))) : Prop where
   segPres : ∀ q m, G.modeAt q = some m → m.jointOK = true →
     SegPreservesAllOn gs m.sys m.dom

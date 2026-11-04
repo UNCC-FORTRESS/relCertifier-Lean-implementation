@@ -1,40 +1,41 @@
 /-
-# Tier B — the guard-threaded discharge (margin class)
+# The guard-threaded settling route (margin class)
 
-Upgrades the guard-capped growing benchmarks from CARRIED staying to DISCHARGED staying.
+A single-left-flow route to the encoded ∀∃ invariance in which the right model's staying
+obligation is discharged rather than carried. Its `rvalid` theorem is not used by the theorems
+of Theorem 3's mechanization (Appendix B.1, `theorem3_of_coverX` and its record-level
+instances); its definitions are reused elsewhere (`Checker/WellFormedChecker.lean`,
+`CutChannel.lean`).
 
-The obstruction (UniformEvol.lean): `WellFormedFlowB` quantifies `∀ base ∈ evolShared`, and a
-growing mode exits from bases in the MARGIN BAND (above its guard cap, below the envelope
-boundary) — states the settling design makes unreachable, but which the `starInvF` invariant
-("state ∈ shared domain") cannot exclude. Fix: thread the GUARD through the star invariant —
+The obstruction it removes (`UniformEvol.lean`): `WellFormedFlowB` quantifies over every base
+in the shared domain, and a growing mode exits from bases in the margin band (above its guard
+cap, below the envelope boundary), states the settling design makes unreachable but the
+`starInvF` invariant ("state in the shared domain") cannot exclude. The fix threads the guard
+through the star invariant:
 
-* `StarInModeGuard` / `inModeGuardF` / `starInvGF` — the invariant's third conjunct becomes
-  "the state satisfies the guard `Gd q` of the mode `q` it is in" (`Gd : ℕ → Formula` is the
-  guard map; the Lean-side `RMode` carries no guard field, so it is threaded as a parameter).
-* `GuardSettlingB` — the guard-based staying-and-landing obligation, PER MODE: from every base
-  in the mode's guard region, the `dt`-flow exists, stays in the shared envelope, and its
-  endpoint lands in the guard of the mode itself or of a declared successor. This is exactly
-  the settling-guard geometry (margin > rate·dt; guards tile the one-step reachable band).
-* `starStep_wrapG` / `starStep_settling` / `landing_step_settling_clocked` — the per-segment
-  landing chain re-derived carrying the guard fact (mirrors of the `starInvF` versions).
-* `clocked_residence_physical_gen` — the clocked→physical residence chain, stated GENERIC in
-  the threaded invariant (the underlying `multiseg_clocked`/`clockLift_collapse`/`faModal_MULTI`
-  never depended on `starInvF`), instantiated at `starInvGF`.
-* `theorem3_faithful_settling` — the shipped `rvalid (theorem3Form …)` on the guard-threaded
-  foundation, via `ψpostG` (`encode`s exactly to `starInvGF`).
-* `GuardSettlingB_of_margin_const` — **the margin-class discharge**: a single-coordinate
-  constant-rate mode with a guard band `[a, cap]`, envelope `[lo, hi]`, margin `cap + c·dt ≤ hi`,
-  and a successor guard band covering `[a + c·dt, cap + c·dt]` satisfies `GuardSettlingB` BY
-  CONSTRUCTION (explicit affine witness + `linarith`) — the exact geometry the certifier-verified
-  settling discipline enforces.
-* `GuardSettlingB_of_contract` — the contractive analog (equilibrium inside the OWN guard band:
-  the flow self-lands; exponential witness reused from `UniformEvol.lean`).
+* `StarInModeGuard` / `inModeGuardF` / `starInvGF`: the invariant's third conjunct says that
+  the state satisfies the guard `Gd q` of the mode `q` it is in (`Gd : ℕ → Formula` is the
+  guard map, a parameter since `RMode` carries no guard field).
+* `GuardSettlingB`: the per-mode staying-and-landing obligation. From every base in the mode's
+  guard, some `dt`-flow exists, stays in the shared domain, and ends in the guard of the mode
+  itself or of a retained successor (a one-witness form of the nonblocking and complete clauses
+  of Assumption 1).
+* `starStep_wrapG` / `starStep_settling` / `landing_step_settling_clocked`: the per-segment
+  landing chain carrying the guard fact (mirrors of the `starInvF` versions).
+* `clocked_residence_physical_gen`: the clocked-to-physical residence chain, stated generic in
+  the threaded invariant (`multiseg_clocked`/`clockLift_collapse`/`faModal_MULTI` never
+  depended on `starInvF`), instantiated at `starInvGF`.
+* `theorem3_faithful_settling`: `rvalid (theorem3Form …)` with the guard-threaded invariant,
+  via `ψpostG` (which `encode`s to `starInvGF`).
+* `GuardSettlingB_of_margin_const` (and `_two`): a single-coordinate constant-rate mode with
+  guard band `[a, cap]`, envelope `[lo, hi]`, margin `cap + c·dt ≤ hi`, and a self-or-successor
+  guard band covering the one-step image satisfies `GuardSettlingB` (explicit affine witness).
+* `GuardSettlingB_of_contract`: the contractive analog (equilibrium inside the mode's own guard
+  band: the flow self-lands; exponential witness as in `UniformEvol.lean`).
 
-Honest scope: the precondition strengthens from "initial state in some mode's domain" to
-"initial state in some mode's GUARD" (`inModeGuardR`) — true of every well-formed benchmark
-config (runs start in a mode's operating region). Benchmarks whose guards do not cap every
-envelope-bounded coordinate (e.g. rover `px`) remain on the carried-H path (`UniformEvol.lean`);
-non-settling systems remain on the per-mode-domain path. Non-breaking throughout.
+Scope: the precondition strengthens from "initial state in some mode's domain" to "initial
+state in some mode's guard" (`inModeGuardR`). Models whose guards do not cap every
+envelope-bounded coordinate stay on the carried-hypothesis statement of `UniformEvol.lean`.
 -/
 import RelCertifier.Proofs.Soundness.UniformEvol
 
@@ -45,7 +46,7 @@ variable {n : ℕ}
 
 /-! ## The guard-threaded star invariant -/
 
-/-- The state is in the GUARD region of the mode `mv` names (guard map `Gd`). -/
+/-- The mode variable `mv` names a declared mode `q'` and the state satisfies its guard `Gd q'`. -/
 def StarInModeGuard (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv : Var n)
     (μ : State (Var n)) : Prop :=
   ∃ (q' : ℕ) (m' : RMode (Var n)),
@@ -81,7 +82,8 @@ theorem sat_inModeGuardF {G : SearchGraph (Var n)} {Gd : ℕ → Formula (Var n)
         exact (List.getElem?_eq_some_iff.mp this).1), by rw [hmode]; rfl⟩
     · simpa only [modeIs, Formula.sat, CompOp.interp, Term.eval] using hmv
 
-/-- The guard-threaded star invariant (Prop form). -/
+/-- The guard-threaded star invariant (Prop form): `g ≤ 0`, `mv` is a valid mode index, and
+`StarInModeGuard`. -/
 def StarInvG (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv : Var n) (g : Term (Var n))
     (μ : State (Var n)) : Prop :=
   Formula.sat (invLe g) μ ∧ Formula.sat (mvValid mv G.modes.length) μ ∧ StarInModeGuard G Gd mv μ
@@ -97,13 +99,13 @@ theorem sat_starInvGF {G : SearchGraph (Var n)} {Gd : ℕ → Formula (Var n)} {
   rw [starInvGF, StarInvG]
   simp only [Formula.sat, sat_inModeGuardF]
 
-/-! ## The guard-based per-mode obligation (the discharged H) -/
+/-! ## The guard-based per-mode obligation -/
 
-/-- **`GuardSettlingB` — guard-based staying-and-landing, per mode `q`.** From EVERY base in
-mode `q`'s guard region: the `dt`-flow of `q`'s field exists, stays in the shared envelope
-`domR` throughout, and its endpoint satisfies the guard of `q` itself or of a declared retained
-successor. This is the settling-guard geometry as a proof obligation — dischargeable by
-construction for the margin/contractive shapes (below), never quantifying over the margin band. -/
+/-- **Guard-based staying and landing for mode `q`.** From every base in `Gd q`, some curve
+`ΦR` with `ΦR 0 = base` solves `rightBlock fR lam` on `[0, dt]` (unbound coordinates frozen),
+stays in `domR` throughout, and ends in the guard of `q` itself or of a retained successor of
+`q`. Bases outside the guard (the margin band) are never quantified over; the margin and
+contractive shapes below discharge it by construction. -/
 def GuardSettlingB (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
     (dt : ℝ) (q : ℕ) : Prop :=
@@ -167,10 +169,10 @@ theorem starStep_wrapG (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) 
       exact (update_of_ne (by rintro rfl; exact hmvgd' hx) _ _).symm
     exact (Formula.coincidence (Gd e.tgt) this).mp hgd'
 
-/-- **The settling star-step.** From a state in mode `q`'s GUARD: run the `dt`-flow
-(`GuardSettlingB` — stays in the envelope, endpoint lands in a self-or-successor guard), read
-off `g`-preservation from the certificate box, dispatch the landed guard's edge. One
-`rightAutomatonBody` step preserving `StarInvG`. No margin-band base ever enters. -/
+/-- **The settling star-step.** From a state `μ` in mode `q` and in `Gd q`, given
+`GuardSettlingB` for `q`, the box `g ≤ 0` along `q`'s flow from `μ`, and unguarded edges to `q`
+itself and to every retained successor, some `rightAutomatonBody` step from `μ` ends in a state
+satisfying `StarInvG`: the `dt`-flow lands in a self-or-successor guard and that edge is taken. -/
 theorem starStep_settling (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv : Var n)
     (q : ℕ) (m : RMode (Var n)) (g : Term (Var n)) (fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (domR : Formula (Var n)) (dt : ℝ) (μ : State (Var n))
@@ -207,8 +209,10 @@ theorem starStep_settling (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n
     exact ⟨ΦR dt, hsem, hinv, by rw [hetgt]; exact hgd'⟩
 
 /-- The clocked per-mode coupling on the guard invariant (mirror of
-`landing_step_landingH_clocked`): the left runs a `≤dt` clocked segment (freezing the right
-coordinates), the right settles per `starStep_settling`. -/
+`landing_step_landingH_clocked`): `faModalB` of the clocked left flow against one
+`rightAutomatonBody` step for `starInvGF`, from a state in mode `q` and in `Gd q`. The left runs a
+clocked segment of length `≤ dt` (freezing the right coordinates); the right settles per
+`starStep_settling`, the box `g ≤ 0` being assumed from every state of `Gd q`. -/
 theorem landing_step_settling_clocked (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (mv : Var n) (q : ℕ) (m : RMode (Var n)) (g : Term (Var n))
     (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
@@ -246,10 +250,13 @@ theorem landing_step_settling_clocked (G : SearchGraph (Var n)) (Gd : ℕ → Fo
 
 /-! ## The clocked→physical residence, generic in the threaded invariant
 
-`clocked_H_residence`/`_physical`/`multiseg_landing_clocked_physical` used only φinv-generic
-machinery — restated here with the invariant abstract, then instantiated at `starInvGF`. -/
+`clocked_H_residence`/`_physical`/`multiseg_landing_clocked_physical` use only machinery
+generic in the invariant; they are restated here with the invariant `φinv` abstract, then
+instantiated at `starInvGF`. -/
 
-/-- The clocked residence chain (generic φinv). -/
+/-- The clocked residence chain (generic `φinv`): if every `φinv` state couples one clocked
+left segment with one right step back into `φinv` (`hHcouple`), then `k` clocked left segments
+are matched by right star runs keeping `φinv` (`faModal`). -/
 theorem clocked_residence_gen (G : SearchGraph (Var n)) (mv : Var n) (φinv : Formula (Var n))
     (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
     (hHcouple : ∀ σ', Formula.sat φinv σ' →
@@ -270,7 +277,8 @@ theorem clocked_residence_gen (G : SearchGraph (Var n)) (mv : Var n) (φinv : Fo
   exact faModal_bigSeq_replicate_to_star (Equiv.refl (Var n)) _ (rightAutomatonBody G mv)
     φinv σ k hmc
 
-/-- The physical collapse (generic φinv). -/
+/-- The physical collapse (generic `φinv`): under `hHcouple` and the left budget `r ≤ k·dt` at
+`σ`, the unclocked left flow from `σ` is matched by right star runs keeping `φinv`. -/
 theorem clocked_residence_physical_gen (G : SearchGraph (Var n)) (mv : Var n)
     (φinv : Formula (Var n)) (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
     (tg : Var n) (dt : ℝ) (k : ℕ)
@@ -294,7 +302,8 @@ theorem clocked_residence_physical_gen (G : SearchGraph (Var n)) (mv : Var n)
   exact clockLift_collapse (leftBlock fL) domL (Program.star (rightAutomatonBody G mv))
     φinv tg dt k htgb htgr htgϕ hdt htgRstar htgφ hbudget hres
 
-/-- The collapsed physical modality (generic φinv). -/
+/-- The collapsed physical modality (generic `φinv`): under `hHcouple` and the left budget at
+every state, the left star of the flow is matched by right star runs keeping `φinv`. -/
 theorem multiseg_clocked_physical_gen (G : SearchGraph (Var n)) (mv : Var n)
     (φinv : Formula (Var n)) (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
     (tg : Var n) (dt : ℝ) (k : ℕ)
@@ -331,7 +340,8 @@ theorem encode_inModeGuardR (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var
   unfold encode inModeGuardR
   simp only [RFormula.renameR, RFormula.enc, Formula.rename_refl]
 
-/-- The guard-threaded precondition (RFormula). -/
+/-- The guard-threaded invariant as an `RFormula`: `ϕinv`, a valid mode index, and
+`inModeGuardR`. -/
 def ψpostG (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv : Var n)
     (ϕinv : RFormula (Var n)) : RFormula (Var n) :=
   RFormula.and ϕinv (RFormula.and (mvValidR mv G.modes.length) (inModeGuardR G Gd mv))
@@ -346,16 +356,16 @@ theorem encode_ψpostG (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) 
   unfold ψpostG starInvGF
   rw [hand, hand, hψ, encode_mvValidR, encode_inModeGuardR]
 
-/-! ## The Tier B H bundle and the shipped `rvalid` theorem -/
+/-! ## The guard-threaded well-formedness bundle and the `rvalid` theorem -/
 
-/-- **The guard-threaded settling well-formedness (Tier B H).** Per mode: the guard-based
-staying-and-landing (`GuardSettlingB` — dischargeable by construction from the settling-guard
-geometry, below) + the structural plumbing. The staying obligation quantifies ONLY over
-guard-region bases — the margin band never enters.
+/-- **The guard-threaded settling well-formedness.** `0 ≤ dt`, freshness of `mv` and `tg`
+against `g`, the guards and the clocked left block, and per mode `q`: a right block over the
+shared domain `evolShared`, `GuardSettlingB` for `q`, an unguarded self-edge, unguarded edges to
+the retained successors, and declared modes for them. The staying obligation quantifies only
+over bases in the guard.
 
-SINGLE-SYSTEM ONLY: nothing relational lives here. The relational invariant's preservation
-along right residences is a separate obligation (`GBoxAll` below, quarantined; the
-paper-faithful replacement is the per-piece joint/reposition certificates — task H). -/
+This is a property of the right model alone. The relational invariant's preservation along
+right runs is the separate hypothesis `GBoxAll`. -/
 def GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv : Var n)
     (g : Term (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
     (fL : Fin n → Term (Var n)) (evolShared : Formula (Var n)) : Prop :=
@@ -371,19 +381,22 @@ def GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv 
     (∀ q', q' ∈ q :: G.retainedSucc q → q' < G.modes.length →
       ∃ m', G.modeAt q' = some m'))
 
-/-- **QUARANTINED (defective shape — task H).** Relational `g`-preservation along right
-residences, stated LEFT-CONTEXT-FREE: for an `L`-mentioning `g` and a drain-type mode this is
-unsatisfiable (the left coordinates are unconstrained), so no certificate battery can discharge
-it. It is kept only so the existing cadenced chain still states its assumption explicitly; the
-paper-faithful replacement couples each within-window piece by its own JOINT certificate and
-each seam by a REPOSITION certificate (left-contextualized). Do not build on this. -/
+/-- Relational `g`-preservation along right runs, without left context: for every mode `q` and
+every state in `Gd q`, the box `g ≤ 0` holds along `q`'s flow. Caution: for a `g` that mentions
+the left coordinates and a mode that moves `g` upward this is unsatisfiable (the left
+coordinates are unconstrained), so no certificate can discharge it. The paper instead certifies
+each joint segment by a flow certificate (Definition 5) and each right-only segment by a
+reposition certificate (Definition 7), both under the entry states of Definition 3. Kept so
+that `theorem3_faithful_settling` states its assumption explicitly; not used by the theorems of
+Appendix B.1. -/
 def GBoxAll (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (g : Term (Var n))
     (lam : Term (Var n)) (evolShared : Formula (Var n)) : Prop :=
   ∀ q m, G.modeAt q = some m → ∀ fR : Fin n → Term (Var n), m.sys = rightBlock fR lam →
     ∀ ν, Formula.sat (Gd q) ν →
       BoxLe (Program.ode (rightBlock fR lam) evolShared) (fun ω => Term.eval g ω) ν
 
-/-- The clocked coupling from the Tier B H (mirror of `hHcouple_of_LandingWellFormed`). -/
+/-- The clocked coupling `hHcouple` for `starInvGF` from `GuardSettlingH` and `GBoxAll` (mirror of
+`hHcouple_of_LandingWellFormed`). -/
 theorem hHcoupleG_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (mv : Var n) (g : Term (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
     (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n))
@@ -407,12 +420,13 @@ theorem hHcoupleG_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Form
     (Function.update σ' tg 0) hg hmvLclk hmode hsys hdom hqlen hdt hset
     hgboxGd (hfrzGd q) hmvGd hself hsucc hmodeAll hωmv hωgd
 
-/-- **Tier B — the shipped `rvalid` theorem on the guard-threaded settling foundation.**
-`rvalid (theorem3Form (ode leftBlock) (rightAutomatonBody) ψpostG)` from `GuardSettlingH`: the
-staying obligation quantifies only over guard-region bases (where the settling margin discharges
-it by construction — `GuardSettlingB_of_margin_const` / `_of_contract` below), the junction is
-trivial (landing in a guard ⊆ the shared envelope), the precondition asks the initial state to
-be in some mode's GUARD (`inModeGuardR` — every well-formed benchmark config). Mirrors
+/-- **The guard-threaded `rvalid` theorem.**
+`rvalid (theorem3Form (ode (leftBlock fL) domL) (rightAutomatonBody G mv) (ψpostG G Gd mv ϕinv))`
+for a one-component invariant `ϕinv` encoding `g ≤ 0`, from `GuardSettlingH`, the relational
+hypothesis `GBoxAll`, the left budget `r ≤ k·dt`, and the freshness and disjointness side
+conditions. The staying obligation quantifies only over bases in the guard (discharged by
+construction by `GuardSettlingB_of_margin_const` / `_of_contract` below); the precondition asks
+the initial right state to be in some mode's guard (`inModeGuardR`). Mirrors
 `theorem3_faithful_landing_clocked` with the guard-threaded invariant. -/
 theorem theorem3_faithful_settling (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (mv : Var n) (g : Term (Var n)) (fL : Fin n → Term (Var n))
@@ -462,11 +476,12 @@ theorem theorem3_faithful_settling (G : SearchGraph (Var n)) (Gd : ℕ → Formu
   rw [hencψ]
   exact hphys
 
-/-! ## THE MARGIN-CLASS DISCHARGE — `GuardSettlingB` by construction
+/-! ## The margin-class discharge: `GuardSettlingB` by construction
 
-The geometry the settling discipline enforces (guard band `[a, cap]`, envelope `[lo, hi]`,
-margin `cap + c·dt ≤ hi`, successor guard covering the one-step image), proven with the explicit
-affine witness — the staying H is a CONSEQUENCE, not an assumption, for this shape. -/
+For the settling geometry (guard band `[a, cap]`, envelope `[lo, hi]`, margin
+`cap + c·dt ≤ hi`, a self-or-successor guard covering the one-step image) the explicit affine
+witness proves `GuardSettlingB`: for this shape the staying obligation is a consequence, not a
+hypothesis. -/
 
 /-- The constant-rate field on coordinate `Rv j` (`v' = c`), other coordinates frozen. -/
 noncomputable def constF (j : Fin n) (c : ℝ) : Fin n → Term (Var n) :=
@@ -483,7 +498,7 @@ theorem affineΦ_other (j : Fin n) (c : ℝ) (base : State (Var n)) (t : ℝ)
 /-- **The margin-class discharge.** A single-coordinate constant-rate mode (`v' = c ≥ 0`) with
 guard band `[a, cap]`, shared envelope band `[lo, hi]`, settling margin `cap + c·dt ≤ hi`
 (and `lo ≤ a`), whose one-step image `[a + c·dt, cap + c·dt]` is covered by the guard band
-`[a', cap']` of a self-or-successor mode `q'` — satisfies `GuardSettlingB` BY CONSTRUCTION:
+`[a', cap']` of a self-or-successor mode `q'`, satisfies `GuardSettlingB` by construction:
 the affine witness stays in the envelope (margin) and lands in `Gd q'` (cover). -/
 theorem GuardSettlingB_of_margin_const (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (j : Fin n) (q q' : ℕ) (a cap a' cap' lo hi c dt : ℝ)
@@ -561,13 +576,12 @@ theorem GuardSettlingB_of_margin_const (G : SearchGraph (Var n)) (Gd : ℕ → F
       simp only [bandDom, Formula.sat, CompOp.interp, Term.eval, affineΦ, if_pos rfl, if_true]
       linarith
 
-/-- **The margin-class discharge, two-band form (the realistic shape).** The one-step image
-`[a + c·dt, cap + c·dt]` of a growing mode's guard band usually straddles the band itself and
-its successor's (arm `Approach [0,0.7] → Return [0.7,…]`, rover `Drive [0.3,0.75] → Safe
-[0.75,1.0]`). `GuardSettlingB`'s landing witness is chosen PER BASE, so a case split suffices:
-endpoint still `≤ cap` → self-land; endpoint past the cap → land in the successor band (which
-starts at or below `cap` and extends past `cap + c·dt`). Margin (`cap + c·dt ≤ hi`) gives the
-envelope staying as before. -/
+/-- **The margin-class discharge, two-band form.** The one-step image `[a + c·dt, cap + c·dt]`
+of a growing mode's guard band usually straddles the band itself and its successor's band
+`[a₂, cap₂]` (with `a₂ ≤ cap` and `cap + c·dt ≤ cap₂`). The landing witness of
+`GuardSettlingB` is chosen per base, so a case split suffices: endpoint still `≤ cap`, land in
+the mode's own band; endpoint past the cap, land in the successor's band. The margin
+`cap + c·dt ≤ hi` gives the envelope staying. -/
 theorem GuardSettlingB_of_margin_const_two (G : SearchGraph (Var n))
     (Gd : ℕ → Formula (Var n)) (j : Fin n) (q q₂ : ℕ) (a cap a₂ cap₂ lo hi c dt : ℝ)
     (hc : 0 ≤ c) (hdt : 0 ≤ dt)
@@ -658,8 +672,9 @@ theorem GuardSettlingB_of_margin_const_two (G : SearchGraph (Var n))
 
 /-- **The contractive-class discharge (self-landing).** A contractive coordinate
 (`v' = k(c − v)`, equilibrium `c` inside the mode's OWN guard band `[a, cap]` ⊆ envelope
-`[lo, hi]`) satisfies `GuardSettlingB` by construction: the exponential flow stays between the
-base and the equilibrium — inside the guard band, hence inside the envelope — and self-lands. -/
+`[lo, hi]`, `k ≥ 0`) satisfies `GuardSettlingB` by construction: the exponential flow stays
+between the base and the equilibrium, inside the guard band and hence inside the envelope, and
+lands in the mode's own guard. -/
 theorem GuardSettlingB_of_contract (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (j : Fin n) (q : ℕ) (a cap lo hi k c dt : ℝ)
     (hk : 0 ≤ k) (hdt : 0 ≤ dt)

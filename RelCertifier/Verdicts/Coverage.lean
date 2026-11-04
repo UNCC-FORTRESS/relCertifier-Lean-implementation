@@ -6,16 +6,17 @@ Released under Apache 2.0 license.
 
 A runner can issue fewer queries than it owes and still print only green lines: a pack
 whose mode-pair list comes out empty runs its loop body zero times, a row that rebuilds
-one component where nine are owed sends three queries instead of twenty-seven. All three
-such defects found during development (2026-07-31) looked identical to a complete run.
+one component where nine are owed sends three queries instead of twenty-seven. Such a
+run looks identical to a complete one.
 
 So every phase's count is declared and checked. `counted` is called at each discharge
 point (a query that came back `unsat`); `Main.runAllVerdictsV2` (`--run-verdicts-v2`,
 `--check-quick-v2`) reads `dischargedCount` around each phase and compares the difference
 against the phase's declared total with `checkPhase`, failing the run on any mismatch, low
-*or* high. The declared totals live next to their tables in `VerdictsV2/RunV2.lean`, and
-`VerdictsV2/CoveragePinsV2.lean` proves each one equal to what its table generates, so a
-count can only change together with the work it counts.
+*or* high. The bridge, reposition-progress and refutation runners (`VerdictsV2/RunBridge`,
+`RunProgress`, `RunRefute`) do the same for their groups. The declared totals live next to
+their tables (`VerdictsV2/RunV2.lean`, `RunBridge.lean`, `RunProgress.lean`,
+`InstancesV2/Refute/Table.lean`).
 -/
 
 namespace RelCertifier.Verdicts

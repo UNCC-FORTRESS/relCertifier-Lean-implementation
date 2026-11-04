@@ -13,9 +13,8 @@ the padding coordinates have field 0. Existence: the linear motion at the mode's
 `99.5`. Completeness, for EVERY run: the two guards cover the line (`temp ≥ 100` or
 `temp ≤ 100`), and both modes declare both successors. Z3-free.
 
-The suite file is the pre-landing demo `engine_cooling_prelanding` (`benchmarks/prelanding_demo`)
-under its suite name; this proof is `WellFormed/EngineCoolingPrelanding.lean` with the names
-changed (2026-10-30, batch 11).
+The suite file is the demo `engine_cooling_prelanding` (`benchmarks/prelanding_demo`) under its
+suite name; this proof is `WellFormed/EngineCoolingPrelanding.lean` with the names changed.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Data
 import RelCertifier.Proofs.Encoding.WellFormedR

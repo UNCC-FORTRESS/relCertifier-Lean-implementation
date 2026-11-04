@@ -4,19 +4,18 @@ Released under Apache 2.0 license.
 
 # The cover chain with strict components (extension `strict-atoms`)
 
-Mirrors of the cover-level preservation for FLAGGED component lists (`HoldsAt`, strict
-components kept `< 0`):
+Mirrors of the cover-level preservation for FLAGGED component lists (`HoldsAt`: a flagged
+component is kept `< 0`, an unflagged one `≤ 0`), used by the strict-invariant exhibits of
+Appendix B.1:
 
 * `InvAllHoldsS` (the flagged `InvAllHolds`), its weakening to the closure and its collapse;
 * `CoverCertMS`, `pres_multiS`, `check_sound_multiS` (`CoverMulti`);
 * `CoverCertMCXS`, `pres_multi_cutXS`, `check_sound_multi_cutXS` (`CutLiftX`, the X channel:
-  conditional staying of the cut atoms, guard-triggered reaches);
+  conditional staying of the mode-fact atoms, guard-triggered reaches);
 * `segPresAllS_cut_liftX` (the per-piece lift the modal instances consume).
 
-The cut atoms stay closures (`≤ 0`); only the row components carry flags. Each mirror is
-the existing induction with `HoldsAt` in place of `≤ 0`.
-
-New leaf; no upstream edits.
+The mode-fact atoms (Definition 2) stay closures (`≤ 0`); only the invariant's components
+carry flags. Each mirror is the unflagged induction with `HoldsAt` in place of `≤ 0`.
 -/
 import RelCertifier.Proofs.Soundness.CutLiftX
 import RelCertifier.Proofs.Flow.StratifiedBarrierStrict
@@ -26,18 +25,19 @@ open DL
 
 variable {n : ℕ}
 
-/-- All flagged components hold: the strict conjunction invariant. -/
+/-- Every flagged component of `ts` holds at `ω` (`HoldsAt`): the conjunct invariant with strict
+components. -/
 def InvAllHoldsS (ts : List (Bool × Term (Var n))) (ω : State (Var n)) : Prop :=
   ∀ c ∈ ts, HoldsAt c.1 c.2 ω
 
-/-- Weakening to the closure. -/
+/-- Weakening to the closure: the flagged invariant implies every component `≤ 0`. -/
 theorem InvAllHoldsS.toClosure {ts : List (Bool × Term (Var n))} {ω : State (Var n)}
     (h : InvAllHoldsS ts ω) : InvAllHolds (ts.map Prod.snd) ω := by
   intro g hg
   obtain ⟨c, hc, rfl⟩ := List.mem_map.mp hg
   exact (h c hc).le
 
-/-- Collapse: every flag `false` is the existing invariant. -/
+/-- Collapse: with every flag `false` the flagged invariant is `InvAllHolds`. -/
 theorem invAllHoldsS_allFalse (gs : List (Term (Var n))) (ω : State (Var n)) :
     InvAllHoldsS (gs.map (fun g => (false, g))) ω ↔ InvAllHolds gs ω :=
   holdsAll_allFalse gs ω
@@ -54,7 +54,8 @@ structure CoverCertMS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)
     SegPreservesAllOnS ts m.dynSys m.dynDomPost
   weightPos : ∀ m ∈ G.modes, 0 < m.weight
 
-/-- `pres_multi`, flagged. -/
+/-- `pres_multi`, flagged: every right reach (`RightReach`) from a state satisfying the flagged
+invariant ends in a state satisfying it. -/
 theorem pres_multiS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)))
     (cert : CoverCertMS G ts) :
     ∀ cfg ν ω, RightReach G cfg ν ω → InvAllHoldsS ts ν → InvAllHoldsS ts ω := by
@@ -70,12 +71,13 @@ theorem pres_multiS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)))
   | repositionDynPost m hm hrepo e he hsrc hB hsem _ ih =>
       intro hν; exact ih (cert.repoDynPresPost _ m hm hrepo _ hν _ hsem)
 
-/-- The flagged ∀∃-throughout invariant. -/
+/-- The flagged invariant holds at every state a right reach from `ν` ends in. -/
 def CoexecInvAllThroughoutS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)))
     (cfg : Config) (ν : State (Var n)) : Prop :=
   ∀ ω, RightReach G cfg ν ω → InvAllHoldsS ts ω
 
-/-- `check_sound_multi`, flagged. -/
+/-- `check_sound_multi`, flagged: an accepting `decideCovered` run gives `Covered G cfg`, and the
+flagged invariant at `ν` holds throughout every right reach from `ν`. -/
 theorem check_sound_multiS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)))
     (cert : CoverCertMS G ts) (fuel : ℕ) (cfg : Config)
     (hchk : decideCovered G fuel cfg = true)
@@ -86,8 +88,9 @@ theorem check_sound_multiS (G : SearchGraph (Var n)) (ts : List (Bool × Term (V
 
 /-! ## `CutLiftX`, flagged -/
 
-/-- The flagged X-channel cut-narrowed certificate (`CoverCertMCX`): the cut atoms and their
-staying facts are the existing ones; the segment fields preserve the flagged components. -/
+/-- The flagged certificate bundle narrowed by mode facts (`CoverCertMCX`): the mode-fact atoms
+`cutL`, `cutR q`, their conditional staying facts and guard entry are the unflagged ones; the
+segment fields preserve the flagged components on the domain conjoined with the mode facts. -/
 structure CoverCertMCXS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) : Prop where
@@ -115,7 +118,7 @@ structure CoverCertMCXS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var 
       (Formula.and m.dynDomPost (Formula.and (cutF cutL) (cutF (cutR q))))
   weightPos : ∀ m ∈ G.modes, 0 < m.weight
 
-/-- Collapse: the existing certificate is the all-false flagged one. -/
+/-- Collapse: an unflagged `CoverCertMCX` is a `CoverCertMCXS` with every flag `false`. -/
 theorem CoverCertMCX.toS {G : SearchGraph (Var n)} {gs : List (Term (Var n))}
     {Gd : ℕ → Formula (Var n)} {cutL : List (CutAtomP n)} {cutR : ℕ → List (CutAtomP n)}
     (c : CoverCertMCX G gs Gd cutL cutR) :
@@ -130,7 +133,9 @@ theorem CoverCertMCX.toS {G : SearchGraph (Var n)} {gs : List (Term (Var n))}
       (segPresAllOnS_allFalse _ _ _).mpr (c.repoDynPresPostC q m hm hj),
     weightPos := c.weightPos }
 
-/-- `pres_multi_cutX`, flagged. -/
+/-- `pres_multi_cutX`, flagged: along every guard-triggered right reach (`RightReachG`) from a
+state satisfying the flagged invariant and both mode facts, the flagged invariant holds at the
+end. -/
 theorem pres_multi_cutXS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) (cert : CoverCertMCXS G ts Gd cutL cutR) :
@@ -169,12 +174,14 @@ theorem pres_multi_cutXS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var
         (cutSat_endpointC cutL cert.hiffL (cert.stayDPostL _ m hm hrepo) hsem hL)
         (cert.entryR _ _ hGd)
 
-/-- The flagged ∀∃-throughout invariant over guard-triggered reaches. -/
+/-- The flagged invariant holds at every state a guard-triggered right reach from `ν` ends in. -/
 def CoexecInvAllThroughoutGS (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (ts : List (Bool × Term (Var n))) (cfg : Config) (ν : State (Var n)) : Prop :=
   ∀ ω, RightReachG G Gd cfg ν ω → InvAllHoldsS ts ω
 
-/-- `check_sound_multi_cutX`, flagged. -/
+/-- `check_sound_multi_cutX`, flagged: an accepting `decideCovered` run gives `Covered G cfg`,
+and from `ν` satisfying the flagged invariant and both mode facts the flagged invariant holds
+throughout every guard-triggered right reach. -/
 theorem check_sound_multi_cutXS (G : SearchGraph (Var n)) (ts : List (Bool × Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) (cert : CoverCertMCXS G ts Gd cutL cutR)
@@ -186,8 +193,10 @@ theorem check_sound_multi_cutXS (G : SearchGraph (Var n)) (ts : List (Bool × Te
    fun ω hreach => pres_multi_cutXS G ts Gd cutL cutR cert cfg ν ω hreach
      hinit hinitL hinitR⟩
 
-/-- `segPresAll_cut_liftX`, flagged: the narrowed flagged preservation and the atoms'
-conditional staying give flagged preservation over the bare domain. -/
+/-- `segPresAll_cut_liftX`, flagged: preservation on the domain narrowed by the mode facts and
+the atoms' conditional staying give, along every run of `sys` under the bare domain from a
+state satisfying both mode facts and the flagged invariant, the flagged invariant and both mode
+facts at the end. -/
 theorem segPresAllS_cut_liftX {sys : ODESystem (Var n)} {dom : Formula (Var n)}
     {ts : List (Bool × Term (Var n))} {cutL cutRq : List (CutAtomP n)}
     (hiffL : AtomsIff cutL) (hiffR : AtomsIff cutRq)

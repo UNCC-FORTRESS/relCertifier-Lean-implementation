@@ -4,13 +4,13 @@ Released under Apache 2.0 license.
 
 # Verdict-column combinators
 
-The verdict hypotheses (the legacy packs, `Verdicts/RunModal`; the suite_v2 packs,
-`VerdictsV2/ModalX`) assemble their queries from lowered components with four
-combinators: the three route queries (mirrors in `Smt.lean`/`CutLift.lean`/
-`Mirrors.lean`), the stratified domain fold (`strataDomHost`), the cut fold (`cutF`),
-and plain `and`/`cmp` (whose `toHost` distribution is definitional). This file supplies
-the IR mirrors and `toHost` lemmas for the folds, plus the two constant identities
-(zero field, unit stretch) every mirror file needs.
+The verdict hypotheses of the suite_v2 packs (`VerdictsV2/ModalX`) assemble their queries
+from lowered components with four combinators: the three route queries of the Lie conditions
+(mirrors in `Smt.lean`/`CutLift.lean`/`Mirrors.lean`), the stratified domain fold
+(`strataDomHost`, the earlier rounds of Section 4.1 conjoined to the domain), the mode-fact
+fold (`cutF`, Definition 2), and plain `and`/`cmp` (whose `toHost` distribution is
+definitional). This file supplies the IR mirrors and `toHost` lemmas for the folds, plus the
+two constant identities (zero field, unit stretch) every mirror file needs.
 -/
 import RelCertifier.Verdicts.Mirrors
 import RelCertifier.Proofs.Flow.StratifiedBarrier
@@ -20,7 +20,7 @@ namespace RelCertifier
 
 open DL
 
-/-- IR mirror of `strataDomHost` (domain narrowed by proven earlier strata). -/
+/-- IR mirror of `strataDomHost` (domain narrowed by the components of earlier rounds). -/
 def istrataDomHost {n : ℕ} (D : IForm n) (pre : List (ITerm n)) : IForm n :=
   pre.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0))) D
 
@@ -37,7 +37,7 @@ theorem istrataDomHost_toHost {n : ℕ} (D : IForm n) (pre : List (ITerm n)) :
       rw [h0]
       rfl
 
-/-- IR mirror of the instance-side cut fold (`cutF` over the atoms' formulas). -/
+/-- IR mirror of the instance-side mode-fact fold (`cutF` over the atoms' formulas). -/
 def icutF {n : ℕ} (atoms : List (IForm n)) : IForm n :=
   atoms.foldl (fun d a => IForm.and d a) IForm.tt
 

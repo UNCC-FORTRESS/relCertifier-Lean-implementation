@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # Assumption 1 (Well-Formedness) of the right model, as a predicate (`WellFormedR`)
 
-The paper's Assumption 1, as restated 2026-10-10: *the right model is nonblocking and
+The paper's Assumption 1 (Well-Formedness): *the right model is nonblocking and
 complete with respect to its declared successor relation: from every state satisfying a
 source-mode guard, an evolution spanning the control interval `ε_r` exists, and every
 evolution of duration at most `ε_r`, including the empty one, ends in a state satisfying
@@ -26,28 +26,25 @@ file's `next` lists), the lowered right guards `guard q`, and `ε = ε_r` read f
 domain: a run (even the empty one) exists only from a state of the domain (`ODESol.hdom`
 at time 0, `ODESol.start_dom`). Without that conjunct clause (i) would be false at every
 guard state outside the domain (e.g. `watertank`'s `PumpOff` guard `x < 2` admits `x = −1`,
-outside `0 ≤ x ≤ 25`) for a reason that has nothing to do with the model's dynamics. The
-retired settling checker made the same correction (`Checker/WellFormedChecker.lean`, "THE
-BASE-SET CORRECTION": its guard map is `envelope ∧ guard-band`). Theorem 3's invariant
+outside `0 ≤ x ≤ 25`) for a reason that has nothing to do with the model's dynamics. This is
+the reading of Appendix B.5 (every state in the guard and the domain). Theorem 3's invariant
 carries the evolve domain too (`domR` in `envLR`).
 
 **Region-relative form.** `WellFormedRIn G guard reg ε` quantifies only over states in
 `reg` as well; `WellFormedR` is the form with `reg = ⊤`. It is used where (i) holds only on
-a conserved-quantity band of the model (the six satellite benchmarks), and is then stated
+a conserved-quantity band of the model (the satellite benchmarks, Appendix B.5), and is then stated
 together with `RegionInvariant G reg` (every mode's flow keeps `reg`; jumps do not move
 the state), so the band is a property of the model's reachable states.
 
 The predicate is a MODEL fact: it mentions neither the relational invariant nor the left
-system. It is not a hypothesis of any Theorem 3 (those exhibit their responses
-explicitly); it is an additional, separately audited result (`InstancesV2/WellFormed/`,
-`WellFormedBattery`).
+system. `WellFormedRIn` is condition 1 of Theorem 3 (`theorem3_of_coverX`, hypothesis
+`hwf`); each benchmark proves it by hand, without Z3 (`InstancesV2/WellFormed/`, Appendix
+B.5).
 
 Generic support below: the per-mode and whole-graph forms, a refutation lemma (one
 explicit run that ends outside every successor guard), and the run lemmas the
 per-benchmark proofs use (closed form of a linear coordinate, rate bounds, frozen
 coordinates, existence from `WellFormedFlowB`).
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Encoding.GuardedClimb

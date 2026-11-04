@@ -2,13 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The clocked mode-keyed assembly (W3)
+# The clocked mode-keyed assembly
 
 The mode-keyed chain of `ModeHandoff` (`theorem3_modeKeyed`, `hstepMode_GR`,
 `hd_modeKeyed_G`, `hddF_modeKeyed_G`) over the CLOCKED right body
 `rightAutomatonBodyC G mv tg dt` of `ClockedRight`: the right side owns the mode variable
-`(Aux, a)` and the right clock `(Aux, d)`, the left side the left clock `(Aux, b)` and the
-left mode variable `(Aux, c)`. Everything is additive; the unclocked chain is untouched.
+`(Aux, a)` and the right clock `(Aux, d)` (the right clock of Appendix B.2), the left side the
+left clock `(Aux, b)` and the left mode variable `(Aux, c)`.
 -/
 import RelCertifier.Proofs.Encoding.Theorem3General
 import RelCertifier.Proofs.Encoding.ModeHandoff
@@ -165,8 +165,14 @@ theorem hstepMode_GRC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
   exact hstep_single_GRC G mv tg dt q F env regions P hF henv hregf hframe hq hmvtg hfresh hgf hlt
     hmvq (H q hq σ hmvq ⟨hσ.1, hreg⟩)
 
-/-- `theorem3_modeKeyed` with the right body abstracted (the loop rule never looks inside
-it); the clocked chain instantiates `Rb := rightAutomatonBodyC G mv tg dt`. -/
+/-- **The mode-keyed claim for any right body (Theorem 2's loop).** If each `ϕ m` encodes to
+`F m`, `BkR` to `Bk`, the left automaton and `Rb` are variable-disjoint (`hd`, `hddF`), and one
+left-automaton step from `phiInvK` is matched by `star Rb` ending in `phiInvK` (`hstep`), then
+`theorem3Form (leftAutomatonBody A ul) Rb (psiK …)` is valid: the claim of Eq. (10) for the
+mode-dependent invariant of Eq. (9), keyed by the stored left mode `ul`. It is `theorem3_modeKeyed`
+with the right body abstracted (the loop rule never looks inside it); the clocked chain
+instantiates `Rb := rightAutomatonBodyC G mv tg dt`. The handoffs of Theorem 2 (Eq. (13)) enter
+through `hstep` (`hstep_modeKeyed`, `ModeHandoff.lean`). -/
 theorem theorem3_modeKeyed_gen (A : LeftAut n) (ul : Var n) (Rb : Program (Var n))
     (F : ℕ → Formula (Var n)) (ϕ : ℕ → RFormula (Var n))
     (domL domR : Formula (Var n)) (Bk : Formula (Var n)) (BkR : RFormula (Var n))

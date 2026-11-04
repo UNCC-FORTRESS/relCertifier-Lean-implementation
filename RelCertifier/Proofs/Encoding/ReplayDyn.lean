@@ -2,21 +2,24 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The dynamic-reposition verdict pack (Lemma 4's flow certificate), stated and consumed
+# The right-only flow certificate of Lemma 4 (the dynamic-reposition verdict pack)
 
 An emitted cover flags a right mode `q` of a left window `l` as a dynamic-reposition node
 (`dynPre` before the first joint segment, `dynPost` after one) when `OracleAPI.checkDynRepo`
-found every invariant component's route-A query `UNSAT`: the right moves alone under `q`'s own
-field (the left frozen, `fL = 0`, stretch 1), over the evolve domains narrowed by both modes'
-kept cut atoms and the proven strata, and, before the first joint segment, the left mode's
-guard (the left has not moved since it passed that guard). This file states that pack at the
-host level exactly as `checkDynRepo` builds it (`VerdDynCore`, `modalVerdDynX`, read off the
-IR and the extended cut certificate like `modalVerdX`) and turns it into the box invariant the
+found every invariant component's route-A query `UNSAT`. This is the right-only flow
+certificate of Definition 5 on the product program of Eq. (15): the right moves alone under
+`q`'s own field (the left frozen, `fL = 0`, the right at its own rate), over the evolve domains
+narrowed by both modes' kept mode-fact atoms (Definition 2) and the proven strata (the earlier
+rounds of Lemma 2), and, before the first joint segment (pre-joint), the left mode's guard
+(the left has not moved since it passed that guard). This file states that pack at the host
+level exactly as `checkDynRepo` builds it (`VerdDynCore`, `modalVerdDynX`, read off the IR and
+the extended mode-fact certificate like `modalVerdX`) and turns it into the box invariant the
 cover replay consumes (`couple_box_dyn`): along every right-only run of `q` (left frozen), from
 a state satisfying the rows and both sides' kept atoms (and the left guard, before the first
 joint segment), the rows and the atoms hold at the end.
 
-New leaf; no upstream edits.
+Routes: A is `ġ ≤ 0` on the whole query domain (which implies Eq. (18)), B is the boundary
+condition Eq. (17), C is the domain condition Eq. (18).
 -/
 import RelCertifier.Proofs.Encoding.SyncSwitch
 
@@ -28,7 +31,7 @@ variable {n : ℕ}
 
 /-! ## The pack, as `checkDynRepo` builds it -/
 
-/-- The query domain of component `i` of a reposition pack: the cut-narrowed base narrowed by
+/-- The query domain of component `i` of a reposition pack: the mode-fact-narrowed base narrowed by
 the proven strata, then (before the first joint segment, `pre`) the left guard (the tool's
 `dom := if withGuardL then dom0 ∧ gL else dom0`). -/
 noncomputable def dynDomHost (pre : Bool) (D gL : Formula (Var n)) (prev : List (Term (Var n))) :
@@ -37,8 +40,9 @@ noncomputable def dynDomHost (pre : Bool) (D gL : Formula (Var n)) (prev : List 
 
 /-- **The region on which a reposition pack requires invariance.** `whole`: the whole
 reposition domain (the default; `OracleAPI.checkDynRepo` without a region). `pre Bo Bc mask`: the
-PRE-LANDING region of the node's progress certificate (the pre-landing feature, `prelanding = true`,
-`docs/PRELANDING.md`): the half-open region `Bo` before the last threshold (`x < θ`) for the
+restricted mode `q|¬tgt` of Lemma 4, before the landing target `tgt` of the node's reposition
+certificate (the tool flag `prelanding = true`, `docs/PRELANDING.md`): the half-open region `Bo`
+before the last threshold (`x < θ`) for the
 components the `mask` marks non-strict, its closure `Bc` (`x ≤ θ`) for the strict ones (at the
 stop point a strict component needs `< 0`, which the limit along the half-open region does not
 give). -/
@@ -88,7 +92,7 @@ def VerdDynCore (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n → Term 
       ∨ z3solve (flowQuerySuperlevel ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
         dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩) = Verdict.unsat
 
-/-- **The suite_v2 reposition pack, read off the IR and the extended certificate.** Left mode
+/-- **The reposition pack, read off the IR and the extended mode-fact certificate.** Left mode
 `l` (its guard, its kept atoms, its evolve domain), right mode `m` (its field, its kept atoms,
 its evolve domain), the invariant row `invRow`'s components in the cover's reposition strata
 `order`; `pre` selects the pre-joint form (the left guard conjoined). Exactly the queries
@@ -142,7 +146,7 @@ theorem sem_ode_dom_mono {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
   exact ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => h _ (hdom t ht)⟩
 
 /-- The region covers a strictness tagging: every strict component is marked strict (so its
-pre-landing certificate is the closed-region route A, which keeps `< 0`). -/
+restricted-mode certificate is the closed-region route A, which keeps `< 0`). -/
 def DynRegion.covers : DynRegion n → List Bool → Prop
   | .whole, _ => True
   | .pre _ _ mask _ _, tags => ∀ i, tags.getD i false = true → mask.getD i false = true
@@ -156,7 +160,7 @@ theorem boxle_dom_mono {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
   exact hbox ω ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => h _ (hdom t ht)⟩
 
 /-- The reposition pack gives simultaneous preservation of the components along the frozen-left
-right flow, on the (cut-narrowed) base domain narrowed by the region's half-open part. -/
+right flow, on the (mode-fact-narrowed) base domain narrowed by the region's half-open part. -/
 theorem segPresAll_dyn (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n → Term (Var n))
     (D gL : Formula (Var n)) {rg : DynRegion n} (hv : VerdDynCore pre comps fR D gL rg) :
     SegPreservesAllOn comps (jointSys (fun _ => Term.const 0) fR (Term.const 1))
@@ -226,7 +230,7 @@ theorem atomsStayC_frozenL {cL : List (CutAtomP n)} (hiff : AtomsIff cL)
   exact (hiff a ha ν).mp (hν a ha)
 
 /-- **The reposition anchor is a box invariant of the frozen-left right flow.** From the
-reposition pack of `(l, q)` (`VerdDynCore`, the domain the cut-narrowed evolves, and the left
+reposition pack of `(l, q)` (`VerdDynCore`, the domain the mode-fact-narrowed evolves, and the left
 guard before the first joint segment), the right atoms' staying along `q`'s right-only flow,
 and the left atoms reading left coordinates only: along every frozen-left run of `q` from a
 state satisfying the rows and both sides' atoms (and the left guard, pre-joint), the rows and

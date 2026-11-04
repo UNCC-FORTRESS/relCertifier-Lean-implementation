@@ -4,15 +4,13 @@ Released under Apache 2.0 license.
 
 # `vehicle_accel_copy`: the right model and Assumption 1 for the nominal model
 
-The right model of the choice exhibit (state variables, right modes, fields, evolve domain,
+The right model of the second exhibit of committed successor subsets (Appendix B.1) (state variables, right modes, fields, evolve domain,
 parse pins, field evaluations, the guarded right automaton `Gr`) and Assumption 1 for the
 nominal model (`wellFormedR`, at dimension 2; the bridge instance
 `InstancesV2/Bridge/VehicleAccelCopy.lean` transports it and lifts it by one for the right
-clock; the bridge instance reads the emitted cut table `Choice/Cuts/vehicle_accel_copy` through this
-file, so that leaf is imported here). Self-contained; the standalone Theorem 3 leaf `Choice/Modal/VehicleAccelCopy` imports
-this file for the right model. The window data and the hop certificate of the retired
-standalone route were dropped on 2026-10-22 (history: git show
-212cd42:RelCertifier/InstancesV2/Choice/General/VehicleAccelCopy.lean).
+clock; the bridge instance reads the emitted mode-fact table `Choice/Cuts/vehicle_accel_copy`
+through this file, so that leaf is imported here). The exhibit's Theorem 3 is that bridge
+instance; this file supplies its right model and Assumption 1.
 -/
 import RelCertifier.InstancesV2.Choice.BenchIR.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.Cuts.vehicle_accel_copy
@@ -163,10 +161,8 @@ theorem wellFormedR : WellFormedR Gr guardR 1 := by
     exact ⟨edgeW q 1, edge_mem q 1 hq3 (by norm_num),
       (sat_guardR 1 (by norm_num) _).mpr (by simp [loR, hiR]; exact hR)⟩
 
-/- Theorem-3 part retired 2026-10-21 with the clocked right automaton (the file was fixed at
-`Var 2`, no slot for the right clock); the benchmark's Theorem 3 is the generated bridge
-instance `InstancesV2/Bridge/VehicleAccelCopy.lean`.
-History: git show 61d7389:RelCertifier/InstancesV2/Choice/General/VehicleAccelCopy.lean. -/
+/- The exhibit's Theorem 3, with the right clock (dimension 3), is the generated bridge
+instance `InstancesV2/Bridge/VehicleAccelCopy.lean`. -/
 
 end ChoiceVehicleAccelCopy
 end RelCertifier

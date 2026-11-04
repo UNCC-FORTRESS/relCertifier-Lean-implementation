@@ -8,7 +8,7 @@ Stated directly over the generic bridge's automaton `grOf IR 3 pruned` (no stand
 instance): the lowered right guards, `ε_r = 1`. The right model is the permissive sampled
 lane controller of the dRL case study: six modes, pairs of a follower action (`Accel`: `v_f' = 1`,
 guard `v_f ≤ 9` and the safe distance; `Coast`: `v_f' = 0`, guard `v_f ≤ 1`, the low-speed
-stand-in for braking to rest (2026-10-28); `Brake`: `v_f' = −1`, guard `v_f ≥ 1`) and a leader
+stand-in for braking to rest; `Brake`: `v_f' = −1`, guard `v_f ≥ 1`) and a leader
 action (`LAccel`: `v_l' = 1`, guard `v_l ≤ 9`; `LBrake`: `v_l' = −1`, guard `v_l ≥ 1`), gap
 `d' = v_l − v_f`, evolve domain `0 ≤ v_f ≤ 10 ∧ 0 ≤ v_l ≤ 10`.
 Existence: the explicit polynomial run (`trajRs_sol`), inside the domain for one period by

@@ -2,26 +2,24 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# L2 — right-only reposition hops (the k > 1 window unblock)
+# Right-only reposition hops (the `k > 1` left cycle)
 
-`Hmulti_window_prefixed`'s `hdisH` is UNSATISFIABLE for nonempty hop lists: the
-frozen-left hop program (`RepoHop.prog`) binds every left coordinate (derivative 0)
-and conjoins `domL` into its domain, so its variables always meet the clocked left
-segment's (the recorded S1 negative finding). The fix is a SHAPE change: state the
-hop as the mode's own right-block program (`RepoHop.progR`) — right-only on both the
-field and the domain, exactly the shape the final response already uses and for which
-the identical disjointness discharges in `emitWindows_self`.
+`Hmulti_window_prefixed`'s `hdisH` is unsatisfiable for nonempty hop lists: the frozen-left
+hop program (`RepoHop.prog`) binds every left coordinate (derivative 0) and conjoins `domL`
+into its domain, so its variables always meet the clocked left segment's. This file states
+the hop as the mode's own right-block program (`RepoHop.progR`), right-only in both the field
+and the domain: the shape of a right-only segment's runs (Definition 3), the shape the final
+witness run already uses, and the one for which the same disjointness discharges in
+`emitWindows_self`.
 
-No re-proof of the S1 core: a right-only hop run CONVERTS to the frozen-left joint
-form (the response anchors carry the envelope, so `domL` holds at the anchor and the
-right-only run keeps the left coordinates fixed — `hop_run_toJoint`), the existing
-`faModalB_repoPrefix` fires, and the response transports back along the diamond's
-covariance (`faModalB_monoQ` + `sem_ode_dom_and_right` + `sem_rightBlock_frozen_iff`).
+The proof reuses `faModalB_repoPrefix` (`RepoPrefix.lean`): a right-only hop run converts to
+the frozen-left joint form (the anchors carry the envelope, so `domL` holds at the anchor and
+the right-only run keeps the left coordinates fixed, `hop_run_toJoint`), `faModalB_repoPrefix`
+applies, and the witness run transports back along the diamond's covariance
+(`faModalB_monoQ` + `sem_ode_dom_and_right` + `sem_rightBlock_frozen_iff`).
 
-`Hmulti_windowR_prefixed` is the k-piece window with right-only hops; its hop
-disjointness is DERIVED from the side-split data (`hdisH_progR`), not assumed.
-
-New leaf (imports `EnvelopeChain`); no upstream edits, no battery rebuild.
+`Hmulti_windowR_prefixed` is the `k`-piece left cycle with right-only hops; its hop
+disjointness is derived from the side-split data (`hdisH_progR`), not assumed.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChain
 
@@ -81,7 +79,7 @@ theorem joint_run_toR {fR : Fin n → Term (Var n)} {lam : Term (Var n)}
 
 /-- **The right-only reposition prefix.** `faModalB_repoPrefix` with the hop stated as
 the mode's own program: convert the hop run to the joint form (the anchor carries
-`domL` via `hφL`), fire the S1 core, transport the response back. -/
+`domL` via `hφL`), apply `faModalB_repoPrefix`, transport the witness run back. -/
 theorem faModalB_repoPrefixR {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
     {domL domR : Formula (Var n)} {φ : Formula (Var n)} {Q : Program (Var n)}
     {a : Fin n} {dt : ℝ} {ω₀ : State (Var n)}
@@ -165,7 +163,8 @@ theorem foldr_progR_map (hops : List (RepoHop n)) (p : Program (Var n)) :
   | nil => rfl
   | cons h hs ih => simp [ih]
 
-/-- The hop program's variables are right-side (the L2 disjointness, DERIVED). -/
+/-- The hop program's variables are disjoint from the clocked left segment's (the hop
+disjointness, derived from the side-split data). -/
 theorem hdisH_progR {fL : Fin n → Term (Var n)} {domL : Formula (Var n)}
     {a : Fin n} {dt : ℝ} (h : RepoHop n)
     (hhfR : ∀ i, (h.fR i).fv ⊆ range Rv) (hhlam : h.lam.fv ⊆ range Rv)
@@ -191,10 +190,10 @@ theorem hdisH_progR {fL : Fin n → Term (Var n)} {domL : Formula (Var n)}
     rw [← hi] at hj
     exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
 
-/-- **The right-only prefixed k-piece window (the k > 1 assembly, unblocked).** As
-`Hmulti_window_prefixed`, with the hops stated as the modes' own right-block programs;
-the hop disjointness is derived from the side-split data instead of assumed (the joint
-form's `hdisH` is unsatisfiable — the S1 negative finding this file resolves). -/
+/-- **The right-only prefixed `k`-piece left cycle.** As `Hmulti_window_prefixed`, with the
+hops stated as the modes' own right-block programs; the hop disjointness is derived from the
+side-split data instead of assumed (the joint form's `hdisH` is unsatisfiable for nonempty
+hop lists). -/
 theorem Hmulti_windowR_prefixed (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
     (g : Term (Var n)) (env : Formula (Var n)) (a : Fin n) (dt : ℝ) (k : ℕ)
     (htgg : ((Side.Aux, a) : Var n) ∉ g.fv) (htgenv : ((Side.Aux, a) : Var n) ∉ env.fv)

@@ -11,7 +11,7 @@ internal-bus case study: twelve modes `xtA` / `xtT` (action `x ∈ {Acc, Coast, 
 AccHeatT, CoastCoolA, CoastCoolT, CoastHeatA, CoastHeatT, BrkCoolA, BrkCoolT, BrkHeatA,
 BrkHeatT`, with `d' = −v`, `v' = c_q ∈ {1, 0, −1}`, `temp' = h_q ∈ {−1, 1}` and the shared evolve
 domain `0 ≤ v ≤ 40`. The `Acc` guards contain `0 ≤ v ≤ 39`, the `Brk` guards `v ≥ 1`, the
-`Coast` guards `0 ≤ v ≤ 1` (the low-speed stand-in for braking to rest; 2026-10-28).
+`Coast` guards `0 ≤ v ≤ 1` (the low-speed stand-in for braking to rest).
 Existence: the explicit polynomial run `d − v t − c t²/2`, `v + c t`, `temp + h t`
 (`trajRs_sol`), inside the domain for one period by the guard's speed bounds. Completeness: the
 end state is in the domain, so `v ≥ 0`; `v ≤ 1` enables `CoastCoolA` (resp. `CoastHeatA`), whose

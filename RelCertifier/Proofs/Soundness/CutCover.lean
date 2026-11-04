@@ -2,25 +2,25 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S2 — the guard-threaded cut lift for the cover chain
+# The guard-threaded mode-fact lift for the cover chain
 
-Many benchmarks certify only with the checked-cut channel (in suite_v2: 29 of 45, matrix
-column M6 of `docs/SUITE-REDESIGN.md`): their cover queries
-(joint segments and dynamic repositions) are NARROWED by guard-derived cut
-atoms, so the emitted UNSATs establish preservation over `dom ∧ cut`, not `dom` — outside
-`CoverCertM`'s fields. This file lifts them: the CUT BATON.
+Benchmarks whose certificates use mode facts (Definition 2; letter I of Table 3) have cover
+queries (joint segments and right-only reposition flows) NARROWED by guard-derived mode-fact
+atoms, so the emitted UNSATs establish preservation over `dom ∧ φ`, not `dom`, outside
+`CoverCertM`'s fields. This file lifts them by threading the mode facts along the run (the
+baton).
 
 ## The baton
 
-Cut atoms are ONE-SIDED guard conjuncts (`checkedCut`): left atoms (over `Lv`, from the
-left window mode's guard) and right atoms (over `Rv`, from each right mode's guard). Their
-O2 verdicts are one-sided Lie checks (own field, other side frozen), so each atom stays
-`≤ 0` along BOTH the joint flows (its own side moves the same way) and the frozen-left
-dynamic-reposition flows (left atoms are constant, right atoms move under the SAME field
-the O2 probe checked). Entry:
+Mode-fact atoms are ONE-SIDED guard conjuncts (`checkedCut`): left atoms (over `Lv`, from the
+left mode's guard) and right atoms (over `Rv`, from each right mode's guard). Their O2
+(preservation) verdicts are one-sided Lie checks (own field, other side frozen), so each atom
+stays `≤ 0` along BOTH the joint flows (its own side moves the same way) and the frozen-left
+right-only flows (left atoms are constant, right atoms move under the same field the O2 probe
+checked). Entry:
 
-* left atoms enter ONCE, at the window start (initial conditioning: admissible starts
-  satisfy the window's left guard) and persist through every step;
+* left atoms enter ONCE, at the start of the left cycle (admissible starts satisfy the left
+  mode's guard) and persist through every step;
 * right atoms enter at each RIGHT MODE SWITCH — under GUARD-TRIGGERED SWITCHING (the
   target mode's guard holds when its residence begins), the physical automaton semantics
   the tool's O1 already assumes, and the same assumption family as successor-completeness.
@@ -29,14 +29,14 @@ The mechanized reach relation `RightReach` does not record switch guards (emitte
 edges carry `⊤`), so the lifted theorem is stated over the SUBRELATION `RightReachG` —
 `RightReach` plus the target-guard fact at each switch. `RightReachG ⊆ RightReach`
 (`rightReachG_forget`), so a theorem over `RightReach` subsumes its `G`-version;
-the cut-reliant ones get theirs over `RightReachG`, with guard-triggered switching the documented
-model assumption. No change to `Checker/` (no battery invalidation).
+the ones relying on mode facts get theirs over `RightReachG`, with guard-triggered switching
+the model assumption.
 
 ## The certificate
 
-`CoverCertMC`: the narrowed preservation fields (exactly the queries the tool sent for
-the cut-reliant benchmarks) + per-atom `hiff`/staying facts (from the O2 probes via `CutLift`'s per-route
-constructors) + the O1 entry fact (mode guard ⟹ its atoms — `cutAtoms_sat`, kernel).
+`CoverCertMC`: the narrowed preservation fields (the queries the tool sends when mode facts
+are used) + per-atom `hiff`/staying facts (from the O2 probes via `CutLift`'s per-route
+constructors) + the O1 entry fact (mode guard ⟹ its atoms, `cutAtoms_sat`).
 `pres_multi_cut` threads everything; `check_sound_multi_cut` is the
 runner↔theorem connection, mirroring `check_sound_multi`.
 -/
@@ -48,12 +48,12 @@ open DL Set
 
 variable {n : ℕ}
 
-/-! ## Cut atom lists (form + safe-side term), the fold, and satisfaction -/
+/-! ## Mode-fact atom lists (form + safe-side term), the fold, and satisfaction -/
 
-/-- A cut atom: its lowered formula and its `≤ 0`-normal-form term. -/
+/-- A mode-fact atom: its lowered formula and its `≤ 0`-normal-form term. -/
 abbrev CutAtomP (n : ℕ) := Formula (Var n) × Term (Var n)
 
-/-- The conjoined cut formula (the tool's fold shape, `tt`-seeded). -/
+/-- The conjoined mode-fact formula (the tool's fold shape, `tt`-seeded). -/
 def cutF (atoms : List (CutAtomP n)) : Formula (Var n) :=
   atoms.foldl (fun d a => Formula.and d a.1) Formula.tt
 
@@ -96,7 +96,7 @@ def AtomsStay (atoms : List (CutAtomP n)) (sys : ODESystem (Var n))
 def AtomsIff (atoms : List (CutAtomP n)) : Prop :=
   ∀ a ∈ atoms, ∀ ν, Formula.sat a.1 ν ↔ Term.eval a.2 ν ≤ 0
 
-/-- A bare-domain run from a cut-satisfying base is a run of the cut-narrowed ode. -/
+/-- A bare-domain run from a base satisfying the atoms is a run of the ode narrowed by them. -/
 theorem sem_ode_narrow {sys : ODESystem (Var n)} {dom : Formula (Var n)}
     (atoms : List (CutAtomP n)) (hiff : AtomsIff atoms)
     (hstay : AtomsStay atoms sys dom) {ν μ : State (Var n)}
@@ -170,14 +170,14 @@ theorem rightReachG_forget {G : SearchGraph (Var n)} {Gd : ℕ → Formula (Var 
   | repositionDynPost m hm hrepo e he hsrc hB hsem _ _ ih =>
       exact RightReach.repositionDynPost m hm hrepo e he hsrc hB hsem ih
 
-/-! ## The cut-carrying certificate -/
+/-! ## The mode-fact-carrying certificate -/
 
-/-- **The cut-narrowed multi-component certificate.** `cutL` — the window's left atoms
-(entered once, at the window start); `cutR q` — right mode `q`'s atoms (entered at each
-switch via `Gd q`). Preservation fields carry the NARROWED domains — exactly the queries
-the tool sent for the cut-reliant benchmarks. Staying fields per system kind: the
-joint flow and the frozen-left dynamic flows (one-sided O2 covers both; left atoms are
-frozen along the dynamic flows). -/
+/-- **The mode-fact-narrowed multi-component certificate.** `cutL`: the left mode's atoms
+(entered once, at the start of the left cycle); `cutR q`: right mode `q`'s atoms (entered at
+each switch via `Gd q`). Preservation fields carry the NARROWED domains, the queries the tool
+sends when mode facts are used. Staying fields per system kind: the joint flow and the
+frozen-left right-only flows (one-sided O2 covers both; left atoms are frozen along the
+right-only flows). -/
 structure CoverCertMC (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) : Prop where
@@ -241,8 +241,9 @@ where
     obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := h
     exact ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => (hdom t ht).1⟩
 
-/-- **The cut-threaded preservation.** Along every guard-triggered right reach from a
-jointly-invariant, cut-satisfying entry, every component holds throughout. The baton:
+/-- **The mode-fact-threaded preservation.** Along every guard-triggered right reach from an
+entry where every component and every atom of `cutL` and `cutR` holds, every component holds
+throughout. The baton:
 left atoms persist by their staying facts through every flow; right atoms persist
 within a mode the same way and RE-ENTER at each switch from the recorded target guard
 (O1). -/
@@ -289,11 +290,11 @@ def CoexecInvAllThroughoutG (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var
     (gs : List (Term (Var n))) (cfg : Config) (ν : State (Var n)) : Prop :=
   ∀ ω, RightReachG G Gd cfg ν ω → InvAllHolds gs ω
 
-/-- **The runner↔theorem connection, cut-lifted.** The kernel-replayed `decideCovered`
-+ the cut-narrowed certificate bundle + the initial conditioning (entry state jointly
-invariant, window-left atoms and start-mode atoms satisfied — the admissible-start
-guards give both) give the throughout invariant of every component along every
-guard-triggered coexecution. -/
+/-- **The runner↔theorem connection, with mode facts.** The kernel-replayed `decideCovered`
++ the mode-fact-narrowed certificate bundle + the initial conditioning (every component holds
+at the entry state, and the left atoms and the start mode's atoms are satisfied, which the
+admissible-start guards give) give `Covered G cfg` and the throughout invariant of every
+component along every guard-triggered coexecution. -/
 theorem check_sound_multi_cut (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) (cert : CoverCertMC G gs Gd cutL cutR)

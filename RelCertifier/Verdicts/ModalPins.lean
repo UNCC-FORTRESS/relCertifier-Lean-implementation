@@ -12,16 +12,14 @@ The modal instances' verdict hypotheses have the strata-narrowed shape
 A runner can only send *text* to Z3, so it must rebuild that query at the SMT-IR
 level and print it. These lemmas prove the rebuild denotes exactly the host-level
 term the hypothesis names, for the strata-narrowed shape (`GenericPins.lean` does the
-same for single lowered components). The legacy-pack runner (`Verdicts/RunModal`) and the
-suite_v2 runner (`VerdictsV2/ModalX`) both rest on them.
+same for single lowered components). The suite_v2 runner (`VerdictsV2/ModalX`) rests on
+them.
 
 Why this matters concretely: an audit that *reconstructs* what a theorem asks Z3,
-rather than proving the reconstruction correct, is unreliable. On 2026-07-31 four
-separate reconstruction attempts produced false alarms (wrong component order,
-wrong invariant row, parse-pin names read as binders, failed joint attempts read
-as live certificates) before one real defect was isolated — see
-`docs/history/VERDICT-EVIDENCE-AUDIT.md` §4. With these pins the reconstruction cannot be
-silently wrong: a mismatched rebuild fails to typecheck.
+rather than proving the reconstruction correct, is unreliable (wrong component order,
+wrong invariant row, parse-pin names read as binders, failed joint attempts read as live
+certificates all look like defects or hide them). With these pins the reconstruction
+cannot be silently wrong: a mismatched rebuild fails to typecheck.
 
 Composed from the existing bridges (`iflowQuery_toHost`, `istrataDomHost_toHost`)
 — no new mathematics, only the shape the modal instances actually use.
@@ -42,7 +40,7 @@ theorem imodalQuery_toHost (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITer
           lam.toHost, strataDomHost D.toHost (pre.map ITerm.toHost)⟩ := by
   rw [iflowQuery_toHost, istrataDomHost_toHost]
 
-/-- **Route B (strict boundary), strata-narrowed.** -/
+/-- **Route B (strict boundary, Eq. (17)), strata-narrowed.** -/
 theorem imodalQueryStrict_toHost (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITerm n)
     (D : IForm n) (pre : List (ITerm n)) :
     (iflowQueryStrict g fL fR lam (istrataDomHost D pre)).toHost
@@ -50,7 +48,7 @@ theorem imodalQueryStrict_toHost (g : ITerm n) (fL fR : Fin n → ITerm n) (lam 
           lam.toHost, strataDomHost D.toHost (pre.map ITerm.toHost)⟩ := by
   rw [iflowQueryStrict_toHost, istrataDomHost_toHost]
 
-/-- **Route C (superlevel), strata-narrowed.** -/
+/-- **Route C (superlevel, Eq. (18)), strata-narrowed.** -/
 theorem imodalQuerySuperlevel_toHost (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITerm n)
     (D : IForm n) (pre : List (ITerm n)) :
     (iflowQuerySuperlevel g fL fR lam (istrataDomHost D pre)).toHost

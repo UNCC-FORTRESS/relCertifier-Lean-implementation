@@ -4,20 +4,16 @@ Released under Apache 2.0 license.
 
 # The cover replay with a stretch per pairing
 
-`ReplayEngine` and `ReplayOne` replay a window whose joint segments all use one stretch `λ`.
-The certifier may certify the pairings of one left window at different stretches (the
-per-pairing fallback of `Trusted/OracleAPI.lean`, `coverMode`: a right mode `q` at its own
-`λ_q`, every joint segment cut to the common left span `εR / max λ_q`). This file is the same
-replay with `lam : ℕ → ℝ`, the stretch of the right mode of each joint segment: the bodies are
-those of `replay_piece` / `replay_pieces` / `replay_pieces_k` / `replay_gresp` /
-`replay_gresp_k` with `lam` read at the current node `q` (every use of the stretch in those
+`ReplayEngine` replays a left cycle whose joint segments all use one stretch `λ`. The
+certifier may certify the pairings of one left mode at different stretches (the per-pairing
+fallback of `Trusted/OracleAPI.lean`, `coverMode`, Section 6.1: a right mode `q` at its own
+`λ_q`, every joint segment cut to the common left span `ε_R / max λ_q`, or `ε_L` when every
+pairing has stretch `0`). This file is the same replay with `lam : ℕ → ℝ`, the stretch of the
+right mode of each joint segment: the bodies are those of `replay_piece` / `replay_pieces` /
+`replay_gresp` with `lam` read at the current node `q` (every use of the stretch in those
 proofs is per piece: `joint_stretch` at the piece's node, the piece's right duration
-`lam q * (r − a)`). The window itself is unchanged: `k + 1` clocked left pieces of one common
-span `dt`, which is what the common cut span is. The constant-stretch lemmas are the special
-case `lam := fun _ => λ`.
-
-Why a separate file: `ReplayEngine` sits under every instance leaf; a new leaf costs no
-rebuild of the suite (docs/history, rebuild hygiene).
+`lam q * (r − a)`). The left cycle itself is unchanged: `k + 1` clocked left pieces of one
+common span `dt`. The constant-stretch lemmas are the special case `lam := fun _ => λ`.
 -/
 import RelCertifier.Proofs.Encoding.ReplayEngine
 
@@ -47,7 +43,7 @@ variable (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n)) (fR : ℕ → Fin
 include hgR hfL hfR hdomL hdomR hlam hrank hmode hsys hdomM hbox hhand in
 /-- **The joint segments of one clocked left piece.** From a joint node `q` at left time `a`
 (right state `ρ` in `Pre`, the anchor of `q` at the merged state), the response keeps time with
-the left at stretch `λ`, switching where the choreography says, and ends after the piece's end
+the left at the stretch `lam q` of the current node, switching where the choreography says, and ends after the piece's end
 `r` with a switch into a successor satisfying `E`, the anchor of the entered mode holding at the
 merged state with the piece's end, and the left coordinates untouched. -/
 theorem replay_piece_q (Pre E : ℕ → State (Var n) → Prop) (hmove : HMove G M J rank Pre E)
@@ -177,6 +173,11 @@ variable (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n)) (fR : ℕ → Fin
     Formula.sat (A e.tgt) y)
 
 include hgR hfL hfR hdomL hdomR hlam hrank hmode hsys hdomM hbox hhand in
+/-- **The joint segments of `k + 1` clocked pieces, `hmid` needed only for `k > 0`.** As
+`replay_pieces_q`, with the mid-cycle choreography required only when there is more than one
+piece: from a joint node `q` in `Pre` with the anchor at the merged state with the left at
+`σ`, the response ends in a successor satisfying `Efin`, the anchor of the entered mode holding
+at the merged state with the left at `ν`, and the left coordinates untouched. -/
 theorem replay_pieces_k_q (dt : ℝ) (Pre Efin : ℕ → State (Var n) → Prop)
     (hfin : HMove G M J rank Pre Efin)
     (hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv)
@@ -226,6 +227,11 @@ theorem replay_pieces_k_q (dt : ℝ) (Pre Efin : ℕ → State (Var n) → Prop)
 
 end PieceKQ
 
+/-- **One gated left cycle, answered by replaying the cover, stretch per pairing.** The
+`replay_gresp` of `ReplayEngine` with `lam : ℕ → ℝ`: after the left guard test `gL`, the right
+first repositions (pre-joint, right-only flow certificates `hboxD`), then keeps time with the
+`k + 1` pieces at each joint node's own stretch (`hbox`); `hpost` turns the end condition and
+the anchor at the cycle's end into the loop postcondition `post`. -/
 theorem replay_gresp_q (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n))
     (fR : ℕ → Fin n → Term (Var n)) (domR : Formula (Var n)) (fL : Fin n → Term (Var n))
     (domL gL : Formula (Var n)) (b : Fin n)
@@ -296,6 +302,7 @@ theorem replay_gresp_q (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n))
   exact hpost ν hwin q'' μ' (fun i => (hμ'L i).trans (hμL i)) hE hA''
 
 
+/-- `replay_gresp_q` with the mid-cycle choreography `hmid` required only when `0 < k`. -/
 theorem replay_gresp_k_q (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n))
     (fR : ℕ → Fin n → Term (Var n)) (domR : Formula (Var n)) (fL : Fin n → Term (Var n))
     (domL gL : Formula (Var n)) (b : Fin n)

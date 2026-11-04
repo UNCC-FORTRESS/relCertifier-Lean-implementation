@@ -5,7 +5,8 @@ Released under Apache 2.0 license.
 # The Picard existence bridge — Mathlib ODE existence ⟹ dL-lean `sem`
 
 The `hExist` side-condition of `faModal_ODE_G'` needs: from a bounded, in-domain segment, a right
-`sem` run exists over the segment interval. This file builds that from Mathlib's Picard-Lindelöf,
+`sem` run exists over the segment interval (the existence half of the nonblocking clause of
+Assumption 1, used in Lemma 3's proof). This file builds that from Mathlib's Picard-Lindelöf,
 **uniformly** over all polynomial fields (every benchmark's `odeField` is polynomial):
 
 * Step 2 (`odeField_contDiff`, `odeField_lipschitzOnWith`) — the crux. `Term.eval` is polynomial,
@@ -15,6 +16,10 @@ The `hExist` side-condition of `faModal_ODE_G'` needs: from a bounded, in-domain
   (strengthened here to `ContDiff`). One lemma, all fields.
 * Step 1 (normed instance) — `State V = V → ℝ` with `Fintype V` is `Pi.normedAddCommGroup`
   (finite-dim, proper); the ball is compact. Same instance dL-lean's `DI` already uses.
+
+It then lifts local existence to any duration by chaining uniform steps (`chainN`), with
+domain-staying from face invariances (strict inflow, growth bounds, non-strict antitone faces)
+for the field shapes of the suite (asymptotic, growing, cubic, coupled-affine).
 
 `#print axioms` stays the standard three (Mathlib Picard adds no axiom).
 -/
@@ -96,8 +101,8 @@ theorem sem_of_integralCurveOn (sys : ODESystem V) (domR : Formula V) (hwf : sys
 and an initial state `ν` in the (open) evolution domain `domR`, a `sem` run of `ode sys domR`
 exists from `ν` of some positive duration `r`, landing at `ν'`. Mathlib's C¹ local-existence
 (`ContDiffAt.…hasDerivAt₀`) gives the curve; continuity + openness of `domR` keep it in-domain on a
-short `Icc 0 r`; the seam turns it into a `sem` run. Uniform over all polynomial fields; the only
-per-segment residual is extending `r` to the parser's duration `Tᵢ` (continuation). -/
+short `Icc 0 r`; the seam turns it into a `sem` run. Uniform over all polynomial fields; extending
+`r` to a full duration `Tᵢ` is the chaining below. -/
 theorem sem_ode_exists_local (sys : ODESystem V) (domR : Formula V) (hwf : sys.WellFormed)
     (ν : State V) (hopen : IsOpen {x : State V | Formula.sat domR x})
     (hν : Formula.sat domR ν) :
@@ -779,8 +784,8 @@ theorem RunFor_unpack {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellForme
 `ω si + v_max·s ≤ S_max`, a right witness `ΦR` exists over the full duration `[0,s]`, staying in the
 full box domain `domR` — the exact shape `segment_relational`'s `hExist` demands. Assembles:
 `chainN` + `hstep_rover` (reach `[0,s]` via uniform steps) → `slab_invariance_rover` (v,s-lower) +
-`growth_bound_raw` + Z3 bound (s-upper) → full box → `hdomsat` → `domR` → `RunFor_unpack`. This is the
-carried CSF side-condition, now **discharged** by explicit witness construction. -/
+`growth_bound_raw` + Z3 bound (s-upper) → full box → `hdomsat` → `domR` → `RunFor_unpack`, an
+explicit witness construction. -/
 theorem hExist_rover {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellFormed)
     (vi si : V) (k c vmax smax a : ℝ)
     (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
@@ -835,8 +840,8 @@ theorem hExist_rover {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellForme
 /-- **Product box invariance (higher-dof).** For a family of `(velocity, position)` coordinate pairs
 `(vc j, sc j)` each with its own asymptotic/growing dynamics, the raw curve stays in the **product
 box** `⋀ⱼ {0≤vⱼ≤v_maxⱼ, 0≤sⱼ≤S_maxⱼ}`. Each coordinate's invariance is independent — a per-index
-application of `box_invariance_rover` (which uses only that coordinate's dynamics, no `hother`). This
-covers the 12-dof rover-family benchmarks (multiple v-asymptotic + s-growing coords). -/
+application of `box_invariance_rover` (which uses only that coordinate's dynamics, no `hother`),
+for fields with several v-asymptotic + s-growing coordinate pairs. -/
 theorem box_invariance_multi {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
     (hwf : sys.WellFormed) {ι : Type*}
     (vc sc : ι → V) (kk cc vm sm : ι → ℝ)
@@ -950,8 +955,7 @@ theorem hstep_multi {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
 
 /-- **hExist discharged (higher-dof).** As `hExist_rover` but for a family of coord pairs: `chainN` +
 `hstep_multi` reach `[0,s]`; `box_invariance_multi` (with the per-coord Z3 growth bounds) gives full
-product-box `domR` membership; `RunFor_unpack` yields the witness shape. Discharges hExist for the
-12-dof rover-family. -/
+product-box `domR` membership; `RunFor_unpack` yields the witness shape. -/
 theorem hExist_multi {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellFormed) {ι : Type*}
     (vc sc : ι → V) (kk cc vm sm : ι → ℝ)
     (hfv : ∀ (j : ι) (x : State V), odeField sys x (vc j) = kk j * (cc j - x (vc j)))
@@ -993,7 +997,7 @@ theorem hExist_multi {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellForme
     ⟨hs_, Φ, hΦ0, hΦs, hcurve, fun t ht => hdomsat (Φ t) (fun j => hbox t ht j)⟩
   exact RunFor_unpack hwf hrunR
 
-/-! ## Piece 3 — general-box asymptotic invariance (covers attitude `ψ'=−ψ`, etc.) -/
+/-! ## General-box asymptotic invariance (covers attitude `ψ'=−ψ`, etc.) -/
 
 /-- **Asymptotic coordinate in a general box `[lo,hi]`.** For `v' = k(c−v)` with the asymptote `c`
 strictly *interior* (`lo < c < hi`), a coordinate starting in `[lo,hi]` stays there — strict inflow at
@@ -1032,7 +1036,7 @@ theorem asymptotic_invariance_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → St
   intro t ht
   exact ⟨hloInv t ht, hhiInv t ht⟩
 
-/-! ## Piece 4 — lower growth bound (bounds the duration, toward the `hsmax` coupling) -/
+/-! ## Lower growth bound (bounds the duration, toward the `hsmax` coupling) -/
 
 /-- **Raw-curve lower growth bound.** A coordinate whose field value stays `≥ M` along the curve
 satisfies `Φ t sx ≥ Φ 0 sx + M·t` (monotone of `t ↦ Φ t sx − M·t`). Symmetric to `growth_bound_raw`.
@@ -1070,7 +1074,7 @@ theorem growth_lower_bound_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State
 /-- **Left duration bound (hsmax-discharge core).** If the left's growing coord `siL` (`s'=v`) grows at
 rate `≥ v_min > 0` yet stays `≤ S_max^L` (the left evolution domain), the segment duration is bounded:
 `r ≤ (S_max^L − s₀)/v_min`. Combined with the Z3 domain-relation `ν si + v_max·(S_max^L−s₀)/v_min ≤
-S_max`, this discharges the `hsmax` coupling (`hExist_from_rover`). The left `v ≥ v_min` premise comes
+S_max`, this discharges the `hsmax` coupling (`hsmax_of_left_duration`). The left `v ≥ v_min` premise comes
 from `asymptotic_invariance_raw` on the left curve; `growth_lower_bound_raw` gives the growth. -/
 theorem left_duration_bound {sys : ODESystem V} {r : ℝ} {ΦL : ℝ → State V}
     (viL siL : V) (vmin smaxL : ℝ) (hvmin : 0 < vmin) (hr : 0 ≤ r)
@@ -1084,14 +1088,14 @@ theorem left_duration_bound {sys : ODESystem V} {r : ℝ} {ΦL : ℝ → State V
   have hle := hdomL r (Set.right_mem_Icc.mpr hr)
   rw [le_div_iff₀ hvmin]; nlinarith [hgl, hle]
 
-/-! ## Compactness-subcover uniform step (nonlinear-R existence — the critical-path lemma)
+/-! ## Compactness-subcover uniform step (existence for nonlinear right fields)
 
 For nonlinear (polynomial, only *locally* Lipschitz) right-fields, `picard_isPL_of`'s global route
 fails. But `odeField` is `ContDiff`, so it is locally Lipschitz, and Mathlib's C¹ flow theorem gives a
-UNIFORM existence radius `ε` over each ball. Covering the **compact** `domR` (a closed box — confirmed
-for all 13 nonlinear-R benchmarks) by finitely many such balls and taking `min ε` yields a **uniform
-step `r₀ > 0`** from any point of `domR` — feeding the existing `chainN` unchanged. Compactness of
-`domR` is the load-bearing hypothesis (finite subcover). -/
+UNIFORM existence radius `ε` over each ball. Covering a **compact** `domR` (e.g. a closed box) by
+finitely many such balls and taking `min ε` yields a **uniform step `r₀ > 0`** from any point of
+`domR`, feeding `chainN` unchanged. Compactness of `domR` is the load-bearing hypothesis (finite
+subcover). -/
 theorem uniform_local_existence_on_compact (sys : ODESystem V) {K : Set (State V)}
     (hK : IsCompact K) :
     ∃ r₀ > (0 : ℝ), ∀ ν ∈ K, ∃ α : ℝ → State V, α 0 = ν ∧
@@ -1130,9 +1134,9 @@ theorem uniform_local_existence_on_compact (sys : ODESystem V) {K : Set (State V
 omit [Fintype V] [DecidableEq V] in
 /-- **Closed box is compact** (discharges the `IsCompact` hypothesis of the subcover). A box
 `{x | ∀ i, lo i ≤ x i ≤ hi i}` is `Set.univ.pi (fun i => Icc (lo i) (hi i))` — compact by
-`isCompact_univ_pi` (finite product of compact `Icc`s). Every nonlinear-R benchmark's `domR` is such
-a box (evolve = `v∈[0,v_max] ∧ s∈[0,S_max] ∧ ψ∈[lo,hi] ∧ …`), so its compactness is **proven**, not
-assumed — the per-benchmark `{x | sat domR x} = box` step is reification (mechanical). -/
+`isCompact_univ_pi` (finite product of compact `Icc`s). For a box domain (evolve =
+`v∈[0,v_max] ∧ s∈[0,S_max] ∧ ψ∈[lo,hi] ∧ …`) compactness is thus proven, not assumed; the
+per-benchmark `{x | sat domR x} = box` step is reification. -/
 theorem box_compact (lo hi : V → ℝ) :
     IsCompact {x : State V | ∀ i, lo i ≤ x i ∧ x i ≤ hi i} := by
   have heq : {x : State V | ∀ i, lo i ≤ x i ∧ x i ≤ hi i}
@@ -1146,8 +1150,8 @@ theorem box_compact (lo hi : V → ℝ) :
 existence through the invariance into `chainN`'s step premise: from any point of the compact
 invariant `K`, a `RunFor r₀` run lands back in `K`, staying in `dom`. The invariance `hinv` (curve
 stays in `K` and `dom`) is discharged by the box invariances (`asymptotic_invariance_raw` +
-`growth_bound_raw` inequality form) — for nonlinear-R fields these still hold (`s'=v(1−…)∈[0,v_max]`).
-This is where a subtle subcover bug would surface (threading through `RunFor`/`chainN`). -/
+`growth_bound_raw` inequality form), which still hold for nonlinear right fields
+(`s'=v(1−…)∈[0,v_max]`). -/
 theorem subcover_hstep {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
     {K : Set (State V)} (hK : IsCompact K)
     (hinv : ∀ (Φ : ℝ → State V) (r : ℝ), Φ 0 ∈ K →
@@ -1162,14 +1166,14 @@ theorem subcover_hstep {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellForm
   exact ⟨α r₀, (hinvα r₀ (Set.right_mem_Icc.mpr hr₀.le)).1,
     hr₀.le, α, hα0, rfl, hcurve, fun t ht => (hinvα t ht).2⟩
 
-/-! ## Slab-Lipschitz Picard (the 12 cubic — nonlinear-R with growing s) -/
+/-! ## Slab-Lipschitz Picard (cubic right fields with a growing coordinate `s`) -/
 
 /-- **`IsPicardLindelof` from LOCAL (on-ball) Lipschitz.** Same as `picard_isPL_of` but takes
 `LipschitzOnWith K (odeField sys) (closedBall ν a)` — Lipschitz only **on the ball**, which the
 nonlinear (polynomial) fields satisfy (`odeField_lipschitzOnWith`), unlike the global Lipschitz that
-`picard_isPL_of` needs. For the 12 cubic the on-ball `K`,`L` are **uniform over the slab**: the RHS is
-`s`-independent (confirmed) and the nonlinearity (`v·ψ²`,`v·θ²`) lives in the bounded non-`s` coords,
-so `K`,`L` are the bounded-coord constants, free of the unbounded `s`. -/
+`picard_isPL_of` needs. For the cubic shape the on-ball `K`,`L` are **uniform over the slab**: the
+RHS is `s`-independent and the nonlinearity (`v·ψ²`,`v·θ²`) lives in the bounded non-`s` coords, so
+`K`,`L` are the bounded-coord constants, free of the unbounded `s`. -/
 theorem picard_isPL_of_local {sys : ODESystem V} (K L : NNReal) (ν : State V) (a : ℝ) (ha : 0 ≤ a)
     (hLipOn : LipschitzOnWith K (odeField sys) (Metric.closedBall ν a))
     (hbound : ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
@@ -1188,12 +1192,12 @@ theorem picard_isPL_of_local {sys : ODESystem V} (K L : NNReal) (ν : State V) (
     simp only [sub_zero, NNReal.coe_zero]
     rwa [max_eq_left hr₀.le]
 
-/-- **Slab-Lipschitz step (the 12 cubic).** Identical to `hstep_multi` EXCEPT the existence route:
+/-- **Slab-Lipschitz step (cubic shape).** Identical to `hstep_multi` EXCEPT the existence route:
 `picard_isPL_of_local` (on-ball Lipschitz, uniform `K`,`L` over the slab by `s`-independence) instead
 of `picard_isPL_of` (global Lipschitz). Everything downstream — `picard_to_RunFor`, and the `chainN`
 this feeds — is the **same rover/multi machinery, unchanged**. `hinv` (curve stays in the slab `P` and
 `dom`) is the asymptotic v/ψ/θ faces + `growth_bound_raw` inequality form (`s'=v(1−…)≤v_max`,
-`≥0` since factor ∈[0.6,1] verified). -/
+`≥0` for a factor in `[0.6,1]`). -/
 theorem hstep_slab_lipschitz {sys : ODESystem V} {dom : Formula V}
     (K L : NNReal) (a : ℝ) (ha : 0 < a) (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a)
     (P : State V → Prop)
@@ -1209,11 +1213,10 @@ theorem hstep_slab_lipschitz {sys : ODESystem V} {dom : Formula V}
     (fun Φ hΦ0 hcurve t ht => (hinv Φ ν hν hΦ0 hcurve t ht).2)
   exact ⟨Φ r₀, (hinv Φ ν hν hΦ0 hcurve r₀ (Set.right_mem_Icc.mpr hr₀.le)).1, hrun⟩
 
-/-- **Chaining reuse confirmed (slab-Lipschitz = same `chainN`).** `chainN` applied directly to
-`hstep_slab_lipschitz` — a one-liner. It type-checks precisely because `hstep_slab_lipschitz`'s output
-`∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys dom r₀ ν ν'` is EXACTLY `chainN`'s step premise. So the 12 cubic's
-chaining is **literally the rover/multi machinery, unchanged** — only the existence lemma
-(`picard_isPL_of_local` vs `picard_isPL_of`) differs. Reaches any duration `s ≤ n·r₀`. -/
+/-- **Chaining for the slab-Lipschitz step.** `chainN` applied directly to `hstep_slab_lipschitz`,
+whose output `∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys dom r₀ ν ν'` is `chainN`'s step premise: from a
+`P`-point, a `RunFor` run of any duration `s ≤ n·r₀` exists. Only the existence lemma
+(`picard_isPL_of_local` vs `picard_isPL_of`) differs from the rover/multi chaining. -/
 theorem slab_chain_reuse {sys : ODESystem V} {dom : Formula V}
     (K L : NNReal) (a : ℝ) (ha : 0 < a) (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a)
     (P : State V → Prop)
@@ -1242,7 +1245,7 @@ theorem update_lipschitz (sidx : V) (c : ℝ) :
   · rw [Function.update_of_ne h, Function.update_of_ne h]; exact dist_le_pi_dist x y i
 
 /-- **Slab-uniform Lipschitz (discharged from s-independence).** If the field is `s`-independent
-(`odeField x = odeField (update x sidx 0)` — holds for the 12 cubic, no RHS reads `s`) and Lipschitz
+(`odeField x = odeField (update x sidx 0)`, e.g. when no RHS reads `s`) and Lipschitz
 with `K` on a big cross-section ball `closedBall c₀ R` (from `odeField_lipschitzOnWith`), then it is
 Lipschitz with the **same `K`** on every ball `closedBall ν a` whose `s`-reset image sits inside that
 big ball — uniformly, regardless of `ν`'s (unbounded) `s`. The unbounded slab collapses to the compact
@@ -1297,9 +1300,9 @@ theorem odeField_slab_bound {sys : ODESystem V} (sidx : V) (L : ℝ)
     _ ≤ a := by rw [one_mul]; exact hx
 
 /-- **s-independence equation, discharged from `sidx ∉ RHS free vars`.** If no equation's RHS reads
-`sidx`, then `odeField x = odeField (update x sidx 0)` — the load-bearing factoring equation. For the
-12 cubic `sidx` is the growing coord `s`, and no RHS reads `s` (confirmed) ⟹ this holds. Promotes
-"we checked the dynamics" to the Lean field equation the establishment discharges `K`/`L` from. -/
+`sidx`, then `odeField x = odeField (update x sidx 0)`, the factoring equation from which
+`odeField_slab_lipschitz`/`_bound` discharge `K`/`L` (for the cubic shape, `sidx` is the growing
+coordinate `s`). -/
 theorem odeField_sindep {sys : ODESystem V} (sidx : V)
     (hread : ∀ i, sidx ∉ (sys.rhs i).fv) (x : State V) :
     odeField sys x = odeField sys (Function.update x sidx 0) := by
@@ -1353,8 +1356,7 @@ theorem slab_invariance_cubic {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State 
 invariance via `asymptotic_invariance_raw` (v,ψ) + `nonstrict_antitone_raw`/`growth_bound_raw` on the
 Z3 field-value bounds (`hsge_box`,`hsle_box`), packaging via `RunFor_unpack`. Same assembly as
 `hExist_multi`, only the existence route differs. The Z3 box conditions `hsge_box`/`hsle_box` are the
-factor bounds (`odeField si = v·factor ∈ [0,v_max]`, factor∈[0.6,1] verified) — in the Z3 boundary,
-not analytic carried hypotheses. -/
+factor bounds (`odeField si = v·factor ∈ [0,v_max]`), discharged by Z3 verdicts. -/
 theorem hExist_cubic {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellFormed)
     (vi psii si : V) (k c vmax lo hi smax : ℝ)
     (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
@@ -1505,8 +1507,8 @@ theorem coupled_eigen_invariance {sys : ODESystem V} {r : ℝ} {Φ : ℝ → Sta
   exact ⟨hlo_inv t ht, hhi_inv t ht⟩
 
 /-- **Driven-asymptotic bound (defective companion's second eigencoord).** For the critically-damped
-companions (double real eigenvalue — confirmed, NO complex/oscillatory anywhere in the suite, so NO
-Lyapunov needed), one eigencoord is asymptotic (`coupled_eigen_invariance`); the generalized coord is
+companions (double real eigenvalue, no oscillation, so no Lyapunov function is needed), one
+eigencoord is asymptotic (`coupled_eigen_invariance`); the generalized coord is
 **driven** (`v'=u−λv`, `u` bounded). If along the curve `odeField si ≤ M − λ·si` (from the eigencoord
 bound + Z3) with `λ>0` and `M ≤ λ·C`, then `si ≤ C` — via `(si−C)·e^{λt}` being antitone
 (`g'≤−λg`). Bounded, standard, non-oscillatory; not a Lyapunov function. -/
@@ -1560,8 +1562,7 @@ theorem driven_bound_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V} (s
 /-- **hsmax as a Z3 check.** The growth coupling `ν si + v_max·s ≤ S_max` is `left_duration_bound`
 (analytic — the left growing coord `s'=v ≥ v_min` in `domL` bounds the duration `s ≤ (S_max^L−s₀)/v_min`)
 COMPOSED with the **Z3-checkable arithmetic** `ν si + v_max·(S_max^L−s₀)/v_min ≤ S_max` (a polynomial
-inequality on the parsed bounds — polynomial-NRA, in the trusted Z3 boundary). No new analytic
-obligation: the analytic part is `left_duration_bound` (proven); hsmax is the Z3 wiring. -/
+inequality on the parsed bounds, a Z3 verdict). The analytic part is `left_duration_bound`. -/
 theorem hsmax_of_left_duration {sys : ODESystem V} {ΦL : ℝ → State V}
     (viL siL : V) (vminL smaxL : ℝ) (hvmin : 0 < vminL)
     {s : ℝ} (hs0 : 0 ≤ s)

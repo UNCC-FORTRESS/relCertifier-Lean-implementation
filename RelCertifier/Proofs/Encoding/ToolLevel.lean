@@ -2,21 +2,19 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Tool-level connection — Z3 verdict ⟹ the paper's ∀∃ (single-sync fragment)
+# Tool-level connection: Z3 verdict to the ∀∃ modality (one-joint-segment fragment)
 
-NOTE (transition-faithful variant). `certified_relational` here proves the ∀∃ modality over the
-**flat** right choice-star `(⨆ right modes)*` — a valid but *weaker* over-approximation of the
-paper's automaton (its ∃-right ranges over any mode sequence, not only declared transitions). The
-**transition-faithful** landing is `BridgeFinish.theorem3_faithful`, whose right program is
-`R_real = star(rightAutomatonBody)` (jumps only along declared edges). Both rest on the same
-`z3_unsat_sound` leaf; `theorem3_faithful` is the one that pins the ∃-right to the real automaton.
+Scope: `certified_relational` proves the ∀∃ modality over the **flat** right choice-star
+`(⨆ right modes)*`, whose ∃-right ranges over any mode sequence, not only declared mode changes,
+so its claim is weaker than Theorem 3. The theorems of Appendix B.1 (`theorem3_of_coverX` and the
+record-level `theorem3_window/keyed_of_records`) are over `rightAutomatonBodyC`, which jumps only
+along declared edges. Both rest on the same `z3_unsat_sound` axiom (Appendix B.4).
 
-Wires the running tool's inputs into the proven CSF-side chain (`reified_relational`). The one
-junction needing care is `pair_faModal` (Step 2): the per-segment `faModal` is discharged from a
-**Z3 UNSAT on the evolution-domain flow query** — the *same* query the tool checks and the proof
-consumes, with no runtime-labeling gap.
+This file wires the tool's inputs into the CSF-side chain (`reified_relational`). The junction is
+`pair_faModal`: the per-segment `faModal` is discharged from a **Z3 UNSAT on the
+evolution-domain flow query**, the *same* query the tool checks and the proof consumes.
 
-**The query junction (checker-construction lesson).** `flow_certified` (Oracle.lean) applies
+**The query junction.** `flow_certified` (Oracle.lean) applies
 `z3solve` to `flowQuery o` and yields `BoxLe (ode (jointSys o.fL o.fR o.lam) o.domain)` — for the
 *same* obligation `o`. The runtime builds `o.domain = domL ∧ domR` from `mL.evolve`/`mR.evolve`
 (`flowQueryIR`/`segParts`, evolution domain — guards removed). So:
@@ -36,7 +34,7 @@ namespace RelCertifier
 
 open DL DLCalTiming DLRel RelCertifier.Parse RelCertifier.Run
 
-/-- **Step 2 — the `hpair` discharge (the trust-critical junction).** From a Z3 UNSAT on the
+/-- **The `hpair` discharge.** From a Z3 UNSAT on the
 **evolution-domain** flow query `flowQuery o` (with `o.domain = domL ∧ domR`, `hdom`), the CSF
 duration-existence side-condition `hExist` (per state), and the structural independence/support
 hypotheses, the per-segment `faModal` holds at **every** invariant-satisfying state — exactly the
@@ -73,7 +71,7 @@ theorem pair_faModal {n : ℕ} (o : FlowObligation n) (domL domR : Formula (Var 
   rw [hdom] at hcert
   exact segment_faModal o.g o.fL o.fR o.lam domL domR σ hdisj hφL hφR hcert (hExist σ)
 
-/-- A single-sync certified segment: one left mode ↦ one right mode, with the evolution-domain
+/-- A certified joint segment: one left mode ↦ one right mode, with the evolution-domain
 Z3 verdict and the per-pair support hypotheses. The `hz3` field is the tool's UNSAT on the
 **evolution-domain** flow query `flowQuery ⟨g, fL, fR, lam, domL ∧ domR⟩`. -/
 structure CertSeg (n : ℕ) (g : Term (Var n)) where
@@ -104,19 +102,13 @@ def CertSeg.leftProg {n : ℕ} {g : Term (Var n)} (s : CertSeg n g) : Program (V
 def CertSeg.rightProg {n : ℕ} {g : Term (Var n)} (s : CertSeg n g) : Program (Var n) :=
   Program.ode (rightBlock s.fR s.lam) s.domR
 
-/-- **Tool-level end-to-end (single-sync fragment).** Given a list of single-sync certified
-segments (each backed by an evolution-domain Z3 UNSAT), the relational invariant `ψ` (with
-`encode id ψ = invLe g`), and the structural `Bridges`/disjointness, the paper's ∀∃ relational
-modality over the looped choice-automata holds at the bi-state. This is what the tool's
-`CERTIFIED` (on a fully-single-sync benchmark, `decideCovered = true`) provably produces —
-`[|(L*,R*)⟩⟩ ψ`, the paper's Theorem-3 conclusion (**flat** `R*`).
+/-- **Tool-level end-to-end (one-joint-segment fragment).** Given a list of certified joint
+segments, each pairing a left mode with a right mode (each backed by an evolution-domain Z3 UNSAT), the relational
+invariant `ψ` (with `encode id ψ = invLe g`), and the structural `Bridges`/disjointness, the ∀∃
+relational modality `[|(L*,R*)⟩⟩ ψ` over the looped choice programs holds at the bi-state, with
+the **flat** right star `R*` (any mode sequence), weaker than the conclusion of Theorem 3.
 
-The `decideCovered = true ⟹` connection is no longer comment-only: for the **transition-faithful**
-`R_real`, `BridgeDischarge.decideCovered_implies_theorem3_faithful` proves it as a theorem
-(`decideCovered = true` in the hypotheses, `rvalid(theorem3Form … faithful)` in the conclusion,
-`hstep` discharged from the per-segment Z3 flow certs, axioms + `z3_unsat_sound`).
-
-Residual TCB: the parser (lowering `PProblem → CertSeg`s) and Z3 `unsat` (`z3_unsat_sound`);
+Residual trust: the parser (lowering `PProblem → CertSeg`s) and Z3 `unsat` (`z3_unsat_sound`);
 `hExist` is CSF's explicit duration-existence side-condition (true for the bounded domains). -/
 theorem certified_relational {n : ℕ} (g : Term (Var n)) (segs : List (CertSeg n g))
     (ψ : RFormula (Var n)) (ν : State (Var n)) (bs : BiState (Var n))
@@ -152,10 +144,10 @@ mentions the **opaque** `z3solve` (realized by the Z3 process in IO — kept opa
 kernel never depends on Z3), so its truth is not a kernel value. `hExist` is the CSF analytic
 side-condition. So the emit splits: the **data** (`fL/fR/lam/domL/domR`) is a pure lowering of the
 parsed model; the **proofs** (`hz3` at the Z3 boundary, `hExist` the side-condition, `hdisj` the
-per-benchmark independence) enter through the smart constructor. This is the correct structure —
-the same `z3_unsat_sound` boundary the whole tool rests on. -/
+per-benchmark independence) enter through the smart constructor, at the same `z3_unsat_sound`
+boundary the whole tool rests on. -/
 
-/-- Pure lowered **data** of one single-sync segment (no proofs). -/
+/-- Pure lowered **data** of one joint segment (no proofs). -/
 structure SegData (n : ℕ) where
   fL : Fin n → Term (Var n)
   fR : Fin n → Term (Var n)

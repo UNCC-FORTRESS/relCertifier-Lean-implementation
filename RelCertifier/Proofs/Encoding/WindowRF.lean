@@ -2,16 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# L2 × L6 — the right-only prefixed k-piece window over a list invariant
+# The right-only prefixed k-piece window over a list invariant
 
-The k > 1 multi-component benchmarks (9 of the 21 budget>1 set) compose the L2
-assembly (`Hmulti_windowR_prefixed`, right-only hops) with the L6 loop formula
-(`FM g gs`). This file is the composition mirror: the same proof with the opaque
-loop formula `F` in place of `invLe g` — every ingredient (`multiseg_clocked`,
-`faModalB_repoPathR`, `hdisH_progR`, the fold/flatten lemmas) is already
-φ-parametric.
-
-New leaf (imports `RepoPrefixR` + `EnvelopeChainM`); no upstream edits.
+Multi-component benchmarks with a budget of `k > 1` segments compose the right-only-prefixed
+assembly (`Hmulti_windowR_prefixed`, right-only hops) with the list loop formula (`FM g gs`).
+This file is that composition: the same proof with an opaque loop formula `F` in place of
+`invLe g`; every ingredient (`multiseg_clocked`, `faModalB_repoPathR`, `hdisH_progR`, the
+fold/flatten lemmas) is already φ-parametric.
 -/
 import RelCertifier.Proofs.Encoding.RepoPrefixR
 import RelCertifier.Proofs.Encoding.EnvelopeChainM
@@ -21,7 +18,13 @@ open DL DLCalTiming Set
 
 variable {n : ℕ}
 
-/-- **The right-only prefixed k-piece window, list-invariant form.** -/
+/-- **The right-only prefixed k-piece window, list-invariant form.** From a state in `F ∧ env`,
+the ∀∃ modality `faModal` holds for the left cycle `windowSeg … k` against the right program
+that runs the right-only hops `hops` and then the `k` joint pieces, with postcondition
+`F ∧ env`: each hop has a run from every `F ∧ env` state (with the clock at `0`) back into
+`F ∧ env` (`hR`), and each piece matches one clocked left segment (`hcouple`). These are the
+right-only segments (Lemma 4) followed by the joint segments (Lemma 3) of one branch of a
+witness strategy (Definition 4). -/
 theorem Hmulti_windowRF_prefixed (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
     (F env : Formula (Var n)) (a : Fin n) (dt : ℝ) (k : ℕ)
     (htgF : ((Side.Aux, a) : Var n) ∉ F.fv) (htgenv : ((Side.Aux, a) : Var n) ∉ env.fv)

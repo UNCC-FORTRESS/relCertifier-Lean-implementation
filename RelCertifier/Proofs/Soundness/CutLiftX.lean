@@ -2,22 +2,21 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The widened cut channel, lifted: `EvolStrengtheningX` is sound
+# Mode facts, lifted: `EvolStrengtheningX` is sound (Definition 2)
 
-`Checker/EvolStrengtheningX.lean` (tool side, `RELCERT_IMPLIED_CUT=1`) keeps, per mode,
-cut atoms of five KINDS, each with its O1 (entry) justification and its O2 (invariance)
-route, and the conditioning list `given` of the stratified kinds. The legacy lift
-(`CutLift.lean`, `CutCover.lean`) covers only `guardConj` atoms with O1 by membership and
-O2 unconditioned per atom. This file lifts the rest. The 23 new suite_v2 instances with
-verdict packs (`InstancesV2/Modal/`; the three Z3-free `arm_plateau_*` instances need no
-coupling) consume it through `couple_cutX` (`Proofs/Encoding/CutRespond.lean`) against
-their emitted extended certificate (`InstancesV2/Cuts/<b>.lean`); 12 of the 45 suite_v2
-benchmarks are certified only with the widened channel on.
+`Checker/EvolStrengtheningX.lean` (tool side, `RELCERT_IMPLIED_CUT=1`) records, per mode, the
+atoms of its mode fact (Definition 2) in five KINDS, each with its O1 (entry: the guard implies
+the atom) justification and its O2 (preservation along the mode's flow) route, and the
+conditioning list `given` of the stratified kinds. `CutLift.lean` and `CutCover.lean` cover
+only `guardConj` atoms with O1 by membership and O2 unconditioned per atom; this file lifts
+every kind. Appendix B.3 maps Definition 2 to these records; the benchmark instances consume
+the lift through `couple_cutX` (`Proofs/Encoding/CutRespond.lean`) against their emitted
+extended certificate (`InstancesV2/Cuts/<b>.lean`).
 
 **O1 — entry** (the mode's guard implies the atom), one lemma per `CutEntry`, stated over
 the very lowerings the tool uses (`Run.lowerF` of the guard and of the atom):
 
-* `membership` — `entry_membership` (the legacy `cutAtoms_sat`);
+* `membership` — `entry_membership` (`cutAtoms_sat`);
 * `weakening` — `entry_weakening`: a strict guard conjunct `e < k` implies its closure
   `e ≤ k` (`strictAtoms`, `closureOf`);
 * `rational` (threshold atoms: implied-contraction and derived bounds) —
@@ -46,9 +45,9 @@ frozen, stretch 1 — the shape every O2 probe of the tool has), then transporte
 * `derivedShape` — `ownSuper_derived_le` / `_ge`: on `{x ≥ K'} ∩ {q ≤ K}` with
   `r (K' − c) ≥ K`, `x' = y = q − r (x − c) ≤ K − r (K' − c) ≤ 0`; the domain carries the
   GIVEN linear-form atom;
-* the DI routes A / B / C — the legacy `atom_boxle_{R,L}_{nonstrict,strict,superlevel}`
-  (`CutLift`, `CutCoverDischarge`), unchanged, over the bare evolve domain or the evolve
-  domain narrowed by the given atom.
+* the DI routes A / B / C — `atom_boxle_{R,L}_{nonstrict,strict,superlevel}`
+  (`CutLift`, `CutCoverDischarge`), over the bare evolve domain or the evolve domain
+  narrowed by the given atom.
 
 **Stratification** (`given`): a derived bound's O2 holds only inside its round-1
 linear-form atom. `stay_given` composes the two sequentially (a differential-cut chain):
@@ -56,16 +55,16 @@ the given atom stays along every bare-domain run (its own unconditioned O2), so 
 a run of the narrowed domain, where the derived bound's O2 applies. The threading below
 therefore carries CONDITIONAL staying (`AtomsStayC`: an atom stays from every base where
 ALL atoms of its family hold), which `CoverCertMCX` / `pres_multi_cutX` /
-`check_sound_multi_cutX` consume exactly as the legacy `CoverCertMC` / `pres_multi_cut` /
-`check_sound_multi_cut` consume unconditional staying; the legacy certificate embeds
+`check_sound_multi_cutX` consume as `CoverCertMC` / `pres_multi_cut` /
+`check_sound_multi_cut` consume unconditional staying; `CoverCertMC` embeds
 (`CoverCertMC.toX`).
 
-**Modal packaging.** `cut_hcertX` is `cut_hcert`'s conditional-staying form: from the
-NARROWED joint verdict and the atom facts, the bare-domain `BoxLe` at every base where the
-atoms hold — the per-piece shape the modal (Theorem 3) instances consume.
+**Per-segment packaging.** `segPresAll_cut_liftX` is `cut_hcert`'s conditional-staying form:
+from the NARROWED segment preservation and the atom facts, preservation over the bare domain
+from every base where the atoms hold, the per-segment shape the Theorem 3 instances consume.
 
-Axioms: the standard three, plus `z3_unsat_sound` only in the two Z3-route wrappers
-(`entry_z3`, and the legacy DI-route adapters this file calls through).
+Axioms: the standard three, plus `z3_unsat_sound` only through the Z3 routes (`entry_z3`,
+`entryZ3Fact_of_unsat`, and the DI-route adapters this file calls through).
 -/
 import RelCertifier.Proofs.Soundness.CutCoverDischarge
 import RelCertifier.Checker.EvolStrengtheningX
@@ -146,7 +145,7 @@ theorem lowerF_thr {vars : List String} {side : Side} {op v s : String} {fI : IF
 
 /-! ## 2. Guard conjuncts: strict atoms, and lowering of conjuncts -/
 
-/-- Every conjunct the cut channel reads off a guard lowers, and holds, where the
+/-- Every conjunct the mode-fact channel reads off a guard lowers, and holds, where the
 guard's lowering holds (closed conjuncts `cutAtoms`, strict ones `strictAtoms`). -/
 theorem conj_sat {vars : List String} {side : Side} {f t : PForm}
     (ht : t ∈ cutAtoms f ++ strictAtoms f) :
@@ -211,7 +210,7 @@ theorem strictAtoms_strict {f a : PForm} (ha : a ∈ strictAtoms f) :
 
 /-! ## 3. O1 — entry, one lemma per `CutEntry` -/
 
-/-- `membership`: a closed guard conjunct (the legacy channel). -/
+/-- `membership`: a closed guard conjunct. -/
 theorem entry_membership {vars : List String} {side : Side} {guard a : PForm}
     (ha : a ∈ cutAtoms guard) {gI aI : IForm n}
     (hg : Run.lowerF vars n side guard = some gI) (haI : Run.lowerF vars n side a = some aI)
@@ -1273,9 +1272,9 @@ theorem sem_ode_narrow2C {sys : ODESystem (Var n)} {dom : Formula (Var n)}
   · rintro ⟨hd, hl, hr⟩
     exact ⟨⟨hd, hl⟩, hr⟩
 
-/-- **The X-channel cut-narrowed certificate.** `CoverCertMC` with CONDITIONAL staying
+/-- **The mode-fact-narrowed certificate, X channel.** `CoverCertMC` with CONDITIONAL staying
 (`AtomsStayC`), so a family may contain stratified atoms (a derived bound and its given
-linear form); every other field is the legacy one — in particular `entryR`, the O1 fact
+linear form); every other field is as in `CoverCertMC`, in particular `entryR`, the O1 fact
 that a right mode's guard implies its atoms, which `modeCutWFX_entry` discharges for every
 `CutEntry` from the kernel-checked extended certificate. -/
 structure CoverCertMCX (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
@@ -1305,7 +1304,7 @@ structure CoverCertMCX (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
       (Formula.and m.dynDomPost (Formula.and (cutF cutL) (cutF (cutR q))))
   weightPos : ∀ m ∈ G.modes, 0 < m.weight
 
-/-- The legacy certificate is the special case (unconditional staying). -/
+/-- `CoverCertMC` is the special case (unconditional staying). -/
 theorem CoverCertMC.toX {G : SearchGraph (Var n)} {gs : List (Term (Var n))}
     {Gd : ℕ → Formula (Var n)} {cutL : List (CutAtomP n)} {cutR : ℕ → List (CutAtomP n)}
     (c : CoverCertMC G gs Gd cutL cutR) : CoverCertMCX G gs Gd cutL cutR :=
@@ -1319,7 +1318,7 @@ theorem CoverCertMC.toX {G : SearchGraph (Var n)} {gs : List (Term (Var n))}
     entryR := c.entryR, segPresC := c.segPresC, repoDynPresPreC := c.repoDynPresPreC,
     repoDynPresPostC := c.repoDynPresPostC, weightPos := c.weightPos }
 
-/-- **The cut-threaded preservation, X channel.** As `pres_multi_cut`, with conditional
+/-- **The mode-fact-threaded preservation, X channel.** As `pres_multi_cut`, with conditional
 staying: left atoms persist by their facts through every flow from a base where the whole
 left family holds; right atoms persist within a mode the same way and RE-ENTER at each
 switch from the recorded target guard (O1, `entryR`). -/
@@ -1362,8 +1361,9 @@ theorem pres_multi_cutX (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
         (cert.entryR _ _ hGd)
 
 /-- **The runner↔theorem connection, X channel.** The kernel-replayed `decideCovered` +
-the X cut-narrowed certificate + the initial conditioning give the throughout invariant
-of every component along every guard-triggered coexecution. -/
+the `CoverCertMCX` certificate + the initial conditioning (components and both atom families
+hold at the entry) give `Covered G cfg` and the throughout invariant of every component
+along every guard-triggered coexecution. -/
 theorem check_sound_multi_cutX (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) (cert : CoverCertMCX G gs Gd cutL cutR)
@@ -1375,12 +1375,13 @@ theorem check_sound_multi_cutX (G : SearchGraph (Var n)) (gs : List (Term (Var n
    fun ω hreach => pres_multi_cutX G gs Gd cutL cutR cert cfg ν ω hreach
      hinit hinitL hinitR⟩
 
-/-! ## 7. The per-piece packaging the modal (Theorem 3) instances consume -/
+/-! ## 7. The per-segment packaging the Theorem 3 instances consume -/
 
 /-- **`cut_hcert`, X channel.** From the NARROWED segment certificate (every component
-preserved over `dom ∧ (cutL ∧ cutR)` — the tool's narrowed queries, through the stratified
-multi-barrier verdicts) and conditional staying of both families, every component is
-preserved over the BARE domain from every base where the atoms hold. -/
+preserved over `dom ∧ (cutL ∧ cutR)`, the tool's narrowed queries, through the stratified
+multi-barrier verdicts) and conditional staying of both families: from every base where both
+atom families and every component hold, every run on the BARE domain ends where every
+component and both atom families hold. -/
 theorem segPresAll_cut_liftX {sys : ODESystem (Var n)} {dom : Formula (Var n)}
     {gs : List (Term (Var n))} {cutL cutRq : List (CutAtomP n)}
     (hiffL : AtomsIff cutL) (hiffR : AtomsIff cutRq)
@@ -1412,7 +1413,7 @@ theorem sideCutWFX_mem {modes : List PMode} {mcs : List (String × List CutAtomX
 
 /-- **O1 for a whole extended certificate** (right side): from the kernel-checked
 `evolStrengtheningWFX p c = true`, for every right-mode entry of `c`, the lowered guard of
-that mode implies every kept atom (given the `z3`-entry facts, none in `suite_v2`). -/
+that mode implies every kept atom (given the `z3`-entry facts). -/
 theorem evolStrengtheningWFX_entryR {p : PProblem} {c : EvolStrengtheningX}
     (h : evolStrengtheningWFX p c = true) {name : String} {atoms : List CutAtomX}
     (hmem : (name, atoms) ∈ c.R) :

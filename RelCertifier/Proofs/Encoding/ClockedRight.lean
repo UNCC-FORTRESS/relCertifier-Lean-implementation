@@ -4,13 +4,12 @@ Released under Apache 2.0 license.
 
 # The clocked right automaton: response layer and clock erasure
 
-The right automaton of the general chain is unclocked (`modeStep`/`rightAutomatonBody`,
-`JointBridge.lean`): one cycle may flow arbitrarily long in a mode, so the mechanized
-Theorem 3 ranges over more right runs than the paper's Eq. (1) allows. Its clocked twin
-(`modeStepC`/`rightAutomatonBodyC`, `ClockedTop.lean`) replaces the flow by
-`clockedSeg sys dom tg dt = tg := 0 ; {sys, tg' = 1 & dom} ; ?(tg ≤ dt)`. This file is the
-response layer of that twin (W1 of `docs/CLOCKED-RIGHT-SCOPE.md`, planning record, last present at commit 29663d8)
-plus the clock-erasure lemma of W4. Everything is additive; the unclocked layer is untouched.
+The unclocked right automaton (`modeStep`/`rightAutomatonBody`, `JointBridge.lean`) lets one
+cycle flow arbitrarily long in a mode, so it admits more right runs than Eq. (1) allows. Its
+clocked twin (`modeStepC`/`rightAutomatonBodyC`, `ClockedTop.lean`), the right program of the
+theorems of Appendix B.1, replaces the flow by
+`clockedSeg sys dom tg dt = tg := 0 ; {sys, tg' = 1 & dom} ; ?(tg ≤ dt)` (the right clock of
+Appendix B.2). This file is the response layer of that twin plus the clock-erasure lemmas.
 
 * `sem_clockedSeg_of_flow_le` / `sem_clockedSeg_of_odeSol`: dressing a flow of duration
   `r ≤ dt` with the clock (the `[0, r]` generalization of `sem_clockedSeg_of_flow`), stated
@@ -32,8 +31,6 @@ plus the clock-erasure lemma of W4. Everything is additive; the unclocked layer 
 Switch tests are evaluated at the END state of the clocked segment, which carries
 `tg = r` (the segment's duration); since every guard is `tg`-free in the intended use
 (`GuardsFresh G tg`), this is the same as evaluating at the unclocked end state.
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.GuardedClimb
 
@@ -494,7 +491,7 @@ theorem notMem_bv_rightAutomatonBodyC (G : SearchGraph (Var n)) (mv tg : Var n) 
     · exact hxtg (Set.mem_singleton_iff.mp hx')
   · exact hxR hx'
 
-/-! ## Clock erasure (W4): a clocked run is an unclocked run off `tg` -/
+/-! ## Clock erasure: a clocked run is an unclocked run off `tg` -/
 
 /-- **Erasing the clock from one segment.** A `clockedSeg sys dom tg dt` run `ν → κ`, with the
 clock overwritten by any constant `c` at both ends, is a run of the unclocked `ode sys dom`:
@@ -610,9 +607,8 @@ theorem bodyC_to_body_step (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
 
 /-- **Clock erasure for the star.** A run of the clocked automaton's star is, off `tg`, a run
 of the unclocked automaton's star from the same state: fewer right runs are admitted with the
-clock, so a claim over the clocked body implies the claim over the unclocked one, and the
-refutations of the unclocked claim transfer by contraposition. The converse direction of the
-dressing lemmas. -/
+clock, so a refutation of the unclocked claim transfers to the clocked claim by contraposition
+(Appendix B.6). The converse direction of the dressing lemmas. -/
 theorem star_bodyC_to_body (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
     (hmvtg : mv ≠ tg)
     (hfreshT : ∀ q m, G.modeAt q = some m → tg ∉ (Program.ode m.sys m.dom).fv)
@@ -630,7 +626,7 @@ theorem star_bodyC_to_body (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
         bodyC_to_body_step G mv tg dt hmvtg hfreshT hgfT hstep b' hagree
       exact ⟨κ', Relation.ReflTransGen.tail hb' hκ', hagree'⟩
 
-/-! ## W2: composition of clocked responses, the zero-duration segment -/
+/-! ## Composition of clocked responses, the zero-duration segment -/
 
 /-- **Clocked responses compose** (mirror of `rrespP_bind`). -/
 theorem rrespPC_bind {G : SearchGraph (Var n)} {tg : Var n} {dt : ℝ}
@@ -686,7 +682,7 @@ theorem sem_clockedSeg_zero (sys : ODESystem (Var n)) (dom : Formula (Var n)) (t
   · rw [sat_clkGuard, Function.update_self]
     exact hdt
 
-/-! ## W2: the clocked guarded obligation and the loop step over the clocked automaton -/
+/-! ## The clocked guarded obligation and the loop step over the clocked automaton -/
 
 /-- `GResp` over clocked segments: for every run of the left program `P` from `σ`, the right
 responds from mode `q` with a chain of clocked segments ending where `post` of the final mode
@@ -842,10 +838,15 @@ theorem hstep_assembled_GRC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
   exact hstep_single_GRC G mv tg dt q F env regions P hF henv hregf (hframes P hP) hqlt hmvtg
     hfresh hgf hlt hmvq (Hmulti P hP q hqlt σ hmvq hφ'.1 hregq)
 
-/-! ## W2: the Theorem 3 assembly with any right body, and its `hddF` discharger -/
+/-! ## The claim over any right body, and its `hddF` discharger -/
 
-/-- `theorem3_faithful_multiR_LR` with the right body abstracted: the proof never looks
-inside it (the loop rule `relational_loop_multi` is generic). The clocked chain instantiates
+/-- **The mode-independent claim for any right body.** If `ϕinv` encodes to `F`, the left
+programs and `Rb` are variable-disjoint (`hd`, `hddF`), and one step of `bigChoice leftProgs`
+from `phiInvR` (the row, the stored domains, the right mode's region) is matched by `star Rb`
+ending in `phiInvR` (`hstep`), then `theorem3Form` over `bigChoice leftProgs` and `Rb` with
+invariant `(ϕinv ∧ envLR domL domR) ∧ mvRegionR` is valid (the claim of Eq. (10)). It is
+`theorem3_faithful_multiR_LR` with the right body abstracted (the loop rule
+`relational_loop_multi` never looks inside it); the clocked chain instantiates
 `Rb := rightAutomatonBodyC G mv tg dt`. -/
 theorem theorem3_faithful_multiR_LR_gen (G : SearchGraph (Var n)) (mv : Var n)
     (Rb : Program (Var n))

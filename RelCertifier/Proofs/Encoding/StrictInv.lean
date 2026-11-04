@@ -18,7 +18,8 @@ for the mask-selected conjunction:
 * **weakening**: `FMS → FM` (the closure), so every proof that only ASSUMES the row is
   reused unchanged.
 
-New leaf; no upstream edits.
+The paper's invariants are in the non-strict conjunct form of Eq. (8); strict rows serve the
+strict-invariant exhibits of Appendix B.1.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChainM
 import RelCertifier.Proofs.Flow.DIStrictOpen

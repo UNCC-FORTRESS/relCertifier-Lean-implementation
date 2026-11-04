@@ -2,15 +2,14 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R5 — the generic throughout-instance layer
+# The generic throughout-instance layer
 
-Per benchmark, per left window, the instances need: the REAL cover graph (lowered
-systems at the emitted λ, flags from the emitted cover), the component list (lowered
-`invComponents`, now total), and the `CoverCertM` bundle assembled from named Z3
-verdicts whose query domains are EXACTLY the tool's stratified, cut-free queries
-(`strataDomIR` over the emitted per-pair orders — the 33 cut-free benchmarks; the 13
-cut-reliant ones take the guard-threaded cut lift, landed in
-`Proofs/Soundness/CutCover.lean` + `CutCoverDischarge.lean`. 33 + 13 = 46).
+Per benchmark, per left mode, the instances need: the cover graph (lowered systems at the
+emitted λ, flags from the emitted cover), the component list (lowered `invComponents`), and the
+`CoverCertM` bundle assembled from named Z3 verdicts whose query domains are EXACTLY the tool's
+stratified queries without mode facts (`strataDomIR` over the emitted per-pair orders, the rounds
+of Lemma 2). Benchmarks whose queries use mode facts (Definition 2) take the guard-threaded lift
+of `Proofs/Soundness/CutCover.lean` and `CutCoverDischarge.lean`.
 
 Everything here is generic; the generated instances supply only literals and `decide`.
 -/
@@ -24,7 +23,7 @@ open DL Run
 
 variable {n : ℕ}
 
-/-! ## Host-level lowering pipelines (the pilot's, generalized) -/
+/-! ## Host-level lowering pipelines -/
 
 /-- Lowered field of a mode (coordinate-wise; absent/failed ⟹ inert 0). -/
 noncomputable def hostDyn (vars : List String) (n : ℕ) (s : Side) (m : Parse.PMode) :
@@ -41,15 +40,15 @@ noncomputable def hostGuard (vars : List String) (n : ℕ) (s : Side) (m : Parse
     Formula (Var n) :=
   ((Run.lowerF vars n s m.guard).map IForm.toHost).getD Formula.tt
 
-/-- Lowered invariant components of a window. -/
+/-- Lowered invariant components of a left mode's row. -/
 noncomputable def hostComps (vars : List String) (n : ℕ) (f : Parse.PForm) :
     List (Term (Var n)) :=
   ((Oracle.invComponents vars n f).map (·.map ITerm.toHost)).getD []
 
 /-! ## The real cover graph at the emitted flags -/
 
-/-- The real mode for a flag row: joint system at λ, evolve domains; frozen-left dyn
-system with σ-matched domains. Mirrors `coverMode`'s
+/-- The real mode for a flag row: joint system at λ (Eq. (14)) on the evolve domains; the
+frozen-left system (Eq. (15)) with domains matched to the source setting. Mirrors `coverMode`'s
 semantic content for the structural `cgReal` node. -/
 noncomputable def realModeOf (vars : List String) (n : ℕ) (mL : Parse.PMode)
     (lam : ℚ) (f : ModeFlagsE) (mR : Parse.PMode) : RMode (Var n) :=

@@ -30,9 +30,8 @@ after the left run (the response is chosen from the left run's end, `RRespP`):
 
 What the instance supplies is exactly what the cover does not: the existence of the right's
 runs (explicit solutions allowed) and the legality of every switch against the entered mode's
-guard (`hmove`, `hexit`); every preservation fact is a pack's.
-
-New leaf; no upstream edits.
+guard (`hmove`, `hexit`); every preservation fact is a pack's (the joint and right-only flow
+certificates of Definition 5).
 -/
 import RelCertifier.Proofs.Encoding.ReplayDyn
 
@@ -111,10 +110,10 @@ theorem right_sol_left {fR : Fin n → Term (Var n)} {domR : Formula (Var n)}
   obtain ⟨j, hj⟩ := rightBlock_bound_sub fR (Term.const 1) _ hb
   exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
 
-/-- **One synchronized stretch at stretch `λ ≥ 0`.** The anchor `A` of a joint node, a box
+/-- **One joint stretch at stretch `λ ≥ 0`.** The anchor `A` of a joint node, a box
 invariant of the pair's joint flow, at the merged state at left time `a` (right `ρ`) holds at
-left time `b` with the right at the end of a run of duration `λ (b − a)` (`0` at the stutter
-stretch `λ = 0`: the right waits). -/
+left time `b` with the right at the end of a run of duration `λ (b − a)` (`0` at stretch
+`λ = 0`: the witness stands still). -/
 theorem joint_stretch {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var n)}
     (tg : Var n) (lam : ℝ) (hlam : 0 ≤ lam)
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hfR : ∀ i, (fR i).fv ⊆ range Rv)
@@ -140,7 +139,7 @@ theorem joint_stretch {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var
 
 /-- **The left time of a right switch.** A right switch after right duration `τ ≤ λ (r − a)` at
 stretch `λ ≥ 0` happens at a left time `b ∈ [a, r]` with `λ (b − a) = τ`: `b = a + τ/λ` when
-`λ > 0`; at the stutter stretch `λ = 0` the bound forces `τ = 0` and `b = a`. -/
+`λ > 0`; at stretch `λ = 0` the bound forces `τ = 0` and `b = a`. -/
 theorem stretch_split {lam a r τ : ℝ} (hlam : 0 ≤ lam) (har : a ≤ r) (hτ0 : 0 ≤ τ)
     (hτT : τ ≤ lam * (r - a)) : ∃ b, a ≤ b ∧ b ≤ r ∧ lam * (b - a) = τ := by
   rcases hlam.lt_or_eq with hpos | h0

@@ -13,7 +13,7 @@ Guards: `DETUMBLE` `E ≤ 1`, `FINE` `E ≤ 0.125`, `SAFE` `E > 1`, with the bod
 `E = 2 w1² + 4 w2² + 5 w3²`.
 
 **The right evolve domain (every mode) is the gyro box `|w_i| ≤ 1`** (the gyro's measurement
-range; one domain on every mode of both sides since 2026-10-29). The wheel momenta `h_i` are not
+range; one domain on every mode of both sides). The wheel momenta `h_i` are not
 bounded: with `|h_i| ≤ 2` in the domain the design model's own flow `h_i' = J_i k w_i` would cross
 it (from `w₃ = 0.4`, `h₃ = 2`, the rest 0, the `DETUMBLE` run of duration 1 ends at
 `h₃ = 4 − 2 e^{−1/2} > 2`) and Assumption 1 would be false. The momentum bands
@@ -28,7 +28,7 @@ the real body), but they are still conserved by every right mode's flow
   because each `|w_i(t)| = |w_i(0)| e^{−k t} ≤ 1`, the `h_i` being unconstrained.
 * `SAFE` (`E > 1`, frozen) holds still.
 
-Z3-free; modelled on `RelCertifier/InstancesV2/WellFormed/Sat3wDetumbleWeak.lean`.
+Z3-free.
 -/
 
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -176,7 +176,7 @@ noncomputable def modeW (q : ℕ) : RMode (Var 6) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+right mode `t`, lowered exactly as the left modes' guards are): the right switches into
 `t` only where `t`'s guard holds. -/
 noncomputable def edgeW (s t : ℕ) : REdge (Var 6) :=
   { src := s, tgt := t, guard := hostGuard vs 6 Side.R (mR t), pruned := false }
@@ -209,7 +209,7 @@ noncomputable def nbPair (c : Term (Var 6)) : Formula (Var 6) :=
   Formula.and (Formula.cmp CompOp.le c (Term.const 2))
     (Formula.cmp CompOp.le (Term.const (-2)) c)
 
-/-- The momentum bands `⋀ᵢ −2 ≤ c_i ≤ 2` (not in the domain, not a tool cut; conserved by every
+/-- The momentum bands `⋀ᵢ −2 ≤ c_i ≤ 2` (not in the domain, not a mode fact of the tool; conserved by every
 right flow, see `sat3w_detumble_phases_band_invariant`). -/
 noncomputable def nbF : Formula (Var 6) :=
   Formula.and (nbPair c1) (Formula.and (nbPair c2) (nbPair c3))

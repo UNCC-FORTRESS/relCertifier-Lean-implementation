@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The bridge verdict runner
+# The bridge verdict runner (Appendix B.4, pinning the queries)
 
 Per benchmark, at the bridge dimension (`bridgeDimV2`: the Assumption 1 lemma's dimension,
 the state variables plus the auxiliary coordinates the instance needs, plus one for the right
@@ -44,9 +44,10 @@ structure BridgeRec where
   prog : ProgressEmitE
   ce   : ChoiceEmitE
 
-/-- The choice exhibits (`benchmarks/choice`): their records, at the hand-written general
-instance's dimension plus the right clock (`bridgeDimV2`'s rule), each cover merged with its
-pre-landing record (`withPL`, the instance's `covM`; the pre-landing feature is always on). -/
+/-- The two exhibits of committed successor subsets (`benchmarks/choice`): their records, at the
+hand-written general instance's dimension plus the right clock (`bridgeDimV2`'s rule), each cover
+merged with its pre-landing record (`withPL`, the instance's `covM`): both check right-only flow
+certificates on the restricted mode (Lemma 4). -/
 def choiceRecsV2 : List BridgeRec :=
   [ ⟨"vehicle_accel_copy", 2 + 1, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX,
       withPL vehicle_accel_copy_coverV2 Preland.vehicle_accel_copy_coverV2_prelanding,
@@ -56,18 +57,14 @@ def choiceRecsV2 : List BridgeRec :=
       watertank_choice_coverV2_progress, watertank_choice_coverV2_choice⟩ ]
 
 -- `coverV2`, `coverV2M` (the cover merged with the pre-landing record) and `progV2` are in
--- `VerdictsV2/RunV2.lean` (its reposition phase reads the same records).
+-- `VerdictsV2/RunV2.lean` (its right-only phase reads the same records).
 
 def choiceV2 (b : String) : ChoiceEmitE :=
   ((choiceTableV2.find? (·.1 == b)).map (·.2)).getD (ChoiceEmitE.empty b)
 
 /-- The dimensions of the benchmarks whose Assumption 1 lemma comes from a hand-written general
 exhibit (`InstancesV2/Choice/General/`): the dimension at which the exhibit proves Assumption 1.
-None since 2026-10-27: `lit_hypercert_vehicle` (with the position coordinate) had its own
-`InstancesV2/WellFormed/LitHypercertVehicle.lean` at the padded fallback dimension 3 (bridge
-dimension 4; it was 2, bridge 3, while its Assumption 1 came from the general exhibit at
-`Var 2`, git history 61d7389); that benchmark left the suite on 2026-10-28
-(`benchmarks/skipped/`). -/
+Empty: every suite benchmark has its own `InstancesV2/WellFormed/` proof. -/
 def generalDimsV2 : List (String × ℕ) := []
 
 /-- The bridge dimension of a benchmark: the dimension of its Assumption 1 lemma (the pack
@@ -80,25 +77,10 @@ def bridgeDimV2 (b : String) : ℕ :=
   ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD
     (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3)) + 1
 
-/-- Declared: the number of query groups over the suite (5183 until the literature migration of
-2026-10-29; 7433 after it, of which 2450 are `lit_gpt10_boost_converter`'s 48 abstraction modes; 7437
-since literature round 3: `lit_csf25_salt_tank_hold`'s stale-reading rows, four atoms per mode; 7375
-since review round 6 of 2026-10-30: `charger_fast_tapers` out, `molding_pack_checkring` in, the changed
-benchmarks re-emitted; 7570 since batch 10 of 2026-10-30: `boiler_purge_vfd` and
-`autoclave_liquid_steambank` in for `platoon_latency` and `rover_patrol_lag`, four models changed; 7550
-since batch 11 of 2026-10-30: `extruder_pe100_manualstart` (118) and `lit_nahs25_engine_cooling` (18, on
-the cover merged with its pre-landing record) in for `fuelcell_chp_dos` and `rover_terrain_6to12`;
-13132 since batch 12 of 2026-10-31: stretch 0 and the pre-landing certificate always on, every
-right-only node a pre-landing node (its pack on its region, routes A/B/C per component), the
-progress certificates of `lit_drl_lane_control` and `lit_freedm_meter` now sent (they were left out
-of `progressTableV2`), every benchmark's groups built on its cover merged with its pre-landing
-record); 13089 since batch 13 of 2026-10-31: stretch 0 only for a declared range including 0, so
-`lit_freedm_meter` (declared [1, 1]) is certified at stretch 1 in every window); 12317 since batch 14
-of 2026-11-01: the stop-line ladder (`stopline_lag` 84, `stopline_friction` 86, `stopline_tyre` 96,
-`stopline_drag` 80 groups) for the rover refinement ladder (`rover_ladder_*`); 13677 since batch 15
-of 2026-11-01: the rover ladder back (`rover_ladder_2to3` 56, `_3to6` 104, `_6to8` 461, `_8to12` 569
-groups) for `rover_terrain_{2to4,4to6}`, `platoon_linkloss` and `acc_tune_lag`, and the full-fidelity
-stop-line rungs (`stopline_lag` 132, `stopline_friction` 170, `stopline_tyre` 278, `stopline_drag` 270). -/
+/-- Declared: the number of query groups over the bridge instances, the 50 suite benchmarks and
+the two exhibits of committed successor subsets (13677 groups over 52 instances, Appendix B.4).
+Every right-only node is checked on its restricted mode (the cover merged with its pre-landing
+record, its pack on its region, routes A/B/C per component). -/
 def expectedBridgeGroupsV2 : Nat := 13677
 
 /-- The suite's records. -/

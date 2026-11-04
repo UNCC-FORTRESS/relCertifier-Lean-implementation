@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S3 — the face/domain bridge and uniform Picard data
+# The face/domain bridge and uniform Picard data
 
 `HExistSegB_of_viability` consumes (i) `hdomsat : faces ≤ 0 → sat domR`, (ii) per-anchor
 ball Lipschitz/bound data with ONE `K, L` for every box anchor. This file supplies both:
@@ -275,7 +275,7 @@ theorem uniform_picard_data {V : Type*} [Fintype V] [DecidableEq V]
       _ = (C.toNNReal : ℝ) := (Real.coe_toNNReal' C).symm
 /-! ## `WellFormedFlowB` transfer along pointwise-equal fields
 
-The contract witnesses (`WellFormedFlowB_contract`, the explicit exponential) are
+The contraction witnesses (`WellFormedFlowB_contract`, the explicit exponential) are
 stated over the syntactic shape `contractF`/`bandDom`; benchmark instances carry the
 `getD`-lowered `hostDyn`/`hostEvolve`. The bounded flow well-formedness is purely
 semantic in the field values and the domain's satisfaction, so it transfers. -/

@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S1 — the envelope-carrying modal chain
+# The envelope-carrying modal chain
 
 The plain chain's loop invariant (`invLe g ∧ mvValid`) quantifies response anchors over
 ALL invariant states, including right-outside-envelope ones — making the unconditioned
@@ -10,13 +10,14 @@ existence hypotheses (`hES`) false in general and static hops domain-less. The f
 SOUND strengthening of the loop invariant with the right-envelope conjunct: every
 response run ends inside its evolve domain (`sem`'s domain-at-endpoint), so the
 conjunct is preserved for free, and every anchor the loop ever presents is an
-envelope state — exactly the conditioning the viability certificates (S3) and the
-reposition hops need.
+envelope state, the conditioning the viability certificates and the reposition hops need.
+This is the stored-domain conjunct of the loop invariant (the domains that Eq. (10) and the
+handoff of Eq. (13) may assume).
 
 This file mirrors `hstep_single_multi'`/`hstep_assembled_multi'`/
 `theorem3_faithful_multi_of_emit'` with `phiInvE g env mv k := invLe g ∧ env ∧ mvValid`
 (the envelope `env` an Rv-only formula — under the universal-evolve well-formedness it
-is THE shared evolve conjunct of every mode). Copied, not edited, for cascade hygiene.
+is the shared evolve conjunct of every mode, as in Appendix B.2, Domains).
 -/
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.RepoPrefix
@@ -164,9 +165,10 @@ theorem encode_phiInvE {ϕinv : RFormula (Var n)} {g : Term (Var n)}
     unfold encode; simp only [RFormula.renameR, RFormula.enc]
   rw [hdist, hψ, encode_envR, encode_mvValidR]; rfl
 
-/-- **The envelope-carrying multi Theorem 3.** `theorem3_faithful_multi` with
-`ψ = (ϕinv ∧ ⌊env⌋_R) ∧ mvValidR` — the loop invariant that keeps every response
-anchor inside the right envelope. -/
+/-- **The envelope-carrying Theorem 3 loop assembly.** `theorem3_faithful_multi` with
+`ψ = (ϕinv ∧ ⌊env⌋_R) ∧ mvValidR`: if every state of the encoded loop invariant `phiInvE`
+answers one left choice with a run of the right automaton star (`hstep`), then
+`theorem3Form` of `ψ` over the starred left choice and right automaton is valid. -/
 theorem theorem3_faithful_multiE (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
     (env : Formula (Var n))
     (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
@@ -244,7 +246,7 @@ theorem foldr_prog_map (hops : List (RepoHop n)) (domL : Formula (Var n))
   | nil => rfl
   | cons h hs ih => simp [List.map_cons, List.foldr_cons, ih]
 
-/-- **The prefixed window response (S1 assembly).** The clocked `k`-piece window's
+/-- **The prefixed window response.** The clocked `k`-piece window's
 `faModal`, response = reposition-hop prefix (frozen-left programs) followed by the `k`
 pieces: `faModalB_repoPath` folds the prefix into the first piece's coupling,
 `multiseg_clocked` composes, and fold-head associativity flattens the response program
@@ -501,7 +503,7 @@ theorem hddF_multiE (Gr : SearchGraph (Var n)) (a b : Fin n) (dt : ℝ)
 
 /-! ## Run-monotonicity bridges (automaton alignment of the hop programs)
 
-A frozen-left hop program (`RepoHop.prog` — the joint ode with 0 left fields over
+A frozen-left hop program (`RepoHop.prog`, the joint ode with zero left fields over
 `domL ∧ domR`) syntactically WRITES the left coordinates (bound, derivative 0), so no
 vars-disjointness against the left window can hold; the automaton's mode program is the
 right-only ode over the mode domain. The conversion is semantic and one-directional
@@ -565,14 +567,13 @@ theorem sem_windowSeg_one (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
   · intro hc
     exact ⟨ν, hc, rfl, by simpa [Formula.sat] using trivial⟩
 
-/-! ## The k = 1 prefixed window (the reposition-window assembly actually used)
+/-! ## The k = 1 prefixed window (the reposition-window assembly used)
 
-`Hmulti_window_prefixed` above is DEPRECATED for nonempty hop lists: its `hdisH`
+`Hmulti_window_prefixed` above is vacuous for nonempty hop lists: its `hdisH`
 hypothesis (vars-disjointness of the frozen-left hop program against the clocked left
-segment) is UNSATISFIABLE for genuine hops — the frozen hop binds every left coordinate
-(derivative 0), so its `Program.vars` always meets the left window's. NEGATIVE FINDING,
-kept per the never-delete rule; the `k = 1` route below needs no such disjointness
-(single window piece ⟹ nothing to commute past). -/
+segment) cannot hold for genuine hops, since the frozen hop binds every left coordinate
+(derivative 0), so its `Program.vars` always meets the left window's. The `k = 1` route
+below needs no such disjointness (a single window piece has nothing to commute past). -/
 
 /-- **The one-piece prefixed window.** Reposition-hop prefix + one certified piece,
 against the single clocked window segment. No vars-disjointness on the hops: with one
@@ -620,7 +621,7 @@ theorem Hmulti_window1_prefixed (fL : Fin n → Term (Var n)) (domL : Formula (V
     (fun ν μ h => (sem_windowSeg_one (leftBlock fL) domL _ dt).mp h) hcong
 
 /-- Static hop: with the envelope being the joint universal domain, a zero-duration
-run of the hop program exists from every invariant anchor — no hypothesis needed. -/
+run of the hop program exists from every invariant anchor, with no further hypothesis. -/
 theorem static_hop_exists {fR : Fin n → Term (Var n)} {lam : Term (Var n)}
     {domL domR : Formula (Var n)} {g : Term (Var n)} {σ : State (Var n)}
     (hσ : Formula.sat (Formula.and (invLe g) (Formula.and domL domR)) σ) :

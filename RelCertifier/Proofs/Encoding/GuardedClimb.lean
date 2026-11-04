@@ -9,7 +9,7 @@ chosen after the left window from the left run's end state (a catch-up or a clim
 the declared bands):
 
 * `RResp G q post ν`: from the right state `ν` in mode `q`, a chain of declared segments (each
-  flow followed by a LEGAL switch, the `gseg` test) ending where `post` of the final mode holds.
+  flow followed by a legal switch, the `gseg` test) ending where `post` of the final mode holds.
   `GResp` is exactly `RResp` at every end state of the left program (`gresp_of_rresp`).
 * `rresp_stop` (no step: the postcondition already holds for the current mode) and
   `rresp_step` (one flow of the current mode, then a legal switch along a declared edge, then a
@@ -17,8 +17,6 @@ the declared bands):
 * `windowSeg_coord_le_max`/`ge_min`: a left coordinate with the linear field `k (c − x)`
   (`k ≥ 0`) ends a window of clocked pieces between its start value and its set point
   `c` (each piece is the explicit exponential approach, `ode_linear_coord`).
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 

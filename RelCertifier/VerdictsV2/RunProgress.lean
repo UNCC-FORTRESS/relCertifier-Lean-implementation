@@ -2,12 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The progress verdict runner
+# The reposition-progress verdict runner
 
-Walks every emitted progress certificate (`InstancesV2/BenchProgress`), rebuilds its queries
+Walks every emitted reposition certificate (Definition 7; `InstancesV2/BenchProgress`, one
+stage list each), rebuilds its queries
 with `progressQueriesOf` (the builder the semantic reading uses), prints them with the tool's
-`toScript`, and owes one `unsat` per query. The total number of certificates is declared
-(`expectedProgressV2`); anything that cannot be rebuilt is a SKIP and makes the run non-green.
+`toScript`, and owes one `unsat` per query. The total is declared (`expectedProgressV2`, one
+group per emitted certificate; 1009 in Appendix B.7); anything that cannot be rebuilt is a SKIP and makes the run non-green.
 -/
 import RelCertifier.VerdictsV2.ProgressX
 import RelCertifier.VerdictsV2.RunV2

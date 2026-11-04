@@ -2,12 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Uniform-suite multi-flow: clocked ε-windows (task H5)
+# Uniform-suite multi-flow: clocked ε-windows
 
-The paper's round structure over the GAP-1 machinery, with the LEFT ε_L-window stated as a
-`bigSeq` of `k` clocked pieces (`clockedSeg`, each capped at `dt = ε_R/λ` by the clock).
-This makes the window budget STRUCTURAL — the analytic `r ≤ k·dt` hypothesis of `EmitSegs`
-(unsatisfiable for uncapped physical residences) disappears; the clock caps every piece.
+The multi-segment structure of a witness strategy (Definition 4) for a right automaton with
+unguarded (`⊤`) edges, with the left cycle (the ε_L-window) stated as a `bigSeq` of `k` clocked
+pieces (`clockedSeg`, each capped at `dt = ε_R/λ` by the clock). This makes the budget
+STRUCTURAL: the analytic `r ≤ k·dt` hypothesis of `EmitSegs` (unsatisfiable for uncapped
+physical residences) disappears; the clock caps every piece.
 
 `theorem3_faithful_multi_of_emit` demands plain-ode left elements only through the
 mv-framing fact, so we generalize the `hstep` layer to any mv-framing left program
@@ -291,8 +292,10 @@ theorem Hmulti_window_from_cover (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)
   exact segment_faModalB_from_cert g fL0 fR lam domL0 domR tg dt hdisj0 hφL0 hφR
     htgLb htgLr htgRb htgRr htgRbs htgdL0 htgdR htgg hbox (hES (Function.update σ' tg 0))
 
-/-- **The uniform-suite multi-flow Theorem 3.** Left = the clocked ε_L-windows (one per
-left mode, `k` clock-capped pieces each); right = the transition-faithful automaton star;
+/-- **The uniform-suite multi-flow form of the Theorem 3 claim.** `rvalid` of the ∀∃ claim of
+`ϕinv` with mode validity, for a right automaton whose edges are all unguarded (`htt`). Left = the
+clocked ε_L-windows (one per left mode, `k` clock-capped pieces each); right = the automaton
+star `rightAutomatonBody` (jumps along declared edges);
 every within-window piece coupled by its JOINT certificate (`cert.segPres`), sequences
 from the emitted cover. The window budget is structural (the clock), so no analytic
 duration hypothesis appears. Repositions can be added as further frozen-left plain-ode

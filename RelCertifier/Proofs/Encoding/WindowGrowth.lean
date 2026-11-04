@@ -20,9 +20,6 @@ any given quantity:
 * `windowSeg_mask`: coordinates outside the left block (and distinct from the
   clock) are untouched — the right state survives the window verbatim.
 * `windowSeg_end_domL`: a nonempty window ends inside the evolve domain.
-
-New leaf over `SplitCoupling` (for `growth_along_dom`/`integralCurve_of_tuple`)
-and the reposition-bridge definitions; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.UniformMultiflow

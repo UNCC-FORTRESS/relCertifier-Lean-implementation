@@ -2,16 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The progress certificate discharges reposition progress
+# Stage lists discharge reposition progress (Definition 7, Lemma 4)
 
 `RepoProgress` (`CoverResp.lean`) asks, at a reposition node `q`, for a chain of right cycles
-of `q` ending with a switch along a non-self exit. The tool's progress certificate
-(`Trusted/ProgressEmit.lean`) gives it by a staged rate argument, and this file proves that:
+of `q` ending with a switch along a non-self exit, the reposition certificate of Definition 7.
+The tool establishes it by a stage list (`Trusted/ProgressEmit.lean`, Section 6.1): each stage a
+coordinate, a threshold and a rate, with the rate, keep and landing obligations. This file
+proves that a stage list gives `RepoProgress`:
 
 * `cycle_growth`: along a run on which the field of `x` is at least `r`, `x` grows by `r`
   per unit time; `hits_line`: a coordinate that starts below `θ` and reaches it passes through
   `x = θ` (the intermediate value theorem); `keep_preserved`: a crossed threshold whose field is
-  nonnegative at or below it stays crossed (the differential-invariant route of the cuts);
+  nonnegative at or below it stays crossed (the keep obligation, a differential-invariant argument);
 * `phase`: the cycles of one stage. From a cycle start (the right in `q`'s guard, the anchor
   and the stage's invariant at the merged state) the right either lands (an exit is enabled at
   a start already crossed, on the main coordinate's crossing line, or at a cycle end by
@@ -20,7 +22,7 @@ of `q` ending with a switch along a non-self exit. The tool's progress certifica
 * `repoProgress_one`, `repoProgress_two`: the certificate with one or two (upward) stages
   gives `RepoProgress`; `repoProgress_one_down` (with `cycle_decay`, `hits_line_down`,
   `phase_down`, `land_at_start_down`) the mirror for a single DOWNWARD stage;
-* the other two-stage shapes the tool's search emits (pre-landing region form, the end of the
+* the other two-stage shapes the tool's search emits (restricted-mode form, the end of the
   file): helper up then landing down (`repoProgress_two_ud_reg`, the stop-line rungs' braking
   nodes: the brake builds up, then the speed falls to the stop threshold), helper down then
   landing up (`repoProgress_two_du_reg`) and both downward (`repoProgress_two_dd_reg`), from
@@ -28,10 +30,16 @@ of `q` ending with a switch along a non-self exit. The tool's progress certifica
   measures `meas_up_reg`, `meas_down_reg`, `meas_land_down_reg` (`keep_preserved_down_reg`
   keeps a helper crossed downward).
 
-Each cycle's run is Assumption 1's (from a guard state, duration `ε_R`); the anchor is kept by
-the reposition flow certificate; the pruned exits are excluded by the right-only
-non-connection certificate; the certificate's facts are read at the merged states of the run,
-where the region `R` holds (implied by the anchor and, pre-joint, the left guard).
+Each cycle's run is Assumption 1's (from a guard state, duration `ε_R`); the anchor (the
+invariant row) is kept by the right-only flow certificate; the pruned exits are excluded by the
+right-only non-connection certificate (Definition 6); the obligations are read at the merged
+states of the run, where the region `R` holds (implied by the anchor and, pre-joint, the left
+guard; the region of Section 6.1: both mode facts and the invariant row).
+
+The `_reg` forms are Lemma 4: the flow-certificate premise `hboxB` is required only along runs
+that stay in a region `Bf` before their last instant, the runs of the restricted mode `q|¬tgt`
+where the landing target `tgt` is the closed half-space past the landing threshold. The forms
+without `_reg` take the whole-domain premise (`Bf = ⊤`).
 -/
 import RelCertifier.Proofs.Encoding.CoverResp
 import RelCertifier.Proofs.Encoding.RepoPrefix
@@ -240,7 +248,7 @@ variable (G : SearchGraph (Var n)) (fR : Fin n → Term (Var n)) (domL domR gL :
       (Formula.and domL domR)) σ ω → Formula.sat A ω)
   -- the right-only premise on a REGION: the anchor is kept along a right-only run that stays in
   -- `Bf` before its last instant (`Bf = ⊤`: the whole-domain premise `hboxD`, `hboxB_of_hboxD`;
-  -- the pre-landing region of the pre-landing feature, `docs/PRELANDING.md`)
+  -- `Bf = ¬tgt`: the restricted mode `q|¬tgt` of Lemma 4, `docs/PRELANDING.md`)
   (Bf : State (Var n) → Prop)
   (hboxB : ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat A y → (pre = true → Formula.sat gL y) →
     ∀ T Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ T Φ →
@@ -359,7 +367,7 @@ theorem keep_preserved_reg (z : Fin n) (z₀ : ℝ)
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR in
-/-- **The cycles of one stage, pre-landing** (`phase` with `hboxB`). The landing coordinate `j`
+/-- **The cycles of one stage, restricted mode** (`phase` with `hboxB`). The landing coordinate `j`
 and its threshold `θ` bound the region `Bf` from inside (`hBf`: below `θ` is in `Bf`); the
 landing on the line is at the FIRST entry into `x ≥ θ`. The stage invariant `Kf` is kept along
 runs that stay in `Bf`. -/
@@ -522,7 +530,7 @@ theorem phase_reg (j : Fin n) (θ : ℝ) (hBf : ∀ x : State (Var n), x (Rv j) 
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR in
-/-- **The cycles of one downward stage, pre-landing** (`phase_down` with `hboxB`; above `θ` is
+/-- **The cycles of one downward stage, restricted mode** (`phase_down` with `hboxB`; above `θ` is
 in `Bf`; the landing is at the first entry into `x ≤ θ`). -/
 theorem phase_down_reg (j : Fin n) (θ : ℝ) (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)
     (hline : ∀ y, Formula.sat R y → y (Rv j) = θ →
@@ -824,7 +832,7 @@ theorem land_at_start_down
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR hline in
-/-- **One stage, pre-landing** (`repoProgress_one` with `hboxB`; below `θ` is in `Bf`). -/
+/-- **One stage, restricted mode** (`repoProgress_one` with `hboxB`; below `θ` is in `Bf`). -/
 theorem repoProgress_one_reg (hBf : ∀ x : State (Var n), x (Rv j) < θ → Bf x)
     (hstart : ∀ y, Formula.sat R y → Formula.sat (guard q) y → θ ≤ y (Rv j) →
       ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ Formula.sat (guard e.tgt) y)
@@ -860,7 +868,7 @@ theorem repoProgress_one_reg (hBf : ∀ x : State (Var n), x (Rv j) < θ → Bf 
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR hline in
-/-- **Two stages, pre-landing** (`repoProgress_two` with `hboxB`; below the landing threshold
+/-- **Two stages, restricted mode** (`repoProgress_two` with `hboxB`; below the landing threshold
 is in `Bf`). The helper's crossed fact is kept along runs that stay in `Bf`. -/
 theorem repoProgress_two_reg (hBf : ∀ x : State (Var n), x (Rv j) < θ → Bf x)
     (hstart : ∀ y, Formula.sat R y → Formula.sat (guard q) y → θ ≤ y (Rv j) →
@@ -942,7 +950,7 @@ theorem repoProgress_two_reg (hBf : ∀ x : State (Var n), x (Rv j) < θ → Bf 
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR hline in
-/-- **One downward stage, pre-landing** (`repoProgress_one_down` with `hboxB`; above `θ` is in
+/-- **One downward stage, restricted mode** (`repoProgress_one_down` with `hboxB`; above `θ` is in
 `Bf`). -/
 theorem repoProgress_one_down_reg (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)
     (r : ℝ) (hr : 0 < r)
@@ -978,7 +986,9 @@ theorem repoProgress_one_down_reg (hBf : ∀ x : State (Var n), θ < x (Rv j) �
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex hcomp hboxD
   hpruneD hR hline hstart in
-/-- **One stage.** -/
+/-- **One stage.** If the landing coordinate `j` rises at rate at least `r > 0` on `R` while
+below `θ` (rate), and a retained exit is enabled on the line `x_j = θ` (`hline`) or at a cycle
+start already past it (`hstart`) (landing), then `RepoProgress` holds at `q`. -/
 theorem repoProgress_one (r : ℝ) (hr : 0 < r)
     (hrate : ∀ y, Formula.sat R y → y (Rv j) < θ → r ≤ Term.eval (fR j) y) :
     RepoProgress G tr epsR A gL (guard q) q pre :=
@@ -1023,9 +1033,9 @@ open DL DLCalTiming DLRel Set Function
 
 variable {n : ℕ}
 
-/-! ## Mixed and downward two-stage certificates (pre-landing region form)
+/-! ## Mixed and downward two-stage certificates (restricted-mode form)
 
-The tool's progress search (`OracleAPI.checkProgress`) tries a helper stage in either direction
+The tool's stage-list search (`OracleAPI.checkProgress`) tries a helper stage in either direction
 before a landing stage in either direction. The lemmas above cover one stage (either direction)
 and two upward stages. Here the remaining two-stage shapes: helper up then landing down
 (`repoProgress_two_ud_reg`), helper down then landing up (`repoProgress_two_du_reg`), and both
@@ -1480,7 +1490,7 @@ theorem phase_down_regM (j : Fin n) (θ : ℝ) (hBf : ∀ x : State (Var n), θ 
 
 end NodeM
 
-/-! ### The mixed and downward two-stage closers (pre-landing region form) -/
+/-! ### The mixed and downward two-stage closers (restricted-mode form) -/
 
 section CloseM
 
@@ -1547,7 +1557,7 @@ theorem stage_bound (d r e : ℝ) (hr : 0 < r) (he : 0 < e) :
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR hline in
-/-- **Two stages, helper up then landing DOWN, pre-landing** (above the landing threshold is in
+/-- **Two stages, helper up then landing DOWN, restricted mode** (above the landing threshold is in
 `Bf`). The helper `jh` rises at rate `rh` to `θh` and stays crossed (`hkeep_h`); under its
 crossed fact the landing coordinate `j` falls at rate `r` to `θ`. Either stage may land first. -/
 theorem repoProgress_two_ud_reg (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)
@@ -1623,7 +1633,7 @@ theorem repoProgress_two_ud_reg (hBf : ∀ x : State (Var n), θ < x (Rv j) → 
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR hline in
-/-- **Two stages, helper DOWN then landing up, pre-landing** (below the landing threshold is in
+/-- **Two stages, helper DOWN then landing up, restricted mode** (below the landing threshold is in
 `Bf`). The helper `jh` falls at rate `rh` to `θh` and stays crossed; under its crossed fact the
 landing coordinate `j` rises at rate `r` to `θ`. -/
 theorem repoProgress_two_du_reg (hBf : ∀ x : State (Var n), x (Rv j) < θ → Bf x)
@@ -1696,7 +1706,7 @@ theorem repoProgress_two_du_reg (hBf : ∀ x : State (Var n), x (Rv j) < θ → 
 
 include hm hsys hdomM hfR hdomL hdomR hgL hguardR hgR hguards hAfv hAdom hε htrL htrR hregR hAreg hex
   hcomp hboxB hpruneD hR hline in
-/-- **Two stages, both DOWNWARD, pre-landing** (above the landing threshold is in `Bf`). The
+/-- **Two stages, both DOWNWARD, restricted mode** (above the landing threshold is in `Bf`). The
 helper `jh` falls at rate `rh` to `θh` and stays crossed; under its crossed fact the landing
 coordinate `j` falls at rate `r` to `θ`. -/
 theorem repoProgress_two_dd_reg (hBf : ∀ x : State (Var n), θ < x (Rv j) → Bf x)

@@ -12,11 +12,9 @@ heading `ψ` (4); `CRUISE` `p' = v`, `s' = v (1 − ψ²/2)`, `v' = 0`, `b' = �
 `0 ≤ v ≤ 8`, `0 ≤ b ≤ 3`, `|ψ| ≤ 0.6`.
 `wellFormedR_stopline` (the shared lemma). Existence: the explicit runs (`forcedSol` for `b`
 and `ψ`, `intSol` for `v`, `p` and `s`; while braking `v ≥ v₀ − 3t ≥ 0.05`). Z3-free.
-Batch 15 (2026-11-01): the full-fidelity rung under the suite name, from the branch proof
-`StoplineRover5to8` (cd7499f) adapted to the one shared box: the right declares the left's
-extra states (frozen at their start values, which stay in the box; host order = the left's
-state list) and the box reads `0 ≤ b, c ≤ 3` on every mode of both sides (the bounds above
-that differ are the branch's per-side boxes).
+The right also declares the left's extra states (frozen at their start values, which stay in
+the box; host order = the left's state list), and the evolve box is one box on every mode of both
+sides, with `0 ≤ b, c ≤ 3`.
 -/
 import RelCertifier.InstancesV2.BenchIR.stopline_friction
 import RelCertifier.Proofs.Encoding.WellFormedStopline

@@ -10,7 +10,7 @@ read from the file.
 
 The right model is the flap extension on approach: the flap angle `f` (coordinate 0) and the
 airspeed `V` (coordinate 1), inside `10 ≤ f ≤ 15.1`, `130 ≤ V ≤ 200` (the placard range
-`[VLS, VFE]` of the configuration, since the domain audit of 2026-10-29; `[150, 185]` before).
+`[VLS, VFE]` of the configuration).
 `EXT` extends the flaps, `f' = 1`; `CONF2` holds them, `f' = 0`; in both the airspeed moves
 toward 150 with a flap-dependent rate, `V' = −(0.02 + 0.001 f)(V − 150)`. Guards: `EXT`
 `f < 15`, `CONF2` `f ≥ 15` (each with the domain). `next`: `EXT → [EXT, CONF2]`,

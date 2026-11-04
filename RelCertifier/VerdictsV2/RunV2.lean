@@ -4,15 +4,18 @@ Released under Apache 2.0 license.
 
 # The suite_v2 modal verdict runner
 
-Walks `packsV2` — one row per verdict pack an instance of `InstancesV2/Modal/` assumes
-(benchmark, dimension, invariant row, strata order, λ, left and right mode) — rebuilds the
-pack's queries from the emitted IR (`benchIRTableV2`) and the emitted extended cut
-certificate (`cutTableV2`) through `modalVerdXQueries` (the builder `modalVerdX_of_queries`
-proves denotes the instance's hypothesis), prints them with the tool's own `toScript`, and
-reports Z3's verdict per component. Each instance's `Verd` is pinned to its row in
-`VerdictsV2/PinsV2.lean`; the total is declared (`expectedModalV2`) and derived from the
-table in `VerdictsV2/CoveragePinsV2.lean`. Anything it cannot rebuild is a SKIP and makes
-the run non-green.
+The verdict phases of `--run-verdicts-v2` and `--check-quick-v2` (Appendix B.7, the tool's
+own re-sent queries): the modal packs, the reposition packs, the handoffs and the
+non-connection checks, each against a declared total.
+
+The modal phase walks `packsV2`, one row per joint flow certificate (Definition 5) the
+replay of an emitted cover consumes (benchmark, dimension, invariant row, strata order, i.e.
+the rounds of the Lie conditions, stretch λ, left and right mode). It rebuilds the pack's
+queries from the emitted IR (`benchIRTableV2`) and the emitted extended mode-fact certificate
+(`cutTableV2`) through `modalVerdXQueries` (the builder `modalVerdX_of_queries` proves they
+denote the host-level hypothesis `modalVerdX`), prints them with the tool's own `toScript`,
+and reports Z3's verdict per component. The total is declared (`expectedModalV2`). Anything
+it cannot rebuild is a SKIP and makes the run non-green.
 -/
 import RelCertifier.VerdictsV2.ModalX
 import RelCertifier.VerdictsV2.ModalDynX
@@ -56,11 +59,12 @@ def packLam (r : PackV2) : ℚ := (r.lamN : ℚ) / (r.lamD : ℚ)
 def packQueries (r : PackV2) : Option (List (List (IForm r.dim))) :=
   modalVerdXQueries (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order (packLam r) r.l r.m
 
-/-- The hypothesis a pack row stands for (what the instances' `Verd`s are pinned to). -/
+/-- The hypothesis a pack row stands for: the joint flow certificate of the pairing at the
+row's stretch, by the Lie conditions of Lemma 2. -/
 noncomputable def packVerd (r : PackV2) : Prop :=
   modalVerdX (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order ((packLam r : ℚ) : ℝ) r.l r.m
 
-/-- The packs. Watertank: the seven admissible jointOK (window, right mode) pairs the replay
+/-- The packs. Watertank: the seven admissible joint (left mode, right mode) pairs the replay
 consumes, order `[0, 1]`. -/
 def packsV2 : List PackV2 :=
   [ ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 0⟩,
@@ -70,65 +74,63 @@ def packsV2 : List PackV2 :=
     ⟨"watertank", 2, 0, [0, 1], 1, 1, 1, 2⟩,
     ⟨"watertank", 2, 0, [0, 1], 1, 1, 1, 3⟩,
     ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
-    -- acc_spoof_limp (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- acc_spoof_limp (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 1⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 0⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    -- rover_ladder_2to3 (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- rover_ladder_2to3 (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
-    -- at λ = 1 (budget 2 since batch I9: the 0.2 s link-loss decision)
-    -- pruned): the CACC_UP/CACC_DN windows against CACC, AEB against AEB, at λ = 1, budget 1
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
-    -- rover_ladder_3to6 (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- rover_ladder_3to6 (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 1⟩,
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 2⟩,
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 1, 1⟩,
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 1, 2⟩,
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 2, 2⟩,
-    -- acc_spoof_lag (cover replay at λ = 3/2, budget 2: the dominant-mode claim, batch I9)
+    -- acc_spoof_lag (cover replay at λ = 3/2, budget 2: the dominant-mode claim)
     ⟨"acc_spoof_lag", 2, 0, [1, 0], 3, 2, 0, 0⟩,
-    -- rover_ladder_6to8 (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- rover_ladder_6to8 (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 0, 0⟩,
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 0, 1⟩,
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 0, 2⟩,
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 1, 1⟩,
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 1, 2⟩,
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7, 20, 21], 11, 10, 2, 2⟩,
-    -- rover_ladder_8to12 (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- rover_ladder_8to12 (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 24, 1], 11, 10, 0, 0⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], 11, 10, 0, 1⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], 11, 10, 0, 2⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 1, 1⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 1, 2⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 26, 27, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 2, 2⟩,
-    -- stopline_drag (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- stopline_drag (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"stopline_drag", 15, 0, [2, 3, 5, 7, 8, 9, 10, 11, 18, 19, 20, 21, 22, 23, 28, 29, 30, 0, 1, 4, 6, 12, 13, 14, 15, 16, 17, 26, 27, 24, 25], 1, 1, 0, 0⟩,
     ⟨"stopline_drag", 15, 1, [0, 3, 10, 11, 12, 13, 14, 15, 20, 21, 22, 2, 4, 5, 6, 7, 8, 9, 18, 19, 1, 16, 17], 1, 1, 1, 1⟩,
     ⟨"stopline_drag", 15, 1, [0, 3, 10, 11, 12, 13, 14, 15, 20, 21, 22, 2, 4, 5, 6, 7, 8, 9, 18, 19, 1, 16, 17], 1, 1, 1, 2⟩,
     ⟨"stopline_drag", 15, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 1, 1, 2, 1⟩,
     ⟨"stopline_drag", 15, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 1, 1, 2, 2⟩,
-    -- stopline_friction (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- stopline_friction (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"stopline_friction", 8, 0, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 0, 1], 1, 1, 0, 0⟩,
     ⟨"stopline_friction", 8, 1, [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 2], 9, 10, 1, 1⟩,
     ⟨"stopline_friction", 8, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 9, 10, 1, 2⟩,
     ⟨"stopline_friction", 8, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 2, 1⟩,
     ⟨"stopline_friction", 8, 2, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 2, 2⟩,
-    -- stopline_lag (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- stopline_lag (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"stopline_lag", 5, 0, [2, 3, 4, 5, 6, 7, 8, 0, 1], 1, 1, 0, 0⟩,
     ⟨"stopline_lag", 5, 1, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,
     ⟨"stopline_lag", 5, 1, [0, 1, 2, 3, 4], 1, 1, 1, 2⟩,
     ⟨"stopline_lag", 5, 2, [0, 1, 2, 3, 4], 1, 1, 2, 1⟩,
     ⟨"stopline_lag", 5, 2, [0, 1, 2, 3, 4], 1, 1, 2, 2⟩,
-    -- stopline_tyre (rows derived from the emitted cover: the joint pairings reached in each window)
+    -- stopline_tyre (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"stopline_tyre", 11, 0, [2, 3, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 0, 1, 4, 10, 11, 12, 13], 1, 1, 0, 0⟩,
     ⟨"stopline_tyre", 11, 1, [0, 1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 2, 3, 4, 5], 1, 1, 1, 1⟩,
     ⟨"stopline_tyre", 11, 1, [0, 1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 2, 3, 4, 5], 1, 1, 1, 2⟩,
@@ -138,8 +140,7 @@ def packsV2 : List PackV2 :=
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 3, 1, 0, 0⟩,
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 2, 1, 1, 0⟩,
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 1, 1, 2, 0⟩,
-    -- (the staging chain P2 -> P3 -> P4 -> P5) at λ = 1
-    -- watertank_twospeed (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- watertank_twospeed (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 0, 1⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 3, 2, 0, 2⟩,
@@ -148,8 +149,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 1, 3⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 1, 4⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 2, 4⟩,
-    -- MidEco 3/2, MidBoost 1, High 1), Mid at 2 against MidEco/MidBoost/High, High at 1
-    -- engine_start_highidle (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- engine_start_highidle (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"engine_start_highidle", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
     ⟨"engine_start_highidle", 3, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
     ⟨"engine_start_highidle", 3, 0, [0, 1, 2, 3], 1, 1, 0, 3⟩,
@@ -180,7 +180,7 @@ def packsV2 : List PackV2 :=
     ⟨"train_ato_odometry", 2, 0, [0, 1], 31, 40, 2, 0⟩,
     ⟨"train_ato_odometry", 2, 0, [0, 1], 7, 8, 2, 1⟩,
     ⟨"train_ato_odometry", 2, 0, [0, 1], 39, 40, 2, 2⟩,
-    -- turbine_startup_gearratio (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- turbine_startup_gearratio (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
     ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 2⟩,
     ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 3⟩,
@@ -212,7 +212,7 @@ def packsV2 : List PackV2 :=
     ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 3, 4, 5, 6], 1, 1, 3, 3⟩,
     ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], 1, 1, 4, 2⟩,
     ⟨"syringe_relay_prearm", 4, 5, [0, 1, 2, 3, 4], 1, 1, 5, 3⟩,
-    -- ventilator_vc_cuffleak (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- ventilator_vc_cuffleak (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"ventilator_vc_cuffleak", 3, 0, [0, 1, 2, 4, 5, 3], 1, 1, 0, 0⟩,
     ⟨"ventilator_vc_cuffleak", 3, 1, [0, 1, 2, 4, 5, 3], 1, 1, 1, 1⟩,
     -- furnace_program_timebase (cover replay at λ = 4/5)
@@ -231,24 +231,22 @@ def packsV2 : List PackV2 :=
     ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 2, 3⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 3, 3⟩,
-    -- lit_nahs25_salt_tank (cover replay, budget 1: On_L at λ = 1, Off_L at the stutter λ = 0
-    -- (`stutter = true`); rows derived from the emitted cover 2026-10-29; dimension 3, the
-    -- Assumption 1 lemma's)
+    -- lit_nahs25_salt_tank (cover replay, budget 1: On_L at λ = 1, Off_L at stretch 0
+    -- (admitted by the IR flag `stutter`); rows derived from the emitted cover; dimension 3, that of its
+    -- Assumption 1 proof)
     ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
     ⟨"lit_nahs25_salt_tank", 3, 0, [1, 2, 3, 0], 1, 1, 0, 1⟩,
     ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 0, 1, 1, 0⟩,
     ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 0, 1, 1, 1⟩,
-    -- bottling_fill_strainer (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- bottling_fill_strainer (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 17, 20, 0, 0⟩,
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    -- since 2026-10-28; the joint pairings of each window's admissible starts, the right-only
-    -- nodes are below)
-    -- flaps_slow_approach (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- flaps_slow_approach (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 2, 0, 0⟩,
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    -- platoon_profiles (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- platoon_profiles (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"platoon_profiles", 3, 0, [2, 3, 4, 5, 6, 7, 0, 1], 6, 5, 0, 0⟩,
-    -- h2_refuel_ambientbias (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- h2_refuel_ambientbias (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 0⟩,
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 1⟩,
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 2⟩,
@@ -270,7 +268,7 @@ def packsV2 : List PackV2 :=
     ⟨"h2_refuel_ambientbias", 3, 5, [0], 1, 1, 5, 4⟩,
     ⟨"h2_refuel_ambientbias", 3, 6, [0], 1, 1, 6, 3⟩,
     ⟨"h2_refuel_ambientbias", 3, 6, [0], 1, 1, 6, 4⟩,
-    -- reactor_feed_wireless (batch I11, from the reserve; cover replay at λ = 1, budget 2; the
+    -- reactor_feed_wireless (cover replay at λ = 1, budget 2; the
     -- four pruned edges into the live levels F1 and F4): each left level against the joint levels
     -- of its cover
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
@@ -287,7 +285,7 @@ def packsV2 : List PackV2 :=
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 1⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 2⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩,
-    -- extruder_pe100_manualstart (batch 11, 2026-10-30; rows derived from the emitted cover: every jointOK
+    -- extruder_pe100_manualstart (rows derived from the emitted cover: every joint
     -- pairing of each left step, λ = 1, budget 2; the four pruned edges into the live steps N1 and N4)
     ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
     ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
@@ -303,21 +301,21 @@ def packsV2 : List PackV2 :=
     ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 3, 1⟩,
     ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 3, 2⟩,
     ⟨"extruder_pe100_manualstart", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩,
-    -- lit_nahs25_engine_cooling (batch 11, 2026-10-30; rows derived from the emitted cover: the jointOK
-    -- pairing of each left mode, λ = 1, budget 1; its right-only nodes are pre-landing nodes, discharged
-    -- on their regions by the bridge runner, not here)
+    -- lit_nahs25_engine_cooling (rows derived from the emitted cover: the joint pairing of each
+    -- left mode, λ = 1, budget 1; its right-only nodes, certified on the restricted mode, are
+    -- discharged by the bridge runner, not here)
     ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], 1, 1, 1, 1⟩,
-    -- antenna_track_kvretune (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- antenna_track_kvretune (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 0, 0⟩,
     ⟨"antenna_track_kvretune", 3, 1, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 1, 1⟩,
     ⟨"antenna_track_kvretune", 3, 2, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 2, 2⟩,
-    -- canal_gate_notches (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- canal_gate_notches (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 1, 2⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 2, 3⟩,
-    -- rampmeter_poll_2to1 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- rampmeter_poll_2to1 (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 1⟩,
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 2⟩,
@@ -347,32 +345,26 @@ def packsV2 : List PackV2 :=
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 3⟩,
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 4⟩,
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 5⟩,
-    -- lit_csf25_salt_tank_hold (rows derived from the emitted cover, 2026-10-29 round 3: the stale-reading
-    -- hold, one held window per decision, four keyed rows each)
+    -- lit_csf25_salt_tank_hold (rows derived from the emitted cover: the stale-reading
+    -- hold, one held left mode per decision, four keyed rows each)
     ⟨"lit_csf25_salt_tank_hold", 3, 0, [0, 2, 3, 1], 1, 3, 0, 0⟩,
     ⟨"lit_csf25_salt_tank_hold", 3, 1, [0, 1, 2, 3], 1, 3, 1, 1⟩,
-    -- molding_pack_checkring (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- molding_pack_checkring (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"molding_pack_checkring", 3, 0, [0, 1, 2, 4, 6, 3, 5], 1, 1, 0, 0⟩,
     ⟨"molding_pack_checkring", 3, 1, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,
-    -- boiler_purge_vfd (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- boiler_purge_vfd (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"boiler_purge_vfd", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
     ⟨"boiler_purge_vfd", 3, 1, [1, 2, 3, 4, 0], 1, 1, 1, 1⟩,
-    -- autoclave_liquid_steambank (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    -- autoclave_liquid_steambank (rows derived from the emitted cover: the joint pairings reached in each left mode)
     ⟨"autoclave_liquid_steambank", 3, 0, [0, 1, 2, 3, 6, 7, 4, 5], 3, 4, 0, 0⟩,
     ⟨"autoclave_liquid_steambank", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 1, 1⟩,
     ⟨"autoclave_liquid_steambank", 3, 2, [0, 1, 2, 3], 1, 1, 2, 2⟩,
     ⟨"autoclave_liquid_steambank", 3, 3, [0, 1, 2, 3], 1, 1, 3, 3⟩ ]
 
-/-- Declared: the number of component queries the packs owe (one per component). 1209 since batch 12
-of 2026-10-31 (1211 before): with stretch 0 and the pre-landing certificate always on, the
-running example's Mid window closes at stretch 1 (budget 1) instead of 2, so the `watertank` and
-`watertank_twospeed` rows were re-derived (`scripts/gen_pack_rows.py --joint`), one pairing fewer
-in `watertank_twospeed`. 961 since batch 14 of 2026-11-01: the stop-line ladder
-(`stopline_{lag,friction,tyre,drag}`, 20 rows, `scripts/gen_pack_rows.py --joint-swap`) replaced
-the rover refinement ladder (`rover_ladder_*`, 28 rows of polynomial rows over 3 to 12 states).
-1421 since batch 15 of 2026-11-01: the rover ladder back (24 rows, `--joint-swap` for
-`platoon_linkloss`, `acc_tune_lag`, `rover_terrain_{2to4,4to6}`) and the full-fidelity stop-line
-rungs (the same 20 rows over 5 to 15 states, the attitude rows in every mode). -/
+/-- Declared: the number of component queries the packs owe (one per component), the modal
+count of Appendix B.7. The rows are derived from the emitted covers by
+`scripts/gen_pack_rows.py --joint` (`--joint-swap` replaces one benchmark's rows by
+another's). -/
 def expectedModalV2 : Nat := 1421
 
 /-- Run one pack. -/
@@ -420,35 +412,36 @@ def runModalV2 (cfg : Z3Config) : IO Bool := do
       s.close
       pure ok
 
-/-! ## The reposition packs (Lemma 4's flow certificates) of the cover replays
+/-! ## The right-only flow certificates (Lemma 4) of the cover replays
 
-One row per dynamic-reposition pack a replaying instance assumes: the reposition of right
-mode `m` against left window `l`, before the window's first joint segment (`pre = true`: the
-left guard conjoined) or after it, the invariant row's components in the cover's reposition
-strata order (`dynPreOrder` / `dynPostOrder` of the emitted cover, or the pre-landing record's
-order). Since 2026-10-31 every reposition node is a PRE-LANDING node (`preland = true`, the
-pre-landing feature always on, `docs/PRELANDING.md`): its pack is on the node's region, read off
-the benchmark's records exactly as the bridge does (`Emitted.dynRegionI` on the cover merged with
-the pre-landing record and the progress record), and is sent as groups (one per component, its
-routes A/B/C as members, `modalVerdDynXGroups`); a whole-domain row (`preland = false`) is the
-old pack, one query per component (`modalVerdDynXQueries`, the builder `modalVerdDynX_of_queries`
-proves denotes the hypothesis). The runner owes one `unsat` per group. The rows are generated
-from the emitted leaves by `scripts/gen_pack_rows.py` (the replay of the verified checker on the
-merged cover). -/
+One row per right-only flow-certificate pack (Definition 5, right-only kind) a cover replay
+consumes: right mode `m` against left mode `l`, pre-joint (`pre = true`: the left guard
+conjoined) or post-joint, the invariant row's components in the cover's right-only strata order
+(`dynPreOrder` / `dynPostOrder` of the emitted cover, or the order of the record of right-only
+certificates on the restricted mode). A row with `preland = true` is certified on the restricted
+mode `M|¬L` of Lemma 4, `L` the landing target of the node's reposition certificate (Definition
+7, the closed half-space past its last stage's threshold): its pack is on that region, read off
+the benchmark's records exactly as the bridge does (`Emitted.dynRegionI` on the cover merged
+with that record and the reposition record), and is sent as groups (one per component, its
+routes A/B/C as members, `modalVerdDynXGroups`). A row with `preland = false` is on the whole
+domain, one query per component (`modalVerdDynXQueries`, the builder `modalVerdDynX_of_queries`
+proves it denotes the hypothesis). Every row of the table has `preland = true`. The runner owes
+one `unsat` per group. The rows are generated from the emitted leaves by
+`scripts/gen_pack_rows.py --dyn` (the replay of the verified checker on the merged cover). -/
 
 /-- The emitted cover of a suite benchmark. -/
 def coverV2 (b : String) : CoverEmitE :=
   ((coverTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, [], []⟩
 
 /-- The cover the bridge groups are built on: the emitted cover, merged with the benchmark's
-pre-landing record (`Emitted.withPL`; the pre-landing feature, on for every benchmark,
-`docs/PRELANDING.md`; the instance's `covM`). -/
+record of right-only certificates on the restricted mode (`Emitted.withPL`, `docs/PRELANDING.md`;
+the instance's `covM`). -/
 def coverV2M (b : String) : CoverEmitE :=
   match Preland.prelandTableV2.find? (·.1 == b) with
   | some (_, pl) => Emitted.withPL (coverV2 b) pl
   | none => coverV2 b
 
-/-- The emitted progress certificates of a suite benchmark. -/
+/-- The emitted reposition certificates (Definition 7) of a suite benchmark. -/
 def progV2 (b : String) : Progress.ProgressEmitE :=
   ((Progress.progressTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, []⟩
 
@@ -460,22 +453,22 @@ structure DynPackV2 where
   pre    : Bool := true
   l      : ℕ
   m      : ℕ
-  /-- a pre-landing node: the pack on the node's region (`Emitted.dynRegionI`) -/
+  /-- a node certified on the restricted mode: the pack on its region (`Emitted.dynRegionI`) -/
   preland : Bool := false
   deriving Repr, Inhabited
 
 def dynPackQueries (r : DynPackV2) : Option (List (IForm r.dim)) :=
   modalVerdDynXQueries (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
 
-/-- The node's region (a pre-landing row), read off the records as the bridge's `dynGroups`
-does; `none` for a whole-domain row. -/
+/-- The node's region (a row on the restricted mode), read off the records as the bridge's
+`dynGroups` does; `none` for a whole-domain row. -/
 def dynPackRegion (r : DynPackV2) : Option (IForm r.dim × IForm r.dim × List Bool) :=
   if r.preland then
     Emitted.dynRegionI (irV2 r.bench) r.dim (coverV2M r.bench) (progV2 r.bench) r.l r.m r.pre
   else none
 
-/-- The pack's groups as the runner sends them: one group per component (a pre-landing node's
-routes as members), `modalVerdDynXGroups` on the row's region. -/
+/-- The pack's groups as the runner sends them: one group per component (the routes as
+members), `modalVerdDynXGroups` on the row's region. -/
 def dynPackGroups (r : DynPackV2) : Option (List (List (IForm r.dim))) :=
   modalVerdDynXGroups (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
     (dynPackRegion r)
@@ -486,14 +479,14 @@ noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
 /-- The reposition packs. -/
 def dynPacksV2 : List DynPackV2 :=
   [
-    -- acc_spoof_limp: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    -- acc_spoof_limp: the right-only nodes the replay consumes (2 of 2 on the restricted mode)
     ⟨"acc_spoof_limp", 3, 0, [0, 1], true, 1, 1, true⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], false, 1, 1, true⟩,
-    -- autoclave_liquid_steambank: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    -- autoclave_liquid_steambank: the right-only nodes the replay consumes (1 of 1 on the restricted mode)
     ⟨"autoclave_liquid_steambank", 3, 2, [0, 1, 2, 3], true, 2, 1, true⟩,
-    -- boiler_purge_vfd: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    -- boiler_purge_vfd: the right-only nodes the replay consumes (1 of 1 on the restricted mode)
     ⟨"boiler_purge_vfd", 3, 1, [0, 1, 2, 3, 4], true, 1, 0, true⟩,
-    -- canal_gate_notches: the right-only nodes the replay consumes (8 of 8 pre-landing)
+    -- canal_gate_notches: the right-only nodes the replay consumes (8 of 8 on the restricted mode)
     ⟨"canal_gate_notches", 3, 0, [0, 1], true, 0, 1, true⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], true, 0, 2, true⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], true, 0, 3, true⟩,
@@ -502,15 +495,15 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"canal_gate_notches", 3, 0, [0, 1], true, 2, 0, true⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], true, 2, 1, true⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], true, 2, 2, true⟩,
-    -- elevator_start_discbrake: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    -- elevator_start_discbrake: the right-only nodes the replay consumes (1 of 1 on the restricted mode)
     ⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0, true⟩,
-    -- engine_start_highidle: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    -- engine_start_highidle: the right-only nodes the replay consumes (2 of 2 on the restricted mode)
     ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2, true⟩,
     ⟨"engine_start_highidle", 3, 4, [0], true, 4, 3, true⟩,
-    -- h2_refuel_ambientbias: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    -- h2_refuel_ambientbias: the right-only nodes the replay consumes (2 of 2 on the restricted mode)
     ⟨"h2_refuel_ambientbias", 3, 4, [0], true, 4, 2, true⟩,
     ⟨"h2_refuel_ambientbias", 3, 5, [0], true, 5, 2, true⟩,
-    -- lit_csf21_vehicle_bus: the right-only nodes the replay consumes (48 of 48 pre-landing)
+    -- lit_csf21_vehicle_bus: the right-only nodes the replay consumes (48 of 48 on the restricted mode)
     ⟨"lit_csf21_vehicle_bus", 3, 0, [0, 1, 2, 3], true, 0, 4, true⟩,
     ⟨"lit_csf21_vehicle_bus", 3, 0, [0, 1, 2, 3], true, 0, 5, true⟩,
     ⟨"lit_csf21_vehicle_bus", 3, 0, [0, 1, 2, 3], true, 0, 6, true⟩,
@@ -559,7 +552,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"lit_csf21_vehicle_bus", 3, 0, [0, 1, 2, 3], true, 5, 5, true⟩,
     ⟨"lit_csf21_vehicle_bus", 3, 0, [0, 1, 2, 3], true, 5, 6, true⟩,
     ⟨"lit_csf21_vehicle_bus", 3, 0, [0, 1, 2, 3], true, 5, 7, true⟩,
-    -- lit_csf21_vehicle_thermo: the right-only nodes the replay consumes (24 of 24 pre-landing)
+    -- lit_csf21_vehicle_thermo: the right-only nodes the replay consumes (24 of 24 on the restricted mode)
     ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 0, 2, true⟩,
     ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 0, 3, true⟩,
     ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 0, 4, true⟩,
@@ -584,7 +577,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 5, 1, true⟩,
     ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 5, 2, true⟩,
     ⟨"lit_csf21_vehicle_thermo", 3, 0, [0, 1, 2, 3], true, 5, 3, true⟩,
-    -- lit_drl_lane_control: the right-only nodes the replay consumes (30 of 30 pre-landing)
+    -- lit_drl_lane_control: the right-only nodes the replay consumes (30 of 30 on the restricted mode)
     ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 1, true⟩,
     ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 2, true⟩,
     ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 3, true⟩,
@@ -615,7 +608,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 2, true⟩,
     ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 3, true⟩,
     ⟨"lit_drl_lane_control", 3, 0, [0, 1, 2, 3, 4, 5], true, 5, 4, true⟩,
-    -- lit_freedm_meter: the right-only nodes the replay consumes (74 of 74 pre-landing)
+    -- lit_freedm_meter: the right-only nodes the replay consumes (74 of 74 on the restricted mode)
     ⟨"lit_freedm_meter", 3, 0, [0, 1], true, 0, 7, true⟩,
     ⟨"lit_freedm_meter", 3, 0, [0, 1], true, 0, 8, true⟩,
     ⟨"lit_freedm_meter", 3, 0, [0, 1], true, 0, 10, true⟩,
@@ -690,7 +683,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"lit_freedm_meter", 3, 0, [0, 1], true, 11, 7, true⟩,
     ⟨"lit_freedm_meter", 3, 0, [0, 1], true, 11, 9, true⟩,
     ⟨"lit_freedm_meter", 3, 0, [0, 1], true, 11, 10, true⟩,
-    -- lit_girard08_robot: the right-only nodes the replay consumes (30 of 30 pre-landing)
+    -- lit_girard08_robot: the right-only nodes the replay consumes (30 of 30 on the restricted mode)
     ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 0, 1, true⟩,
     ⟨"lit_girard08_robot", 6, 0, [1, 3, 4, 0, 2], true, 0, 2, true⟩,
     ⟨"lit_girard08_robot", 6, 0, [1, 2, 3, 4, 0], true, 0, 3, true⟩,
@@ -721,17 +714,17 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"lit_girard08_robot", 6, 0, [1, 3, 4, 0, 2], true, 5, 2, true⟩,
     ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 5, 3, true⟩,
     ⟨"lit_girard08_robot", 6, 0, [0, 1, 2, 3, 4], true, 5, 4, true⟩,
-    -- lit_lz21_vehicle_position: the right-only nodes the replay consumes (6 of 6 pre-landing)
+    -- lit_lz21_vehicle_position: the right-only nodes the replay consumes (6 of 6 on the restricted mode)
     ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 0, 1, true⟩,
     ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 0, 2, true⟩,
     ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 1, 0, true⟩,
     ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 1, 2, true⟩,
     ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 2, 0, true⟩,
     ⟨"lit_lz21_vehicle_position", 3, 0, [0, 1, 2, 3, 4], true, 2, 1, true⟩,
-    -- lit_nahs25_engine_cooling: the right-only nodes the replay consumes (2 of 2 pre-landing)
+    -- lit_nahs25_engine_cooling: the right-only nodes the replay consumes (2 of 2 on the restricted mode)
     ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], true, 0, 1, true⟩,
     ⟨"lit_nahs25_engine_cooling", 3, 0, [0, 1], true, 1, 0, true⟩,
-    -- quad_light_profiles: the right-only nodes the replay consumes (12 of 12 pre-landing)
+    -- quad_light_profiles: the right-only nodes the replay consumes (12 of 12 on the restricted mode)
     ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 0, true⟩,
     ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 0, 0, true⟩,
     ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 0, 2, true⟩,
@@ -744,27 +737,23 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 2, 0, true⟩,
     ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], true, 2, 1, true⟩,
     ⟨"quad_light_profiles", 3, 0, [0, 1, 2, 3, 4, 5], false, 2, 1, true⟩,
-    -- syringe_relay_prearm: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    -- syringe_relay_prearm: the right-only nodes the replay consumes (1 of 1 on the restricted mode)
     ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1, true⟩,
-    -- turbine_startup_gearratio: the right-only nodes the replay consumes (6 of 6 pre-landing)
+    -- turbine_startup_gearratio: the right-only nodes the replay consumes (6 of 6 on the restricted mode)
     ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], true, 0, 1, true⟩,
     ⟨"turbine_startup_gearratio", 3, 0, [0, 1, 2, 3, 4], true, 0, 4, true⟩,
     ⟨"turbine_startup_gearratio", 3, 1, [0, 1, 2, 3, 4], true, 1, 4, true⟩,
     ⟨"turbine_startup_gearratio", 3, 2, [0, 1, 2, 3, 4], true, 2, 4, true⟩,
     ⟨"turbine_startup_gearratio", 3, 3, [0, 1, 2, 3, 4, 5], true, 3, 4, true⟩,
     ⟨"turbine_startup_gearratio", 3, 4, [0, 1, 2, 3, 4, 5], true, 4, 3, true⟩,
-    -- watertank: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    -- watertank: the right-only nodes the replay consumes (1 of 1 on the restricted mode)
     ⟨"watertank", 2, 0, [0, 1], true, 1, 1, true⟩,
-    -- watertank_twospeed: the right-only nodes the replay consumes (1 of 1 pre-landing)
+    -- watertank_twospeed: the right-only nodes the replay consumes (1 of 1 on the restricted mode)
     ⟨"watertank_twospeed", 2, 0, [0, 1], true, 1, 2, true⟩ ]
 
-/-- Declared: the number of component groups the reposition packs owe (one per component). 610 since
-batch 12 of 2026-10-31 (76 before, whole-domain packs): every reposition node is a pre-landing node,
-and the table lists every reposition pack the replay consumes over the suite (130 packs in 17
-benchmarks, `scripts/gen_pack_rows.py --dyn`). 950 since batch 13 of 2026-10-31 (252 packs in 19
-benchmarks): the 122 packs of `lit_csf21_vehicle_bus` (48) and `lit_freedm_meter` (74) added, whose
-emitted covers Lean wraps over several lines and which the parser of `gen_pack_rows.py` (and of
-`suite_v2_matrix.py`) read as having no windows until then. -/
+/-- Declared: the number of component groups the right-only packs owe (one per component), the
+reposition count of Appendix B.7: every right-only pack the replay consumes over the suite (252
+packs in 19 benchmarks, `scripts/gen_pack_rows.py --dyn`), each on its restricted mode. -/
 def expectedDynV2 : Nat := 950
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
@@ -813,14 +802,10 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-! ## The handoff phase over suite_v2 -/
 
-/-- Declared: one handoff query per declared left transition over the suite_v2 files
-(self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table; 537 until
-the literature migration of 2026-10-29, 2827 since: the 48 abstraction modes of
-`lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2256
-transitions, all vacuous as its rows are identical; 2841 since batch 11 of 2026-10-30:
-`extruder_pe100_manualstart` and `lit_nahs25_engine_cooling` in for `fuelcell_chp_dos` and
-`rover_terrain_6to12`); 2846 since batch 15 of 2026-11-01: the rover ladder (5 transitions each) for
-`rover_terrain_{2to4,4to6}`, `platoon_linkloss` and `acc_tune_lag`). -/
+/-- Declared: one handoff query (Eq. (13), Theorem 2) per declared left mode change over the
+suite_v2 files, self-loops included, the handoff count of Appendix B.7. The 48 abstraction modes
+of `lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2256 of them,
+all vacuous as its rows are identical. -/
 def expectedHandoffV2 : Nat := 2846
 
 /-- Declared handoff failures in suite_v2: none. -/
@@ -850,13 +835,15 @@ def runHandoffAllV2 (cfg : Z3Config) : IO Bool := do
       pure ok
 
 /-! ## The non-connection phase over suite_v2 (the pruned edges of the emitted covers,
-the source mode's cut rebuilt from the EXTENDED certificate, as the tool narrows it) -/
+Definition 6, the source mode's mode fact rebuilt from the EXTENDED certificate, as the tool
+narrows it) -/
 
 def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
-/-- Declared: pruned edges in the suite_v2 covers, and two queries per edge (14 / 28 until batch 11 of
-2026-10-30; 16 / 32 since: the extruder's four pruned edges in, the fuel cell's two out). -/
+/-- Declared: pruned edges in the suite_v2 covers, and two queries per edge, the pruned-edge and
+non-connection counts of Appendix B.7: `source` (no entry state satisfies the successor's guard)
+and `barrier` (the flow points away from the guard's threshold), the pruning of Section 6.1. -/
 def expectedPrunedEdgesV2 : Nat := 16
 def expectedNonConnV2 : Nat := 32
 
@@ -896,19 +883,17 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 49 certified (in the strict well-formedness mode of
-`--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 179 right modes `ok` on both clauses (`wfModes`; the kernel pin
-`CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
-`UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
-check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
-since 2026-10-26). -/
+`RELCERT_IMPLIED_CUT=1` (the implied mode-fact candidates on): all 50 certified, 0 declined (in
+the strict well-formedness mode of `--check-quick-v2`); and what the strict Assumption 1 gate of
+the right models must produce (Appendix B.7): every one of the 181 right modes `ok` on both
+clauses (`wfModes`), none `UNKNOWN` (`wfUnknown`), none `BLOCKING` (`wfBlocking`, the
+nonblocking clause). -/
 structure ExpectedSuiteV2 where
   paths     : Nat := 50
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 181  -- 177 until batch 15 of 2026-11-01 (the rover ladder back: 12 right modes for 8)
+  wfModes   : Nat := 181  -- right modes over the suite (Appendix B.7)
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

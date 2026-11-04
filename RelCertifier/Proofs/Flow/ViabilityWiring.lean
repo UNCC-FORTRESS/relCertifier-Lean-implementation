@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S3 wiring — the bounded existence residual, viability-certified
+# The bounded existence residual, certified by box viability
 
 `HExistSegB` — `HExistSeg` restricted to left durations `≤ dt` — is all the bounded
 coupling ever consumes (`faModal_ODE_G'_bounded` invokes `hExist` only at `s ≤ dt`).
@@ -11,7 +11,9 @@ the right response runs the frozen-left joint field from the left endpoint (whos
 coordinates are the anchor's — the left run masks them), stays in the `domR` face box
 for the clock-capped duration by strict + budgeted growth faces, and its left rows are
 inert (`0`-field). The instance-level residuals become the face verdicts + growth
-budgets + the Picard data — Z3-checkable and analytic-hypothesis-free.
+budgets + the Picard data, which Z3 verdicts and per-model analytic facts discharge. This is
+the existence half (nonblocking clause of Assumption 1) that lets a joint segment's right run
+last the segment (Lemma 3).
 -/
 import RelCertifier.Proofs.Flow.BoxViabilityBounded
 import RelCertifier.Proofs.Encoding.RepositionDischarge
@@ -81,7 +83,7 @@ strict faces hold and whose growth faces carry the `dt`-budget, the right respon
 exists for any left duration `≤ dt`: the frozen-left joint field runs from the left
 endpoint (right coordinates = the anchor's, by the left mask), stays in the face box
 (strict + budgeted growth first-exit), the box implies `domR`, and the left rows are
-inert. Face data over the FROZEN-LEFT joint system — the R6/S3 verdict shapes. -/
+inert. Face data are over the joint system with the left frozen. -/
 theorem HExistSegB_of_viability
     (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domL domR : Formula (Var n))
     (gsS gsG : List (Term (Var n))) (M : ℝ) (hM : 0 ≤ M)
@@ -205,9 +207,10 @@ theorem HExistSegB_of_viability
         exact hxL ⟨i, hi⟩
       · exact hx (by simpa [ODESystem.bound] using hb)
 
-/-- The clocked `hExist` from the BOUNDED `HExistSegB` — the mirror of
-`hExist_clocked_of_HExistSeg` with the `dt` cap threaded through (the cap was already
-available at the clocked level; the unbounded adapter simply ignored it). -/
+/-- The clocked `hExist` from the bounded `HExistSegB`: the mirror of
+`hExist_clocked_of_HExistSeg` with the `dt` cap threaded through. The clock `tg` is read and
+bound by neither block nor domain; the left curve is declocked, `HExistSegB` supplies the right
+witness, and the clock coordinate is restored on it. -/
 theorem hExist_clocked_of_HExistSegB (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
     (htgLb : tg ∉ (leftBlock fL).bound) (htgLr : tg ∉ (leftBlock fL).readVars)
@@ -290,9 +293,9 @@ theorem hExist_clocked_of_HExistSegB (fL fR : Fin n → Term (Var n)) (lam : Ter
     exact (Formula.coincidence domR (fun y hy => (hR'phys t y
       (fun hc => htgdR (by rw [← hc]; exact hy))).symm)).mp (hRdom t ht)
 
-/-- **The per-segment bounded coupling from the BOUNDED existence residual** —
-`segment_faModalB_from_cert` with `HExistSegB` (dischargeable from bounded box
-viability via `HExistSegB_of_viability`) in place of the `∀s` `HExistSeg`. -/
+/-- **The per-segment bounded coupling from the bounded existence residual**:
+`segment_faModalB_from_cert` with `HExistSegB` (dischargeable from bounded box viability via
+`HExistSegB_of_viability`) in place of the unbounded `HExistSeg`. -/
 theorem segment_faModalB_from_certB (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
     (hdisj0 : Disjoint ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars)

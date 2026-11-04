@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The cut-narrowed couplings at strict rows (extension `strict-atoms`)
+# The mode-fact-narrowed couplings at strict rows (extension `strict-atoms`)
 
 Mirrors of the per-pairing anchor preservation for a row read through its strictness mask:
 
@@ -16,8 +16,6 @@ Mirrors of the per-pairing anchor preservation for a row read through its strict
   (`ReplayDyn`): the anchor `FMS g (gs ++ atomTerms) m` is a box invariant of the joint flow
   and of the frozen-left reposition flow. The reposition pack is UNCHANGED (route A for every
   component, which preserves `< 0`, `flow_cert_sound_lt`).
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.SyncSwitch
 import RelCertifier.Proofs.Encoding.ReplayDyn
@@ -134,8 +132,10 @@ theorem segPresAllS_congr {ts : List (Bool × Term (Var n))} {sys : ODESystem (V
   intro ν hν ω hω
   exact h ν hν ω (sem_ode_congr (fun x => hDD x) hω)
 
-/-- **`couple_box_cutX` at a strict row.** The anchor `FMS g (gs ++ atomTerms) m` (flagged row
-components, closure atoms) is a box invariant of the joint flow, from the flagged pack. -/
+/-- **`couple_box_cutX` at a strict row.** The anchor `FMS g (gs ++ atomTerms cL cR) m` (flagged
+row components, closure atoms of the mode facts) is a box invariant of the joint product program
+at stretch `lamv` (Eq. (14)), from the flagged pack on the domain narrowed by the mode facts:
+the flow certificate of Definition 5 at a strict row, by Lemma 2. -/
 theorem couple_box_cutXS (g : Term (Var n)) (gs : List (Term (Var n))) (m : List Bool)
     (ts : List (Bool × Term (Var n)))
     (cL cR : List (CutAtomP n)) (fL fR : Fin n → Term (Var n)) (lamv : ℝ)
@@ -172,8 +172,8 @@ theorem couple_box_cutXS (g : Term (Var n)) (gs : List (Term (Var n))) (m : List
 
 /-- The reposition pack gives flagged preservation along the frozen-left right flow, on the
 base domain narrowed by the region's half-open part: route A preserves `< 0` as well as `≤ 0`
-(whole region: route A for every component; pre-landing region: a strict component's route A
-holds over the closure, hence over the half-open part, `covers`). -/
+(whole region: route A for every component; restricted mode `m|¬tgt` of Lemma 4: a strict
+component's route A holds over the closure, hence over the half-open part, `covers`). -/
 theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
     (fR : Fin n → Term (Var n)) (D gL : Formula (Var n)) {rg : DynRegion n}
     (hv : VerdDynCore pre (ts.map Prod.snd) fR D gL rg) (hrg : rg.covers (ts.map Prod.fst)) :
@@ -231,7 +231,10 @@ theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
         rw [if_pos hm] at h
         exact flow_cert_sound_lt _ (z3_unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
 
-/-- **`couple_box_dyn` at a strict row.** -/
+/-- **`couple_box_dyn` at a strict row.** The anchor `FMS g (gs ++ atomTerms cL cR) m` is a box
+invariant of the right-only product program (Eq. (15), left frozen) on the base domain narrowed by
+the region `rg`, from states that also satisfy the left guard `gL` when `pre = true`: the
+right-only flow certificate of Definition 5 at a strict row. -/
 theorem couple_box_dynS (pre : Bool) (g : Term (Var n)) (gs : List (Term (Var n)))
     (m : List Bool) (ts : List (Bool × Term (Var n)))
     (cL cR : List (CutAtomP n)) (fR : Fin n → Term (Var n)) (domL domR gL : Formula (Var n))

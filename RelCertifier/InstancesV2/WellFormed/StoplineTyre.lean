@@ -10,14 +10,12 @@ Over the guarded right automaton `GrG` (`CRUISE`, `BRAKE`, `STOP`), the lowered 
 (6), roll `φ` (7); `CRUISE` `p' = v`, `s' = v (1 − ψ²/2 − 0.2 φ²)`, `v' = 0`, `b' = −b/0.3`,
 `ψ' = −ψ`, `θ' = −θ + 0.5 z + 0.02 b`, `z' = −z`, `φ' = −φ + 0.015 v (−ψ)`; `BRAKE` the same with
 `v' = −b`, `b' = (2.7 − b)/0.3`; `STOP` frozen; the evolve box `p, s ≥ 0`, `0 ≤ v ≤ 8`,
-`0 ≤ b ≤ 2.7`, `|ψ|, |θ| ≤ 0.6`, `|z| ≤ 0.15`, `|φ| ≤ 0.5`.
+`0 ≤ b ≤ 3`, `|ψ|, |θ| ≤ 0.6`, `|z| ≤ 0.15`, `|φ| ≤ 0.5`.
 `wellFormedR_stopline` (the shared lemma). Existence: the explicit runs (`forcedSol` cascades
 `z → θ`, `(v, ψ) → φ`, `b` toward its target; `intSol` for `v`, `p`, `s`). Z3-free.
-Batch 15 (2026-11-01): the full-fidelity rung under the suite name, from the branch proof
-`StoplineRover8to11` (cd7499f) adapted to the one shared box: the right declares the left's
-extra states (frozen at their start values, which stay in the box; host order = the left's
-state list) and the box reads `0 ≤ b, c ≤ 3` on every mode of both sides (the bounds above
-that differ are the branch's per-side boxes).
+The right also declares the left's extra states (frozen at their start values, which stay in
+the box; host order = the left's state list), and the evolve box is one box on every mode of both
+sides, with `0 ≤ b, c ≤ 3`.
 -/
 import RelCertifier.InstancesV2.BenchIR.stopline_tyre
 import RelCertifier.Proofs.Encoding.WellFormedStopline

@@ -5,13 +5,14 @@ Released under Apache 2.0 license.
 # The suite_v2 modal verdict queries, rebuilt at the SMT-IR level, pinned
 
 `CutRespond.modalVerdX` states, at the host level, the narrowed stratified verdict pack
-of one pairing exactly as the tool's `checkSeg` builds it. A runner can only send text,
+of one pairing (the Lie conditions, Eqs. (17) and (18), of every invariant component, in
+rounds, under the mode facts) exactly as the tool's `checkSeg` builds it. A runner can only send text,
 so it rebuilds the pack at the IR level (`modalVerdXQueries`, from the same `Run.*`
 lowerings, the emitted extended certificate and the shared combinators) and prints it
 with `toScript`. `modalVerdX_of_queries` proves, once and for every benchmark, that the
 rebuilt queries denote exactly the hypothesis: if each component has a route the runner
 saw come back `unsat`, the instance's `Verd` holds. So a green runner line is evidence
-about the theorem's own hypothesis, not about a lookalike (the legacy discipline of
+about the theorem's own hypothesis, not about a lookalike (the discipline of
 `Verdicts/ModalPins.lean`, generic here because the v2 packs share one shape).
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
@@ -24,8 +25,9 @@ open DL Parse RelCertifier.Oracle
 
 variable {n : ℕ}
 
-/-- The pack, rebuilt: per component (in the cover's strata order), the three route
-queries A, B, C over the cut-narrowed, strata-narrowed domain. `none` if anything fails
+/-- The pack, rebuilt: per component (in the cover's strata order, the rounds of
+Section 4.1), the three route queries A, B, C over the domain narrowed by the mode facts and
+by the earlier rounds. `none` if anything fails
 to lower (the runner reports that as a SKIP, never as a pass). -/
 def modalVerdXQueries (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
     (order : List ℕ) (lam : ℚ) (l m : ℕ) : Option (List (List (IForm n))) := do

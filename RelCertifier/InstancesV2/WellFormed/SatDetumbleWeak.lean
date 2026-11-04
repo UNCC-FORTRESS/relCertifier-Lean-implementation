@@ -11,7 +11,7 @@ The right model has three active modes (`NOMINAL`, `ECONOMY`, `SURVIVAL`: `w' = 
 the body energy `E = 2 w1² + 4 w2² + 5 w3²`.
 
 **The right evolve domain (every mode) is the gyro box `|w_i| ≤ 1`** (the gyro's measurement
-range; one domain on every mode of both sides since 2026-10-29). The wheel momentum `h` is not
+range; one domain on every mode of both sides). The wheel momentum `h` is not
 bounded: with `|h| ≤ 2` in the domain the design model's own flow `h' = 5 k w3` would cross it
 (from `w1 = w2 = 0`, `w3 = 0.4`, `h = 2` the `NOMINAL` run of duration 1 ends at
 `h = 4 − 2 e^{−1/2} > 2`) and Assumption 1 would be false. The momentum band `|h + 5 w3| ≤ 2` is
@@ -124,7 +124,7 @@ noncomputable def modeW (q : ℕ) : RMode (Var 4) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+right mode `t`, lowered exactly as the left modes' guards are): the right switches into
 `t` only where `t`'s guard holds. -/
 noncomputable def edgeW (s t : ℕ) : REdge (Var 4) :=
   { src := s, tgt := t, guard := hostGuard vs 4 Side.R (mR t), pruned := false }
@@ -154,7 +154,7 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 
 /-! ## Regions -/
 
-/-- The momentum band `−2 ≤ h_R + 5 w3_R ≤ 2` (not in the domain, not a tool cut; conserved by
+/-- The momentum band `−2 ≤ h_R + 5 w3_R ≤ 2` (not in the domain, not a mode fact of the tool; conserved by
 every right flow, see `sat_detumble_weak_band_invariant`). -/
 noncomputable def nbF : Formula (Var 4) :=
   Formula.and (Formula.cmp CompOp.le hw (Term.const 2))

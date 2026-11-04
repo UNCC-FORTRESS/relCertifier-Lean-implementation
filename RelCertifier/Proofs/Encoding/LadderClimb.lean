@@ -8,7 +8,7 @@ Every rover-ladder benchmark's reference (right) automaton is the one-way chain
 `STEEP → MODER → FLAT` with `v' = 3 (c_q − v)` (`c = 0.3, 0.5, 0.65`), an odometer
 `s' = v · κ` with `κ` a positive attitude factor, and band guards on `s` (`[0, 0.6)`,
 `[0.6, 1.4)`, `[1.4, ∞)`) that also cap `v` by the band's set point. This file abstracts the
-climb that answers every left window of these benchmarks over the GUARDED chain: after the left
+climb that answers every left cycle of these benchmarks over the guarded chain: after the left
 window the right runs its band to the next band's floor and switches there (legal: the
 odometer is exactly at the floor and `v` is below the band's cap), then holds `FLAT` until
 `v_R ≥ V` (any target below `0.65`, or already reached) and `s_R ≥ S`, and takes the
@@ -18,8 +18,6 @@ self-loop.
 every envelope state), the exponential law of `v`, a lower bound on the odometer's growth, and
 the legality of the three switches the climb takes (`STEEP → MODER` at `s = 0.6`,
 `MODER → FLAT` at `s = 1.4`, `FLAT → FLAT` anywhere in `FLAT`'s guard).
-
-New leaf; no upstream edits.
 -/
 import RelCertifier.Proofs.Encoding.GuardedClimb
 

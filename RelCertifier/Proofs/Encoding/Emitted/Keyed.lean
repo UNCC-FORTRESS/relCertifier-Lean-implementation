@@ -22,8 +22,8 @@ clocked guarded right automaton of the file, for every left cycle length `dt ≤
   right-only nodes (Definition 7), the coverage of the committed subsets.
 
 Per left mode the cover's response is `coverX_gresp` (the general theorem's induction, Lemma 5)
-with the left mode's anchor; the left modes assemble through `hstepMode_GR`, `HMode_regionG`,
-`hstep_modeKeyed` and `theorem3_modeKeyed`, the composition through the handoffs of Theorem 2.
+with the left mode's anchor; the left modes assemble through `hstepMode_GRC`, `HMode_regionGC`,
+`hstep_modeKeyed` and `theorem3_modeKeyed_gen`, the composition through the handoffs of Theorem 2.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Choice
 import RelCertifier.Proofs.Encoding.Emitted.Region

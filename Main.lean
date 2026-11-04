@@ -7,8 +7,8 @@ Released under Apache 2.0 license.
 * `relcert <input.txt>…` runs the certifier (`Trusted/OracleAPI.certify`) on each benchmark
   on one warm Z3 session, then the handoff check (`Verdicts/RunHandoff`) on every covered
   benchmark, and prints CERTIFIED / DECLINED / ERROR per file; CERTIFIED requires both.
-* `relcert --run-verdicts-v2` re-sends every Z3 hypothesis of the suite_v2 battery
-  (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
+* `relcert --run-verdicts-v2` re-sends every Z3 hypothesis of the suite_v2 verdict phases
+  (`VerdictsV2`) with declared per-phase counts (`runAllVerdictsV2`);
   `--check-quick-v2` certifies the suite_v2 files first (in the strict well-formedness
   mode) and checks the tally, then runs the verdicts, then the strict Assumption 1 gate
   (declared right-mode count `expectedSuiteV2.wfModes`, 0 UNKNOWN, 0 BLOCKING; both clauses
@@ -173,7 +173,8 @@ EMITTERS (regenerate committed Lean literals; each prints to stdout)
 NOT PART OF THIS BINARY
   The kernel check is the Lean toolchain, not a flag here:
     lake build                                       kernel-checks everything
-    lake build RelCertifier.InstancesV2.BatteryV2    the suite_v2 battery + axiom audit
+    lake build RelCertifier.InstancesV2.WellFormedBattery   the Assumption 1 battery + axiom audit
+    lake build RelCertifier.InstancesV2.AxiomCheck   the axiom audit of the generic theorems
   The trusted-layer tests are a separate executable:
     BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test
   `relcert-test` skips its two Z3-determinism checks unless BENCH_PATHS points at a TSV

@@ -804,7 +804,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query (Eq. (13), Theorem 2) per declared left mode change over the
 suite_v2 files, self-loops included, the handoff count of Appendix B.7. The 48 abstraction modes
-of `lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2256 of them,
+of `lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2304 of them (48 × 48, self-loops included),
 all vacuous as its rows are identical. -/
 def expectedHandoffV2 : Nat := 2846
 

@@ -28,7 +28,7 @@ open RelCertifier RelCertifier.Emitted in
 example : structOK { RelCertifier.Bridge.LitNahs25SaltTank.IR with stutter := false } 4
     RelCertifier.Bridge.LitNahs25SaltTank.cov RelCertifier.Bridge.LitNahs25SaltTank.cX = false := by
   decide +kernel
--- kernel negatives (batch 13, docs/BATCH13-2026-10-31.md): the same IR with the feature on but a
+-- kernel negatives (docs/STUTTER.md): the same IR with the feature on but a
 -- declared range that excludes 0 (`lambdaMin := "1.0"`) must fail the structural gate as well
 open RelCertifier RelCertifier.Emitted in
 example : structOK { RelCertifier.Bridge.SaltTankStutter.IR with lambdaMin := "1.0" } 4

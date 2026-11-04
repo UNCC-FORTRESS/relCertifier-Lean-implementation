@@ -4,9 +4,10 @@ Released under Apache 2.0 license.
 
 # Invariant components (leaf)
 
-The multi-component invariant lowering, moved out of `OracleAPI` (S4): the
-kernel-facing instance layer (`CoverInstance`) needs ONLY this definition, so the
-instances do not depend on the tool door: `OracleAPI` edits do not invalidate them.
+The lowering of an invariant row to its components `g_i ≤ 0` (the conjunct form of
+Eq. (8)), and the oracle outcome. A leaf separate from `OracleAPI`: the kernel-facing instance
+layer (`CoverInstance`) needs ONLY this definition, so `OracleAPI` edits do not invalidate
+the instances.
 -/
 import RelCertifier.Trusted.Run
 
@@ -26,10 +27,11 @@ def Outcome.tag : Outcome → String
   | .declined  => "DECLINED"
   | .error _   => "ERROR"
 
-/-! ## Multi-conjunct invariant lowering (broadened `invToG`)
+/-! ## Multi-conjunct invariant lowering
 
-Each `≤/<` atom `a ∼ b` becomes a safe-side component `g = a − b ≤ 0` (`≥/>` flips).
-Conjunctions lower every component (per-component flow certificates). `lowerE` handles
+Each `≤/<` atom `a ∼ b` becomes a component `g = a − b ≤ 0` (`≥/>` flips), a polynomial `p_i`
+of Eq. (8); a strict atom lowers to its closure (`InvStrictFlags` records which were strict).
+Conjunctions lower every component (one Lie condition per component, Section 4.1). `lowerE` handles
 `+ − ×`, so quadratic (`x*x`) and product (`v*r`) terms lower into `Term` and flow
 through the unchanged `lieDeriv`/`flowQueryStrict`. If ANY component fails to lower,
 returns `none` ⟹ the caller reports `error` (never silently drops a component). -/

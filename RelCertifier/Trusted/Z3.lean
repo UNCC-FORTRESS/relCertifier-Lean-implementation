@@ -4,6 +4,10 @@ Released under Apache 2.0 license.
 
 # Hermetic, persistent Z3 session (TRUSTED harness layer, not verified)
 
+The Z3 session of the trusted base (paper, Appendix B.4): a pinned binary, `(reset)`
+before every query, a 10 s timeout and a resource limit per query, `unknown` and errors
+never counted as verdicts.
+
 The oracle's determinism and honesty depend on this layer:
 * **Pinned binary** — the Z3 path is resolved once (env `RELCERT_Z3` or a fixed list of
   absolute paths), NEVER PATH-resolved at spawn. A missing/mis-pathed Z3 is a distinct
@@ -32,7 +36,7 @@ structure Z3Config where
   (`RELCERT_Z3_RLIMIT`): the heaviest tangent-boundary flow queries of the suite_v2 6-D
   gyrostat (`sat3w_*`) need about 33 000 000 units; the per-query `:timeout` (default
   10 s, `RELCERT_Z3_TIMEOUT`) stays the wall-clock safety net (a timeout is `unknown`,
-  hence an error, never a verdict). -/
+  never counted as `unsat`). -/
   rlimit    : Nat := 64000000
   deriving Repr
 

@@ -2,17 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The queries of a refutation (branch `refutation`)
+# The queries of a refutation
 
-A refutation of Theorem 3's claim for an invariant (`Proofs/Encoding/Emitted/Refute.lean`)
+A refutation of the claim of paper Theorem 3 for an invariant (paper Appendix B.6,
+`Proofs/Encoding/Emitted/Refute.lean`)
 rests, besides kernel-decided facts about a rational witness, on Z3 `unsat` answers to two
 query shapes, built here from the records alone (pure builders; the runner
 `VerdictsV2/RunRefute.lean` issues them, the refutation theorems read their `unsat`):
 
 * `noPartnerQueryOf`: no right state pairs with the witness's left values in the entered
   left mode `m` at right mode `q`: `⋀ᵢ Lᵢ = wᵢ ∧ ⋀ⱼ gⱼ ≤ 0 ∧ evolveR ∧ guard_q ∧ cuts_q`, with
-  `gⱼ` the components of `m`'s row (`invComponents`), `evolveR` the right evolve domain, the
-  guard and the kept cut atoms of right mode `q` (the right region of the claim);
+  `gⱼ` the components of `m`'s row (`invComponents`), `evolveR` the right domain, the
+  guard and the mode fact (kept atoms) of right mode `q` (the right region of the claim);
 * `rigidQueryOf`: the right field of mode `q` cannot decrease a component `g` inside the right
   evolve domain: `evolveR ∧ ġ⁻ > 0` with `ġ⁻` the Lie derivative of `0 − g` along `q`'s field
   at stretch 1 (the right's own Lie derivative, `Bridge.ownLie`), the route-A shape.
@@ -49,8 +50,8 @@ def fixLeft (n : ℕ) (wL : List ℚ) : IForm n :=
 def compsConj {n : ℕ} (cs : List (ITerm n)) (b : IForm n) : IForm n :=
   cs.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0))) b
 
-/-- The no-partner query of the entered row `row` at right mode `mR` (right evolve domain from
-`mR0`, kept atoms `atoms`), at the left values `wL`. -/
+/-- The no-partner query of the entered row `row` at right mode `mR` (right domain from
+`mR0`, mode-fact atoms `atoms`), at the left values `wL`. -/
 def noPartnerQueryOf (vars : List String) (n : ℕ) (row : PForm) (mR0 mR : PMode)
     (atoms : List CutAtomX) (wL : List ℚ) : Option (IForm n) := do
   let cs ← invComponents vars n row

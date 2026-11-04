@@ -1,16 +1,18 @@
 /-
-# The progress certificate of a right-only (reposition) node
+# The reposition certificate of a right-only node (stage lists)
 
-A right-only segment of mode `q` is sound only if the right actually reaches a state where a
-declared non-self successor is enabled; the reposition flow certificate (the right-only flow certificate of Lemma 4) says
-nothing about that. The **progress certificate** does, by a staged rate argument: a list of
-stages `(x, θ, up, r)`, each "while the earlier thresholds are crossed and `x` has not yet
-crossed `θ`, the field of `x` moves it toward `θ` at rate at least `r > 0`" (`rateQuery`), each
-non-last stage "once crossed, stays crossed" (`keepQuery`), and wherever the last threshold is
-crossed some exit's guard holds (`landQuery`; on the crossed region, so a start already past the
-threshold switches at once). All three are static queries over the node's region (the facts
-the reposition flow preserves), the shape of every other certificate of the tool. `Proofs/Encoding/Progress.lean` proves that `unsat` answers to these
-queries give the reposition-progress premise of `theorem3_of_coverX`.
+A right-only segment of mode `q` (paper Definition 3) needs the right to reach a state where
+a successor other than `q` is enabled; the right-only flow certificate (paper Definition 5)
+says nothing about that. The reposition certificate (paper Definition 7) does, and the tool
+establishes it by a stage list (paper Section 6.1, Reposition): stages `(x, θ, up, r)`, each
+"while the earlier thresholds are crossed and `x` has not yet crossed `θ`, the field of `x`
+moves it toward `θ` at rate at least `r > 0`" (rate, `rateQuery`), each non-last stage "once
+crossed, stays crossed" (keep, `keepQuery`), and wherever the last threshold is crossed some
+exit's guard holds (landing, `landQueries`; on the crossed region, so a start already past
+the threshold switches at once). All are static queries over the node's region `R` (the
+paper's `cut_L ∧ cut_R ∧ φ_inv(mL)`, which the right-only cycles keep), like every other
+query of the tool. `Proofs/Encoding/Progress.lean` proves that `unsat` answers to these
+queries give the reposition premise (`RepoProgress`) of `theorem3_of_coverX`.
 
 The emitted data (`ProgressE`) is what the verdict runner rebuilds the queries from, with the
 same builders (`progressQueries`), so the pinned hypotheses are the queries the tool issued.
@@ -30,9 +32,10 @@ structure ProgressStageE where
   rate  : ℚ
   deriving Repr, DecidableEq, Inhabited
 
-/-- The certificate of reposition node `mR` in window `mL`, setting `pre` (pre-joint:
-the left guard is a fact of the region). `exits` are the declared non-self successors the
-landing covers. -/
+/-- The reposition certificate of right-only node `mR` for left mode `mL`, source setting
+`pre` (pre-joint: the left guard is a fact of the region). `exits` are the declared
+successors of `mR` other than `mR` (the right-only candidates of paper Section 4.2) whose
+guards the landing queries cover. -/
 structure ProgressE where
   mL     : String
   mR     : String
@@ -59,8 +62,9 @@ def crossed (v : Var n) (st : ProgressStageE) : IForm n :=
 def before (v : Var n) (st : ProgressStageE) : IForm n :=
   if st.up then .cmp .lt (.var v) (.rat st.theta) else .cmp .gt (.var v) (.rat st.theta)
 
-/-- `x ≤ θ` (up) or `x ≥ θ` (down): the closure of `before`, the pre-landing region on which a
-STRICT invariant component's right-only certificate is required (`docs/PRELANDING.md`). -/
+/-- `x ≤ θ` (up) or `x ≥ θ` (down): the closure of `before`, the region on which a strict
+invariant component's right-only certificate is required (the restricted mode
+`mR|¬target` of paper Lemma 4, closed for strict components). -/
 def beforeCl (v : Var n) (st : ProgressStageE) : IForm n :=
   if st.up then .cmp .le (.var v) (.rat st.theta) else .cmp .ge (.var v) (.rat st.theta)
 
@@ -98,11 +102,10 @@ def landQueries (R guardq : IForm n) (v : Var n) (st : ProgressStageE)
   let neg := fun (base : IForm n) => guards.foldl (fun d g => IForm.and d (IForm.neg g)) base
   [neg (IForm.and R (onLine v st)), neg (IForm.and (IForm.and R guardq) (crossed v st))]
 
-/-- **The certificate shapes the kernel accepts** (`Emitted.certOK`): one stage, or two stages
-(a helper, then the landing stage), each stage in either direction. The progress search
-(`OracleAPI.checkProgress`) returns a stage list only when it passes this test, so no shape the
-kernel rejects is emitted. Since 2026-11-01 every direction pair of a two-stage list is
-accepted (before: two upward stages only; `docs/PRELANDING.md`). -/
+/-- **The stage-list shapes the kernel accepts** (`Emitted.certOK`): one stage, or two stages
+(a helper, then the landing stage), each stage in either direction (paper Appendix B.3,
+`repoProgress_two_ud/du/dd_reg`). The search (`OracleAPI.checkProgress`) returns a stage list
+only when it passes this test, so no shape the kernel rejects is emitted. -/
 def shapeOK (sts : List ProgressStageE) : Bool := sts.length == 1 || sts.length == 2
 
 /-- The queries of a resolved stage list (one or two stages): per stage its rate query and
@@ -116,7 +119,7 @@ def stageQueries (R guardq : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n
         rateQuery R fR [(w, sth), (v, st)] 1 v st] ++ landQueries R guardq v st guards)
   | _ => none
 
-/-- The queries of a certificate: its stages resolved to right coordinates, its exits' guards
+/-- The queries of a reposition certificate: its stages resolved to right coordinates, its exits' guards
 and the node's guard lowered. `none` if a variable or a guard does not lower, or the stage
 list is not one or two stages. -/
 def progressQueries (vars : List String) (R guardq : IForm n) (fR : Fin n → ITerm n)

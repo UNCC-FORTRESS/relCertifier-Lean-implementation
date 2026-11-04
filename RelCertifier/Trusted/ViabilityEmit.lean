@@ -2,23 +2,29 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# S3 emission door — per-face bounded-viability tags
+# Per-face bounded-viability tags (`--emit-viability2`, `--emit-viability3`)
 
-`--emit-viability2`: per right mode, per evolve-box face, one of
-* `strict`  — R6's boundary strict-inflow probe (`UNSAT(box ∧ g = 0 ∧ ġ ≥ 0)`);
-* `growth0` — the S3 growth route at `M = 0` (`UNSAT(box ∧ ġ > 0)`): the face value
-  never climbs, so any STRICTLY interior anchor keeps it for every bounded duration
+Untrusted emission behind the hand-written proofs of Assumption 1 (Well-Formedness),
+nonblocking clause: a flow started in a right mode's guard stays in its evolution box
+for the control interval (App. B.5, `WellFormedRIn`). The box is the conjunction of the
+mode's non-strict evolve atoms, each a face `g ≤ 0`, and the tags say which Lie
+condition keeps each face.
+
+`--emit-viability2` tags, per right mode and per evolve-box face, one of
+* `strict`  — the boundary strict-inflow query `UNSAT(box ∧ g = 0 ∧ ġ ≥ 0)`;
+* `growth0` — `UNSAT(box ∧ ġ > 0)`: the face value never climbs, so any strictly
+  interior anchor keeps it for every bounded duration
   (`anchor_budget_from_verdict` with `M·dt = 0`);
-* `growth<M>` — the positive-bound growth route (`UNSAT(box ∧ ġ > M)`, doubling sweep
-  `M ∈ {1,…,32}`): anchors within budget `g₀ + M·dt < 0` keep the face for `dt`
+* `growth<M>` — `UNSAT(box ∧ ġ > M)` for the first `M` of the doubling sweep
+  `M ∈ {1,…,32}`: anchors with `g₀ + M·dt < 0` keep the face for `dt`
   (e.g. an equilibrium face `x ≤ 25` under `x' = 3(1 − 0.04x)`);
-* `fail`    — no probe closes (model-margin fix — the tool-improvement loop).
+* `fail`    — no query closes.
 
 Lean consumers: `face_strict_from_verdict` / `face_growth_from_verdict` →
 `HExistSegB_of_viability` → `segment_faModalB_from_certB`.
 
-A NEW FILE by design (rebuild hygiene): `OracleAPI` is untouched, so the instance
-batteries (which import `CoverInstance` → `OracleAPI`) are not invalidated.
+Kept in its own module so that `OracleAPI`, which the instance files import, does not
+change when the tags do.
 -/
 import RelCertifier.Trusted.OracleAPI
 
@@ -85,17 +91,18 @@ def emitViabilityFileB (cfg : Z3Config) (path defname : String) : IO Unit := do
           IO.println (s!"def {defname} : List (String × List (Nat × String)) := [" ++
             String.intercalate ", " rows ++ "]")
 
-/-! ## Stratified tagging (`--emit-viability3`) — the L1 emission door
+/-! ## Stratified tagging (`--emit-viability3`)
 
-Per right mode: the GREATEST SELF-CONDITIONED STRICT CORE (shrink from all faces until
-every member's strict boundary query closes conditioned on the core alone), then the
-non-strict faces level by level (each level's `UNSAT(region ∧ ġ > 0)` conditioned on
-the core plus the earlier levels), then the growth sweep for outward faces over the
-core region, then `fail`. Tags: `strict` / `nonstrict<level>` / `growth<M>` / `fail`.
-The regions match `stratified_faces_raw`'s premises (`Proofs/Flow/StratifiedFaces`):
-strict and growth conditioned on a SUBSET of the strict+growth sublevel (stronger
-facts, a fortiori dischargeable), non-strict level `k` conditioned on core + earlier
-levels — exactly `hbndN`'s region with the growth faces dropped. -/
+Per right mode: first the greatest self-conditioned strict core (start from all faces
+and shrink until every member's strict boundary query closes conditioned on the core
+alone), then the non-strict faces level by level (each level's `UNSAT(region ∧ ġ > 0)`
+conditioned on the core plus the earlier levels), then the growth sweep for the
+remaining faces over the core region, then `fail`. Tags: `strict` / `nonstrict<level>` /
+`growth<M>` / `fail`. The regions match the premises of `stratified_faces_raw`
+(`Proofs/Flow/StratifiedFaces`): strict and growth queries are conditioned on a subset
+of the strict+growth sublevel (stronger facts, so a fortiori dischargeable), and
+non-strict level `k` on the core plus the earlier levels, which is `hbndN`'s region with
+the growth faces dropped. -/
 
 /-- The sublevel-region conjunction of a face subset. -/
 def faceRegion {n : ℕ} (sel : List (ITerm n)) : IForm n :=

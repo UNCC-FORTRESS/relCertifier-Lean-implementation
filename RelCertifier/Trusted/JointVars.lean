@@ -13,11 +13,9 @@ have no coordinate and every query of the benchmark would fail to lower.
 right-only variable gets a left coordinate `L_w` that no left formula mentions and whose
 left derivative is `0` (`dynOf`: a variable with no `ode` row is held fixed), which is
 exactly the "absent on the left" reading. A benchmark whose right list is contained in
-the left one gets `p.L.stateVars` back unchanged; that is every suite_v2 benchmark (41
-declare the same variables on both sides, four declare a right sublist), so nothing the
-kernel instances quote moves.
+the left one gets `p.L.stateVars` back unchanged, as every suite_v2 benchmark does.
 
-Leaf over `Parse` only: `Run.lean` stays untouched (it is upstream of every proof).
+A leaf over `Parse` only, so `Run.lean`, upstream of every proof, does not depend on it.
 -/
 import RelCertifier.Trusted.Parse
 

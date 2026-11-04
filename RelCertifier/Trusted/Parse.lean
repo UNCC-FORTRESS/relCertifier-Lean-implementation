@@ -2,14 +2,15 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# input.txt parser — TRUSTED IO plumbing (Stage-4 runner front-end)
+# input.txt parser — TRUSTED IO plumbing (runner front-end)
 
 Parses the benchmark `input.txt` (INI sections + infix/`smt2:` expressions) into a
 string-keyed model IR (`PProblem`). A later lowering pass indexes the variables into
-the verified joint space `Var n` and builds the Stage-1/2 obligations, so emitted Z3
-queries are pinned to the verified `lieDeriv`/`flowQuery`. The parser is untrusted
-plumbing (like the SMT printer): a parse failure ⟹ the benchmark is reported UNPARSED,
-never silently certified.
+the verified joint space `Var n` and builds the flow and non-connection obligations,
+so emitted Z3 queries are pinned to the verified `lieDeriv`/`flowQuery`. The parser
+is part of the trusted base (paper, Appendix B.4), together with the key audit
+(`Trusted/KeyAudit`): a parse failure ⟹ the benchmark is reported UNPARSED, never
+silently certified.
 
 Grammar handled: space-separated infix and `smt2:` prefix expressions; relational
 projections `x[l]`/`x[r]` ↦ `L_x`/`R_x`. Tightly-packed infix (no spaces around `*`) and
@@ -23,9 +24,9 @@ empty-argument s-expressions, malformed numerals. Assembly additionally validate
 names unique; every `next` entry resolves to a declared mode of the same system; the ode
 left-hand sides cover the declared `state_vars` exactly (each variable exactly once);
 variables used in odes/guards/evolves are declared in their system; invariant formulas use
-only projected `x[l]`/`x[r]` variables declared on the respective side. The previous
-lenient behavior (drop what fails to parse, default what is missing) could silently
-certify a WEAKER reading of the file than the human sees — strictness removes that route.
+only projected `x[l]`/`x[r]` variables declared on the respective side. Dropping what
+fails to parse, or defaulting what is missing, could certify a WEAKER reading of the
+file than the human sees; strictness removes that route.
 -/
 namespace RelCertifier.Parse
 
@@ -72,18 +73,18 @@ structure PProblem where
   L          : PSystem
   R          : PSystem
   invariants : List (String × PForm)
-  /-- RUN FEATURE, not read from the file (always on since 2026-10-31,
-  `docs/BATCH12-2026-10-31.md`): the stretch candidates end with `λ = 0`, the joint segment in
-  which the right waits while the left runs (`docs/STUTTER.md`). The parser leaves the default;
-  a run switches it off only for the ablation `RELCERT_NO_STUTTER=1`
-  (`Oracle.withRunFeatures`), and the emitted IR records the run's value. -/
+  /-- RUN FEATURE, not read from the file (on by default): the stretch candidates end with
+  stretch `λ = 0`, the joint segment in which the witness stands still while the left runs
+  (paper §4.1, §6.1; `docs/STUTTER.md`). The parser leaves the default; a run switches it off
+  only for the ablation `RELCERT_NO_STUTTER=1` (`Oracle.withRunFeatures`), and the emitted IR
+  records the run's value. -/
   stutter    : Bool := true
-  /-- RUN FEATURE, not read from the file (always on since 2026-10-31,
-  `docs/BATCH12-2026-10-31.md`): a right-only (reposition) node is certified by the PRE-LANDING
-  right-only flow certificate, whose domain is narrowed to the region before the progress
-  certificate's last threshold (`docs/PRELANDING.md`). The parser leaves the default; a run
-  switches it off only for the ablation `RELCERT_NO_PRELANDING=1` (`Oracle.withRunFeatures`), and
-  the emitted IR records the run's value. -/
+  /-- RUN FEATURE, not read from the file (on by default): a right-only node may be certified
+  by the right-only flow certificate of the restricted mode `m|¬target` (paper Lemma 4), whose
+  domain is narrowed to the region before the reposition certificate's last threshold
+  (`docs/PRELANDING.md`). The parser leaves the default; a run switches it off only for the
+  ablation `RELCERT_NO_PRELANDING=1` (`Oracle.withRunFeatures`), and the emitted IR records
+  the run's value. -/
   prelanding : Bool := true
   deriving Repr, Inhabited, DecidableEq
 
@@ -206,8 +207,7 @@ partial def parseInfix (toks : List String) : Option PExpr :=
 def parseExpr (s : String) : Option PExpr :=
   let s := tr s
   if s.startsWith "smt2:" then
-    -- STRICT (2026-07-19): reject trailing tokens (same discard pattern as
-    -- the formula branch; see there).
+    -- STRICT: reject trailing tokens (same rule as the formula branch; see there).
     match parseSExpr (tokenize (dr s 5)) with
     | some (e, []) => some e
     | _ => none
@@ -254,11 +254,9 @@ partial def parseFormula (s : String) : Option PForm :=
   let s := tr s
   if s.isEmpty then some PForm.tt
   else if s.startsWith "smt2:" then
-    -- STRICT (2026-07-19): a trailing remainder after the s-expression was
-    -- previously DISCARDED, silently weakening multi-conjunct lines of the
-    -- form `smt2:(...) and smt2:(...)` to their first conjunct (found via a
-    -- false CERTIFIED on a synthesized two-sided band; see relSynth
-    -- results/bug/). Reject instead — never weaken. Multi-conjunct smt2
+    -- STRICT: a trailing remainder after the s-expression is rejected, never
+    -- discarded: discarding it would weaken a multi-conjunct line of the form
+    -- `smt2:(...) and smt2:(...)` to its first conjunct. Multi-conjunct smt2
     -- lines must use a single `smt2:(and ...)`.
     match parseSForm (tokenize (dr s 5)) with
     | some (f, []) => some f
@@ -375,8 +373,8 @@ def numOk (c : String) : Bool :=
 
 /-- Parse a mode section body, strictly: `ode`, `guard`, `evolve`, `next` required; every
 `;`-separated ode equation must have a primed LHS and a parsable RHS; a `strengthen`
-key is rejected outright (the field was removed; the checked-cut channel derives its
-candidates from the guard conjuncts only). -/
+key is rejected outright: mode facts (paper Definition 2) are derived by preprocessing
+from the model (§6.1), never declared in the file. -/
 def parseModeE (sec : String) (name : String) (kvs : List (String × String)) :
     Except String PMode := do
   let odeStr ← secNeed sec kvs "ode"

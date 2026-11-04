@@ -4,8 +4,8 @@ Released under Apache 2.0 license.
 
 # Kernel-fast exact rationals (`QF`) and the strict decimal parser
 
-Split out of `Faithful.lean` so that the trusted lowering (`Run.parseRat` and through it
-`lowerE` on numerals) can share the same kernel-reducing arithmetic. Mathlib's ℚ
+Shared by `Faithful.lean` and the trusted lowering (`Run.parseRat` and through it `lowerE`
+on numerals), so both use the same kernel-reducing arithmetic. Mathlib's ℚ
 numeral/field instance chains do not kernel-reduce under `rfl`; `QF` computes with raw
 `ℤ × ℤ` fractions (denominator kept positive, NO normalization — every comparison is a
 cross-multiplication), and all string processing is STRUCTURAL recursion over
@@ -16,10 +16,10 @@ import Mathlib.Data.Int.Basic
 
 namespace RelCertifier
 
-/-! ## Kernel-fast exact rationals (`QF`) and polynomial normal form over the IR
+/-! ## Kernel-fast exact rationals (`QF`)
 
 Mathlib's ℚ numeral/field instance chains do not kernel-reduce under `rfl`, so `Faithful`
-computes with raw `ℤ × ℤ` fractions (denominator kept positive, NO normalization — every
+and the lowering compute with raw `ℤ × ℤ` fractions (denominator kept positive, NO normalization — every
 comparison is a cross-multiplication). All operations are plain `Int` arithmetic, which
 the kernel evaluates fast on binary representations. -/
 

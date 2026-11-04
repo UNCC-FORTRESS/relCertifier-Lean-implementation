@@ -2,14 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `Faithful` — kernel-checked instance ↔ benchmark identity (seam #1 closure)
+# `Faithful` — kernel-checked instance ↔ benchmark identity
 
-**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
-affine models of the legacy suite, kernel-certified against the parsed IR). Its
-per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
-`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
-suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
-compiled as part of the soundness development.
+**Status.** Part of the settling / `Faithful` route (settling, terrain and affine models,
+kernel-certified against the parsed IR). It is not on the route of the paper's benchmark
+instances, which are generated from the tool's emitted records (Appendix B.1). The generic
+definitions and lemmas stay compiled.
 
 The settling/terrain/affine instances are transcriptions of benchmark R sides under
 per-coordinate value scales and a time rescale. `Faithful` makes that identity a
@@ -19,7 +17,7 @@ certifier's queries, so both halves of the pipeline see one model). The runtime 
 re-parses each benchmark file and compares it to the embedded literal with the derived
 `DecidableEq`, so a drifted literal fails loudly.
 
-Conventions verified (exact ℚ, mirroring the retired `scripts/transcription_audit.py`):
+Conventions verified (exact ℚ):
 with `u = (ε_R/λ)/dtQ` (real seconds per stored time unit) and `σᵢ` the value scales —
 
   frozen      f = 0

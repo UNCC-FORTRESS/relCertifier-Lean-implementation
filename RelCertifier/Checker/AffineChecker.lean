@@ -1,18 +1,18 @@
 /-
-# EXT 2b — the affine checker: a driven-active velocity under a frozen acceleration
+# The affine checker: a driven-active velocity under a frozen acceleration
 
-**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
-affine models of the legacy suite, kernel-certified against the parsed IR). Its
-per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
-`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
-suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
-compiled as part of the soundness development.
+**Status.** Part of the settling / `Faithful` route: decidable checkers that discharge the
+single-system right well-formedness bundle `GuardSettlingH` (staying in the envelope and
+landing in a declared successor's guard, the content of Assumption 1) for settling, terrain
+and affine models, kernel-certified against the parsed IR. It is not on the route of the
+paper's benchmark instances, whose Assumption 1 is `WellFormedRIn`, proved per benchmark
+(Appendix B.5). The generic definitions and lemmas stay compiled.
 
 The driven-active class (`rover_tier_r1`, `rover_tier_1to2`): the guarded velocity
 satisfies `v' = a` with `a` FROZEN and nonneg (its envelope floor `alo ≥ 0`), so the witness
 is the phase-B quadratic stack with the affine rate `a₀ = base(a)` — `drivenVal` with
 `cR := base (Rv j)`, no new witness function at all. The guard bands are `[glo, ∞)` or
-`[glo, gh]` with an OPTIONAL top (the terminal-band fix left the last band unbounded), which
+`[glo, gh]` with an OPTIONAL top (the last band is unbounded), which
 `SettlingMode`'s integer `ghi` cannot carry — so, as with the terrain checker, an
 `AffineModel` WRAPS a `SettlingModel` and adds the per-mode optional tops; the graph and
 envelope stack are reused verbatim and `GuardSettlingH`'s guard-map parameter absorbs the
@@ -395,7 +395,7 @@ def WellFormedSoundA (A : AffineModel n) (mv tg : Var n) (g : Term (Var n))
   (∀ q', ∀ x ∈ (A.GdOf q').fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) →
   GuardSettlingH A.core.graph A.GdOf mv g (Term.const 1) tg (A.core.dt : ℝ) fL A.core.envF
 
-/-- **The affine checker is sound** — the EXT 2b reduction theorem. -/
+/-- **The affine checker is sound**: `decideWellFormedA A = true` yields `GuardSettlingH`. -/
 theorem wellformed_sound_affine (A : AffineModel n) (mv tg : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) : WellFormedSoundA A mv tg g fL := by
   intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd

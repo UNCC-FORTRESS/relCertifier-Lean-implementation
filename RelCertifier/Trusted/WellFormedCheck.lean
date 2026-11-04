@@ -2,38 +2,40 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The Assumption 1 check of the right model (TRUSTED harness layer; strict in the recipe)
+# The Assumption 1 check of the right model (trusted harness layer)
 
-The paper's Assumption 1 (Well-Formedness): from every state satisfying a source-mode guard,
-an evolution spanning the control interval `ε_r` exists, and every evolution of duration at
-most `ε_r` ends in a state satisfying the guard of at least one declared successor mode.
-The kernel states and proves (or refutes) it per benchmark (`WellFormedR`,
-`InstancesV2/WellFormedBattery.lean`). This file is the tool's CHEAP, SUFFICIENT check of
-BOTH halves, per right mode: completeness (clause (ii), steps 1–3) and, since 2026-10-26,
-nonblocking (clause (i), steps 4–6; until then only clause (ii) was checked, and a right
-model that blocks at its domain boundary, `lit_hypercert_vehicle` with `s ≤ 8` in the right
-evolve domain, passed). It is reported per right mode and counted. It only ever declines:
-a single `relcert` run changes no verdict unless `RELCERT_WELLFORMED_STRICT=1`;
-`--check-quick-v2` certifies in the strict mode (`certifyWFWith true`) and gates the report
-against declared counts (the suite's right-mode count, 0 `UNKNOWN`, 0 `BLOCKING`,
-`VerdictsV2.ExpectedSuiteV2`), since 2026-10-10.
+Assumption 1 (Well-Formedness) of the paper: for every right mode `q` and every state
+satisfying its guard, (i) *nonblocking*: some evolution of `q` spans the control interval
+`ε_r`, and (ii) *complete*: every evolution of duration at most `ε_r` ends in the guard of
+some declared successor of `q`. The kernel states it per benchmark (`WellFormedRIn` /
+`WellFormedR`, App. B.5) and proves it by hand, without Z3
+(`RelCertifier/InstancesV2/WellFormedBattery.lean`). This file is the tool's cheap,
+sufficient check of both clauses, per right mode: completeness (clause (ii), steps 1–3)
+and nonblocking (clause (i), steps 4–6). Clause (i) catches a right model that blocks at
+its domain boundary (e.g. `lit_hypercert_vehicle` with `s ≤ 8` in the right evolve
+domain). It is reported per right mode and counted. It only ever declines: a single
+`relcert` run changes no verdict unless `RELCERT_WELLFORMED_STRICT=1`; `--check-quick-v2`
+certifies in the strict mode (`certifyWFWith true`) and gates the report against declared
+counts (the suite's right-mode count, 0 `UNKNOWN`, 0 `BLOCKING`,
+`VerdictsV2.ExpectedSuiteV2`).
 
 Per right mode `q` (guard `G_q`, a conjunction of comparison atoms `gₐ ≤ 0` / `gₐ < 0`,
 lowered on the right; field `f_q`; evolve domain `D_q`), clause (ii) first:
 
-1. **Stratified invariance of the guard atoms** (the cut channel's O2 routes, run on `q`'s
-   own flow, the left held still): round by round, an atom is kept by the contraction-shape
+1. **Stratified invariance of the guard atoms** (the routes of the mode-fact check,
+   Definition 2, run on `q`'s own flow, the left held still): round by round, an atom is
+   kept by the contraction-shape
    route (`contractShapeOK`, `contractShapeOKX`: `x ≤ κ` / `x ≥ κ` under `x' = k (c − x)`, the set
    point on the safe side; no Z3), the frozen route, route B
    `UNSAT(D_q ∧ I ∧ gₐ = 0 ∧ ġₐ ≥ 0)` or route A `UNSAT(D_q ∧ I ∧ ġₐ > 0)`, `I` the atoms
-   kept in EARLIER rounds (sequential differential cuts, never mutual). Every route keeps
+   kept in earlier rounds (sequential differential cuts, never mutual). Every route keeps
    `gₐ ≤ 0` and `gₐ < 0` along every run inside `D_q ∧ I`. If every atom is kept and
    `q` declares its self-loop: **`ok (invariant)`**: every run from `G_q` stays in `G_q`.
 1b. **Successor-guard facts.** An atom of a declared successor's guard joins the facts when
    `UNSAT(D_q ∧ G_q ∧ ¬c)` (it holds initially) and a step-1 route keeps it over the facts
-   so far. It only narrows step 2, so it never turns an `ok` into `UNKNOWN` (added
-   2026-10-20: `watertank`'s `Low`, whose crude rate bound overshot after the 10/3 pump-rate
-   rescale, is `ok (exit)` with `x < 17` from MidEco's guard).
+   so far. It only narrows step 2, so it never turns an `ok` into `UNKNOWN` (e.g.
+   `watertank`'s `Low`, whose crude rate bound alone overshoots, is `ok (exit)` with
+   `x < 17` from MidEco's guard).
 2. **Exit within one interval.** Otherwise, for each atom `a` not kept, a rate bound
    `Lₐ ≥ 0` with `UNSAT(D_q ∧ I ∧ ġₐ > Lₐ)` (bisection on the grid `k/100`, `k ≤ 10⁶`). A run
    of duration `t ≤ ε_r` from `G_q` stays in `D_q ∧ I` and ends with `gₐ ≤ gₐ(0) + Lₐ t ≤
@@ -77,8 +79,8 @@ A domain atom no route keeps is checked for an immediate exit,
 `SAT(X₀ ∧ d = 0 ∧ ḋ > 0)`: some start state leaves `D_q` at once, so no run of duration
 `ε_r > 0` exists and clause (i) is FALSE: **`BLOCKING (d)`** (a Z3 `sat` only ever turns a
 mode into a failure, never into `ok`). Otherwise **`UNKNOWN (nonblocking)`**. The
-per-mode label of an `ok` mode stays the clause (ii) style (`invariant` / `exit→S`, the Lean
-proofs' styles (a) / (b)); `ok` now means both clauses.
+per-mode label of an `ok` mode is the clause (ii) style (`invariant` / `exit→S`, the Lean
+proofs' styles (a) / (b)); `ok` means both clauses.
 
 Only `unsat` counts, as everywhere in the tool; any other answer degrades to `UNKNOWN`.
 -/
@@ -268,7 +270,7 @@ def persistStrat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadl
     if !progress then break
   return (List.range nReq).filter (fun j => !done.contains j)
 
-/-- **Clause (i), the polyhedral route** R8 (module docstring, step 5): the polyhedron `K`
+/-- **Clause (i), the polyhedral route** (module docstring, step 5): the polyhedron `K`
 of the (closed, affine) domain atoms and the affine candidates is kept by the flow when at
 each face the field points inward, `UNSAT(K ∧ k = 0 ∧ k̇ > 0)` for every atom `k` of `K`
 (the tangent cone of a polyhedron is cut out by its active faces; Nagumo / Bony–Brezis, the
@@ -361,7 +363,7 @@ def checkSucc (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
               let gd := gdotOf a
               let rB := IForm.and strata (IForm.and (IForm.cmp .eq a.g (.rat 0))
                 (IForm.cmp .ge gd (.rat 0)))
-              -- the cut channel's Z3-free routes first: the contraction shape (`x ≤ κ` /
+              -- the mode-fact check's Z3-free routes first: the contraction shape (`x ≤ κ` /
               -- `x ≥ κ` under `x' = k (c − x)` with the set point on the safe side) and a
               -- frozen atom
               if contractShapeOK m a.form || contractShapeOKX m a.form ||
@@ -556,8 +558,8 @@ def strictOn : IO Bool := do
 
 /-- The certifier with the strict switch passed explicitly: `strict = false` is `certify`;
 `strict = true` turns a CERTIFIED benchmark whose right model has a mode that is not `ok`
-(`UNKNOWN`, or `BLOCKING`) into DECLINED (with a `[wellformed]` line on stderr). `--check-quick-v2` runs it with
-`strict = true` (the recipe's strict mode, 2026-10-10). -/
+(`UNKNOWN`, or `BLOCKING`) into DECLINED (with a `[wellformed]` line on stderr).
+`--check-quick-v2` runs it with `strict = true`. -/
 def certifyWFWith (strict : Bool) (s : Z3Session) (p : PProblem) : IO Outcome := do
   let o ← certify s p
   if !strict then return o

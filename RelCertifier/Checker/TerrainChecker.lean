@@ -1,18 +1,17 @@
 /-
-# EXT 3 — the terrain checker: box guards over a driven position coordinate
+# The terrain checker: box guards over a driven position coordinate
 
-**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
-affine models of the legacy suite, kernel-certified against the parsed IR). Its
-per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
-`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
-suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
-compiled as part of the soundness development.
+**Status.** Part of the settling / `Faithful` route: decidable checkers that discharge the
+single-system right well-formedness bundle `GuardSettlingH` (staying in the envelope and
+landing in a declared successor's guard, the content of Assumption 1) for settling, terrain
+and affine models, kernel-certified against the parsed IR. It is not on the route of the
+paper's benchmark instances, whose Assumption 1 is `WellFormedRIn`, proved per benchmark
+(Appendix B.5). The generic definitions and lemmas stay compiled.
 
 The s-guarded terrain class: each mode's guard constrains TWO coordinates — the active
-velocity `v` (contract toward the cap, with `ghi = c` exactly: the cap-at-equilibrium
-discipline from Arc 3) and a position `s` DRIVEN by it (`s' = v`), banded into terrain
-segments `[slo, shi]` with the terminal segment unbounded (`shi = none` — the terminal-band
-fix). Non-guarded coordinates are frozen or contract to an equilibrium inside their envelope
+velocity `v` (contract toward the cap, with `ghi = c` exactly: the cap sits at the
+equilibrium) and a position `s` DRIVEN by it (`s' = v`), banded into terrain
+segments `[slo, shi]` with the terminal segment unbounded (`shi = none`). Non-guarded coordinates are frozen or contract to an equilibrium inside their envelope
 band (the attitude-decay coordinates `ψ' = −ψ`).
 
 DESIGN: a `TerrainModel` WRAPS a `SettlingModel` (`core`) and adds the per-mode s-bands, so
@@ -106,7 +105,7 @@ def checkModeT (M : SettlingModel n) (sbands : List (SBand n)) (m : SettlingMode
       decide (0 ≤ k) && decide (m.glo ≤ c) && decide (c ≤ m.ghi) && decide (0 ≤ m.glo) &&
       decide (m.glo ≤ m.ghi) && bandInside m.glo m.ghi (M.env m.gcoord) &&
       !decide (sb.sc = m.gcoord) &&
-      -- the position is driven plain (`s' = v`) or damped (EXT 3b: `s' = v(1 − Σ a ψ²)`,
+      -- the position is driven plain (`s' = v`) or damped (`s' = v(1 − Σ a ψ²)`,
       -- each damper contract-to-0 with its equilibrium inside its envelope band and the
       -- per-damper budget `a·B²·L ≤ 1`)
       (decide (m.shapes sb.sc = CoordShape.driven m.gcoord) ||
@@ -124,7 +123,7 @@ def checkModeT (M : SettlingModel n) (sbands : List (SBand n)) (m : SettlingMode
                    decide (lo ≤ 0) && decide (0 ≤ hi) &&
                    decide (d.2.1 * (max (-lo) hi)^2 * (dampers.length : ℤ) ≤ d.2.2)
                | _, _ => false)) ||
-             -- cascade dampers (EXT 4c): each damper is a chase coordinate; its band
+             -- cascade dampers: each damper is a chase coordinate; its band
              -- conditions give the pointwise |ψ(u)| ≤ B for the same budget geometry
              dampers.all (fun d =>
               !decide (d.1 = m.gcoord) && !decide (d.1 = sb.sc) &&
@@ -152,7 +151,7 @@ def checkModeT (M : SettlingModel n) (sbands : List (SBand n)) (m : SettlingMode
              ((M.env i).lo.all fun lo => decide (lo ≤ c')) &&
              ((M.env i).hi.all fun hi => decide (c' ≤ hi))
          | CoordShape.chase j2 k2 =>
-             -- cascade angle (EXT 4c): chases its resonant driver j2 (contract-to-0 at the
+             -- cascade angle: chases its resonant driver j2 (contract-to-0 at the
              -- same rate); the box is forward-invariant iff the driver's band sits inside
              -- k2 times the angle's band (`polyExp_le`, linear-dominance branch)
              !decide (j2 = m.gcoord) && !decide (j2 = sb.sc) &&
@@ -300,7 +299,7 @@ theorem chase_val_band {p w g lo hi loj hij : ℝ} (hg : 0 < g) (hlo0 : lo ≤ 0
     linarith
   · exact polyExp_le p w g hi t hg ht hhi0 hbh (Or.inl (by nlinarith))
 
-/-! ## EXT 3b — the damped integrator (`drivenDamp` position, the nonlinear-s' family)
+/-! ## The damped integrator (`drivenDamp` position, the nonlinear-s' family)
 
 `s' = v · (1 − Σ_d a_d·ψ_d²)` with each damper `ψ_d` contracting to 0: since `v` and every
 `ψ_d` are explicit exponentials, `s` integrates in closed form into `expInt` terms — no ODE
@@ -392,9 +391,9 @@ theorem terrainValD_chase {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
       = (base (Rv i) + base (Rv j2) * t) * Real.exp (-((k2 : ℝ) * t)) := by
   rw [terrainValD_ne his, terrainVal_chase hig his hsh]
 
-/-! ## EXT 4c dampers — the cascade-damped integrator
+/-! ## Cascade dampers — the cascade-damped integrator
 
-Same geometry as EXT 3b, but each damper is a `chase` coordinate: `ψ_d(u) =
+Same geometry as the damped integrator above, but each damper is a `chase` coordinate: `ψ_d(u) =
 (p_d + w_d·u)e^{−g_d·u}` with `p_d` the damper base, `w_d` its driver's base, `g_d` its
 chase rate. The square expands into `uⁱe^{−2gu}` / `uⁱe^{−(k+2g)u}` terms
 (`polyExpInt₁/₂`), the damping factor stays in `[0, 1]` by the pointwise band
@@ -917,9 +916,10 @@ theorem dampProd_sum {α : Type} (kR A cR u : ℝ) (l : List α) (w g : α → �
       rw [hexp]
       ring
 
-/-- TERRAIN mode: contract `v` (cap at the equilibrium), integrated `s` over the terrain
-segment, decaying/frozen others — stays, and lands in the own box or the declared successor
-segment, by an endpoint case-split at `shi`. -/
+/-- TERRAIN mode, damped position (`s' = v(1 − Σ_d a_d ψ_d²)`): like `settling_terrain`, with
+the damped increment bounded between `0` and `v` pointwise, so the position stays in
+`[s₀, s₀ + ghi·t]` — stays, and lands in the own box or the declared successor segment, by
+an endpoint case-split at `shi`. -/
 theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n} {sb : SBand n}
     (hq : T.core.modes[q]? = some m) (hsb : T.sbands[q]? = some sb) {k c : ℤ}
     (hsh : m.shapes m.gcoord = CoordShape.contract k c)
@@ -1527,7 +1527,7 @@ theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n
       exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
 
 
-/-- TERRAIN mode, cascade dampers (EXT 4c): like `settling_terrain_damp`, but each damper
+/-- TERRAIN mode, cascade dampers: like `settling_terrain_damp`, but each damper
 is a `chase` coordinate `ψ_d(u) = (p_d + w_d·u)e^{−g_d·u}`; the damping factor stays in
 `[0, 1]` by the pointwise band `|ψ_d(u)| ≤ B_d` (`chase_val_band`) and the per-damper
 budget, and the position integrates in closed form through `polyExpInt₁/₂`. -/
@@ -2396,7 +2396,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
               · simp at henvd
               · simp only [Bool.and_eq_true, decide_eq_true_eq] at henvd
                 exact ⟨lo, hi, rfl, rfl, henvd.1.1, henvd.1.2, henvd.2⟩
-          · -- cascade dampers (EXT 4c)
+          · -- cascade dampers
             refine Or.inr (Or.inr ⟨dampers, rfl, ?_⟩)
             intro d hd
             have hthis := hall d hd
@@ -2463,7 +2463,7 @@ def WellFormedSoundT (T : TerrainModel n) (mv tg : Var n) (g : Term (Var n))
   (∀ q', ∀ x ∈ (T.GdOf q').fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) →
   GuardSettlingH T.core.graph T.GdOf mv g (Term.const 1) tg (T.core.dt : ℝ) fL T.core.envF
 
-/-- **The terrain checker is sound** — the EXT 3 reduction theorem. -/
+/-- **The terrain checker is sound**: `decideWellFormedT T = true` yields `GuardSettlingH`. -/
 theorem wellformed_sound_terrain (T : TerrainModel n) (mv tg : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) : WellFormedSoundT T mv tg g fL := by
   intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd

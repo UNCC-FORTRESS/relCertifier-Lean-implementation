@@ -14,9 +14,10 @@ Released under Apache 2.0 license.
   (declared right-mode count `expectedSuiteV2.wfModes`, 0 UNKNOWN, 0 BLOCKING; both clauses
   per mode).
 * `relcert --handoff <input.txt>…` runs the cross-mode handoff check per benchmark.
-* `relcert --wellformed <input.txt>…` runs the Assumption 1 check of the right models, both
-  clauses (`Trusted/WellFormedCheck.lean`, informational; `RELCERT_WELLFORMED_STRICT=1`
-  makes an `UNKNOWN` or `BLOCKING` mode decline a certified benchmark).
+* `relcert --wellformed <input.txt>…` runs the Assumption 1 check (Well-Formedness) of the
+  right models, both clauses, nonblocking and complete (`Trusted/WellFormedCheck.lean`,
+  informational; `RELCERT_WELLFORMED_STRICT=1` makes an `UNKNOWN` or `BLOCKING` mode
+  decline a certified benchmark).
 * `--emit-*` print the Lean literals the kernel-checked data layer is generated from.
 
 `unsat` is the only verdict the proofs consume (`z3_unsat_sound`). The kernel check is
@@ -38,9 +39,8 @@ open RelCertifier.Oracle in
 /-- Run the oracle over `paths` on ONE warm Z3 session; print `path: TAG (Δms)` per file
 and an ERROR count, returning the `(certified, declined, errors)` tally.
 
-Split out from `runBatch` so `--check-quick-v2` can consume the tally instead of
-re-implementing the loop; a check that reasons about a copy of this code would not be
-checking what the tool does. -/
+`runBatch` and `--check-quick-v2` both call this function, so the quick check tallies the
+loop the tool runs rather than a copy of it. -/
 def runBatchTally (paths : List String) (strict : Option Bool := none) :
     IO (Nat × Nat × Nat) := do
   match ← Z3Config.discover with
@@ -56,9 +56,10 @@ def runBatchTally (paths : List String) (strict : Option Bool := none) :
       for path in paths do
         let t0 ← IO.monoMsNow
         let name := (path.splitOn "/").reverse.getD 1 path
-        -- CERTIFIED is Theorem 3's verdict: the cover and its certificates AND the handoff
-        -- condition (Eq. 13) at every declared left mode change. A cover without a passing
-        -- handoff is DECLINED, with the failing transitions named.
+        -- CERTIFIED is the verdict of Theorem 3 (Soundness of Synthesis): a cover with its
+        -- certificates for every left mode AND the handoff condition Eq. (13) at every
+        -- declared left mode change. A cover without a passing handoff is DECLINED, with
+        -- the failing transitions named.
         let (oc, why) ← try
             match ← RelCertifier.Oracle.readProblemStrict path with
             | .error e => pure (Outcome.error s!"parse: {e}", "")
@@ -135,9 +136,10 @@ USAGE
                                           mode not ok fails the run)
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
-  relcert --wellformed <input.txt>...     the Assumption 1 check of the right model, per
-                                          right mode, both clauses (informational, never
-                                          a verdict). Complete (clause ii):
+  relcert --wellformed <input.txt>...     the Assumption 1 (Well-Formedness) check of the
+                                          right model, per right mode, both clauses
+                                          (informational, never a verdict). Complete
+                                          (clause ii):
                                           `ok (invariant)` when the mode's guard atoms are
                                           kept by its own flow (stratified DI routes B/A
                                           over its evolve domain) and it has a self-loop;
@@ -155,15 +157,16 @@ USAGE
                                           full-interval run). `UNKNOWN` otherwise (the
                                           check is sufficient, not necessary;
                                           `UNKNOWN (nonblocking)`: clause ii shown, clause
-                                          i not). The kernel's
-                                          per-benchmark result is WellFormedR
-                                          (lake build RelCertifier.InstancesV2.WellFormedBattery)
+                                          i not). The kernel's per-benchmark result is
+                                          WellFormedR, one hand-written proof per
+                                          benchmark (lake build
+                                          RelCertifier.InstancesV2.WellFormedBattery)
   relcert --help                          this text
 
 EMITTERS (regenerate committed Lean literals; each prints to stdout)
   relcert --emit-ir         <input.txt> <defname>
   relcert --emit-cover      <input.txt> <defname>
-  relcert --emit-cuts       <input.txt> <defname>
+  relcert --emit-cuts       <input.txt> <defname>      (the mode facts)
   relcert --emit-viability  <input.txt> <defname>     (also --emit-viability2, -3)
   scripts/gen_v2_data.py drives the first three over benchmarks/suite_v2.
 
@@ -181,31 +184,34 @@ NOT PART OF THIS BINARY
 
 SWITCHES (environment)
   RELCERT_IMPLIED_CUT=1
-                       widen the cut candidates (off by default; the suite_v2 runs set it,
-                       9 suite_v2 benchmarks decline without it): the closure of a strict
-                       guard conjunct (O1 by weakening) and, for a contraction field
-                       x' = k (c - x), the atoms x <= c / x >= c (O1 by rational
-                       comparison with a threshold guard conjunct, else one Z3 query
-                       UNSAT(guard and not atom)), and the linear-form chain of a
-                       recognized second-order pair x' = y, y' = -a (x - c) - b y with
-                       rational eigenvalues: y + r (x - c) <= sup / >= inf over the guard
-                       box (O1 rational, O2 by the rational linear shape), then the
-                       derived bound x <= c + K/r stratified on it; --emit-cuts then
-                       also prints the extended certificate `<defname>X` (atom, kind,
-                       O1, O2 route, conditioning atoms) that Proofs/Soundness/CutLiftX
-                       lifts to the kernel
+                       widen the mode-fact candidates (Definition 2; off by default; the
+                       suite_v2 runs set it, and some suite_v2 benchmarks decline without
+                       it). Each atom is a mode fact by two obligations: O1, the guard
+                       implies it; O2, the mode's flow keeps it. The widened atoms are the
+                       closure of a strict guard conjunct (O1 by weakening) and, for a
+                       contraction field x' = k (c - x), the set-point half-lines
+                       x <= c / x >= c (O1 by rational comparison with a threshold guard
+                       conjunct, else one Z3 query UNSAT(guard and not atom)), and the
+                       linear-form chain of a recognized second-order pair x' = y,
+                       y' = -a (x - c) - b y with rational eigenvalues: y + r (x - c) <=
+                       sup / >= inf over the guard box (O1 rational, O2 by the rational
+                       linear shape), then the derived bound x <= c + K/r stratified on
+                       it; --emit-cuts then also prints the extended certificate
+                       `<defname>X` (atom, kind, O1, O2 route, conditioning atoms) that
+                       Proofs/Soundness/CutLiftX lifts to the kernel
   RELCERT_NO_IMPLIED_CUT=1
                        force the widened candidates off (the counter-run of the suite_v2
-                       matrix: guard-conjunct cuts only)
+                       matrix: guard-conjunct mode facts only)
   RELCERT_NO_LINEAR_CUT=1
                        keep the closures and implied-contraction atoms but switch the
                        linear-form chain off (the matrix's M6L counter-run)
-  RELCERT_NO_PRUNE=1   disable non-connection pruning (the paper's Section 4.2 device):
-                       every declared right edge stays in the cover's all-successors
-                       obligation
-  RELCERT_NO_CUT=1     disable the checked-cut channel (queries on the bare evolve domains)
-  RELCERT_DEBUG=1      per-mode diagnostics on stderr (cuts, admissible starts, pruned
-                       edges, per-λ segment status; [cut-x] lines for the widened atoms)
+  RELCERT_NO_PRUNE=1   disable pruning by non-connection certificates (Definition 6,
+                       Section 4.2): every declared right mode change stays a retained
+                       successor of the cover
+  RELCERT_NO_CUT=1     disable the mode facts (queries on the bare evolve domains)
+  RELCERT_DEBUG=1      per-mode diagnostics on stderr (mode facts as [cut] lines,
+                       admissible starts, pruned edges, per-stretch segment status;
+                       [cut-x] lines for the widened atoms)
   RELCERT_WELLFORMED_STRICT=1
                        run the --wellformed check on every CERTIFIED benchmark and turn it
                        into DECLINED when a right mode is UNKNOWN or BLOCKING (off by default; off, no
@@ -216,21 +222,25 @@ SWITCHES (environment)
   RELCERT_Z3_RLIMIT=<units>       per-query deterministic rlimit, default 64000000
                                   (0 disables it)
   RELCERT_MAX_QUERIES=<n>         per-benchmark query budget, default 20000
-  RELCERT_NO_PROGRESS=1           no progress certificates at reposition nodes (ablation)
-  RELCERT_NO_CHOICE=1             no existential mode choice after the all-successors rule fails (ablation)
-  RELCERT_NO_STUTTER=1            no stretch 0 (the right waits) on joint segments (ablation; on by default)
-  RELCERT_NO_PRELANDING=1         right-only nodes need the whole-domain certificate, not the
-                                  pre-landing one (ablation; pre-landing on by default)
+  RELCERT_NO_PROGRESS=1           do not require reposition certificates (Definition 7)
+                                  at right-only nodes (ablation)
+  RELCERT_NO_CHOICE=1             no committed successor subsets after the retained
+                                  successors fail to close a cover (ablation)
+  RELCERT_NO_STUTTER=1            no stretch 0 (the witness stands still) on joint
+                                  segments (ablation; stretch 0 on by default)
+  RELCERT_NO_PRELANDING=1         right-only nodes need the right-only flow certificate on
+                                  the whole mode, not on the restricted mode m|¬target of
+                                  Lemma 4 (ablation; the restricted mode on by default)
   RELCERT_TIME_BUDGET_MS=<ms>     per-benchmark wall-clock budget, default 300000
 
 EXIT
   0 success · 1 a check failed · 2 environment problem (no z3, bad usage)"
 
 open RelCertifier.Oracle in
-/-- `--emit-cuts <file> <defname>`: run the checked-cut search (Z3) and print the kept
-atoms with their routes as a `EvolStrengthening` Lean literal (the cut-lift's single door — the
-search stays untrusted; its output is certified against the IR by `evolStrengtheningWF = true`,
-`rfl`). -/
+/-- `--emit-cuts <file> <defname>`: run the mode-fact search (Definition 2, with Z3) and print
+the kept atoms with their routes as an `EvolStrengthening` Lean literal, the only way mode
+facts enter the kernel. The search stays untrusted: its output is checked against the IR by
+`evolStrengtheningWF = true` (`rfl`), and `CutLiftX` lifts it. -/
 def emitCuts (path defname : String) : IO Unit := do
   match ← Z3Config.discover with
   | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 2
@@ -254,9 +264,10 @@ def emitCuts (path defname : String) : IO Unit := do
                 | .frozen => "frozen"
                 | .diStrict => "diStrict"
                 | .diNonstrict => "diNonstrict") ++ ")")) ++ "]"
-        -- RELCERT_IMPLIED_CUT=1: the extended search (`checkedCutX`) runs instead; its
-        -- `guardConj` subset IS the legacy certificate (printed first, same literal),
-        -- and the full extended certificate is printed as a second `def <defname>X`.
+        -- RELCERT_IMPLIED_CUT=1: the extended mode-fact search (`checkedCutX`) runs
+        -- instead; its `guardConj` subset is the guard-conjunct certificate (printed first,
+        -- same literal), and the full extended certificate is printed as a second
+        -- `def <defname>X`.
         let implied ← impliedCutsOn
         let emitAtomsX (xs : List CutAtomX) : String :=
           "[" ++ String.intercalate ", " (xs.map (fun x =>
@@ -335,9 +346,10 @@ def emitCuts (path defname : String) : IO Unit := do
 " rxs)
           IO.println "    ] }"
 
-/-- `--emit-ir <file> <defname>`: print the parsed `PProblem` as a Lean literal (the
-single-door bridge for the `Faithful` kernel certificates — see EmitIR.lean), with the run's
-feature flags (`Oracle.withRunFeatures`: on unless `RELCERT_NO_STUTTER` / `RELCERT_NO_PRELANDING`). -/
+/-- `--emit-ir <file> <defname>`: print the parsed `PProblem` as a Lean literal (the only way
+the parsed model enters the `Faithful` kernel certificates, see EmitIR.lean), with the run's
+feature flags (`Oracle.withRunFeatures`: stretch 0 and the restricted mode of Lemma 4, each
+on unless `RELCERT_NO_STUTTER` / `RELCERT_NO_PRELANDING`). -/
 def emitIR (path defname : String) : IO Unit := do
   match ← RelCertifier.Oracle.readProblemStrict path with
   | .error e => IO.eprintln s!"ERROR: parse: {e}"; IO.Process.exit 1
@@ -453,9 +465,8 @@ enforced (the declared suite is {e.paths} paths); a mode not ok still fails"
         IO.println "SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)"
       else
         IO.eprintln "SUITE_V2 QUICK CHECKS FAILED"; IO.Process.exit 1
-  -- Reject unknown flags rather than treating them as benchmark paths: a mistyped
-  -- `--run-verdict` used to be reported as a missing *file*, which reads like a bad
-  -- path rather than a bad command.
+  -- Reject unknown flags rather than treating them as benchmark paths, so that a mistyped
+  -- option is reported as a bad command, not as a missing file.
   | _ =>
       match args.find? (fun a => a.startsWith "-") with
       | some bad =>

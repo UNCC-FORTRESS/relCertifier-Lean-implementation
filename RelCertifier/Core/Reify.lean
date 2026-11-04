@@ -2,26 +2,25 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Reification, base case — a cover segment ⟹ a CSF ∀∃ modality (`faModal`)
+# Reification, base case — a joint segment ⟹ a CSF ∀∃ modality (`faModal`)
 
-Step (2) of the main soundness chain, base case. A single certified cover segment
-(`flow_cert_sound`: `g≤0` preserved by the joint flow on the evolution domain) becomes one
+A single certified joint segment (`flow_cert_sound`: `g≤0` preserved by the joint product
+program of Eq. (14) on the evolution domain, the flow certificate of Definition 5) becomes one
 CSF ∀∃-ODE guarantee `faModal id (ode leftBlock domL) (ode rightBlock domR) (g≤0)`, via the
-domain-restricted base rule `faModal_ODE_G'`.
+domain-restricted base rule `faModal_ODE_G'`. This is the ∀∃-to-∀∀ reduction of Section 3 read
+backward: the ∀∀ box over the product gives the ∀∃ modality over the two blocks.
 
-Two design facts (see the session scoping):
+Two design facts:
 * **`ρ = Equiv.refl`.** `jointSys = leftBlock ++ rightBlock` already binds disjoint
-  `Side.L`/`Side.R` variables, so the NFM'25 separating renaming is the identity here —
-  `sysY.rename id = sysY`, `jointSys = sysX ++ sysY` directly. No Side-swap mirror.
+  `Side.L`/`Side.R` variables, so dL-rel's separating renaming is the identity here:
+  `sysY.rename id = sysY`, `jointSys = sysX ++ sysY` directly.
 * **`hdisj` needs dynamics independence.** `ode_combine` (inside `faModal_ODE_G'`) needs the
-  left/right read-vars disjoint — i.e. `fL` reads only `Side.L`, `λ·fR` only `Side.R`. The
-  refinement/fidelity suite satisfies this (separate models, coupled only through `λ` and the
-  invariant). Taken as an explicit hypothesis `hdisj`; a shared-state candidate would fail it
-  (a checkable, parser-level `hdisj`-gate, not needed for the suite).
+  left/right read-vars disjoint, i.e. `fL` reads only `Side.L` and `λ·fR` only `Side.R`. Two
+  separate models coupled only through `λ` and the invariant satisfy this; it is an explicit
+  hypothesis `hdisj`, which a shared-state model would fail.
 
-`hExist'` (the in-domain right witness) is the remaining dischargeable hypothesis — supplied by
-the cover's joint-domain co-execution (its right projection stays in `domR`); wired in the
-successor/assembly step.
+`hExist` (the in-domain right witness) is supplied by the joint segment's co-execution, whose
+right projection stays in `domR`.
 -/
 import RelCertifier.Proofs.Encoding.CSFBridge
 import RelCertifier.Core.FlowCert
@@ -92,8 +91,8 @@ def invLe (g : Term (Var n)) : Formula (Var n) := Formula.cmp CompOp.le g (Term.
 
 /-- **Base case of the reification.** A certified cover segment — the flow certificate as a
 `BoxLe` on the joint evolution domain (`hcert`, from `flow_cert_sound`) — together with the
-independence hypothesis `hdisj` and the in-domain right witness `hExist'` (from the cover's
-joint-domain co-execution), yields the CSF ∀∃-ODE guarantee over the left/right block programs.
+independence hypothesis `hdisj` and the in-domain right witness `hExist` (from the joint
+segment's co-execution), yields the CSF ∀∃-ODE guarantee over the left/right block programs.
 
 `ρ = Equiv.refl`, so `jointSys = leftBlock ++ rightBlock` directly and the modality's renamed
 right program is just `ode rightBlock domR`. -/
@@ -134,7 +133,7 @@ theorem segment_faModal (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam
     intro ω hω
     rw [sat_invLe]
     exact hcert ω hω
-  · -- hExist' : same shape, right domain `domR.rename id = domR`
+  · -- hExist' of `faModal_ODE_G'`, from `hExist`: same shape, right domain `domR.rename id = domR`
     rw [ODESystem.rename_refl, Formula.rename_refl]
     exact hExist
 

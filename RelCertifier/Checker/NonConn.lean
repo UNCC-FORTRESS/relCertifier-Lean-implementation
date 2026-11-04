@@ -2,35 +2,31 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-Stage 2 — the verified non-connection certificate (Nagumo forward-invariance barrier).
+# The non-connection certificate (a forward-invariance barrier)
 
-The non-connection pruning (paper Section 4.2, Definition 6). A declared right transition
-`qR → qR'` is pruned when its successor guard `x OP c` is scalar and two Z3 checks
-both pass:
-  (a) source-side: no valid source state already satisfies the guard;
+The non-connection certificate of paper Definition 6 (Section 4.2), in the pruning form of
+Section 6.1. A declared right mode change `qR → qR'` is pruned when its successor guard
+`x OP c` is a single threshold on one variable and two Z3 checks are both UNSAT:
+  (a) source-side: no entry state already satisfies the guard;
   (b) flow-away on the threshold: the right flow moves `x` off the guard.
 
-If both hold, the safe side is forward-invariant ⟹ the guard is never reached ⟹ the
-edge cannot fire ⟹ prune. One-sided: pruned only when both UNSAT.
+If both hold, the safe side is forward-invariant along the flow of `qR`, so the guard is
+never reached and the mode change is never enabled: Definition 6 holds for either segment
+kind (one cycle or any number of cycles). A mode change with either check not UNSAT is
+retained.
 
-## Soundness route (the Stage-2 analogue of the Stage-1 finding)
+## Soundness route
 
-The naive check (b) asserts `evolve ∧ x=c ∧ ẋ>0` UNSAT, i.e. `ẋ ≤ 0` on the threshold
-`{x = c}` **only** — a boundary-only non-strict check, the same shape dL-lean proves
-unsound in general (`nonstrict_boundary_insufficient`, the `t²` counterexample). A
-scalar-threshold guard has regular boundary (`∇(x−c) = eₓ ≠ 0`), so the pruning is
-*mathematically* sound, but dL-lean cannot cite it without the missing subtangency
-lemma. The design doc itself says "strictly away".
+A non-strict check (b), `evolve ∧ x=c ∧ ẋ>0` UNSAT, gives `ẋ ≤ 0` on the threshold
+`{x = c}` only: a boundary-only non-strict condition, which dL-lean proves insufficient in
+general (`nonstrict_boundary_insufficient`, the `t²` counterexample). So the barrier
+takes the strict route: `barrierCheck = domain ∧ g=0 ∧ ẋ≥0` UNSAT gives `ẋ < 0` on the
+threshold, which is the hypothesis of dL-lean `DI_strict`. It declines only the case
+`ẋ = 0` exactly on the threshold.
 
-So the verified barrier takes the **strict route**: `barrierCheck = domain ∧ g=0 ∧
-ẋ≥0` UNSAT ⟹ `ẋ < 0` on the threshold ⟹ dL-lean `DI_strict`. Boundary-shaped,
-strict like the design doc, sound, no new axiom. It declines only the
-measure-zero case `ẋ = 0` exactly on the threshold, where the naive non-strict check
-would (unsoundly, in general) prune.
-
-Scope: scalar-threshold guards only; non-scalar guards conservatively retained
-(incompleteness, not unsoundness). The barrier proves the guard's **strict** side
-`{g > 0}` unreachable; a closed guard `x ≥ c` needs boundary exclusion (retained).
+Scope: single-threshold guards only; other guards are retained (incompleteness, not
+unsoundness). The barrier proves the guard's strict side `{g > 0}` unreachable; a closed
+guard `x ≥ c` would need boundary exclusion and is retained.
 -/
 import RelCertifier.Core.FlowCert
 
@@ -40,7 +36,7 @@ open DL
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 
-/-! ## Lie derivative along an arbitrary ODE system (generalises Stage-1 `lieDeriv`) -/
+/-! ## Lie derivative along an arbitrary ODE system (generalizes `lieDeriv` of `FlowCert`) -/
 
 /-- Syntactic Lie derivative of `g` along `sys`: `Σ_{(v,θ)∈sys} ∂g/∂v · θ`.
 The non-connection barrier is left-independent, so `sys` is the right flow alone
@@ -59,14 +55,14 @@ theorem lieAlong_correct (g : Term V) (sys : ODESystem V) (ω : State V) :
 
 /-! ## The non-connection obligation and its two checks -/
 
-/-- A non-connection obligation for a declared right transition `qR → qR'`.
+/-- A non-connection obligation for a declared right mode change `qR → qR'`.
 * `g`      — safe-side term; the invariant maintained is `g ≤ 0`, and the successor
              guard is `{g > 0}` (built scalar via `scalarUpper`/`scalarLower`).
 * `guard`  — the successor guard formula `G` to prove unreachable.
 * `sysR`   — the right flow (an `ODESystem V`; left vars absent ⟹ held fixed).
 * `domain` — the right evolution domain `ψ`.
-* `source` — the entry over-approximation of `qR` (its guard ∧ evolve), where the
-             co-evolution starts. -/
+* `source` — an over-approximation of the entry states of `qR` (its guard ∧ evolve),
+             where the right flow starts. -/
 structure NonConnObligation (V : Type*) where
   g      : Term V
   guard  : Formula V
@@ -75,7 +71,7 @@ structure NonConnObligation (V : Type*) where
   source : Formula V
 
 /-- **Check (a), source-side.** `source ∧ guard`. UNSAT ⟹ no source state satisfies
-the guard ⟹ the co-evolution starts strictly safe (`g ≤ 0` at entry). -/
+the guard ⟹ the right flow starts on the safe side (`g ≤ 0` at entry). -/
 def sourceCheck (o : NonConnObligation V) : Formula V :=
   Formula.and o.source o.guard
 
@@ -91,8 +87,8 @@ def barrierCheck (o : NonConnObligation V) : Formula V :=
 
 /-- **Non-connection certificate soundness.** If both checks are UNSAT (and the
 guard is exactly the strict super-level `{g > 0}` of the safe-side term), then from
-any entry state the successor guard is unreachable along the right co-evolution: no
-represented execution reaches a state satisfying `guard`.
+any entry state the successor guard is unreachable along the right flow: no run of the
+flow reaches a state satisfying `guard` (paper Definition 6).
 
 Cites dL-lean `DI_strict`: `sourceCheck` UNSAT gives `g ≤ 0` initially, `barrierCheck`
 UNSAT (via `lieAlong_correct`) gives `Lie < 0` on `{g=0} ∩ domain`, so `g ≤ 0` is
@@ -124,7 +120,7 @@ theorem nonconn_sound (o : NonConnObligation V)
   rw [hlink ω, not_lt]
   exact hbox ω hrun
 
-/-! ## Scalar-threshold guard builders (the parser will target these) -/
+/-! ## Single-threshold guard builders -/
 
 /-- Upper scalar guard `x > c`: safe side `g = x − c ≤ 0`, guard `{g > 0}`. -/
 def scalarUpper (x : V) (c : ℝ) (sysR : ODESystem V) (domain source : Formula V) :

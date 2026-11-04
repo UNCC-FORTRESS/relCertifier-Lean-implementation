@@ -2,19 +2,20 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The strict handoff query (extension `strict-atoms`)
+# The strict handoff query (invariants with strict atoms)
 
-`ihandoffQuery` negates the target row's CLOSURE (`⋀ tgt ≤ 0`): an UNSAT gives the target
-row's closure only. For a target row with strict atoms the negated conjunction must carry the
-strictness: `iinvConjS` conjoins `g < 0` for a flagged component and `g ≤ 0` otherwise (the
-mask `Oracle.invStrictFlags`). The ANTECEDENT is the source row at its own mask (`iinvConjS`): the source row
-holds strictly at the switch (the loop invariant is `FMS`), and a pointwise implication has no
-boundary-vacuity issue (unlike route B, whose boundary antecedent must stay the closure). With
-the closure antecedent a strict row could never hand off to itself.
+`ihandoffQuery` negates the target row's closure (`⋀ tgt ≤ 0`): an UNSAT gives the target
+row's closure only. For a target row with strict atoms the negated conjunction must carry
+the strictness: `iinvConjS` conjoins `g < 0` for a flagged component and `g ≤ 0` otherwise
+(the mask `Oracle.invStrictFlags`). The antecedent is the source row at its own mask
+(`iinvConjS`): the source row holds strictly at the switch (the loop invariant is `FMS`),
+and a pointwise implication has no boundary-vacuity issue (unlike route B, whose boundary
+antecedent must stay the closure). With the closure antecedent a strict row could never
+hand off to itself.
 
-With an all-false target mask the strict query is the existing one
-(`ihandoffQueryS_eq_of_allFalse`), so for every current benchmark (no strict atom) the
-strings coincide. New leaf; `Handoff.lean` is untouched.
+With all-false masks the strict query is `ihandoffQuery`
+(`ihandoffQueryS_eq_of_allFalse`), so for rows without strict atoms the printed queries
+coincide.
 -/
 import RelCertifier.Trusted.Handoff
 import RelCertifier.Trusted.InvStrictFlags
@@ -61,7 +62,8 @@ def ihandoffQueryS (vars : List String) (n : ℕ)
   pure (IForm.and (iinvConjS cs fs (IForm.and (IForm.and eL gT) eR))
     (IForm.neg (iinvConjS ct ft IForm.tt)))
 
-/-- The strict handoff query of one declared transition (`queryOf`, strict target). -/
+/-- The strict handoff query of one declared left mode change (`queryOf`, strict
+masks). -/
 def queryOfS (p : PProblem) (n : ℕ) (tr : ℕ × ℕ) : Option (IForm n) := do
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mSrc := p.L.modes.getD tr.1 dm

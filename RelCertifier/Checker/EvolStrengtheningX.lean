@@ -2,31 +2,34 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Extended cut certificate: implied-contraction, closure and linear-form atoms (L1 / L2 / L7)
+# Extended mode-fact records: set-point, closure and linear-form atoms (L1 / L2 / L7)
 
-The checked-cut channel of `EvolStrengthening.lean` takes only atoms that are literal
-CLOSED guard conjuncts (`x <= k` / `x >= k`); O1 (entry) is syntactic membership. Three
-incompleteness gaps (docs/SUITE-REDESIGN.md §7, §13):
+A mode fact (paper Definition 2) is a formula over the plant state that the mode's guard
+implies (O1, entry) and the mode's flow preserves (O2, preservation). The basic records of
+`EvolStrengthening.lean` take only atoms that are literal closed guard conjuncts
+(`x <= k` / `x >= k`), with O1 by syntactic membership. This module adds the further atom
+kinds of the preprocessing of paper Section 6.1 ("a guard conjunct or the closure of a
+strict one and the set-point half-line of a contraction field"), plus linear forms:
 
-* **L1 — implied atoms from the dynamics.** For a mode whose field for `x` is a
+* **L1, set-point half-lines from the dynamics.** For a mode whose field for `x` is a
   contraction `x' = k (c − x)`, `k > 0`, the half-line `{x ≤ c}` (resp. `{x ≥ c}`) is
-  forward-invariant (the flow is monotone toward the interior equilibrium `c`,
+  forward-invariant (the flow is monotone toward the set point `c`,
   `contract_stays`). The tightest such atom the guard implies is `x ≤ max(c, cap)` =
   `x ≤ c` when the guard's cap on `x` is at most `c` (otherwise the cap itself, a guard
   conjunct or its closure, is the tightest). So the implied candidates are exactly
-  `x ≤ c` and `x ≥ c`; O1 is an IMPLICATION `guard → atom`, decided by rational
+  `x ≤ c` and `x ≥ c`; O1 is an implication `guard → atom`, decided by rational
   comparison when the guard carries a threshold conjunct on `x` at least as tight
   (`guardImpliesRational`), otherwise by one Z3 query `UNSAT(guard ∧ ¬atom)` (tool side,
-  counted); the certificate records which (`CutEntry.rational` / `CutEntry.z3`).
-* **L2 — closures of strict guard atoms.** A strict conjunct `x < k` / `x > k` offers its
+  counted); the record says which (`CutEntry.rational` / `CutEntry.z3`).
+* **L2, closures of strict guard atoms.** A strict conjunct `x < k` / `x > k` offers its
   closure `x ≤ k` / `x ≥ k`; O1 holds by weakening (`CutEntry.weakening`).
-* **L7 — linear-form cuts for second-order pairs (the domain audit).** A threshold atom
+* **L7, linear forms for second-order pairs.** A threshold atom
   on one variable cannot bound the overshoot of a damped second-order loop
   `x' = y, y' = −a (x − c) − b y` (the only invariant half-lines of a single coordinate
   are those the domain already gives), and no quadratic form can bound it tightly either
   (level sets are centrally symmetric about the equilibrium). For a critically or
-  over-damped loop with RATIONAL eigenvalues (`b² − 4a` a rational square) the dynamics
-  decouple: for each positive root `r` of `r² − b r + a = 0`, the LINEAR FORM
+  over-damped loop with rational eigenvalues (`b² − 4a` a rational square) the dynamics
+  decouple: for each positive root `r` of `r² − b r + a = 0`, the linear form
   `q = y + r (x − c)` satisfies `q' = −σ q` with `σ = b − r > 0` (the other root), so
   `{q ≤ K}` is forward-invariant for every `K ≥ 0` and `{q ≥ K}` for every `K ≤ 0`.
   Round 1 (`CutKind.linearForm`): the candidates are `q ≤ sup q` and `q ≥ inf q` over
@@ -34,7 +37,7 @@ incompleteness gaps (docs/SUITE-REDESIGN.md §7, §13):
   (`CutEntry.rational`; a guard without a box on both coordinates offers no candidate,
   since a Z3 entry check needs a constant to propose); O2 by the rational linear-shape
   route (`CutRouteX.linearShape`: on `{q ≥ K}` the Lie derivative `−σ q ≤ −σ K ≤ 0`),
-  or the DI routes. Round 2 (`CutKind.derivedBound`, STRATIFIED on the round-1 atom it
+  or the DI routes. Round 2 (`CutKind.derivedBound`, stratified on the round-1 atom it
   comes from, recorded in `given`): from `q ≤ K` the bound `x ≤ c + K / r` (resp.
   `x ≥ c + K / r` from `q ≥ K`) — O1 by `guardImpliesRational`, else one counted Z3
   query `UNSAT(guard ∧ ¬atom)`; O2 by the rational derived-shape route
@@ -43,26 +46,24 @@ incompleteness gaps (docs/SUITE-REDESIGN.md §7, §13):
   given atom. The DI routes A and B are both SAT at the tangent point `(x, q) = (K', K)`
   of a derived bound; the superlevel argument (route C, `DI_nonstrict_superlevel`) is
   what decides it, and `derivedShape` is its rational special case.
-  Pairs are recognized SYNTACTICALLY (`secondOrderPairs`: `x' = y` literally a variable,
+  Pairs are recognized syntactically (`secondOrderPairs`: `x' = y` literally a variable,
   `y' ` affine in `x, y` with both coefficients negative); no other candidate generation
-  is attempted — the channel is deliberately not an invariant synthesizer.
+  is attempted, as the preprocessing is deliberately not an invariant synthesizer.
 
-Every kept atom — the legacy guard conjuncts included, tagged `CutKind.guardConj` /
-`CutEntry.membership` with their legacy routes — is listed in one `EvolStrengtheningX`
-certificate (`atom`, `kind`, `entry`, `route`, `given`), so the Lean lift
+Every kept atom, the plain guard conjuncts included (tagged `CutKind.guardConj` /
+`CutEntry.membership` with the routes of `CutRoute`), is listed in one
+`EvolStrengtheningX` record (`atom`, `kind`, `entry`, `route`, `given`), so the Lean lift
 (`Proofs/Soundness/CutLiftX.lean`, kernel-checked well-formedness `evolStrengtheningWFX`
-then `evolStrengtheningWFX_entryL/R`) sees,
-per atom, WHAT it must prove for O1, by WHICH route O2 was discharged and on WHICH
-earlier atoms the O2 domain was conditioned (sequential differential cuts, as
-`strataDomIR` for the invariant components).
+then `evolStrengtheningWFX_entryL/R`) sees, per atom, what it must prove for O1, by which
+route O2 was discharged and on which earlier atoms the O2 domain was conditioned
+(sequential differential cuts, in rounds as for the invariant components in paper
+Section 4.1).
 
-Compatibility: this module ADDS definitions only. `EvolStrengthening`, `cutAtoms`,
-`contractShapeOK`, `modeCutWF` and `evolStrengtheningWF` are unchanged, and the
-guard-conjunct certificate (the one the 19 carried-over legacy instances quote) is emitted
-exactly as before; the extended channel is off unless `RELCERT_IMPLIED_CUT=1`
-(`OracleAPI.impliedCutsOn`; every suite_v2 run sets it, 12 suite_v2 benchmarks need it), and
-the L7 candidates can be switched off on their own with `RELCERT_NO_LINEAR_CUT=1`
-(`OracleAPI.linearCutsOn`).
+This module only adds definitions; `EvolStrengthening`, `cutAtoms`, `contractShapeOK`,
+`modeCutWF` and `evolStrengtheningWF` are used as they are. The extended atom kinds are
+off unless `RELCERT_IMPLIED_CUT=1` (`OracleAPI.impliedCutsOn`; `RELCERT_NO_IMPLIED_CUT`
+forces them off), and the L7 candidates can be switched off on their own with
+`RELCERT_NO_LINEAR_CUT=1` (`OracleAPI.linearCutsOn`).
 -/
 import RelCertifier.Checker.EvolStrengthening
 
@@ -164,7 +165,7 @@ def atomEqQ : PForm → PForm → Bool
          | _, _ => c1 == c2)
   | a, b => a == b
 
-/-! ## L7 — linear-form cuts for second-order pairs -/
+/-! ## L7: linear-form mode-fact atoms for second-order pairs -/
 
 /-- Affine normal form of a `PExpr`: `(coefficients, constant)`, the coefficients as
 `(variable, QF)` pairs (a variable may occur several times; `coeffOf` sums). `none` if
@@ -444,11 +445,11 @@ def derivedShapeOKX (m : PMode) (given : PForm) : PForm → Bool
       | _, _ => false
   | _ => false
 
-/-! ## The extended certificate -/
+/-! ## The extended mode-fact record -/
 
-/-- The KIND of a kept cut atom (recorded in the extended certificate). -/
+/-- The kind of a kept mode-fact atom (recorded in the extended record). -/
 inductive CutKind
-  | guardConj        -- a literal closed guard conjunct (the legacy channel)
+  | guardConj        -- a literal closed guard conjunct (the basic `EvolStrengthening` kind)
   | impliedContract  -- `v ≤ c` / `v ≥ c` for a contraction field toward `c` (L1)
   | closure          -- the closure of a strict guard conjunct (L2)
   | linearForm       -- `y + r (x − c) ≤ K` / `≥ K` for a recognized 2nd-order pair (L7, round 1)
@@ -463,10 +464,10 @@ inductive CutEntry
   | weakening   -- the strict guard conjunct implies its closure (closure)
   deriving Repr, DecidableEq
 
-/-- The O2 route of an extended atom: the four legacy routes plus the L7 rational
+/-- The O2 route of an extended atom: the four routes of `CutRoute` plus the L7 rational
 shapes and the superlevel DI route C (`UNSAT(dom ∧ g ≥ 0 ∧ ġ > 0)`,
 `DI_nonstrict_superlevel`, the route that decides a derived bound at its tangent
-point). Kept separate from `CutRoute` so that the legacy module stays untouched. -/
+point). A separate type from `CutRoute`, which the basic records keep using. -/
 inductive CutRouteX
   | shape         -- `contractShapeOKX` (no Z3)
   | frozen        -- every atom variable frozen (no Z3)
@@ -505,7 +506,7 @@ def CutEntry.tag : CutEntry → String
   | .z3 => "z3"
   | .weakening => "weakening"
 
-/-- One kept atom of the extended certificate. `given` lists the earlier kept atoms of
+/-- One kept atom of the extended mode-fact record. `given` lists the earlier kept atoms of
 the same mode conjoined to this atom's O2 domain (sequential differential cut); `[]`
 means the O2 was unconditioned over the bare evolve domain. -/
 structure CutAtomX where
@@ -516,9 +517,10 @@ structure CutAtomX where
   given : List PForm
   deriving Repr, DecidableEq
 
-/-- The extended cut certificate of one benchmark: per side, mode name ↦ every kept atom
-with its kind, O1 justification, O2 route and conditioning. The legacy
-`EvolStrengthening` of the same run is its `guardConj` subset, in order. -/
+/-- The extended mode-fact record of one benchmark (paper Definition 2): per side, mode
+name ↦ every kept atom, whose conjunction is that mode's fact, with its kind, O1
+justification, O2 route and conditioning. The basic `EvolStrengthening` record of the same
+run is its `guardConj` subset, in order. -/
 structure EvolStrengtheningX where
   L : List (String × List CutAtomX)
   R : List (String × List CutAtomX)
@@ -599,8 +601,8 @@ def sideCutWFX (modes : List PMode) (mcs : List (String × List CutAtomX)) : Boo
     | some m => modeCutWFX m [] mc.2
     | none => false)
 
-/-- **Extended cut-certificate well-formedness** against the parsed problem
-(kernel-decidable; the later Lean lift certifies it by `rfl` per benchmark). -/
+/-- **Extended mode-fact record well-formedness** against the parsed problem
+(kernel-decidable; the Lean lift `CutLiftX` certifies it by `rfl` per benchmark). -/
 def evolStrengtheningWFX (p : PProblem) (c : EvolStrengtheningX) : Bool :=
   sideCutWFX p.L.modes c.L && sideCutWFX p.R.modes c.R
 

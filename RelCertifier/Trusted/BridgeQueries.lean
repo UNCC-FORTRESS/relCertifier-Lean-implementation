@@ -4,17 +4,19 @@ Released under Apache 2.0 license.
 
 # The queries of the generic bridge
 
-The Z3 queries a benchmark's generic instance rests on besides the flow packs
-(`modalVerdXQueries`), the reposition packs, the handoff queries (`Handoff.queryOf`), the
-non-connection pairs (`NonConn.queries`) and the progress queries (`Progress.progressQueries`):
+The Z3 queries a benchmark's generic instance (paper Appendix B.1) rests on besides the
+flow packs (`modalVerdXQueries`), the right-only packs, the handoff queries
+(`Handoff.queryOf`), the non-connection pairs (`NonConn.queries`) and the reposition stage
+queries (`Progress.progressQueries`):
 
-* `stayQueryOf`: the O2 query of one kept atom of a mode, by the route its certificate
-  records (`checkedCutX`'s `diRoutes`: route B `dom ∧ g = 0 ∧ ġ ≥ 0`, route A `dom ∧ ġ > 0`,
+* `stayQueryOf`: the preservation query (O2 of paper Definition 2) of one kept mode-fact
+  atom of a mode, by the route its record holds (`checkedCutX`'s `diRoutes`: route B `dom ∧ g = 0 ∧ ġ ≥ 0`, route A `dom ∧ ġ > 0`,
   route C `dom ∧ g ≥ 0 ∧ ġ > 0`, over the mode's evolve domain narrowed by the atom's `given`
   forms; the one-sided Lie derivative of the atom's own side at stretch 1). A rational route
   (shape, frozen, linear, derived) is re-checked by route C, which each of them implies.
 * `admQueryOf`: the admissibility query of a (left, right) start, `guardL ∧ guardR ∧ ⋀ gᵢ ≤ 0`
-  (`OracleAPI.admissible`); `unsat` means no admissible start.
+  (`OracleAPI.admissible`); `unsat` means the right mode is not admissible for the left mode
+  (paper Section 3, before Theorem 1), so it needs no cover.
 
 Pure builders; the runner issues them, the bridge's pins read their `unsat`.
 -/

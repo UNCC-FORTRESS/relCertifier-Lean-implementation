@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # The trusted SMT leaf + top-level `flow_certified`
 
 The IO boundary. The single trusted assumption of the whole tool lives here and
-nowhere else: Z3's `unsat` verdict is sound.
+nowhere else: Z3's `unsat` verdict is sound (paper, Appendix B.4, Trusted Base).
 
 * `z3solve` is `opaque` (its real behaviour is the Z3 process in `Main`; opaque so
   the pure core never depends on it, and it is not itself an axiom).
@@ -39,7 +39,8 @@ axiom z3_unsat_sound {V : Type*} {q : Formula V} :
 
 /-- **`flow_certified`** — top-level composition. If Z3 reports `unsat` on the flow
 query, and `g ≤ 0` initially, then the invariant component `g ≤ 0` is preserved along
-the λ-stretched co-evolution on `domain`.
+the joint product program at stretch λ (paper Eq. (14)) on `domain`: one component
+of a flow certificate (Definition 5) by the Lie conditions (Lemma 2).
 
 Pure assembly: `z3_unsat_sound` supplies unsatisfiability; `flow_cert_sound`
 (⟶ dL-lean `DI_nonstrict_domain`, via `lieDeriv_correct`/`tderiv_correct`) turns that
@@ -51,9 +52,9 @@ theorem flow_certified {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
       (fun ω => Term.eval o.g ω) ν :=
   flow_cert_sound o (z3_unsat_sound hz3) hinit
 
-/-- **`nonconn_certified`** — Stage-2 IO boundary. If Z3 reports `unsat` on both the
-source check and the barrier check, the successor guard is unreachable along the right
-co-evolution. `#print axioms` shows the standard three + `z3_unsat_sound` (⟶ dL-lean
+/-- **`nonconn_certified`** — non-connection IO boundary (paper Definition 6). If Z3
+reports `unsat` on both the source check and the barrier check, the successor guard is
+unreachable along the right flow. `#print axioms` shows the standard three + `z3_unsat_sound` (⟶ dL-lean
 `DI_strict` via `nonconn_sound`). -/
 theorem nonconn_certified {V : Type*} [Fintype V] [DecidableEq V]
     (o : NonConnObligation V) (hwf : o.sysR.WellFormed)
@@ -64,10 +65,10 @@ theorem nonconn_certified {V : Type*} [Fintype V] [DecidableEq V]
     ∀ ω, Program.sem (Program.ode o.sysR o.domain) ν ω → ¬ Formula.sat o.guard ω :=
   nonconn_sound o hwf hlink hν (z3_unsat_sound hsrc) (z3_unsat_sound hbar)
 
-/-! ## Stage-3 IO boundary — z3 UNSAT discharges the cover's certificate fields -/
+/-! ## Cover IO boundary — z3 UNSAT discharges the cover's certificate fields -/
 
 /-- A `SegPreserves` field of `CoverCert`, discharged by a trusted Z3 UNSAT on the
-mode's flow query (⟶ Stage-1 `flow_cert_sound`). -/
+mode's flow query (⟶ `flow_cert_sound`, Lemma 2). -/
 theorem segPreserves_certified {n : ℕ} (o : FlowObligation n) (m : RMode (Var n))
     (hsys : m.sys = jointSys o.fL o.fR o.lam) (hdom : m.dom = o.domain)
     (hz3 : z3solve (flowQuery o) = Verdict.unsat) :
@@ -75,7 +76,7 @@ theorem segPreserves_certified {n : ℕ} (o : FlowObligation n) (m : RMode (Var 
   segPreserves_of_flow o m hsys hdom (z3_unsat_sound hz3)
 
 /-- A pruned edge's unreachable-guard obligation, discharged by trusted Z3 UNSATs on
-the two non-connection checks (⟶ Stage-2 `nonconn_sound`). -/
+the two non-connection checks (⟶ `nonconn_sound`, Definition 6). -/
 theorem prune_certified {V : Type*} [Fintype V] [DecidableEq V]
     (o : NonConnObligation V) (m : RMode V)
     (hsys : m.sys = o.sysR) (hdom : m.dom = o.domain)

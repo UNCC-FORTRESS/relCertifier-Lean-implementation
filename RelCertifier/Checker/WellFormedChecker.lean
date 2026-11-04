@@ -1,59 +1,63 @@
 /-
-# `decideWellFormed` — the decidable well-formedness checker (phases A′/B/C + EXT 1/2/4 PROVEN)
+# `decideWellFormed` — the decidable settling checker for the right model
 
-**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
-affine models of the legacy suite, kernel-certified against the parsed IR). Its
-per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
-`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
-suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
-compiled as part of the soundness development.
+**Status.** Part of the settling / `Faithful` route: per-benchmark settling, terrain and
+affine models, kernel-certified against the parsed IR. Its per-benchmark batteries were
+retired; the suite theorems (`theorem3_window_of_records` and the other record-level
+theorems, App. B.1) instead take Assumption 1 as `WellFormedRIn`, proved per benchmark by
+hand (App. B.5). The generic definitions and lemmas here stay compiled as part of the
+soundness development (`FvDischarge`, `TerrainChecker`, `AffineChecker` build on them).
 
-The reduction this file mechanizes: for the SETTLING model class, per-benchmark soundness
-reduces to (a) this decidable checker passing on the model data, plus (b) the per-run Z3
-certificates — tied together by ONE theorem (`WellFormedSound`, stated below; proof is the
-phased build described at the bottom). This is the `decideCovered`/`check_sound` pattern
-applied to the settling hypothesis: untrusted construction, verified checkable acceptance.
+What this file mechanizes: for the settling model class, the per-mode settling obligation
+`GuardSettlingB` (from every state of a mode's guard region the `dt`-flow exists, stays in
+the shared envelope and ends in the guard of the mode itself or of a declared successor: the
+nonblocking and complete clauses of Assumption 1 at the step `dt`) reduces to (a) this
+decidable checker passing on the model data, plus (b) the per-run Z3 certificates, tied
+together by one theorem (`WellFormedSound`, stated below, proved as `wellformed_sound`).
+This is the `decideCovered`/`check_sound` pattern applied to the settling hypothesis:
+untrusted construction, verified checkable acceptance.
 
 WHAT THE CHECKER DECIDES (all integer arithmetic / structural — no ODE solving, no Z3):
 
 * the shared envelope's bands are well-ordered, and every mode's guard band sits inside the
   envelope band of its guarded coordinate;
-* every mode SETTLES, by shape:
+* every mode SETTLES, by the shape of its guarded (active) coordinate:
   - `contract k c` (`x' = k(c − x)`, `k ≥ 0`) with the equilibrium INSIDE the mode's own guard
     band (`a ≤ c ≤ cap`) — stays and self-lands (tangent case `c = cap` included) — or (EXT 4)
     ABOVE it (`cap < c ≤ envelope-hi`, a transit-up mode: the flow stays in the hull
     `[a, c]` and the endpoint lands in the own band or a declared successor band that touches
-    it, `glo' ≤ cap ∧ c ≤ ghi'`) or BELOW it (`envelope-lo ≤ c < a`, `0 ≤ c`, the mirror);
-  - `constRate c` (`x' = c`, `0 ≤ c`) with MARGIN (`cap + c·dt ≤ envelope-hi`) and the one-step
+    it, `glo' ≤ cap ∧ c ≤ ghi'`) or BELOW it (`envelope-lo ≤ c < a`, `0 ≤ c`, the mirror,
+    over the extended grammar EXT 4b);
+  - `contractQ kn kd c` (rational gain): the same three cases, the transit covers using the
+    finite-`dt` cap `cap + (c − cap)·(kn/kd)·dt` (sound by `1 − e^{−x} ≤ x`);
+  - `constRate c` (`x' = c`) with MARGIN (`cap + c·dt ≤ envelope-hi`) and the one-step
     image `[a + c·dt, cap + c·dt]` covered by a single self-or-successor band OR (EXT 4) by
     the UNION of the own band with one touching successor band (`glo' ≤ cap ∧
-    cap + c·dt ≤ ghi'`; landing discharged by an endpoint case-split at `cap`);
+    cap + c·dt ≤ ghi'`; landing discharged by an endpoint case-split at `cap`); negative
+    rates (EXT 1, the Return modes) use the lower-side margin and lower-edge union;
+  - `chase` (EXT G), `pairSym` (EXT P) and `riccati` (EXT R): see their sections below;
   - `frozen` (`x' = 0`) — holds anywhere it starts;
-* non-guarded coordinates are `frozen`, DRIVEN by the active coordinate (`x' = x_active`,
-  phases B/C: quadratic / exp-integral witnesses), or driven by a non-active frozen
-  coordinate when envelope-free (EXT 2); const rates may be NEGATIVE (EXT 1, lower-side
-  margin and lower-edge union — the Return modes);
+* non-guarded coordinates are `frozen`, DRIVEN by the active coordinate (`x' = x_active`:
+  quadratic / exp-integral witnesses), or driven by a non-active frozen coordinate when
+  envelope-free (EXT 2); the extended grammar (EXT 4b) also admits contract coordinates
+  with an interior equilibrium and envelope-free integrators driven by them;
 * declared successors are valid mode indices.
 
-STATUS: `wellformed_sound` is PROVEN for this whole grammar (EXT 4's union covers included —
-`settling_contract_above`/`settling_contract_below` and the `hland` disjunctions of the const
-lemmas). The known completeness gaps, in build order: the RATIONAL-GAIN (exp-bound) class — a
-transit contract whose equilibrium lies beyond the adjacent successor band needs the sharper
-finite-dt cap `cap + (c − cap)(1 − e^{−k·dt})`, which the integer model cannot express (both
-factors of `k·dt < 1` would have to be integers; needs `contract kNum kDen c` + a
-`1 − e^{−x} ≤ x` lemma); EXT 3 — multi-band guards + driven-active coordinates (the s-guarded
-terrain family); phase D — coupled fields (flow existence via `PicardBridge`).
+The EXT tags name the grammar arms; the proof comments below refer to them.
+`wellformed_sound` is proved for this whole grammar. Outside it: multi-band guards with
+driven-active coordinates (the terrain family, `TerrainChecker`) and coupled fields with no
+closed-form witness.
 
-THE BASE-SET CORRECTION (found while stating this): `GuardSettlingB` quantifies over the guard
-region, so for multi-coordinate models the guard map must be `GdOf M q := envelope ∧ guard-band`
-— the mode's operating region WITHIN PHYSICS. A bare guard band would admit bases whose
+THE BASE-SET CORRECTION: `GuardSettlingB` quantifies over the guard region, so for
+multi-coordinate models the guard map must be `GdOf M q := envelope ∧ guard-band` — the
+mode's operating region inside the envelope. A bare guard band would admit bases whose
 unguarded coordinates violate the envelope at `t = 0`, making the hypothesis vacuously false.
 The threaded invariant then carries "in the current guard band AND in the envelope", which is
 exactly what entry (landing in a successor's `GdOf`) re-establishes: envelope membership from
 the staying clause, band membership from the landing clause.
 
 TRUST/AXIOMS: this file is definitions plus decidable functions (no `native_decide` anywhere —
-evaluation is `decide`/`#eval`-class ℤ arithmetic, per project discipline).
+evaluation is `decide`/`#eval`-class ℤ arithmetic).
 -/
 import RelCertifier.Proofs.Soundness.GuardThreaded
 
@@ -64,13 +68,13 @@ variable {n : ℕ}
 
 /-! ## The settling model (integer data) -/
 
-/-- Per-coordinate field shape of a mode (phase-A shapes; `driven` is phase B/C). -/
+/-- Per-coordinate field shape of a mode. -/
 inductive CoordShape (n : ℕ) where
   | frozen                          -- x' = 0
   | constRate (c : ℤ)               -- x' = c
   | contract (k c : ℤ)              -- x' = k (c − x)
-  | contractQ (kn kd c : ℤ)         -- x' = (kn/kd) (c − x): rational gain (the exp-bound ext)
-  | driven (j : Fin n)              -- x' = x_j (integrator; phase B)
+  | contractQ (kn kd c : ℤ)         -- x' = (kn/kd) (c − x): rational gain
+  | driven (j : Fin n)              -- x' = x_j (integrator)
   | drivenDamp (j : Fin n) (dampers : List (Fin n × ℤ × ℤ))
       -- x' = x_j · (1 − Σ_d (aₙ/a_d)·x_{p_d}²): a damped integrator (the nonlinear-s'
       -- terrain family); each damper p_d is a contract-to-0 coordinate
@@ -160,9 +164,9 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
   let othersFrozen :=
     (List.finRange n).all fun i =>
       decide (i = m.gcoord) || decide (m.shapes i = CoordShape.frozen)
-  -- phase B: with a const-rate active coordinate, a non-guarded coordinate may also be
-  -- DRIVEN BY the active one (x' = x_gcoord) — provided the driving rate is nonneg
-  -- (0 ≤ glo, so the driven coordinate only grows) and its envelope has no upper wall.
+  -- a non-guarded coordinate may also be DRIVEN BY the active one (x' = x_gcoord) —
+  -- provided the driving value is nonneg (0 ≤ glo, so the driven coordinate only grows)
+  -- and its envelope has no upper wall.
   let othersFlex :=
     decide (0 ≤ m.glo) &&
     ((List.finRange n).all fun i =>
@@ -210,7 +214,7 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
    | .contract k c =>
        decide (0 ≤ k) &&
        ((othersFlex &&
-         (-- equilibrium inside the own band: self-landing (phases A'/C)
+         (-- equilibrium inside the own band: self-landing
           (decide (m.glo ≤ c) && decide (c ≤ m.ghi)) ||
           -- EXT 4: equilibrium ABOVE the band — transit up; the flow stays in the hull [glo, c]
           (decide (m.ghi < c) &&
@@ -421,8 +425,8 @@ noncomputable def SettlingModel.envF (M : SettlingModel n) : Formula (Var n) :=
   (List.finRange n).foldr (fun i acc => Formula.and (Band.formula i (M.env i)) acc) Formula.tt
 
 /-- The guard map: the mode's guard band INTERSECTED WITH THE ENVELOPE (the base-set
-correction — see the header). Out-of-range indices get the unsatisfiable-by-convention `ff`
-shape (here: an empty band statement is fine since the H only reads declared indices). -/
+correction — see the header). Out-of-range indices get `tt`, which is harmless since the
+settling hypothesis only reads declared indices. -/
 noncomputable def SettlingModel.GdOf (M : SettlingModel n) : ℕ → Formula (Var n) :=
   fun q => match M.modes[q]? with
     | some m => Formula.and M.envF (bandDom m.gcoord (m.glo : ℝ) (m.ghi : ℝ))
@@ -440,16 +444,15 @@ noncomputable def SettlingModel.graph (M : SettlingModel n) : SearchGraph (Var n
             (fun q' => { src := q, tgt := q', guard := Formula.tt, pruned := false }))
       | none => []) }
 
-/-! ## The soundness statement (`wellformed_sound`) — statement-first
+/-! ## The soundness statement (`wellformed_sound`)
 
-The theorem this file exists for, as a `Prop` (the phased proof plan is below; the statement
-is fixed now so the phases target it):
+The theorem this file exists for, as a `Prop`:
 
 `WellFormedSound M mv tg g fL` says — given
 * the checker passed (`decideWellFormed M = true`),
 * the freshness side-conditions for the auxiliary coordinates `mv`, `tg` (all provable
   generically for `Aux`-side choices, since every formula this file builds mentions only
-  `Rv`-coordinates — the helper lemmas are part of phase A'),
+  `Rv`-coordinates; `FvDischarge.wellformed_sound_aux` discharges them),
 * the per-run Z3 certificates (`BoxLe` for each mode over the envelope from `GdOf`-bases —
   the ONLY semantic input, `z3_unsat_sound` at its construction),
 
@@ -464,44 +467,20 @@ def WellFormedSound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n))
   (∀ q', ∀ x ∈ (M.GdOf q').fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) →
   GuardSettlingH M.graph M.GdOf mv g (Term.const 1) tg (M.dt : ℝ) fL M.envF
 
-/-! ## The phased proof plan — phases A′/B/C PROVEN below; D scoped
+/-! ## The proof plan
 
-STATUS: `wellformed_sound` is PROVEN for shapes {frozen, constRate, contract, driven-by-active}
-— i.e. phases A′ (single-active-coordinate), B (driven-by-const integrators, the rover class)
-and C (driven-by-contract integrators, the terrain/endurance class) are complete, with the
-watertank-shaped instance checker-accepted by kernel `rfl` at the bottom. Phase D (coupled
-fields, e.g. attitude_rate's `p' = 1 − p + 0.05q`) is scoped but NOT built: its invariance half
-can ride the cut channel's Z3 route, but `GuardSettlingB` also demands flow EXISTENCE, which for
-coupled shapes has no closed-form witness — it needs the `PicardBridge` machinery generalized,
-a genuinely separate build. Until then coupled modes fail the checker and their hypothesis is
-carried (honest classification, not a gap).
-
-Original plan (kept for the record):
-
-* **Phase A' (bookkeeping + single-active-coordinate discharge).** Prove `WellFormedSound`
-  for the phase-A fragment the checker currently accepts (single guarded coordinate, others
-  frozen). Ingredients: `sat`-reflection for `envF`/`GdOf` (fold ↔ per-coordinate bands);
-  `fv ⊆ Rv`-image lemmas discharging the freshness hypotheses for `Aux`-side `mv`/`tg`;
-  env-aware variants of the two discharge lemmas (`GuardSettlingB_of_contract` /
-  `_of_margin_const` with `Gd = envF ∧ band` and `domR = envF` — same witnesses, which
-  already freeze the non-active coordinates; the new content is per-conjunct envelope
-  preservation for frozen coordinates, from the base's envelope membership). Expected pass
-  set: watertank, robot_braking, the arm/plant family (single-θ right sides) — ~10–12.
-* **Phase B (driven-by-const: `x' = y`, `y' = c`).** The integrator shape with the banked
-  quadratic witness (the `roverΦR` pattern of the retired `Archive/GapThreeRoverTooling.lean`, in git history); one-sided envelope bounds
-  with signed drift (the rover family's `px ≥ lo` with `vx > 0`) or two-sided with margin
-  against the driving coordinate's band (via `staying_from_margin`, which is already
-  deriv-bound-generic). Adds the rover family (+3–4).
-* **Phase C (driven-by-contract: `x' = y`, `y' = k(c − y)`).** The exp-integral witness
-  (`s(t) = s₀ + c·t + (y₀ − c)(1 − e^{−kt})/k`); adds the terrain/endurance/story families
-  (~20).
-* **Phase D (checker-side Z3 route for coupled shapes).** For fields outside closed-form
-  shapes (attitude_rate), let the checker delegate the per-conjunct invariance to the same
-  trusted route-B query the cut channel uses — the `GuardSettlingB` obligation then rests on
-  the Z3 leaf like everything else. Turns the remaining case-1 holdouts checkable.
+`wellformed_sound` is proved shape by shape: a `sat`-reflection for `envF`/`GdOf` (fold ↔
+per-coordinate bands), the graph lemmas, then one `GuardSettlingB` discharge per active
+shape, each by an explicit witness flow (constant, exponential, affine/quadratic,
+exp-integral, two-exponential, chase, Möbius) that stays in the envelope and lands in the
+own band or a covering successor band; the extraction lemmas decode the checker's `Bool`
+facts into the discharges' premises. The watertank-shaped instance at the bottom is
+checker-accepted by kernel `rfl`. Coupled fields with no closed-form witness (e.g.
+`p' = 1 − p + 0.05q`) fail the checker: `GuardSettlingB` also demands flow existence, which
+for them needs the `PicardBridge` machinery.
 -/
 
-/-! ## Phase A′ — the proof: `wellformed_sound` for the phase-A fragment -/
+/-! ## The proof: reflection and graph lemmas -/
 
 /-- Real-side band membership. -/
 def Band.memR (b : Band) (x : ℝ) : Prop :=
@@ -904,9 +883,9 @@ theorem settling_const (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
       simp [affineΦ]
       linarith
 
-/-! ### Phase B — the driven-by-const integrator witness -/
+/-! ### The driven-by-const integrator witness -/
 
-/-- Per-coordinate value of the phase-B witness: the active coordinate moves affinely, a
+/-- Per-coordinate value of the driven-by-const witness: the active coordinate moves affinely, a
 driven coordinate quadratically (integrating the active one), everything else frozen. -/
 noncomputable def drivenVal (m : SettlingMode n) (cR : ℝ) (base : State (Var n)) (t : ℝ)
     (i : Fin n) : ℝ :=
@@ -917,7 +896,7 @@ noncomputable def drivenVal (m : SettlingMode n) (cR : ℝ) (base : State (Var n
         else base (Rv i) + base (Rv j) * t
     | _ => base (Rv i)
 
-/-- The phase-B witness flow. -/
+/-- The driven-by-const witness flow. -/
 noncomputable def drivenΦ (m : SettlingMode n) (cR : ℝ) (base : State (Var n)) (t : ℝ) :
     State (Var n) :=
   fun x => match x with
@@ -1144,7 +1123,7 @@ theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode 
     · rw [hgc', drivenΦ_Rv, hval_g]
       linarith
 
-/-! ### Phase C — the driven-by-contract integrator witness -/
+/-! ### The driven-by-contract integrator witness -/
 
 /-- The integrated exponential `∫₀ᵗ e^{−ku} du` — `(1 − e^{−kt})/k`, degenerating to `t`. -/
 noncomputable def expInt (k t : ℝ) : ℝ :=
@@ -1195,7 +1174,7 @@ theorem expInt_le {k t : ℝ} (hk : 0 ≤ k) (ht : 0 ≤ t) : expInt k t ≤ t :
     have hle : 1 - k * t ≤ Real.exp (-(k * t)) := by linarith
     nlinarith [hle]
 
-/-- Per-coordinate value of the phase-C witness: the active coordinate contracts, a driven
+/-- Per-coordinate value of the driven-by-contract witness: the active coordinate contracts, a driven
 coordinate integrates it, everything else frozen. -/
 noncomputable def drivenValC (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n)) (t : ℝ)
     (i : Fin n) : ℝ :=
@@ -1206,7 +1185,7 @@ noncomputable def drivenValC (m : SettlingMode n) (kR cR : ℝ) (base : State (V
         else base (Rv i) + base (Rv j) * t
     | _ => base (Rv i)
 
-/-- The phase-C witness flow. -/
+/-- The driven-by-contract witness flow. -/
 noncomputable def drivenΦC (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n)) (t : ℝ) :
     State (Var n) :=
   fun x => match x with
@@ -1366,7 +1345,7 @@ theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMo
           = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)) := by
         funext u; rw [drivenΦC_Rv, hval_g]
       rw [hcurve]
-      -- derivative of the contract closed form (the banked pattern)
+      -- derivative of the contract closed form (as in `settling_contract`)
       have hexp : HasDerivAt (fun u : ℝ => Real.exp (-((k : ℝ) * u)))
           (-(k : ℝ) * Real.exp (-((k : ℝ) * t))) t := by
         have hinner : HasDerivAt (fun u : ℝ => -((k : ℝ) * u)) (-(k : ℝ)) t := by
@@ -1576,7 +1555,7 @@ theorem settling_contract_above (M : SettlingModel n) {q : ℕ} {m : SettlingMod
           = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)) := by
         funext u; rw [drivenΦC_Rv, hval_g]
       rw [hcurve]
-      -- derivative of the contract closed form (the banked pattern)
+      -- derivative of the contract closed form (as in `settling_contract`)
       have hexp : HasDerivAt (fun u : ℝ => Real.exp (-((k : ℝ) * u)))
           (-(k : ℝ) * Real.exp (-((k : ℝ) * t))) t := by
         have hinner : HasDerivAt (fun u : ℝ => -((k : ℝ) * u)) (-(k : ℝ)) t := by
@@ -1791,7 +1770,7 @@ theorem settling_contract_below (M : SettlingModel n) {q : ℕ} {m : SettlingMod
           = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)) := by
         funext u; rw [drivenΦC_Rv, hval_g]
       rw [hcurve]
-      -- derivative of the contract closed form (the banked pattern)
+      -- derivative of the contract closed form (as in `settling_contract`)
       have hexp : HasDerivAt (fun u : ℝ => Real.exp (-((k : ℝ) * u)))
           (-(k : ℝ) * Real.exp (-((k : ℝ) * t))) t := by
         have hinner : HasDerivAt (fun u : ℝ => -((k : ℝ) * u)) (-(k : ℝ)) t := by
@@ -1880,8 +1859,8 @@ theorem settling_contract_below (M : SettlingModel n) {q : ℕ} {m : SettlingMod
 equilibrium sits inside its envelope band (it stays in the hull of base and equilibrium), and
 an envelope-free coordinate DRIVEN BY such a contract other (its witness is the exp-integral
 of the driver). The `flexVal` witness realizes every arm; `settling_contract_below_flex` is
-the contract-below discharge over this grammar (the checker's below branch uses it — a
-strict superset of the old grammar, so every previously accepted instance still passes). -/
+the contract-below discharge over this grammar (the checker's below branch uses it; the
+grammar is a strict superset of `FlexOthers`, see `FlexOthers.toC`). -/
 
 /-- The extended flex condition on non-active coordinates. -/
 def FlexOthersC (M : SettlingModel n) (m : SettlingMode n) : Prop :=
@@ -1895,7 +1874,7 @@ def FlexOthersC (M : SettlingModel n) (m : SettlingMode n) : Prop :=
     (∃ j kj cj, m.shapes i = CoordShape.driven j ∧ j ≠ m.gcoord ∧
       m.shapes j = CoordShape.contract kj cj ∧ (M.env i).lo = none ∧ (M.env i).hi = none)
 
-/-- The old grammar embeds. -/
+/-- The base grammar `FlexOthers` embeds. -/
 theorem FlexOthers.toC {M : SettlingModel n} {m : SettlingMode n} (h : FlexOthers M m) :
     FlexOthersC M m := by
   intro i hig
@@ -2149,7 +2128,7 @@ theorem settling_contract_below_flex (M : SettlingModel n) {q : ℕ} {m : Settli
           = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)) := by
         funext u; rw [flexΦ_Rv, hval_g]
       rw [hcurve]
-      -- derivative of the contract closed form (the banked pattern)
+      -- derivative of the contract closed form (as in `settling_contract`)
       have hexp : HasDerivAt (fun u : ℝ => Real.exp (-((k : ℝ) * u)))
           (-(k : ℝ) * Real.exp (-((k : ℝ) * t))) t := by
         have hinner : HasDerivAt (fun u : ℝ => -((k : ℝ) * u)) (-(k : ℝ)) t := by
@@ -2527,7 +2506,7 @@ theorem settling_contractQ_driven (M : SettlingModel n) {q : ℕ} {m : SettlingM
           = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)) := by
         funext u; rw [drivenΦC_Rv, hval_g]
       rw [hcurve]
-      -- derivative of the contract closed form (the banked pattern)
+      -- derivative of the contract closed form (as in `settling_contract`)
       have hexp : HasDerivAt (fun u : ℝ => Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)))
           (-((kn : ℝ) / (kd : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t))) t := by
         have hinner : HasDerivAt (fun u : ℝ => -(((kn : ℝ) / (kd : ℝ)) * u)) (-((kn : ℝ) / (kd : ℝ))) t := by
@@ -2767,7 +2746,7 @@ theorem settling_contractQ_above (M : SettlingModel n) {q : ℕ} {m : SettlingMo
           = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)) := by
         funext u; rw [drivenΦC_Rv, hval_g]
       rw [hcurve]
-      -- derivative of the contract closed form (the banked pattern)
+      -- derivative of the contract closed form (as in `settling_contract`)
       have hexp : HasDerivAt (fun u : ℝ => Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)))
           (-((kn : ℝ) / (kd : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t))) t := by
         have hinner : HasDerivAt (fun u : ℝ => -(((kn : ℝ) / (kd : ℝ)) * u)) (-((kn : ℝ) / (kd : ℝ))) t := by
@@ -3014,7 +2993,7 @@ theorem settling_contractQ_below (M : SettlingModel n) {q : ℕ} {m : SettlingMo
           = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)) := by
         funext u; rw [drivenΦC_Rv, hval_g]
       rw [hcurve]
-      -- derivative of the contract closed form (the banked pattern)
+      -- derivative of the contract closed form (as in `settling_contract`)
       have hexp : HasDerivAt (fun u : ℝ => Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)))
           (-((kn : ℝ) / (kd : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t))) t := by
         have hinner : HasDerivAt (fun u : ℝ => -(((kn : ℝ) / (kd : ℝ)) * u)) (-((kn : ℝ) / (kd : ℝ))) t := by
@@ -3170,7 +3149,7 @@ theorem polyExp_le (a b g T t : ℝ) (hg : 0 < g) (ht : 0 ≤ t) (hT : 0 ≤ T) 
   rw [hrw, div_le_iff₀ he]
   linarith [key]
 
-/-! ## Poly-exponential antiderivatives (EXT 4c dampers)
+/-! ## Poly-exponential antiderivatives (the `drivenDamp` dampers of `TerrainChecker`)
 
 Closed forms of `∫₀ᵗ uⁱ e^{−mu} du` for `i = 1, 2` (nonzero rate `m`): the cascade
 damper's square `((p + w·u)e^{−gu})²` expands into `uⁱ e^{−2gu}` and `uⁱ e^{−(k+2g)u}`
@@ -5288,8 +5267,10 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
     exact graph_modeAll M q' hq'
 
 /-- The relational `g`-preservation obligation (quarantined shape, see `GBoxAll`) threaded
-from the per-mode `BoxLe` certificates. Kept as a separate helper so the single-system H
-stays clean; the paper-faithful replacement is task H's per-piece certificates. -/
+from the per-mode `BoxLe` certificates. Kept as a separate helper so the single-system
+settling hypothesis stays clean; the paper's route instead certifies each segment by a
+flow certificate (Definition 5) and, for right-only segments, a reposition certificate
+(Definition 7). -/
 theorem wellformed_gbox (M : SettlingModel n) (g : Term (Var n))
     (hcert : ∀ q m, M.graph.modeAt q = some m → ∀ ν, Formula.sat (M.GdOf q) ν →
         BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) :
@@ -5298,12 +5279,12 @@ theorem wellformed_gbox (M : SettlingModel n) (g : Term (Var n))
   have := hcert q m hmode ν hν
   rwa [hsys] at this
 
-/-! ### A concrete instance — watertank's settling model, checker-accepted by `decide`
+/-! ### A concrete instance — watertank's settling model, checker-accepted by `rfl`
 
 `x' = 3(cᵢ − 0.12 x)`-style tanks normalize to the contract shape `k(c − x)`; the three modes
 below use the equilibria/bands of the (normalized) watertank right side. The point is the
-DECIDABILITY: `decideWellFormed` evaluates by `decide` — kernel-checked integer arithmetic,
-no `native_decide` — so a benchmark's well-formedness certificate is one `rfl`-class fact,
+DECIDABILITY: `decideWellFormed` evaluates in the kernel — integer arithmetic, no
+`native_decide` — so a benchmark's well-formedness certificate is one `rfl`-class fact,
 and `wellformed_sound` turns it plus the per-run Z3 certificates into `GuardSettlingH`. -/
 
 /-- Watertank-shaped settling model (1 coordinate, 3 contract modes, bands inside `[-1, 30]`). -/

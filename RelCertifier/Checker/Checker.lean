@@ -2,27 +2,24 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Verified executable certificate-checker — the runner↔theorem connection
+# The verified cover checker: from the runner's cover to the soundness theorem
 
-The prior architecture was *verified functions beside an untrusted runner that
-re-implements them*: `cover_sound` proved a real theorem, but `Run.lean`'s `dfsCov3` + Z3
-search never invoked it. The guard bug lived in that gap — a wrong domain in the runner,
-ungoverned by any proof. `#print axioms` was clean, yet CERTIFIED was **not backed by
-proof**.
+The runner **proposes** a cover (untrusted search: stretch grid, mode facts, pruning, the
+depth-first cover walk); a **verified, computable checker validates** it, and CERTIFIED means
+*the verified checker accepted it*. A runner bug (bad search, wrong domain, guard narrowing)
+can then only make the checker **reject** (a false decline), never a false CERTIFIED
+(Section 6.1, Appendix B.4: the cover is outside the trusted base).
 
-This file closes the gap with the standard certified-checker architecture: the runner
-**proposes** (untrusted fast search), a **verified, computable checker validates**, and
-CERTIFIED means *the verified checker accepted it*. A runner bug (bad DFS, wrong domain,
-guard narrowing) can then only cause the checker to **reject** (a false decline) — never a
-false CERTIFIED.
-
-* `decideCovered` — a **computable** re-validation of the runner's cover derivation.
-  Structural: budget arithmetic, `0 < weight`, the all-successors condition. It runs.
-* `decideCovered_sound` — accepting implies the *proof-level* `Covered` relation.
+* `decideCovered` — a **computable** re-validation of the runner's cover derivation
+  (Definition 8, retained successors only): budget arithmetic, `0 < weight`, the
+  every-retained-successor condition. It runs.
+* `decideCovered_sound` — accepting implies the proof-level `Covered` relation.
 * `check_sound` — accepting (plus the flow certificates as `CoverCert`) implies the
   semantic ∀∃-throughout invariant `CoexecInvThroughout`, **by citing
-  `cover_sound_throughout`**. That citation is what makes the checker verified: its
-  dependency trace contains the throughout theorem (kernel-enforced).
+  `cover_sound_throughout`**, so the checker's dependency trace contains that theorem
+  (kernel-enforced).
+
+The committed-subset extension is `decideCoveredX` (`Checker/CoverX.lean`).
 -/
 import RelCertifier.Checker.Cover.Coexec
 import RelCertifier.Trusted.Smt
@@ -35,39 +32,43 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 
 /-! ## The computable cover checker (re-validates the runner's untrusted search) -/
 
-/-- **Computable** re-validation of a `Covered` derivation — the two cases of the paper's
-**Definition 8** (all-successors form), made executable and fuel-bounded (the fuel is the runner-supplied
-derivation height; `decideCovered_sound` needs only that it suffices):
+/-- **Computable** re-validation of a `Covered` derivation: the two cases of **Definition 8**
+(retained successors as landing sets), executable and fuel-bounded (the fuel is the
+runner-supplied derivation height; `decideCovered_sound` needs only that it suffices):
 
-* **base** — `B ≤ m.weight`: the certified mode's single residence closes the budget →
-  accept, **without** examining successors (Definition 8's terminating finish case).
-* **step** — otherwise (`m.weight < B`): accept iff **every** retained successor validates
-  at the decremented budget.
+* **finish** — joint-certified and `B ≤ m.weight`: one joint segment finishes the budget →
+  accept, **without** examining successors.
+* **continue, joint** — joint-certified and `m.weight < B`: accept iff **every** retained
+  successor validates at the decremented budget, post-joint.
+* **continue, right-only** — the right-only certificate of the current source setting,
+  `0 < B`, a nonempty `exitSucc`: accept iff every non-self retained successor validates at
+  the same budget and setting.
 
-No `noncomputable`, no classical choice — this function *runs* on the runner's certificate. -/
+No `noncomputable`, no classical choice: this function *runs* on the runner's certificate. -/
 def decideCovered (G : SearchGraph V) : ℕ → Config → Bool
   | 0,        _      => false
   | fuel + 1, ⟨q, B, σ⟩ =>
       match G.modeAt q with
       | none   => false
       | some m =>
-          -- base (Def 4, joint): joint-supported and one residence closes the budget
+          -- finish (Definition 8): joint-supported and one joint segment closes the budget
           (m.jointOK && decide (B ≤ m.weight))
-          -- joint step (Def 4): budget remains, all successors cover at B−weight, σ flips to postJ
+          -- continue, joint (Definition 8): budget remains, all retained successors cover at
+          -- B−weight, σ flips to postJ
           || (m.jointOK && decide (m.weight < B) &&
                 (G.retainedSucc q).all (fun q' =>
                    decideCovered G fuel ⟨q', B - m.weight, SrcSetting.postJ⟩))
-          -- DYNAMIC reposition step (Lemma 4's flow certificate, the right-only segment), σ-matched
-          -- (`repoDynPreOK`/`repoDynPostOK`): zero budget, `exitSucc` non-empty (no vacuous
-          -- dead-end cover), all non-self exits cover at the SAME budget `B` and SAME `σ` (the
-          -- left is held, so σ is preserved). There is no static (zero-duration) reposition.
+          -- continue, right-only (Definition 8), by source setting (`repoDynPreOK`/
+          -- `repoDynPostOK`): zero budget, `exitSucc` nonempty (no vacuous dead-end cover),
+          -- all non-self retained successors cover at the SAME budget `B` and SAME `σ` (the
+          -- left is held, so σ is kept). There is no zero-duration right-only step.
           || ((match σ with | .preJ => m.repoDynPreOK | .postJ => m.repoDynPostOK)
                 && decide (0 < B) && !(G.exitSucc q).isEmpty &&
                 (G.exitSucc q).all (fun q' => decideCovered G fuel ⟨q', B, σ⟩))
 
 /-- **Soundness of the checker's structural half.** If `decideCovered` accepts, the
 proof-level `Covered` relation holds — so the runner's (untrusted) search result is
-re-validated into a real Definition 8 derivation (finish or continue). -/
+re-validated into a Definition 8 derivation (finish or continue). -/
 theorem decideCovered_sound (G : SearchGraph V) :
     ∀ (fuel : ℕ) (cfg : Config), decideCovered G fuel cfg = true → Covered G cfg := by
   intro fuel
@@ -82,10 +83,10 @@ theorem decideCovered_sound (G : SearchGraph V) :
           rw [hm] at h
           simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at h
           rcases h with (⟨hj, hle⟩ | ⟨⟨hj, hlt⟩, hall⟩) | ⟨⟨⟨hrepo, hB⟩, hne'⟩, hall⟩
-          · exact Covered.base m hm hj hle                              -- base (joint)
-          · refine Covered.step m hm hj hlt ?_                          -- joint step (successors postJ)
+          · exact Covered.base m hm hj hle                              -- finish (joint)
+          · refine Covered.step m hm hj hlt ?_                          -- continue, joint (successors postJ)
             intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
-          · -- DYNAMIC reposition step (Lemma 4's flow certificate), σ-matched
+          · -- continue, right-only, by source setting
             have hne : G.exitSucc q ≠ [] := by intro hnil; rw [hnil] at hne'; simp at hne'
             cases σ with
             | preJ =>
@@ -98,22 +99,22 @@ theorem decideCovered_sound (G : SearchGraph V) :
 /-! ## `check_sound` — CERTIFIED provably implies the ∀∃-throughout invariant -/
 
 /-- **The checker's soundness (the runner↔theorem connection).** If the computable
-`decideCovered` accepts the runner's cover derivation, and the flow certificates hold as a
-`CoverCert` (each `segPres` a `flow_cert_sound` `BoxLe` on the mode's **evolution** domain —
-see the domain note below), then from any invariant-satisfying entry the semantic
-∀∃-throughout invariant `CoexecInvThroughout` holds.
+`decideCovered` accepts the runner's cover derivation, and the flow certificates
+(Definition 5) hold as a `CoverCert` (each `segPres` a `flow_cert_sound` `BoxLe` on the
+mode's **evolution** domain, see the domain note below), then from any invariant-satisfying
+entry the semantic ∀∃-throughout invariant `CoexecInvThroughout` holds.
 
-**This is what makes CERTIFIED backed by proof.** It cites `cover_sound_throughout` (hence
-`cover_sound`, `flow_cert_sound`, the `DI` family) — a runner that proposes a bad derivation
-makes `decideCovered` return `false`, never reaching this conclusion. The verified checker
-governs the output; the runner's `dfsCov3` search is outside the trusted base. -/
+It cites `cover_sound_throughout` (hence `cover_sound`, `flow_cert_sound`, the `DI` family):
+a runner that proposes a bad derivation makes `decideCovered` return `false`, never reaching
+this conclusion. The verified checker governs the output; the runner's search is outside the
+trusted base. -/
 theorem check_sound (G : SearchGraph V) (g : Term V) (cert : CoverCert G g)
     (fuel : ℕ) (cfg : Config) (hchk : decideCovered G fuel cfg = true)
     (ν : State V) (hinit : InvHolds g ν) :
     CoexecInvThroughout G g cfg ν :=
   cover_sound_throughout G g cert cfg ν (decideCovered_sound G fuel cfg hchk) hinit
 
-/-! ## Where the guard bug dies structurally
+/-! ## Why a guard-narrowed domain cannot certify
 
 `check_sound`'s conclusion is `CoexecInvThroughout G g cfg ν = ∀ ω, RightReach G cfg ν ω →
 InvHolds g ω`, and `RightReach`'s `evolve` step is `Program.sem (Program.ode m.sys m.dom)` —

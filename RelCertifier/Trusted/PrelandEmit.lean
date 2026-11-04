@@ -2,30 +2,30 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The pre-landing right-only nodes of a cover (emitted; the pre-landing feature, always on)
+# The pre-landing right-only nodes of a cover (emitted)
 
-With the pre-landing run feature (`PProblem.prelanding`, on for every benchmark since 2026-10-31,
-off only under the ablation `RELCERT_NO_PRELANDING=1`) the tool certifies a right-only (reposition) node
-`(mL, mR, pre)` by the PRE-LANDING right-only flow certificate: the stratified route A/B/C pack
-of the frozen-left flow of `mR` over the reposition domain narrowed by the half-open region
-`before(x, θ)` of the node's progress certificate's last stage (`x < θ` upward, `x > θ`
-downward), instead of the whole-domain route-A pack (`checkDynRepo`). The witness right run
-stops at its FIRST entry into the closed target `crossed(x, θ)`, ending its control cycle
-early (`docs/PRELANDING.md`).
+With pre-landing on (`PProblem.prelanding`, the default; off only under the ablation
+`RELCERT_NO_PRELANDING=1`) the tool certifies a right-only node `(mL, mR, pre)` by the
+right-only flow certificate of the restricted mode `mR|¬target` (paper Lemma 4): the
+stratified route A/B/C pack of the frozen-left flow of `mR` (paper Eq. (15)) over the domain
+narrowed by the half-open region `before(x, θ)` of the last stage of the node's reposition
+certificate (`x < θ` upward, `x > θ` downward), instead of the whole-domain route-A pack
+(`checkDynRepo`). The witness right run stops at its first entry into the closed landing
+target `crossed(x, θ)`, ending its control cycle early.
 
-These nodes are emitted HERE, in their own record, never as the cover's `dynPre`/`dynPost`
+These nodes are emitted here, in their own record, never as the cover's `dynPre`/`dynPost`
 flags: a consumer of the emitted cover that reads those flags as the whole-domain certificate
 never sees a pre-landing node. The kernel merges the two (`Emitted.withPL`) for the cover
-graph only, and backs every merged node by the pre-landing verdict and the progress
+graph only, and backs every merged node by the pre-landing verdict and the reposition
 certificate (`Emitted.hrepoProg_of` on the node's region); it admits a nonempty record only when
-the IR records the feature as on (`prelanding = true`, the default).
+the IR records the feature as on (`prelanding = true`).
 -/
 import RelCertifier.Trusted.ProgressEmit
 
 namespace RelCertifier.Preland
 
-/-- A pre-landing node: window `mL`, right mode `mR`, setting `pre` (pre-joint), and the
-strata order of its pack (`order[k]` is the component proven in round `k+1`). -/
+/-- A pre-landing node: left mode `mL`, right mode `mR`, source setting `pre` (pre-joint),
+and the round order of its pack (`order[k]` is the component proven in round `k+1`). -/
 structure PrelandNodeE where
   mL    : String
   mR    : String

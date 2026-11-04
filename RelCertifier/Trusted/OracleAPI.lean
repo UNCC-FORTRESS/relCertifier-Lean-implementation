@@ -4,29 +4,32 @@ Released under Apache 2.0 license.
 
 # The certifier (TRUSTED harness layer, not verified)
 
-`certify` decides one benchmark on a warm Z3 session (`relcert <input.txt>`). The search
-is untrusted: what soundness rests on is the verdicts it records (Z3 `unsat`, consumed
-through `z3_unsat_sound`) and the cover decision, which is made by the verified checker
-`decideCovered` and replayed in the kernel from the emitted flags.
+`certify` decides one benchmark on a warm Z3 session (`relcert <input.txt>`); paper §6.1.
+The search is untrusted: what soundness rests on is the verdicts it records (Z3 `unsat`,
+consumed through `z3_unsat_sound`) and the cover decision, which is made by the verified
+checker `decideCovered` and replayed in the kernel from the emitted flags.
 
-* **Checked cuts** (`checkedCut`; `checkedCutX` under `RELCERT_IMPLIED_CUT=1`, the widened
-  channel of `Checker/EvolStrengtheningX.lean`): per mode, atoms implied by its guard (O1)
-  and kept by its own flow (O2); they only narrow query domains.
-* **Non-connection pruning** (`nonConnPrune`): a declared right edge is dropped when both
-  queries of `Trusted/NonConnQuery.lean` are `unsat`.
+* **Mode facts** (paper Definition 2; `checkedCut`, and `checkedCutX` under
+  `RELCERT_IMPLIED_CUT=1`, the widened channel of `Checker/EvolStrengtheningX.lean`): per
+  mode, atoms implied by its guard (O1, entry) and kept by its own flow (O2, preservation);
+  they only narrow query domains.
+* **Pruning** (`nonConnPrune`): a declared right mode change is dropped when both queries
+  of `Trusted/NonConnQuery.lean` are `unsat`, a non-connection certificate (Definition 6).
 * **Per left mode** (`coverMode`): the admissible right starts (`admissible`); per right
-  mode the dynamic right-only reposition (`checkDynRepo`: the right flows under its own
-  field with the left frozen, the invariant preserved on the whole domain, before and after
-  the left jump); per λ on the grid and per right mode the joint segment (`checkSeg`: every
-  invariant component certified by route A, B or C over the cut-narrowed, stratified
-  domain). The cover closes when `decideCovered` accepts from every admissible start.
-  One stretch per left mode when one closes the cover; otherwise the per-pairing fallback
-  (each right mode at the smallest stretch its joint segment passed, every joint segment
-  cut to the common left span `εR / max λ`, same integer budget; `RELCERT_NO_PAIR_STRETCH=1`
-  disables it). The emitted cover records the stretch of every pairing
-  (`PairStrataE.lamN / lamD`), pinned to the verdict packs by `VerdictsV2/LamPinV2.lean`.
-  These are the only two step kinds: joint segments and dynamic right-only reposition.
-  There is no zero-duration right switch.
+  mode the right-only segment (`checkDynRepo`, the right-only flow certificate: the right
+  flows under its own field with the left frozen, paper Eq. (15), pre-joint and post-joint;
+  `checkProgress`, the reposition certificate of Definition 7); per stretch on the grid and
+  per right mode the joint segment (`checkSeg`, the joint flow certificate of Definition 5:
+  every invariant component certified by route A, B or C over the mode-fact-narrowed domain,
+  in rounds). The cover (Definition 8) closes when `decideCovered` accepts from every
+  admissible start. One stretch per left mode when one closes the cover; otherwise the
+  per-pairing fallback (each right mode at the smallest stretch its joint segment passed,
+  every joint segment cut to the common left span `εR / max λ`, same integer budget;
+  `RELCERT_NO_PAIR_STRETCH=1` disables it). The emitted cover records the stretch of every
+  pairing (`PairStrataE.lamN / lamD`), pinned to the verdict packs by
+  `VerdictsV2/LamPinV2.lean`. The all-successors cover has two step kinds, joint and
+  right-only segments; the choice cover (committed successor subsets, below) adds a
+  zero-duration entry hop.
 
 Budgets, per benchmark (env-overridable): query budget `RELCERT_MAX_QUERIES` = 20000,
 wall-clock budget `RELCERT_TIME_BUDGET_MS` = 300000 ms; per query (`Trusted/Z3.lean`):
@@ -78,26 +81,27 @@ inductive Seg | pass | fail | incon
 inductive Cov3 | cov | nocov | incon
   deriving DecidableEq, Repr, BEq, Inhabited
 
-/-! ## The checked-cut channel (differential cuts with re-derived justification)
+/-! ## Mode facts (paper Definition 2; differential cuts with re-derived justification)
 
-A mode's flow-query domain may be narrowed by a CUT `S` — but only after the certifier
-itself re-derives BOTH obligations, per atomic conjunct:
+A mode's flow-query domain may be narrowed by a mode fact `S` — but only after the certifier
+itself re-derives BOTH obligations of Definition 2, per atomic conjunct:
 
 * **O1 (entry)**: the mode's guard implies the conjunct. Free for guard conjuncts (the
   default candidates).
-* **O2 (invariance)**: the conjunct is flow-invariant along THIS mode's own field, checked
+* **O2 (preservation)**: the conjunct is flow-invariant along THIS mode's own field, checked
   by the same trusted routes as the main certificates — route B (`DI_strict` boundary:
   `dom ∧ g=0 ∧ ġ≥0` UNSAT), route A (`DI_nonstrict_domain` whole-domain: `dom ∧ ġ>0`
   UNSAT), or the CONTRACT-SHAPE route for the tangent case DI cannot see (`v ≤ κ` with
   field `k(c−v)`, `k ≥ 0`, `c ≤ κ` — rational comparison, no Z3; Lean backing
   `contract_stays`/`WellFormedFlowB_contract`, the explicit exponential witness).
 
-Candidates supporting each other are handled by a greatest-fixpoint filter (check each
-with ALL current candidates in the O2 domain; drop failures; repeat). Discipline: a cut
-conjunct is USED only on a definitive pass — anything else silently drops it, so a wrong
-or unprovable candidate costs completeness (DECLINE), never soundness. `evolve` itself is
-NEVER modified: the model (and the Lean proof structure, which requires the uniform shared
-envelope as every mode's domain) sees only `evolve`; cuts narrow the queries alone. -/
+Each atom is checked on its own over the bare evolve domain (no mutual coupling between
+candidates; see `checkedCut`), except that a derived bound of `checkedCutX` also assumes the
+one linear-form atom it is derived from. Discipline: a mode-fact conjunct is USED only on a definitive
+pass — anything else silently drops it, so a wrong or unprovable candidate costs
+completeness (DECLINE), never soundness. `evolve` itself is NEVER modified: the model (and
+the Lean proof structure, which requires the uniform shared envelope as every mode's domain)
+sees only `evolve`; mode facts narrow the queries alone. -/
 
 /-- One Z3 UNSAT probe (budget-counted); `true` ⟺ definitive `unsat`. -/
 def probeUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
@@ -112,9 +116,11 @@ def probeUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadlin
     | .ok .unsat => pure true
     | _ => pure false
 
-/-- **The checked cut of a mode** (one side): the guard conjuncts that survive the O2
-invariance filter, returned as the conjoined `IForm` to add to this mode's flow-query
-domains, plus the kept atoms with their routes (the cut certificate's content).
+/-- **The mode fact of a mode** (one side, paper Definition 2): the guard conjuncts that
+survive the O2 preservation filter, returned as the conjoined `IForm` to add to this mode's
+flow-query domains, plus the kept atoms with their routes (the mode fact's certificate).
+Candidate order of routes per atom: contract shape (no Z3), frozen (the atom reads only
+variables the field holds fixed), then DI route B, then route A.
 
 O1 (entry) is syntactic — every candidate IS a guard conjunct. O2 is UNCONDITIONED:
 each atom must be flow-invariant over the bare evolve domain on its own (per-atom
@@ -162,14 +168,13 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   let cut := kept.foldl (fun d c => IForm.and d c.2.1) IForm.tt
   pure (cut, kept.map (fun c => (c.1, c.2.2)))
 
-/-- **The extended cut channel switch** (L1 implied-contraction atoms and L2 closures,
-`Checker/EvolStrengtheningX.lean`). Default OFF, so that a run without it searches with
-the guard-conjunct certificate alone (the certificate the 19 carried-over legacy instances
-quote). `RELCERT_IMPLIED_CUT=1` turns the channel on (every suite_v2 run,
-`scripts/suite_v2_matrix.py`; 12 suite_v2 benchmarks DECLINE without it);
-`RELCERT_NO_IMPLIED_CUT=1` overrides to
-off (the matrix's counter-run: legacy cuts only, so a benchmark that then DECLINES is
-load-bearing on the implied atoms — the "M6+" cell). -/
+/-- **The extended mode-fact channel switch** (L1 implied-contraction atoms and L2
+closures, `Checker/EvolStrengtheningX.lean`; the atom kinds of paper §6.1, "Mode facts").
+Default OFF: a run without it searches with the guard-conjunct mode facts alone.
+`RELCERT_IMPLIED_CUT=1` turns the channel on (every suite_v2 run sets it, e.g.
+`scripts/suite_v2_matrix.py`, `scripts/paper_numbers.sh`); `RELCERT_NO_IMPLIED_CUT=1`
+overrides to off (the matrix's counter-run: guard-conjunct mode facts only, so a benchmark
+that then DECLINES is load-bearing on the implied atoms — the "M6+" cell). -/
 def impliedCutsOn : IO Bool := do
   if (← IO.getEnv "RELCERT_NO_IMPLIED_CUT").isSome then pure false
   else pure (← IO.getEnv "RELCERT_IMPLIED_CUT").isSome
@@ -183,7 +188,7 @@ def linearCutsOn : IO Bool := do
   if (← IO.getEnv "RELCERT_NO_LINEAR_CUT").isSome then pure false
   else impliedCutsOn
 
-/-- **The extended checked cut of a mode** (`RELCERT_IMPLIED_CUT=1` path): the legacy
+/-- **The extended mode fact of a mode** (`RELCERT_IMPLIED_CUT=1` path): the
 guard-conjunct atoms (computed by `checkedCut`, unchanged, tagged `guardConj` /
 `membership`), then the L2 closures of the strict guard conjuncts (O1 by weakening),
 then the L1 implied-contraction atoms `v ≤ c` / `v ≥ c` of every contraction field
@@ -230,7 +235,7 @@ def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
           else pure none
         else pure none
     | _, _ => pure none
-  -- O2 of an L1 / L2 (closed threshold) atom: unconditioned, legacy routes only
+  -- O2 of an L1 / L2 (closed threshold) atom: unconditioned, the routes of `checkedCut` only
   let o2 (a : PForm) : IO (Option CutRouteX) := do
     if contractShapeOKX m a then pure (some .shape)
     else if (atomVars a).all (frozenIn m) then pure (some .frozen)
@@ -334,31 +339,33 @@ def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     | none => d) IForm.tt
   pure (cut, out)
 
-/-- Conjoin the checked cuts, shape-normalized: `tt` cuts (the `RELCERT_NO_CUT` path)
+/-- Conjoin the mode facts, shape-normalized: `tt` mode facts (the `RELCERT_NO_CUT` path)
 leave the base formula UNCHANGED, so emitted-cover instances mirror the exact query. -/
 def andCuts {n : ℕ} (base cutL cutR : IForm n) : IForm n :=
   let b1 := if cutL == IForm.tt then base else IForm.and base cutL
   if cutR == IForm.tt then b1 else IForm.and b1 cutR
 
-/-- Check one segment `(qL=mL, qR=mR, λ)`: `pass` iff EVERY component has a route query
-(A, B or C, `Run.routeQueries`) that is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z3
-error/`unknown` or unbuildable query. -/
+/-- Check the joint flow certificate of one pairing `(qL=mL, qR=mR)` at stretch `λ`
+(paper Definition 5, by Lemma 2): `pass` iff EVERY component has a route query (A, B or C,
+`Run.routeQueries`; A or B for a strict component, `routeQueriesS`) that is Z3-`unsat`;
+`fail` iff some component is definitively `sat`; `incon` on any Z3 error/`unknown` or
+unbuildable query. Also returns the order in which the components were proven. -/
 def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
     (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ)
     (strict : List Bool := []) :
     IO (Seg × List Nat) := do
-  -- STRATIFIED DIFFERENTIAL CUTS (soundness-critical, 2026-07-15). A component may
+  -- CERTIFICATION IN ROUNDS (soundness-critical; paper §4.1, Lemma 2). A component may
   -- narrow its query domain ONLY by components proven in EARLIER rounds (sequential,
-  -- acyclic DC — Platzer's differential cut, iterated). The previous MUTUAL narrowing
-  -- (every component assuming all siblings simultaneously) was a circular cut and
-  -- UNSOUND for routes A/C: with `comps = [x², x²]`, `x' = 1`, each narrowed domain is
-  -- `{x = 0}` and route A's query `x = 0 ∧ 2x > 0` is UNSAT — falsely certifying
-  -- `x² ≤ 0` under `x' = 1` (the t²-pathology; see `nonstrict_boundary_insufficient`
-  -- and docs/history/COVER-AUDIT.md R4). Stratified soundness: round-1 components certify on
-  -- the bare domain (single-component theorems); a round-k component's runs lie in the
-  -- earlier-strata-narrowed ode because those invariants hold pointwise by induction.
-  -- The checked cuts remain in all domains (independently justified, O1/O2).
+  -- acyclic differential cuts), so no component assumes itself. MUTUAL narrowing (every
+  -- component assuming all siblings simultaneously) would be a circular cut and UNSOUND
+  -- for routes A/C: with `comps = [x², x²]`, `x' = 1`, each narrowed domain is `{x = 0}`
+  -- and route A's query `x = 0 ∧ 2x > 0` is UNSAT — falsely certifying `x² ≤ 0` under
+  -- `x' = 1` (see `nonstrict_boundary_insufficient`). Soundness of the rounds: round-1
+  -- components certify on the bare domain (single-component theorems); a round-k
+  -- component's runs lie in the ode narrowed by earlier rounds because those invariants
+  -- hold pointwise by induction. The mode facts remain in all domains (independently
+  -- justified, O1/O2).
   -- Fixpoint: at most |comps| + 1 bounded rounds (the proven set strictly grows).
   -- Status: pass iff ALL components eventually certify; the final (fixed-point) round
   -- classifies the unproven ones — incon if any was inconclusive there, else fail.
@@ -375,7 +382,7 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         match segParts vars n g mL mR lam with
         | none => lastIncon := true                  -- couldn't build the query
         | some (baseDom, gdot) =>
-            -- CHECKED-CUT domains + the PROVEN strata (never unproven siblings)
+            -- MODE-FACT domains + the components PROVEN in earlier rounds (never unproven siblings)
             let baseDom := andCuts baseDom cutL cutR
             let dom := strataDomIR comps proven baseDom
             let mut compPass := false
@@ -403,18 +410,20 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   return ((if proven.length == comps.length then Seg.pass
            else if lastIncon then Seg.incon else Seg.fail), proven)
 
-/-- **DYNAMIC REPOSITION check (the right-only flow certificate of Lemma 4)**, on a region.
-The left FROZEN (`fL=0`, `ġ` via `segPartsRO`), stratified like `checkSeg` (a component's domain
-is narrowed only by components proven in earlier rounds, docs/history/COVER-AUDIT.md R4).
-`withGuardL` selects σ: pre-j domain `guardL ∧ evolveL ∧ evolveR`, post-j `evolveL ∧ evolveR`.
+/-- **The right-only flow certificate** (paper Definition 5, kind right-only, product program
+Eq. (15)), on a region. The left FROZEN (`fL=0`, `ġ` via `segPartsRO`), certified in rounds like
+`checkSeg` (a component's domain is narrowed only by components proven in earlier rounds), over
+the mode facts of both modes. `withGuardL` selects the source setting σ: pre-joint domain
+`guardL ∧ evolveL ∧ evolveR`, post-joint `evolveL ∧ evolveR`.
 * `rg = none` (default): the WHOLE domain, route A only (`UNSAT(ġ > 0 ∧ domain)`,
   `DI_nonstrict_domain`). Whole-domain, NOT boundary (`g=0 ∧ ġ≥0`): the `t²` guard.
-* `rg = some (Bo, Bc)` (the pre-landing run feature, on by default, `docs/PRELANDING.md`): the PRE-LANDING region
-  of the node's progress certificate, `Bo` = before its last threshold (`x < θ`), `Bc` its
-  closure (`x ≤ θ`). A non-strict component: routes A, B or C over `domain ∧ Bo` (the invariant
-  at the first entry into the target follows by continuity); a strict one (`strict`, the row's
-  `invStrictFlags`): route A over `domain ∧ Bc` (the limit along `Bo` gives only `≤ 0`; route A
-  on the closure keeps `< 0` up to and including the stop point).
+* `rg = some (Bo, Bc)` (the pre-landing run feature, on by default, `docs/PRELANDING.md`): the
+  restricted mode `m|¬target` of paper Lemma 4, the region before the last threshold of the
+  node's reposition certificate, `Bo` (`x < θ`), and its closure `Bc` (`x ≤ θ`). A non-strict
+  component: routes A, B or C over `domain ∧ Bo` (the invariant at the first entry into the
+  landing target follows by continuity); a strict one (`strict`, the row's `invStrictFlags`):
+  route A over `domain ∧ Bc` (the limit along `Bo` gives only `≤ 0`; route A on the closure
+  keeps `< 0` up to and including the stop point).
 `true` iff every component has a definitive `unsat` route; sat/unknown/error → withhold. -/
 def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
@@ -434,7 +443,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         | none => pure ()
         | some (baseDom, gdot) =>
             let isStrict := strict.getD i false
-            let baseDom := andCuts baseDom cutL cutR   -- checked-cut narrowing
+            let baseDom := andCuts baseDom cutL cutR   -- mode-fact narrowing
             let baseDom := match rg with
               | none => baseDom
               | some (bo, bc) => IForm.and baseDom (if isStrict then bc else bo)
@@ -467,7 +476,9 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
 budget `B` is a function of `f`, so the state is finite: `modes × fuel`). Without the memo
 this is `(M+1)^fuel` pure recursion — the fuel can be huge when `δL` is tiny (large λ),
 which hangs Lean (not Z3). `seg qR` is the precomputed segment status; `nocov` dominates
-`incon` (a definitely-uncovered successor fails all-successors regardless of siblings). -/
+`incon` (a definitely-uncovered successor fails all-successors regardless of siblings).
+Joint segments only. Not called by `certify`, whose cover decision is the verified
+`decideCovered` (see `coverMode`). -/
 partial def dfsCov3 (memo : IO.Ref (Std.HashMap (String × Nat) Cov3))
     (seg : String → Seg) (succ : String → List String) (deltaL : ℚ)
     (f : Nat) (qR : String) (B : ℚ) : IO Cov3 := do
@@ -491,18 +502,18 @@ partial def dfsCov3 (memo : IO.Ref (Std.HashMap (String × Nat) Cov3))
     memo.modify (·.insert (qR, f) r)
     return r
 
-/-- **Definition 8, executable.** From start mode `q` with segment budget `B` (`= ⌈εL/δL⌉`,
-weight 1 per segment), return the modes the cover **visits**, or `none` if it fails:
+/-- **Paper Definition 8, joint segments only, executable.** From start mode `q` with
+segment budget `B` (`= ⌈εL/δL⌉`, weight 1 per segment), return the modes the cover
+**visits**, or `none` if it fails:
 
-* the mode must be certified (`seg q = pass` — Definition 8's *joint certified*);
-* **base** (`B ≤ 1`): one segment closes the budget → visit `{q}` only, **do not** descend
-  into successors (the terminating base case);
-* **step** (`B ≥ 2`): every retained successor (`q` self-loop + declared `next`) must itself
-  cover at `B-1`; the visited set is `q` with all their visited sets.
+* the mode must carry a joint flow certificate (`seg q = pass`);
+* **finish** (`B ≤ 1`): one segment closes the budget → visit `{q}` only, **do not**
+  descend into successors;
+* **continue** (`B ≥ 2`): every successor in `q :: succ q` must itself cover at `B-1`; the
+  visited set is `q` with all their visited sets.
 
-The result is exactly the modes the `SearchGraph`/`CoverCert` must range over — for a
-single-sync (base) cover that is just `{q}`, so closed-leaf successors are never required to
-certify. Mirrors the verified `decideCovered`'s base/step split. -/
+Mirrors the verified `decideCovered`'s finish/continue split. Not called by `certify`,
+whose gate runs `decideCovered` on the declared-successor graph (see `coverMode`). -/
 partial def coverVisit (seg : String → Seg) (succ : String → List String)
     (B : Nat) (q : String) : Option (List String) :=
   if seg q != Seg.pass then none
@@ -511,9 +522,11 @@ partial def coverVisit (seg : String → Seg) (succ : String → List String)
     let kids := (q :: succ q).map (coverVisit seg succ (B - 1))
     if kids.all Option.isSome then some (q :: (kids.filterMap id).flatten) else none
 
-/-- **Precise admissibility** (FIX 1, soundness-critical — *drop only on UNSAT*). Right start
-mode `mR` is admissible for left mode `mL` iff some invariant-satisfying initial pair exists:
-`guardL(mL) ∧ guardR(mR) ∧ ⋀ᵢ (gᵢ ≤ 0)` is SAT (`gᵢ ≤ 0` = the relational invariant `ϕ_rel`).
+/-- **Admissibility** (paper §3, before Theorem 1; soundness-critical — *drop only on
+UNSAT*). Right start mode `mR` is treated as admissible for left mode `mL` unless no
+invariant-satisfying initial pair exists: `guardL(mL) ∧ guardR(mR) ∧ ⋀ᵢ (gᵢ ≤ 0)` is UNSAT
+(`gᵢ ≤ 0` = the components of the left mode's invariant). The query omits the paper's
+`mR ∈ next(x_R)` conjunct, so it can only keep more starts than the paper's definition.
 Returns `true` = **required** (admissible), `false` = **droppable** (definitively inadmissible).
 
 Soundness discipline: we return `false` (drop `mR` from the required-start set) ONLY on a
@@ -543,8 +556,8 @@ def admissible (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         | .ok .unsat => pure false                     -- DEFINITIVELY no initial pair ⟹ droppable
         | _          => pure true                      -- sat / unknown / error ⟹ keep required
 
-/-- **Non-connection pruning (Definition 6)** (FIX 3, soundness-critical — *prune only on UNSAT*). For a
-declared right edge `mR → mSuc`, the successor is unreachable along `mR`'s right flow exactly when
+/-- **Pruning by a non-connection certificate (paper Definition 6, §6.1 "Pruning")**
+(soundness-critical — *prune only on UNSAT*). For a declared right mode change `mR → mSuc`, the successor is unreachable along `mR`'s right flow exactly when
 the two `nonconn_sound` checks both hold: `sourceCheck = source ∧ {g>0}` UNSAT (entry strictly
 safe, `g ≤ 0` at entry) and `barrierCheck = domain ∧ g=0 ∧ (Lie g sysR) ≥ 0` UNSAT (strict
 flow-away on the threshold, `DI_strict`). Here `g` is the successor guard's safe-side term with
@@ -558,8 +571,8 @@ other pair (`sat`/`unknown`/`error`), an over-long script, or an unbuildable / n
 guard keeps the edge (`| _, _ => false`). A query bug can then only fail to prune (over-decline),
 never wrongly prune (false-certify). The drop's soundness is the proven `nonconn_sound`; here we
 supply its two UNSAT hypotheses. Only a STRICT scalar successor guard (`a > b` / `a < b`), or a
-conjunction whose LEADING conjunct is one (the barrier is that conjunct; the guard implies it;
-added 2026-10-10 for the latched multi-link AEB sinks of `platoon3_*`), is prunable — a CLOSED
+conjunction whose LEADING conjunct is one (the barrier is that conjunct; the guard implies it),
+is prunable — a CLOSED
 guard (`≥`/`≤`) has a boundary the strict barrier cannot exclude, so it is kept (scope, not
 unsoundness). -/
 def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
@@ -584,24 +597,25 @@ def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
       | .ok .unsat, .ok .unsat => pure true    -- BOTH UNSAT ⟹ Definition 6 non-connection ⟹ PRUNE
       | _, _                   => pure false   -- anything else ⟹ keep the edge required
 
-/-! ## Existential mode choice (default; `RELCERT_NO_CHOICE=1` disables it)
+/-! ## Committed successor subsets (default; `RELCERT_NO_CHOICE=1` disables them)
 
-Definition 8 with its committed-subset cases: two moves in which the witness CHOOSES the right system's next
-mode instead of covering every successor:
+Paper Definition 8 with its committed-subset alternative, plus an entry hop: two moves in
+which the witness CHOOSES the right system's next mode instead of covering every successor:
 
-* **chosen successors**: after a joint (resp. right-only) segment in `q`, cover only a
-  subset `S` of the retained (resp. exit) successors, provided the coverage query
+* **committed subset**: after a joint (resp. right-only) segment in `q`, cover only a
+  subset `S` of the retained successors of that kind, provided the coverage query
   `EndRegion(q) ∧ ⋀_{q'∈S} ¬guard(q')` is `unsat` (wherever the segment ends, some
-  successor in `S` is enabled);
+  successor in `S` is enabled; paper §4.3, "Committed subsets");
 * **entry hop**: a zero-duration switch from `q` into a successor `q'`, provided the
   coverage query over `StartRegion(q)` is `unsat`; at most one hop before each segment.
+  The hop has no counterpart in the paper's Definition 8.
 
 Coverage is monotone in `S`, so only the maximal coverable subset is queried. This search
 is tried only after the `decideCovered` gate has failed, so it can only add certificates; a
 cover it accepts is reported on stderr as `[choice] …`, and the chosen sets are emitted
 under `RELCERT_CHOICE_OUT` (`Trusted/ChoiceEmit.lean`). Soundness: the argument is
-`docs/CHOICE-SOUNDNESS.md`, mechanized as the general Theorem 3 with choice
-(`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`); the generic bridge replays the emitted
+`docs/CHOICE-SOUNDNESS.md`, mechanized in the general Theorem 3 (`theorem3_of_coverX`,
+paper Appendix B.1, `docs/THEOREM3-GENERAL.md`); the generic bridge replays the emitted
 chosen sets through `decideCoveredX` and reads each coverage query's `unsat` as the
 coverage premise (`Proofs/Encoding/Emitted/Choice.lean`, `docs/BRIDGE.md`). -/
 
@@ -610,8 +624,8 @@ structure ChoiceCtx (n : ℕ) where
   node      : String → Bool
   jointOK   : String → Bool
   dynOK     : String → Bool → Bool          -- σ: true = pre-joint
-  retained  : String → List String          -- self-loop + non-pruned declared successors
-  exits     : String → List String          -- non-pruned, non-self declared successors
+  retained  : String → List String          -- joint kind: self-loop + non-pruned declared successors
+  exits     : String → List String          -- right-only kind: non-pruned, non-self declared successors
   hopTgts   : String → List String          -- non-pruned, non-self declared successors
   guardR    : String → Option (IForm n)
   jointEnd  : String → IForm n
@@ -627,8 +641,9 @@ def coverageUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt dead
   let q := (negs.filterMap id).foldl IForm.and region
   probeUnsat s cnt maxQ maxSmt deadline coord q
 
-/-- Definition 8 with committed subsets (name-based, memoized). `path` rejects budget-neutral cycles
-(a revisit of an in-progress configuration is uncovered, as in Definition 8). -/
+/-- Paper Definition 8 with committed subsets and the entry hop (name-based, memoized on the
+configuration `(mode, budget, pre-joint?, hop allowed?)`). `path` rejects budget-neutral
+cycles (a revisit of an in-progress configuration is uncovered, as in Definition 8). -/
 partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (coord : Fin n → String) (cx : ChoiceCtx n)
     (memo : IO.Ref (Std.HashMap (String × Nat × Bool × Bool) Bool))
@@ -642,9 +657,9 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
   let rec' := fun (q' : String) (B' : Nat) (pre' hop' : Bool) =>
     choiceCover s cnt maxQ maxSmt deadline coord cx memo log clog path q' B' pre' hop'
   let mut ok := false
-  -- base: a joint segment closes the remaining budget
+  -- finish: a joint segment closes the remaining budget
   if cx.node q && cx.jointOK q && B ≤ 1 then ok := true
-  -- joint step: all retained successors (old rule), else a chosen covered subset
+  -- continue, joint: all retained successors, else a committed subset of the covered ones
   if !ok && cx.node q && cx.jointOK q && 1 < B then
     let R := cx.retained q
     let mut C : List String := []
@@ -656,7 +671,7 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
         ok := true
         log.modify (· ++ [s!"joint {q} B={B} chose {C} of {R}"])
         clog.modify (· ++ [⟨"", q, .joint, false, C⟩])
-  -- right-only reposition: all exits (old rule), else a chosen covered subset
+  -- continue, right-only: all retained successors (exits), else a committed subset
   if !ok && cx.node q && cx.dynOK q pre && 0 < B then
     let E := cx.exits q
     if !E.isEmpty then
@@ -684,18 +699,19 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
   return ok
 
 
-/-! ## The progress certificate search (`Trusted/ProgressEmit.lean`) -/
+/-! ## The reposition certificate search (paper Definition 7, §6.1; `Trusted/ProgressEmit.lean`) -/
 
-/-- The progress certificates found in the current run (per benchmark; reset by
-`certifyWithData`), for emission. -/
+/-- The reposition certificates (stage lists) found in the current run (per benchmark; reset
+by `certifyWithData`), for emission. -/
 initialize progressLog : IO.Ref (List Progress.ProgressE) ← IO.mkRef []
 
-/-- The chosen sets of the current run (per benchmark; reset by `certifyWithData`), for
-emission (`RELCERT_CHOICE_OUT`). -/
+/-- The committed subsets of the current run (per benchmark; reset by `certifyWithData`),
+for emission (`RELCERT_CHOICE_OUT`). -/
 initialize choiceLog : IO.Ref (List Choice.ChoiceEntryE) ← IO.mkRef []
 
-/-- The pre-landing nodes of the current run (per benchmark; reset by `certifyWithData`), for
-emission (`RELCERT_PRELANDING_OUT`); empty when the run switched the pre-landing feature off
+/-- The pre-landing nodes of the current run (right-only nodes certified on the restricted
+mode `m|¬target`, paper Lemma 4; per benchmark; reset by `certifyWithData`), for emission
+(`RELCERT_PRELANDING_OUT`); empty when the run switched the pre-landing feature off
 (`RELCERT_NO_PRELANDING=1`). -/
 initialize prelandLog : IO.Ref (List Preland.PrelandNodeE) ← IO.mkRef []
 
@@ -719,17 +735,19 @@ partial def thresholdAtoms : PForm → List (String × ℚ × Bool)
   | .and a b => thresholdAtoms a ++ thresholdAtoms b
   | _ => []
 
-/-- **The progress search** at a reposition node with region `R` (the facts its right-only
-flow preserves), field `fR`, and exits. Candidates: a threshold atom of an exit guard as the
-last stage (its landing query first, then its rate on a geometric grid); failing that, one
+/-- **The reposition certificate search** (paper Definition 7, discharged by a stage list as
+in §6.1) at a right-only node with region `R` (the facts its right-only flow preserves: the
+mode facts and the left mode's invariant), field `fR`, and exits (the retained successors of
+the right-only kind). Candidates: a threshold atom of an exit guard as the last stage (its
+landing query first, then its rate on the geometric grid `1, 1/2, …, 1/128`); failing that, one
 helper stage on a coordinate the field reads (its keep query, its rate, then the last stage's
 rate under the helper's crossed fact); the helper and the landing stage each in either
 direction. Two stages at most; a found list is returned only if it passes `Progress.shapeOK`,
-the kernel's shape test (`Emitted.certOK`), which since 2026-11-01 accepts every direction pair
-(`docs/PRELANDING.md`). `accept` (the pre-landing check,
-`checkDynRepo` on the region, which reads only the last stage): a found stage list is returned only if it
+the kernel's shape test (`Emitted.certOK`), which accepts every direction pair
+(`docs/PRELANDING.md`). `accept` (the pre-landing check, `checkDynRepo` on the restricted mode
+`m|¬target`, which reads only the last stage): a found stage list is returned only if it
 holds, otherwise the next candidate is tried; the default accepts, so with the pre-landing
-feature off (`RELCERT_NO_PRELANDING=1`) the search is the old one. -/
+feature off (`RELCERT_NO_PRELANDING=1`) the first stage list found is returned. -/
 def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (coord : Fin n → String) (R guardq : IForm n) (fR : Fin n → ITerm n)
     (exits : List PMode)
@@ -786,8 +804,9 @@ def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt dead
       | none => pure ()
   return none
 
-/-- Cover a single left mode: `cov` if some (start,λ) closes definitively; `incon` if none
-close but a route was inconclusive; `nocov` if all routes are definitive fails. -/
+/-- Cover a single left mode (paper §5, Definition 8 from every admissible start): `cov` if
+some stretch closes the cover from every admissible start; `incon` if none closes but a route
+was inconclusive; `nocov` if all routes are definitive fails. -/
 def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p : PProblem)
     (vars : List String) (n : ℕ)
     (coord : Fin n → String) (comps : List (ITerm n))
@@ -796,8 +815,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     (epsL epsR lmin lmax : ℚ) (mL : PMode) (strict : List Bool := []) :
     IO (Cov3 × Option LeftCoverE) := do
   let mut sawIncon := false
-  -- FIX 1 (precise admissibility): the admissible initial right modes for `mL` — those with an
-  -- invariant-satisfying initial pair. λ-independent (guards + `ϕ_rel` only), so computed ONCE.
+  -- Admissibility: the admissible initial right modes for `mL` — those with an
+  -- invariant-satisfying initial pair. λ-independent (guards + invariant only), so computed ONCE.
   -- `.cov` will require every admissible start to cover (the ∀ over initial pairs); an
   -- inadmissible mode (no `guardL ∧ guardR ∧ ϕ_rel` pair, proven by Z3 `unsat`) is dropped.
   let mut admMods : List PMode := []
@@ -816,16 +835,13 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     | none => IForm.tt
   let declared := fun (nm : String) =>
     ((succOf p nm).filter (fun t => !prunedOf nm t)).eraseDups
-  -- The only right-only move is the DYNAMIC reposition below: a full-interval right-only flow.
-  -- There is no zero-duration right switch (one that would switch at a single instant with no
-  -- check that the successor's guard holds there).
-  -- DYNAMIC reposition (the right-only flow certificate of Lemma 4): right-only whole-domain flow cert (route A), σ-matched.
-  -- λ-independent (fL=0, λ=1; sign λ-invariant), computed ONCE. For the rover cross-terrain hop,
-  -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
+  -- The right-only segment of the all-successors cover: right-only cycles of the right mode
+  -- with the left frozen (paper Definition 3). Its right-only flow certificate on the whole
+  -- domain (route A), per source setting σ, is λ-independent (fL=0, λ=1), computed ONCE.
   let mut dynMap : List (String × Bool × Bool) := []
   let mut dynOrders : List (String × List Nat × List Nat) := []
   -- With the pre-landing feature (`p.prelanding`, on unless `RELCERT_NO_PRELANDING=1`) the
-  -- whole-domain pack is not tried: every reposition node is a pre-landing node (below), whose
+  -- whole-domain pack is not tried: every right-only node is a pre-landing node (below), whose
   -- pack is implied by the whole-domain one on the same strata.
   for mR in p.R.modes do
     let (pre, preOrd)  ← if p.prelanding then pure (false, []) else
@@ -834,16 +850,17 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR false
     dynMap := dynMap ++ [(mR.name, pre, post)]
     dynOrders := dynOrders ++ [(mR.name, preOrd, postOrd)]
-  -- PROGRESS (default; `RELCERT_NO_PROGRESS=1` disables): a reposition node must also certify that its right-only
-  -- flow reaches an exit (`checkProgress`, `Trusted/ProgressEmit.lean`); otherwise it is not
-  -- a node. The certificates found are logged for emission (`RELCERT_PROGRESS_OUT`).
-  -- the progress certificate is required of every reposition node by default
-  -- (`RELCERT_NO_PROGRESS=1` disables it: the ablation of the right-only kind's progress)
+  -- REPOSITION CERTIFICATE (paper Definition 7, Lemma 4): a right-only node must also certify
+  -- that its right-only cycles reach a retained successor (`checkProgress`,
+  -- `Trusted/ProgressEmit.lean`); otherwise it is not a node. Required by default;
+  -- `RELCERT_NO_PROGRESS=1` disables the requirement (ablation). The certificates found are
+  -- logged for emission (`RELCERT_PROGRESS_OUT`).
   let progressOn := (← IO.getEnv "RELCERT_NO_PROGRESS").isNone
   let mut progMap : List (String × Bool × Bool) := []
-  -- PRE-LANDING (the run feature `p.prelanding`, `docs/PRELANDING.md`): the progress search runs first;
-  -- each candidate stage list is accepted only if the pre-landing pack holds on the half-open
-  -- region before its last stage (`checkDynRepo` on the region). `(mR, pre, order)` per node found.
+  -- PRE-LANDING (the run feature `p.prelanding`, `docs/PRELANDING.md`; paper Lemma 4): the
+  -- reposition search runs first; each candidate stage list is accepted only if the right-only
+  -- flow certificate holds on the restricted mode `m|¬target`, the half-open region before its
+  -- last stage (`checkDynRepo` on the region). `(mR, pre, order)` per node found.
   let mut plMap : List (String × Bool × List Nat) := []
   let plOrd ← IO.mkRef ([] : List Nat)
   if progressOn then
@@ -886,12 +903,12 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   let progOK := fun (nm : String) (pre : Bool) =>
     !progressOn || (((progMap.find? (·.1 == nm)).map (fun t => if pre then t.2.1 else t.2.2)).getD false)
   -- BASELINE `RELCERT_SYNC=1` (time-synchronous matching): λ = 1 only, no right-only
-  -- reposition, no per-pairing fallback; multi-step joint covers stay allowed.
+  -- nodes, no per-pairing fallback; multi-step joint covers stay allowed.
   let sync := (← IO.getEnv "RELCERT_SYNC").isSome
-  -- `RELCERT_NO_REPO=1`: no right-only reposition nodes of the all-successors kind (the
-  -- chosen-exits form of the choice cover is the hop, which needs no reposition node).
+  -- `RELCERT_NO_REPO=1`: no right-only nodes (all-successors or committed-subset); the
+  -- choice cover's entry hop needs no right-only node and stays available.
   let noRepo := (← IO.getEnv "RELCERT_NO_REPO").isSome
-  -- MEASUREMENT `RELCERT_SINGLE_STEP=1` (information only, 2026-10-30): single-step covers
+  -- MEASUREMENT `RELCERT_SINGLE_STEP=1` (information only): single-step covers
   -- only, one right control step per left window: a cover whose segment budget B exceeds 1 is
   -- not accepted (the common pass, the per-pairing fallback and the choice cover alike). It only
   -- removes covers, so it can turn CERTIFIED into DECLINED, never the reverse.
@@ -916,22 +933,22 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     IO.eprintln s!"  [repo-dyn-pre] {mL.name}_L: {dpreL} [repo-dyn-post]: {dpostL}"
     if p.prelanding then
       IO.eprintln s!"  [repo-prelanding] {mL.name}_L: {plMap.map (fun t => s!"{t.1}{if t.2.1 then "/pre" else "/post"}")}"
-  -- PER-PAIRING STRETCH (fallback). The common pass below keeps one λ per left mode. When no
-  -- common λ closes the cover, each right mode may use its own stretch: the smallest positive
-  -- candidate at which its joint segment passed, or the stutter stretch `0` (the run feature
-  -- `p.stutter`, on unless `RELCERT_NO_STUTTER=1`) only
-  -- if it passed at no positive one (`firstPass`, recorded during the common pass, so the
+  -- PER-PAIRING STRETCH (fallback; paper §6.1, "Flow certificates and the stretch"). The common
+  -- pass below keeps one λ per left mode. When no common λ closes the cover, each right mode
+  -- may use its own stretch: the smallest positive candidate at which its joint segment
+  -- passed, or stretch `0` (the run feature `p.stutter`, on unless `RELCERT_NO_STUTTER=1`)
+  -- only if it passed at no positive one (`firstPass`, recorded during the common pass, so the
   -- fallback asks Z3 nothing new). Every joint segment is then cut to the common left span
   -- δ = εR / λmax (λmax the largest chosen stretch): a segment of mode `mR` at stretch λ_mR
   -- lasting δ of left time reaches τ_R = λ_mR·δ ≤ εR, inside the right interval, and the
   -- budget stays the integer count ⌈εL/δ⌉ with unit weights, so the verified `decideCovered`
   -- gate and its soundness proof are unchanged. Soundness: each pairing's flow obligation is
   -- certified at its own λ (the per-pair `Verd` the instance replays, `couple_cutX` takes λ
-  -- per coupling); the shorter span only cuts segments short, which Lemma 2 (its conclusion holds
-  -- throughout a segment) and Assumption 1 (every duration ≤ εR ends in a successor's guard)
-  -- admit. Partial right cycles are within the model the bridge proves Theorem 3 over: its
-  -- clocked right automaton `rightAutomatonBodyC` tests `tr ≤ εR`, so a right cycle may end
-  -- early (the unclocked right automaton of the archived standalone route admitted them too).
+  -- per coupling); the shorter span only cuts segments short, which the flow certificate
+  -- (Definition 5: its conclusion holds throughout a run) and Assumption 1 (every duration
+  -- ≤ εR ends in a successor's guard) admit. Partial right cycles are within the model the
+  -- bridge proves Theorem 3 over: its clocked right automaton `rightAutomatonBodyC` tests
+  -- `tr ≤ εR`, so a right cycle may end early.
   -- `RELCERT_NO_PAIR_STRETCH=1` disables the fallback (ablation: one stretch per left mode).
   let mut firstPass : List (String × ℚ × List Nat) := []   -- per mR: smallest passing λ, its order
   let mut lastOrder : List (String × List Nat) := []       -- per mR: the last computed order
@@ -940,9 +957,10 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     | some t => (t.2.1, t.2.2)
     | none => ([], [])
   -- the structural gate at a given segment status / strata / window stretch: `.cov` iff every
-  -- admissible initial mode covers (shared by the common pass and the fallback)
+  -- admissible initial mode covers (shared by the common pass and the fallback); see the
+  -- comment at its use in the stretch loop below
   let gate := fun (seg : String → Seg) (strataMap : List PairStrataE) (lamQ deltaL : ℚ) =>
-    -- segment budget B = ⌈εL/δL⌉ (weight 1 per segment), capped; single-sync ⟺ B ≤ 1
+    -- segment budget B = ⌈εL/δL⌉ (weight 1 per segment), capped at 256; one segment ⟺ B ≤ 1
     let bBudget := min (epsL / deltaL).ceil.toNat 256
     let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
       { name := m.name, jointOK := seg m.name == Seg.pass,
@@ -962,7 +980,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       some ({ mL := mL.name, lamQ := lamQ, bBudget := bBudget, flags := flagRows,
               admissible := admMods.map (·.name), strata := strataMap } : LeftCoverE)
     else none
-  -- existential mode choice context (default, `RELCERT_NO_CHOICE=1` disables; see `choiceCover`)
+  -- committed-subset (choice) context (default, `RELCERT_NO_CHOICE=1` disables; see `choiceCover`)
   let choiceOn := (← IO.getEnv "RELCERT_NO_CHOICE").isNone
   let mut choiceCands : List (ℚ × ℚ × List (String × Seg) × List PairStrataE) := []
   -- MEASUREMENT `RELCERT_LAMBDA_SCAN=1`: evaluate every λ candidate (no early exit at the first
@@ -986,7 +1004,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
         ((modeOf nm).map (fun m => lowR m.guard) |>.getD IForm.tt) } : ChoiceCtx n)
   for lam in (if sync then [(1 : ℚ)] else lambdaCandidates lmin lmax epsL epsR (stutterAllowed p)) do
     -- `winLam`: the window stretch (`lamQ`); `lam` itself is every pairing's stretch here, `0`
-    -- only for the stutter candidate (`windowOf`, `docs/STUTTER.md`)
+    -- only for the stretch-0 candidate (`windowOf`, `docs/STUTTER.md`)
     let (winLam, deltaL) := windowOf lam epsL epsR
     if deltaL ≤ 0 then continue
     -- precompute per-right-mode segment status at this λ
@@ -1000,8 +1018,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       lastOrder := (mR.name, order) :: lastOrder.filter (·.1 != mR.name)
       if st == Seg.pass then
         match firstPass.find? (·.1 == mR.name) with
-        -- the smallest POSITIVE passing stretch; the stutter candidate `0` (last) only for a
-        -- pairing that passed at no positive one (the reference keeps pace where it can)
+        -- the smallest POSITIVE passing stretch; the candidate `0` (last) only for a
+        -- pairing that passed at no positive one (the witness keeps pace where it can)
         | some t => if lam != 0 && lam < t.2.1 then
             firstPass := (mR.name, lam, order) :: firstPass.filter (·.1 != mR.name)
         | none => firstPass := firstPass ++ [(mR.name, lam, order)]
@@ -1018,38 +1036,32 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln (s!"  [{mL.name}_L λ={lam} #comps={comps.length}] " ++
         String.intercalate " " (segMap.map (fun p => s!"{p.1}={repr p.2}")))
-    -- VERIFIED structural gate (Step 4 + Definition 8 fidelity): CERTIFIED flows through the verified
-    -- computable `decideCovered`, not the untrusted `dfsCov3`. For each start, `coverVisit`
-    -- runs Definition 8 (certified-aware) to find the visited mode set; we build `decideCovered`'s
-    -- graph over EXACTLY that set (every visited mode certifies ⟹ `CoverCert` holds, and — by
-    -- Def 4 — a `step` node's successors are all visited, so no real edge is dropped). A single-
-    -- sync cover hits the `base` case (`B ≤ 1`), visiting only the start, so its non-certifying
-    -- closed-leaf successors are correctly irrelevant. `decideCovered = true` ⟹ `Covered` ⟹
-    -- (via `check_sound`) the ∀∃-throughout invariant. Its `false` ⟹ decline (never false CERTIFIED).
-    -- FIX 1 (soundness): the initial right mode is NOT a free ∃-pick. Def 4 / the ∀∃ property
-    -- quantify over EVERY admissible initial pair `(mL, mR0)`; the right's start mode is
-    -- determined by `s_R`. So `.cov` requires that EVERY admissible initial mode (`admMods`,
-    -- computed once above via `admissible`) covers — not that some start does.
-    -- FIX 2 (soundness): run the VERIFIED `decideCovered` on the REAL declared-successor graph,
-    -- NOT the `coverVisit` visited set (which the checker would merely rubber-stamp). Nodes =
-    -- the certified (`seg = pass`) right modes; EDGES = ALL declared edges. An edge whose target
-    -- is UNCERTIFIED points to an out-of-range sentinel index `k`, so `decideCovered`'s
-    -- ∀-over-`retainedSucc` hits `modeAt = none` there and fails — an uncertified declared
-    -- successor cannot be silently stripped from the ∀. Weight 1 / budget `⌈εL/δL⌉` is the
-    -- faithful ℕ-discretization of `(B = εL, w = εR/λ)`: base fires at `B ≤ 1 ⟺ εL ≤ εR/λ`
-    -- (one segment closes the residence), matching the paper's real-valued base condition.
-    -- NODES = modes joint-certified OR dynamic-reposition-certified (pre-j OR post-j). Each node
-    -- carries `jointOK`, `dynPre`, `dynPost`; `decideCovered` offers base/joint-step where
-    -- `jointOK`, and the zero-budget dynamic reposition step σ-matched (pre-j → `dynPre`, post-j
-    -- → `dynPost`). The emitted flag rows are what `--emit-cover` prints — ONE construction,
-    -- `buildCoverGraph`, shared by the gate and the kernel replays. The fuel bounds
-    -- `decideCovered`'s depth: joint steps decrease budget (≤ `bBudget`), reposition steps keep
-    -- budget but recurse only through repo-OK nodes' non-self exits; a budget-decrement can be
-    -- interleaved with a zero-budget reposition through EACH node, so the worst-case depth is
-    -- `bBudget·(nodeMods+1)`. Fuel only bounds the checker's search depth — larger is always
-    -- sound (`decideCovered_sound` is fuel-generic); too-small merely over-declines. A start is
-    -- usable iff it is a node; the initial source setting is **preJ** (no joint yet). Empty
-    -- `admMods` ⟹ do NOT certify (a possibly-buggy all-drop cannot vacuously certify).
+    -- VERIFIED structural gate (paper Definition 8, Lemma 5): CERTIFIED flows through the
+    -- verified computable `decideCovered` (`gate` above), never through an untrusted search.
+    -- `decideCovered = true` ⟹ `Covered` ⟹ (via `check_sound`) the ∀∃-throughout invariant;
+    -- its `false` ⟹ decline (never a false CERTIFIED).
+    -- * Every admissible start must cover (Theorem 1 quantifies over every admissible initial
+    --   right mode): `.cov` requires `admMods.all startCovers`, not that some start does.
+    -- * The graph is the REAL declared-successor graph (`buildCoverGraph`): nodes are the right
+    --   modes with a joint or right-only certificate, edges ALL non-pruned declared edges. An
+    --   edge whose target is not a node points to an out-of-range sentinel index, so
+    --   `decideCovered`'s ∀ over the retained successors hits `modeAt = none` there and fails —
+    --   an uncertified declared successor cannot be silently stripped from the ∀.
+    -- * Weight 1 / budget `⌈εL/δL⌉` is the ℕ-discretization of the budget `εL` with segment
+    --   duration `δL` (paper Appendix B.2, "Budgets"): finish fires at `B ≤ 1 ⟺ εL ≤ δL` (one
+    --   segment closes the left cycle).
+    -- * Each node carries `jointOK`, `dynPre`, `dynPost`; `decideCovered` offers finish /
+    --   joint continue where `jointOK`, and the zero-budget right-only continue per source
+    --   setting (pre-joint → `dynPre`, post-joint → `dynPost`). The emitted flag rows are what
+    --   `--emit-cover` prints — ONE construction, `buildCoverGraph`, shared by the gate and the
+    --   kernel replays.
+    -- * The fuel bounds `decideCovered`'s depth: joint steps decrease the budget (≤ `bBudget`),
+    --   right-only steps keep it but recurse only through right-only nodes' non-self exits, so
+    --   the worst-case depth is `bBudget·(nodeMods+1)`. Fuel only bounds the checker's search
+    --   depth — larger is always sound (`decideCovered_sound` is fuel-generic); too small
+    --   merely over-declines.
+    -- A start is usable iff it is a node; the initial source setting is pre-joint (`preJ`).
+    -- Empty `admMods` ⟹ do NOT certify (a possibly-buggy all-drop cannot vacuously certify).
     if scan then scanGrid := scanGrid ++ [lam]
     match gate seg strataMap winLam deltaL with
     | some lc =>
@@ -1057,9 +1069,10 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
           if scanCover.isNone then scanCover := some lc
         else return (.cov, some lc)
     | none => pure ()
-    -- existential mode choice is NOT tried here: it runs only after the whole λ loop and the
-    -- per-pairing fallback have failed with the old rule (below), so every cover the old rule
-    -- finds is emitted unchanged. Record this λ's segment status for the choice pass.
+    -- committed subsets are NOT tried here: the choice cover runs only after the whole λ loop
+    -- and the per-pairing fallback have failed with the all-successors rule (below), so every
+    -- all-successors cover is emitted unchanged. Record this λ's segment status for the
+    -- choice pass.
     if choiceOn then choiceCands := choiceCands ++ [(lam, deltaL, segMap, strataMap)]
     if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
   if scan then
@@ -1096,10 +1109,10 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       match gate seg strataMap winMax deltaL with
       | some lc => return (.cov, some lc)
       | none => pure ()
-  -- existential mode choice (docs/CHOICE-SOUNDNESS.md; mechanized as `theorem3_of_coverX`,
-  -- the emitted chosen sets replayed by the generic bridge).
-  -- Reached only when no λ and no per-pairing stretch closed the cover with the old rule;
-  -- tries the λ candidates in the same order as the old rule.
+  -- committed subsets and the entry hop (docs/CHOICE-SOUNDNESS.md; mechanized in
+  -- `theorem3_of_coverX`, the emitted chosen sets replayed by the generic bridge).
+  -- Reached only when no λ and no per-pairing stretch closed the cover with the
+  -- all-successors rule; tries the λ candidates in the same order.
   if choiceOn && !admMods.isEmpty then
     for (lam, deltaL, segMap, strataMap) in choiceCands do
       let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
@@ -1130,8 +1143,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
         return (.cov, some lc)
   return ((if sawIncon then .incon else .nocov), none)
 
-/-- **The run's feature flags** (since 2026-10-31, `docs/BATCH12-2026-10-31.md`): stretch 0
-(`stutter`, `docs/STUTTER.md`) and the pre-landing right-only certificate (`prelanding`,
+/-- **The run's feature flags**: stretch 0 (`stutter`, paper §4.1, `docs/STUTTER.md`) and the
+right-only flow certificate on the restricted mode `m|¬target` (`prelanding`, paper Lemma 4,
 `docs/PRELANDING.md`) are ON for every benchmark; neither changes the claimed property (Theorem 3's
 statement) and both are sound for every benchmark. The ablation switches turn one off for a run:
 `RELCERT_NO_STUTTER=1`, `RELCERT_NO_PRELANDING=1`. The flags are recorded in the problem, so the
@@ -1159,18 +1172,18 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   let epsR := (parseRat p.R.epsilon).getD 1
   let lmin := (parseRat p.lambdaMin).getD 1
   let lmax := (parseRat p.lambdaMax).getD 1
-  -- CHECKED CUTS (λ- and pair-independent: each mode's own guard + own field),
-  -- computed ONCE per mode per side. Used ONLY to narrow query domains (never the model).
-  -- RELCERT_NO_CUT=1 disables the checked-cut channel entirely (ablation switch:
+  -- MODE FACTS (paper Definition 2; λ- and pair-independent: each mode's own guard + own
+  -- field), computed ONCE per mode per side. Used ONLY to narrow query domains (never the
+  -- model). RELCERT_NO_CUT=1 disables the mode-fact channel entirely (ablation switch:
   -- queries fall back to the bare evolution domains).
   let noCut := (← IO.getEnv "RELCERT_NO_CUT").isSome
   -- RELCERT_IMPLIED_CUT=1 widens the candidate set (L1 implied-contraction atoms, L2
   -- closures; `checkedCutX`); off by default, see `impliedCutsOn`.
   let implied ← impliedCutsOn
   let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
-  -- one mode's cut: `(domain narrowing, kept-atom count, extended atoms)`; the
-  -- `[cut]` line counts every kept atom (legacy format), `[cut-x]` lists the
-  -- extended ones (implied mode only)
+  -- one mode's mode fact: `(domain narrowing, kept-atom count, extended atoms)`; the
+  -- `[cut]` line counts every kept atom, `[cut-x]` lists the extended ones (implied
+  -- mode only)
   let cutOf (side : Side) (mM : PMode) : IO (IForm n × Nat) := do
     if noCut then pure (IForm.tt, 0)
     else if implied then do
@@ -1200,8 +1213,8 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
     cutMapR := cutMapR ++ [(mM.name, c)]
   let cutOfL := fun (nm : String) => (cutMapL.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
   let cutOfR := fun (nm : String) => (cutMapR.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
-  -- FIX 3: non-connection pruning (Definition 6). mL- AND λ-independent (right flow + right guards only),
-  -- so computed ONCE for the whole problem. Edge `mR → tgt` pruned iff BOTH nonconn checks are
+  -- PRUNING by non-connection certificates (paper Definition 6). mL- AND λ-independent (right
+  -- flow + right guards only), so computed ONCE for the whole problem. Edge `mR → tgt` pruned iff BOTH nonconn checks are
   -- definitive Z3 UNSAT (`nonConnPrune`); any other verdict keeps it. Drop-only-on-UNSAT ⟹ sound.
   -- RELCERT_NO_PRUNE=1 disables non-connection pruning entirely (ablation switch, the
   -- counter-run of the suite_v2 matrix: every declared edge stays in the cover's
@@ -1231,10 +1244,9 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   let mut sawIncon := false
   let mut covers : List LeftCoverE := []
   for mL in p.L.modes do
-    -- invariant for this left mode (key = mode name, else first)
-    -- strict: every left mode must carry its own invariant row (the old head-of-list
-    -- fallback silently certified the FIRST row's formula for unmatched modes — an
-    -- accept-and-weaken route at key resolution)
+    -- invariant row of this left mode (key = mode name; paper Eq. (9) for a mode-dependent
+    -- invariant). Strict: every left mode must carry its own row; falling back to another
+    -- row would certify that row's formula for an unmatched mode, a weaker reading.
     let invF := (p.invariants.find? (·.1 == mL.name)).map Prod.snd
     match invF with
     | none => return (.error s!"no invariant for left mode {mL.name}", none)
@@ -1244,8 +1256,8 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
         | some comps =>
             -- DIAGNOSTIC `RELCERT_OPREGION=1` (no effect on the verdict): does the invariant row
             -- admit a start with the left in its guard and both sides in their domains, but the
-            -- right state in NO right guard? Such starts lie outside the right's operating
-            -- region and are excluded by Theorem 3's premise. One query per left mode.
+            -- right state in NO right guard? Such starts lie outside the operating region opR
+            -- (paper Eq. (10)) and are excluded by Theorem 3's premise. One query per left mode.
             if (← IO.getEnv "RELCERT_OPREGION").isSome then
               let low := fun (side : Side) (f : PForm) => (lowerF vars n side f).getD IForm.tt
               let inv : IForm n := comps.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0))) IForm.tt
@@ -1273,14 +1285,14 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   -- `p.L.modes` never enters the loop (the parser rejects that — `validateSystem`'s
   -- "no modes" — so this is defence in depth, not a live hole), and the `(.cov, none)`
   -- branch above skips the append. Counting is the same discipline the verdict runners
-  -- use (`Verdicts/Coverage.lean`): a pass that did less work than it owes must not
+  -- use (`RelCertifier/Verdicts/Coverage.lean`): a pass that did less work than it owes must not
   -- look like one that did it all. Strictly conservative — it can only turn a
   -- `CERTIFIED` into an `ERROR`, never the reverse.
   else if covers.length != p.L.modes.length then
     return (.error s!"internal: {covers.length} cover(s) for {p.L.modes.length} left \
 mode(s) — a mode was certified without recording one", none)
-  -- GUARD (`docs/STUTTER.md`): a stretch-0 pairing (the stutter segment) is backed only when
-  -- the stutter feature is enabled in this run (`p.stutter`, recorded in the emitted IR) AND the
+  -- GUARD (`docs/STUTTER.md`): a stretch-0 pairing (the witness stands still) is backed only
+  -- when the stretch-0 feature is enabled in this run (`p.stutter`, recorded in the emitted IR) AND the
   -- file's declared stretch range includes `0` (`lambda_min = 0`; `Run.stutterAllowed`, which
   -- `Emitted.timeOK` reads: it admits `lamN = 0` exactly then); a window stretch is always
   -- positive. Defence in depth: `lambdaCandidates` never offers `0` otherwise.
@@ -1394,13 +1406,13 @@ def evolveFacesR (vars : List String) (n : ℕ) : PForm → Option (List (ITerm 
       some (lx ++ ly)
   | _ => none
 
-/-- **R6 viability check**: per right mode, per evolve-box face, the STRICT inward
+/-- **Viability check** (toward the nonblocking clause of paper Assumption 1, whose proofs
+are written per benchmark, Appendix B.5): per right mode, per evolve-box face, the STRICT inward
 query — `flowQueryStrict` with the left frozen (`fL = 0`, λ = 1) over the mode's own
 evolve box: `UNSAT(evolve ∧ face = 0 ∧ face-Lie ≥ 0)`. All faces UNSAT ⟹ the mode's
 flows exist and stay in the box for any duration (`box_viability`). Declines honestly
-on equilibrium-on-face and integrator (growth) faces — those take the bounded-time
-variant (docs/history/COVER-AUDIT.md R6) or a named per-mode hypothesis. Used only by
-`--emit-viability`. -/
+on equilibrium-on-face and integrator (growth) faces — those need a bounded-time
+argument or a named per-mode hypothesis. Used only by `--emit-viability`. -/
 def checkViability (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (mR : PMode) : IO Bool := do
   -- a strict evolve atom lowers to its closure face: never pass on a vacuous face probe

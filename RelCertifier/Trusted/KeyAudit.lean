@@ -2,20 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# W6 — the unknown-key audit gate
+# The unknown-key audit gate
 
-The trusted parser reads the keys it knows and SILENTLY DROPS the rest: a
-`reset = x := 1.0` line would certify green with the reset discarded, and every suite
-input carries an unread `max_depth` (`docs/history/COVER-AUDIT.md`). Editing `Trusted/Parse`
-to reject would force a world rebuild (it is upstream of every emitted leaf), so
-the gate lives at the CLI boundary instead: every entry point that reads a
-benchmark runs `auditKeys` first and REFUSES inputs containing sections or keys
-the parser does not consume. Same operational guarantee — the tool never certifies
-a model containing directives it ignored — with an exe-only rebuild.
+The key audit of the strict parser (paper, Appendix B.4, Trusted Base). The parser
+`Trusted/Parse` reads the keys it knows and drops the rest: a `reset = x := 1.0`
+line would otherwise certify with the reset discarded. The gate sits at the CLI
+boundary: every entry point that reads a benchmark runs `auditKeys` first and
+REFUSES inputs containing sections or keys the parser does not consume, so the
+tool never certifies a model containing directives it ignored.
 
 Recognized: `[problem]` name/max_depth/lambda_min/lambda_max/bound_T (max_depth
-and bound_T are read by no stage and are on the explicit IGNORED list — present in
-all 45 suite_v2 inputs); `[Lsys]`/`[Rsys]` state_vars/epsilon; mode sections
+and bound_T are accepted but read by no stage; every suite_v2 input carries
+both); `[Lsys]`/`[Rsys]` state_vars/epsilon; mode sections
 ode/guard/evolve/next; `[relational_invariant]` any key (keys are mode names).
 -/
 import RelCertifier.Trusted.Parse
@@ -31,8 +29,8 @@ private def sectionKind (s : String) : Option String :=
   else none
 
 private def knownKeys : String → List String
-  -- `stutter` / `prelanding` were opt-in keys until 2026-10-31; both features are now always on
-  -- (run features, `Parse.PProblem`), so a file still carrying either key is refused here
+  -- no `stutter` / `prelanding` key: both are run features, on by default (`Parse.PProblem`),
+  -- so a file carrying either key is refused here
   | "problem" => ["name", "max_depth", "lambda_min", "lambda_max", "bound_T"]
   | "sys" => ["state_vars", "epsilon"]
   | "mode" => ["ode", "guard", "evolve", "next"]

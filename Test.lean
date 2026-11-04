@@ -176,10 +176,7 @@ def testPrinter (cfg : Z3Config) : IO Unit := do
         (.and (eq x (r (-2))) (.cmp .ne (.bin .mul x x) (r 4))) true
       s.close
 
-/-! ## IR drift check: every embedded literal must equal a fresh parse of its file
-
-The 19 carried-over legacy literals (`Instances/BenchIR`) are tied to these by
-`InstancesV2/SameIR.lean` (`rfl`), so this one check covers them too. -/
+/-! ## IR drift check: every embedded literal must equal a fresh parse of its file -/
 
 /-- The suite_v2 drift check: every `benchIRTableV2` literal equals a fresh parse of
 `benchmarks/suite_v2/<name>/input.txt`, and the table covers exactly the suite's files. -/
@@ -246,7 +243,8 @@ def testDeterminism (cfg : Z3Config) : IO Unit := do
           for _ in [0:8] do outs := outs ++ [isCert (← certify s p)]
           check "gantry_speed_zones: 8× identical CERTIFIED" (outs.all id)
       -- a DECLINED benchmark, 8× identical verdict (stability, not the value):
-      -- `engine_start_highidle` declines unless `RELCERT_IMPLIED_CUT=1` widens the cut channel
+      -- `engine_start_highidle` declines unless `RELCERT_IMPLIED_CUT=1` widens the mode-fact
+      -- candidates
       match ← loadProblem "engine_start_highidle" with
       | none => skip "engine_start_highidle: 8× identical verdict" "BENCH_PATHS not set"
       | some p => do

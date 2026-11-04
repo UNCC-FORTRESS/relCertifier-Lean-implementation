@@ -6,35 +6,36 @@ Released under Apache 2.0 license.
 
 Importing this module builds the whole development: the generic soundness layer, the
 suite_v2 well-formedness battery with its axiom audit, the generic-bridge instances and the
-refutation instances. The standalone (pre-bridge) route is archived on branch
-`archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`, planning record, last present at commit 29663d8).
+refutation instances.
 
-* `Core/`: the per-segment flow certificate (Lie derivative ⟹ `DI`, `flow_certified`),
-  rational reification.
-* `Checker/`: the verified cover checker (`decideCovered`, `cover_sound`, `check_sound`),
-  the cover-emission data types, the checked-cut certificates (`EvolStrengthening`, and
-  `EvolStrengtheningX` for the widened channel), the non-connection certificate.
+* `Core/`: the flow certificate of a pairing (Definition 5) by Lie conditions (Lemma 2,
+  Lie derivative ⟹ `DI`, `flow_certified`), rational reification.
+* `Checker/`: the verified cover checker (Definition 8 and Lemma 5: `decideCovered`,
+  `cover_sound`, `check_sound`), the cover-emission data types, the mode-fact
+  certificates (Definition 2: `EvolStrengthening`, and `EvolStrengtheningX` for the widened
+  candidates), the non-connection certificate (Definition 6).
 * `Proofs/`: the soundness development. `Flow/`: flow certificates, stratified barriers,
-  viability faces. `Encoding/`: the dL-rel ∀∃ encoding of Theorem 3 (CSF/NFM'25 bridge,
-  joint segments, the dynamic right-only reposition prefixes, envelope/window chains,
-  mode handoffs, sink regions, the non-connection bridge). `Soundness/`: the cut channel
-  lifted to the kernel (`CutLift`, and `CutLiftX` for the widened channel). `Transfer/`:
-  the scaled-model transfer lemmas.
+  viability faces. `Encoding/`: the dL-rel ∀∃ encoding of Theorem 3 (Soundness of
+  Synthesis): joint segments, the right-only segments of the reposition certificates
+  (Lemma 4), envelope/window chains, mode handoffs (Theorem 2), sink regions, the
+  non-connection bridge. `Soundness/`: the mode facts lifted to the kernel (`CutLift`, and
+  `CutLiftX` for the widened candidates). `Transfer/`: the scaled-model transfer lemmas.
 * `Trusted/`: the IO shell the proofs do not cover (parser, lowering, SMT printer, Z3
   session, the certifier `OracleAPI.certify`, emitters); its single proof-facing interface
-  is `z3_unsat_sound`.
+  is `z3_unsat_sound` (Appendix B.4).
 * `InstancesV2/Bridge`: **the headline**, Theorem 3 of every `benchmarks/suite_v2`
-  benchmark (and the two choice exhibits) through the generic bridge
-  (`Proofs/Encoding/Emitted/`): structural bundles decided in the kernel, Assumption 1
-  transported from the well-formedness battery, the Z3 verdicts assumed as the groups
-  `relcert-bridge-verdicts` discharges (`docs/BRIDGE.md`).
-* `InstancesV2/WellFormedBattery`: the paper's Assumption 1 (Well-Formedness) of each right
-  model as a separate, axiom-audited result (`WellFormedR`, `Proofs/Encoding/WellFormedR`),
-  one self-contained `InstancesV2/WellFormed/<B>.lean` per right model (`docs/WELLFORMED.md`).
+  benchmark (and the two exhibits of committed successor subsets) through the generic
+  bridge (`Proofs/Encoding/Emitted/`): structural bundles decided in the kernel,
+  Assumption 1 transported from the well-formedness battery, the Z3 verdicts assumed as
+  the groups `relcert-bridge-verdicts` discharges (`docs/BRIDGE.md`, Appendix B.1).
+* `InstancesV2/WellFormedBattery`: Assumption 1 (Well-Formedness) of each right model as a
+  separate, axiom-audited result (`WellFormedR`, `Proofs/Encoding/WellFormedR`), one
+  self-contained `InstancesV2/WellFormed/<B>.lean` per right model (`docs/WELLFORMED.md`,
+  Appendix B.5).
 * `InstancesV2/Refute`: the kernel refutations of the known-false invariant variants
-  (`docs/REFUTATION-RESULTS.md`).
+  (`docs/REFUTATION-RESULTS.md`, Appendix B.6).
 * `VerdictsV2/` and `Verdicts/`: the runner tables (`relcert --check-quick-v2`, the bridge,
-  refutation and progress runners) and the shared verdict combinators and pins.
+  refutation and reposition runners) and the shared verdict combinators and pins.
   `InstancesV2/AxiomCheck` is the axiom audit of the generic theorems.
 
 Checking recipe: `docs/CERTIFICATION-CHECK.md`.

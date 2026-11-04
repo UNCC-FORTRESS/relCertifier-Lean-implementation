@@ -2,15 +2,14 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Strictness flags of the invariant components (leaf, extension `strict-atoms`)
+# Strictness flags of the invariant components (leaf)
 
 `invComponents` lowers every atom of a row to a component `g` read as `g ≤ 0`: a strict atom
 (`<`, `>`) lowers to the same `g` as its closure. `invStrictFlags` records, per component and
 in the SAME flatten order, whether the atom it came from was strict. It mirrors
 `invComponents` case by case (same lowering checks, same failure cases), so the two succeed
-together and have the same length (`invStrictFlags_length`).
-
-A new leaf: `invComponents` and every query string are untouched.
+together and have the same length (`invStrictFlags_length`). The strict variants of the
+record-level theorems (the strict-invariant exhibits, Appendix B.1) read this mask.
 -/
 import RelCertifier.Trusted.InvComponents
 
@@ -90,8 +89,10 @@ theorem invStrictFlags_map_length (vars : List String) (n : ℕ) :
 
 /-! ## The search's strict discipline -/
 
-/-- The route queries of a component: all three (A, B, C) for a closure component, only
-A and B for a strict one (route C does not preserve `< 0`, `routeC_counterexample`). -/
+/-- The route queries of a component (`Run.routeQueries`, each the negation of a Lie
+condition of Lemma 2): A, `ġ ≤ 0` on the whole domain; B, Eq. (17), `g = 0 → ġ < 0`; C,
+Eq. (18), `g ≥ 0 → ġ ≤ 0`. All three for a closure component, only A and B for a strict one
+(route C does not preserve `< 0`, `routeC_counterexample`). -/
 def routeQueriesS {n : ℕ} (strict : Bool) (domain : IForm n) (g gdot : ITerm n) :
     List (IForm n) :=
   if strict then (routeQueries domain g gdot).take 2 else routeQueries domain g gdot

@@ -2,12 +2,17 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-Stage 1 — the verified flow certificate (the Lie-derivative heart).
+# Flow certificates and their Lie conditions
 
-The Lie-derivative check:  ġ = Σ_v [∂g/∂L_v · f_L(v) + ∂g/∂R_v · λ · f_R(v)]
-and the flow obligation `g = 0 ∧ ġ > 0` UNSAT.
+The flow certificate of Definition 5, discharged by the Lie conditions of Lemma 2. The Lie
+derivative of an invariant component along the joint product program (Eq. (16), joint kind) is
+  ġ = Σ_v [∂g/∂L_v · f_L(v) + ∂g/∂R_v · λ · f_R(v)],
+and a component is certified when the negation of its condition is UNSAT: Eq. (17)
+(`flowQueryStrict`, strictly inward on the boundary), Eq. (18) (`flowQuerySuperlevel`, never
+increasing where nonnegative), or the domain-wide form `flowQuery` (never increasing anywhere
+in the domain), which implies Eq. (18).
 
-We verify what that tool trusts. Every soundness-critical lemma is anchored to
+Every soundness-critical lemma is anchored to
 dL-lean (v0.1.0-DI): `Term`, `Formula`, `Term.eval`, `Formula.sat`, and the
 semantic differential-invariant theorems `DI_strict` / `DI_nonstrict_domain`.
 -/
@@ -43,7 +48,8 @@ abbrev Av {n : ℕ} (i : Fin n) : Var n := (Side.Aux, i)
 * `fL i`   — left dynamics: the term giving `Lᵢ' = fL i`.
 * `fR i`   — right dynamics (unstretched): `Rᵢ' = fR i`.
 * `lam`    — the time-stretch factor λ (a constant term).
-* `domain` — the evolution-domain formula ψ (left guard ∧ right guard …). -/
+* `domain` — the formula ψ the flow stays in: both systems' evolution domains, conjoined
+  with the mode facts of Definition 2 where the caller supplies them. -/
 structure FlowObligation (n : ℕ) where
   g      : Term (Var n)
   fL     : Fin n → Term (Var n)
@@ -64,7 +70,7 @@ def tderiv {V : Type*} [DecidableEq V] : Term V → V → Term V
   | .binop .mul a b, x => .binop .add (.binop .mul (tderiv a x) b)
                                       (.binop .mul a (tderiv b x))
 
-/-- **THE load-bearing new proof (statement).** The syntactic derivative denotes
+/-- **Syntactic derivative is correct.** The syntactic derivative denotes
 the analytic partial derivative: as a function of the single coordinate `x`
 (all others frozen), `⟦t⟧` has derivative `⟦tderiv t x⟧` at `ω x`.
 
@@ -177,7 +183,7 @@ def jointSys {n : ℕ} (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) :
   (List.finRange n).map (fun i => (Rv i, Term.binop .mul lam (fR i)))
 
 /-- Relational Lie derivative as a **syntactic term**:
-`ġ = Σᵢ [ ∂g/∂Lᵢ · fL i  +  ∂g/∂Rᵢ · (λ · fR i) ]`. Matches `lie_derivative`. -/
+`ġ = Σᵢ [ ∂g/∂Lᵢ · fL i  +  ∂g/∂Rᵢ · (λ · fR i) ]`, the joint case of Eq. (16). -/
 def lieDeriv {n : ℕ} (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) : Term (Var n) :=
   sumTerm ((List.finRange n).map (fun i =>
@@ -222,22 +228,19 @@ theorem jointSys_wellFormed {n : ℕ} (fL fR : Fin n → Term (Var n))
 
 /-! ## (4) Boundary / flow query builder -/
 
-/-- The domain-wide flow query whose UNSAT is the certificate:
-`domain ∧ ġ > 0`. UNSAT ⟹ `ġ ≤ 0` on all of `domain` — precisely the hypothesis
-of dL-lean's `DI_nonstrict_domain`.
+/-- The domain-wide flow query: `domain ∧ ġ > 0`. UNSAT ⟹ `ġ ≤ 0` on all of `domain`,
+precisely the hypothesis of dL-lean's `DI_nonstrict_domain`.
 
-NOTE (soundness, see gate report): the naive literal query is
-`domain ∧ g = 0 ∧ ġ > 0` (boundary-only). That form is **unsound** without a
-regular-boundary hypothesis — dL-lean's `nonstrict_boundary_insufficient` is the
-`t²` counterexample. `flowQueryStrict` below is the boundary form that *is* sound
-(strict, via `DI_strict`); this `flowQuery` is the domain form that is sound via
-`DI_nonstrict_domain`. -/
+The non-strict boundary-only query `domain ∧ g = 0 ∧ ġ > 0` would be unsound without a
+regular-boundary hypothesis (dL-lean's `nonstrict_boundary_insufficient` is the `t²`
+counterexample), so it is not offered. The sound boundary form is the strict
+`flowQueryStrict` below (Eq. (17), via `DI_strict`). -/
 def flowQuery {n : ℕ} (o : FlowObligation n) : Formula (Var n) :=
   Formula.and o.domain
     (Formula.cmp .gt (lieDeriv o.g o.fL o.fR o.lam) (Term.const 0))
 
-/-- Strict boundary query: `domain ∧ g = 0 ∧ ġ ≥ 0`. UNSAT ⟹ `ġ < 0` on the
-boundary `{g = 0} ∩ domain` — the hypothesis of `DI_strict`. -/
+/-- Strict boundary query, the negation of Eq. (17): `domain ∧ g = 0 ∧ ġ ≥ 0`. UNSAT ⟹
+`ġ < 0` on the boundary `{g = 0} ∩ domain`, the hypothesis of `DI_strict`. -/
 def flowQueryStrict {n : ℕ} (o : FlowObligation n) : Formula (Var n) :=
   Formula.and o.domain
     (Formula.and (Formula.cmp .eq o.g (Term.const 0))
@@ -247,12 +250,11 @@ def flowQueryStrict {n : ℕ} (o : FlowObligation n) : Formula (Var n) :=
 
 /-- **Flow certificate soundness (domain form).** If the flow query
 `domain ∧ ġ > 0` is unsatisfiable, then the invariant component `g ≤ 0` is
-preserved along the λ-stretched co-evolution on `domain`.
+preserved along the λ-stretched co-evolution on `domain` (Lemma 2, domain-wide form).
 
 Cites dL-lean `DI_nonstrict_domain`: `lieDeriv_correct` turns the SMT fact
 `ġ ≤ 0 on domain` into `Lie (jointSys) ⟦g⟧ ≤ 0 on ψ`, which is exactly its
-boundary hypothesis. No new trusted leaf — the Z3 UNSAT verdict is the only one,
-in the IO shell. -/
+hypothesis. No trusted fact beyond the Z3 UNSAT verdict. -/
 theorem flow_cert_sound {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
     (hunsat : ∀ σ, ¬ Formula.sat (flowQuery o) σ)
     (hinit : Term.eval o.g ν ≤ 0) :
@@ -269,13 +271,12 @@ theorem flow_cert_sound {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
 
 /-- **Flow certificate soundness (strict boundary form).** If the strict boundary query
 `domain ∧ g = 0 ∧ ġ ≥ 0` is unsatisfiable, then `g ≤ 0` is preserved along the
-λ-stretched co-evolution on `domain`.
+λ-stretched co-evolution on `domain` (Lemma 2 with Eq. (17)).
 
 Cites dL-lean `DI_strict`: UNSAT gives `ġ < 0` on `{g=0} ∩ domain` (via
-`lieDeriv_correct`), the strict boundary hypothesis. This is the route that certifies
-offset invariants (`g = L_x − R_x − d`), whose Lie is negative only *on* the boundary —
-the domain-wide `flow_cert_sound` cannot see them. Same soundness discipline: strict, no
-new axiom, matches the design's "strictly away". -/
+`lieDeriv_correct`), the strict boundary hypothesis. This route certifies offset invariants
+(`g = L_x − R_x − d`), whose Lie derivative is negative only on the boundary, which the
+domain-wide `flow_cert_sound` cannot certify. No new axiom. -/
 theorem flow_cert_sound_strict {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
     (hunsat : ∀ σ, ¬ Formula.sat (flowQueryStrict o) σ)
     (hinit : Term.eval o.g ν ≤ 0) :
@@ -289,15 +290,17 @@ theorem flow_cert_sound_strict {n : ℕ} (o : FlowObligation n) {ν : State (Var
   rw [not_lt] at hpos
   exact hunsat x ⟨hx, hg0, by simpa [Formula.sat, CompOp.interp, Term.eval] using hpos⟩
 
-/-- Superlevel (Lyapunov) query: `domain ∧ g ≥ 0 ∧ ġ > 0`. UNSAT ⟹ `ġ ≤ 0` on the
-superlevel side `{g ≥ 0} ∩ domain` — the hypothesis of `DI_nonstrict_superlevel`. -/
+/-- Superlevel (Lyapunov) query, the negation of Eq. (18): `domain ∧ g ≥ 0 ∧ ġ > 0`.
+UNSAT ⟹ `ġ ≤ 0` on the superlevel side `{g ≥ 0} ∩ domain`, the hypothesis of
+`DI_nonstrict_superlevel`. -/
 def flowQuerySuperlevel {n : ℕ} (o : FlowObligation n) : Formula (Var n) :=
   Formula.and o.domain
     (Formula.and (Formula.cmp .ge o.g (Term.const 0))
       (Formula.cmp .gt (lieDeriv o.g o.fL o.fR o.lam) (Term.const 0)))
 
 /-- **Flow certificate soundness (superlevel / Lyapunov form).** If `domain ∧ g ≥ 0 ∧ ġ > 0`
-is unsatisfiable, then `g ≤ 0` is preserved along the λ-stretched co-evolution.
+is unsatisfiable, then `g ≤ 0` is preserved along the λ-stretched co-evolution (Lemma 2 with
+Eq. (18)).
 
 Cites `DI_nonstrict_superlevel`: UNSAT gives `ġ ≤ 0` on `{g ≥ 0} ∩ domain` (via
 `lieDeriv_correct`), the Lyapunov-barrier hypothesis. This is the route that certifies the

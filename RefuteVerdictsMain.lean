@@ -1,7 +1,7 @@
 import RelCertifier.VerdictsV2.RunRefute
 
-/-- Discharge the refutations' query groups with Z3; exit 0 only if every group is `unsat` and
-the declared total is met. -/
+/-- Discharge the refutations' query groups (Appendix B.6) with Z3; exit 0 only if every
+group is `unsat` and the declared total is met. -/
 def main : IO UInt32 := do
   match ← RelCertifier.Z3Config.discover with
   | .error e => IO.eprintln s!"ERROR: {e}"; pure 2

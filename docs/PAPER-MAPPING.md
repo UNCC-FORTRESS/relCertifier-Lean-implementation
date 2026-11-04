@@ -353,7 +353,7 @@ Appendix B (The Mechanization):
 
 | appendix | here |
 |---|---|
-| B.1 What Is Proved | §6.2 (`theorem3_of_coverX`, `CoverHyps`, the three record-level theorems, the eight `Verdicts` families, the five decided structural facts) and §0 (52 instances, 32 window, 18 keyed, 41 `_pl`, 5 demo and strict files) |
+| B.1 What Is Proved | §6.2 (`theorem3_of_coverX`, `CoverHyps`, the four record-level theorems, the eight `Verdicts` families, the five decided structural facts) and §0 (52 instances, 32 window, 18 keyed, 41 `_pl`, 5 demo and strict files) |
 | B.2 The Lean Statement and Eq. 1 | §9 |
 | B.3 Where the Paper Lives in Lean | this whole file; its table is §2 to §6 |
 | B.4 Trusted Base | §7, the last row of §3 ("Pinning the queries."), `RelCertifier/Trusted/README.md`; `InstancesV2/AxiomCheck.lean` (16 lines) |

@@ -256,11 +256,15 @@ Unfinished:
   records modal 1421/1421, reposition 950/950 (every group ends with the full text, as expected),
   handoff 2846, non-connection 32, pruned edges 16, STRICT 181/181, PASSED, wall 383 s
   (52670 slice lines, no SOS call).
-* the `lit_freedm_meter` regeneration at hop 0 (`RELCERT_SLICE_HOPS=0 scripts/gen_v2_data.py
-  lit_freedm_meter`, `scripts/gen_bridge.py lit_freedm_meter`, `lake build
-  RelCertifier.InstancesV2.Bridge.LitFreedmMeter`, `RELCERT_BRIDGE_ONE=lit_freedm_meter
-  RELCERT_SLICE_HOPS=0 lake env lean scripts/bridge_one_verdicts.lean`, then unsliced; revert
-  the regenerated leaves afterwards, they are not committed).
+* DONE (phase 2): the `lit_freedm_meter` regeneration at hop 0 (`RELCERT_SLICE_HOPS=0
+  RELCERT_SOS_SECS=120 scripts/gen_v2_data.py lit_freedm_meter`, 6 s) now rewrites NOTHING: with
+  the escalation every row is proven at some level in the same strata order, so the emitted
+  cover, progress, choice and pre-landing leaves are byte-identical to `main`'s (the 1386-group
+  set of the first commit was the artefact of its sliced-`sat` = FAIL); `gen_bridge.py` and
+  `lake build RelCertifier.InstancesV2.Bridge.LitFreedmMeter` (39 s) likewise unchanged;
+  `RELCERT_BRIDGE_ONE=lit_freedm_meter RELCERT_SLICE_HOPS=0 RELCERT_SOS_SECS=120 lake env lean
+  scripts/bridge_one_verdicts.lean`: 1826 groups ALL DISCHARGED, 0 by the SOS oracle (11 s), and
+  unsliced 1826 ALL DISCHARGED (10 s). Nothing to revert.
 * the probe re-runs `slice2_r1_h0` and `slice2_r2_h0` (`p20-ladder/logs/slice_run.sh
   slice2_r1_h0 r1_lam2 0`, `… slice2_r2_h0 r2_lam3 0`, knob 0, 1 h cap, the worktree binary)
   ran about 15 min concurrently with the gate and were killed; their partial logs are kept

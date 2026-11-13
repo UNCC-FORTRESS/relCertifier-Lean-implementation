@@ -152,7 +152,13 @@ variables, unjustifiable). Phase 1's prover should adopt the margin maximization
 `sos_prove.py` (`Gᵢ = Qᵢ + t·I`, maximize `t`) and bound every rescaled variable from the query
 alone; the checker is then expected to verify its certificates as it does the four above.
 `r2_f1w_q113_a`, seen at the start of the session, was removed by Phase 1 before it could be
-checked.
+checked. Later in the session: `r1_f1t_q80_a`, `r1_f1t_q81_a` (`s₀` basis 153, negative pivot
+`-1.2e-8`, `-5.2e-9` after absorption) and the `+tight` re-solves `r2_f1t_q73_a+tight`,
+`r2_f1t_q74_a+tight` (closer: `maxres` 2.3e-8, negative pivot `-9.6e-11` and `-4.4e-11` at
+basis index 87), all REJECTED for the same reason, no margin on `s₀`; with the margin they would
+verify. Every justification of these certificates (atoms, boxes, the one-sided bounds `box_lo` /
+`box_hi` of the default-box variables) is now recognized by the `--phase1` loader, so the only
+obstacle left is numerical.
 
 ## The mechanization
 
@@ -271,18 +277,25 @@ Knob on, `RELCERT_SOS_SECS=120 RELCERT_SLICE_HOPS=0`:
 
 Exercising the hook (the suite never reaches it): `watertank` under a proxy Z3 that answers
 `unknown` on every script longer than 450 bytes (its flow queries; the mode-fact and other
-channels pass through to the real Z3), `RELCERT_SOS_SECS=60`, 1 s per call: at the time of
-writing 950 SOS calls had been made, 194 `sos unsat` (verified exactly: 2 variables, `s₀` basis
-6, degree 4, `maxres` ≤ 4e-12, `minpivot` ≥ 1.4, 0.9 s median), 629 `unknown` (the routes
-that are not the certifying one, or beyond degree 4), 127 `rejected`; the run is the proof
-that the file write, the script, the certificate round trip and the log line work end to end
-on the tool's own queries. The certificates are kept with `RELCERT_SOS_CERT_DIR`.
+channels pass through to the real Z3), `RELCERT_SOS_SECS=60`, about 1 s per call: 1174 SOS calls in the 18 min before the proxy's
+`unknown` on a mode-fact query ended the run as inconclusive, 228 `sos unsat` (verified exactly:
+2 variables, `s₀` basis 6, degree 4, `maxres` ≤ 4e-12, `minpivot` ≥ 1.4, 0.9 s median), 751
+`unknown` (the routes that are not the certifying one, or beyond degree 4), 195 `rejected`
+(every one `s0 Gram not PSD after absorbing the residual`, negative pivot around `-3e-9`:
+route-A levels with `ε = 0` whose `s₀` is singular, the facial-reduction case of the open
+items; the rejections are correct, the tool keeps escalating as without the knob); the run is
+the proof that the file write, the script, the certificate round trip and the log
+line work end to end on the tool's own queries. The certificates are kept with
+`RELCERT_SOS_CERT_DIR`.
+
+The escalation leftover of `docs/HYP-SLICING.md`: `lit_freedm_meter` regenerated at hop 0 with
+`RELCERT_SOS_SECS=120` produces leaves byte-identical to `main`'s, and `bridge_one` discharges
+its 1826 groups at hop 0 (0 by the SOS oracle) and unsliced.
 
 ## Open items
 
-* `lit_freedm_meter` regenerated at hop 0 and its `bridge_one` discharge (the escalation
-  leftover of `docs/HYP-SLICING.md`), and the probe re-runs `slice2_r1_h0` / `slice2_r2_h0`:
-  still open (not run in this phase).
+* The probe re-runs `slice2_r1_h0` / `slice2_r2_h0` of `docs/HYP-SLICING.md`: still open (not
+  run in this phase; the `lit_freedm_meter` leftover is closed, see the gate).
 * No benchmark or probe run has yet produced an instance whose records carry an SOS verdict:
   the generator path (`-- oracles: z3 sos` marker, `anyOracle` instance, tagged `_bridge_run`)
   is exercised only by `scripts/sos_axiom_check.lean`; the first real one will be a probe rung

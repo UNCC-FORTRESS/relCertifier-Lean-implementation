@@ -36,16 +36,16 @@ section Defs
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
   (prog : ProgressEmitE) (ce : ChoiceEmitE)
 
-def JointAllS : Prop :=
-  ∀ l < nL p, ∀ q < nR p, (flagsOf p cov l q).jointOK = true → JointVerdS p n cX cov l q
+def JointAllS (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
+  ∀ l < nL p, ∀ q < nR p, (flagsOf p cov l q).jointOK = true → JointVerdS p n cX cov l q O
 def HandoffAllS : Prop := ∀ m' < nL p, ∀ t ∈ (nextL p).getD m' [], HandoffVerdS p n (m', t)
 
 /-- Every verdict a benchmark's instance rests on, at strict rows. -/
-structure VerdictsS : Prop where
+structure VerdictsS (O : UnsatOracle (Var n) := z3Oracle) : Prop where
   stay : StayAll p n cX
   nonconn : NonConnAll p n cX cov
-  joint : JointAllS p n cX cov
-  dyn : DynAll p n cX cov prog
+  joint : JointAllS p n cX cov O
+  dyn : DynAll p n cX cov prog O
   adm : AdmAll p n cov
   handoff : HandoffAllS p n
   prog : ProgAll p n cX prog
@@ -62,7 +62,7 @@ end Defs
 section Collapse
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
-  {ce : ChoiceEmitE}
+  {ce : ChoiceEmitE} {O : UnsatOracle (Var n)}
 
 theorem hostFlags_tt (vars : List String) : hostFlags vars n PForm.tt = [] := rfl
 
@@ -90,8 +90,8 @@ theorem invRow_allFalse (h : noStrictRows p n = true) {m : PMode} {rowT : PForm}
   exact this hb
 
 /-- The existing verdicts are the strict ones for a benchmark without strict atoms. -/
-theorem VerdictsS.ofVerdicts (h : noStrictRows p n = true) (hv : Verdicts p n cX cov prog ce) :
-    VerdictsS p n cX cov prog ce where
+theorem VerdictsS.ofVerdicts {O : UnsatOracle (Var n)} (h : noStrictRows p n = true)
+    (hv : Verdicts p n cX cov prog ce O) : VerdictsS p n cX cov prog ce O where
   stay := hv.stay
   nonconn := hv.nonconn
   joint := fun l hl q hq hj => jointVerdS_of_allFalse (maskOf_allFalse h l) (hv.joint l hl q hq hj)
@@ -108,7 +108,7 @@ end Collapse
 section Proofs
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
-  {ce : ChoiceEmitE} (hs : structOK p n cov cX = true)
+  {ce : ChoiceEmitE} {O : UnsatOracle (Var n)} (hs : structOK p n cov cX = true)
 
 include hs
 
@@ -155,7 +155,7 @@ theorem cov_of_entryS (hcovg : CoverageAll p n cX ce) (hpo : progOK p n cov prog
   exact regionSat_of_regionF hs hl _ y (hreg hq)
 
 /-- **The certificates of left mode `l` at its strict row**, as `CoverHyps` (anchor `AGrS`). -/
-theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov prog = true)
+theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce O) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (d : Fin n) {l : ℕ}
@@ -215,7 +215,7 @@ theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov 
 
 /-- `hcov_of` at a strict row: a strict admissible start is a closure admissible start, so
 the existing admissibility verdicts apply. -/
-theorem hcov_ofS (hv : VerdictsS p n cX cov prog ce) (hcovers : coversOK p n cov ce = true)
+theorem hcov_ofS (hv : VerdictsS p n cX cov prog ce O) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} {l : ℕ}
     (hl : l < nL p) (q : ℕ) (hq : q < (grOf p n (prunedOf cov)).modes.length)
     (hadm : AdmissibleStart (guardL p n l) (FRowS p n l) (env p n) (guardR p n q) (cutsR p n cX reg q)) :
@@ -232,7 +232,7 @@ theorem hcov_ofS (hv : VerdictsS p n cX cov prog ce) (hcovers : coversOK p n cov
 
 /-- The per-left-mode response of left mode `l` at its strict row, from every admissible start
 (Theorem 1, through `coverX_gresp`). -/
-theorem HwindowS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov prog = true)
+theorem HwindowS (hv : VerdictsS p n cX cov prog ce O) (hpo : progOK p n cov prog = true)
     (hcovers : coversOK p n cov ce = true) {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (b d : Fin n) (dt : ℝ)
@@ -295,7 +295,7 @@ are read through their strictness masks (`ϕRowS`): a strict atom is proved `< 0
 strict verdicts `VerdictsS`, the kernel-decided record facts, and Assumption 1 on a right region
 kept by every right flow, `keyedClaimS` holds for every `dt ≤ ε_L`; the per-mode rows are
 composed through the strict handoffs (Theorem 2). -/
-theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
+theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce O)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -463,7 +463,7 @@ def windowClaimS (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : Cover
 section WindowProofs
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
-  {ce : Choice.ChoiceEmitE} (hs : structOK p n cov cX = true)
+  {ce : Choice.ChoiceEmitE} {O : UnsatOracle (Var n)} (hs : structOK p n cov cX = true)
 
 include hs
 
@@ -481,7 +481,7 @@ theorem AGS_start_any (hnc : NonConnAll p n cX cov) {l : ℕ} (hl : l < nL p) (q
   · rw [barriers_dm hq]; simp
 
 /-- **Theorem 3 of a benchmark with one declared row, at its strict row, from its records.** -/
-theorem theorem3_window_strict_of_records (hv : VerdictsS p n cX cov prog ce)
+theorem theorem3_window_strict_of_records (hv : VerdictsS p n cX cov prog ce O)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -539,9 +539,9 @@ theorem windowClaimS_iff {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEm
 /-- **The existing keyed theorem is the special case**: without strict atoms, the strict
 theorem on the existing verdicts gives the existing claim. -/
 theorem theorem3_keyed_of_records_via_strict {p : PProblem} {cX : EvolStrengtheningX}
-    {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE}
+    {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE} {O : UnsatOracle (Var n)}
     (hs : structOK p n cov cX = true) (hno : noStrictRows p n = true)
-    (hv : Verdicts p n cX cov prog ce)
+    (hv : Verdicts p n cX cov prog ce O)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -559,13 +559,13 @@ theorem theorem3_keyed_of_records_via_strict {p : PProblem} {cX : EvolStrengthen
 section PLS
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
-  {ce : ChoiceEmitE}
+  {ce : ChoiceEmitE} {O : UnsatOracle (Var n)}
 
 /-- **Theorem 3 of a one-row benchmark at a strict row with a pre-landing record, over its
 EMITTED cover** (`theorem3_window_strict_of_records` on the merged cover, behind `plOK`). -/
 theorem theorem3_window_strict_of_records_pl {pl : Preland.PrelandEmitE}
     (_hpl : plOK p cov pl = true)
-    (hs : structOK p n (withPL cov pl) cX = true) (hv : VerdictsS p n cX (withPL cov pl) prog ce)
+    (hs : structOK p n (withPL cov pl) cX = true) (hv : VerdictsS p n cX (withPL cov pl) prog ce O)
     (hpo : progOK p n (withPL cov pl) prog = true)
     (hcovers : coversOK p n (withPL cov pl) ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)

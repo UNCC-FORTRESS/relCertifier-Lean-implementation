@@ -40,23 +40,31 @@ def jointGroupsS (k : Option ℕ) (l q : ℕ) : Option (List (List (IForm n))) :
 def handoffGroupsS (m' : ℕ) : Option (List (List (IForm n))) :=
   ((nextL p).getD m' []).mapM (fun t => (Handoff.queryOfS p n (m', t)).map ([·]))
 
-/-- **Every query of the benchmark at its strict rows**, in groups (`bridgeGroups` with the
-strict flow packs and the strict handoffs). -/
-def bridgeGroupsS (k : Option ℕ) : Option (List (List (IForm n))) := do
-  let sL ← (List.range (nL p)).mapM (fun l =>
-    stayGroups p n Side.L (mLof p l) (cutAtomsOfX cX.L (mLof p l).name))
-  let sR ← (List.range (nR p)).mapM (fun q =>
-    stayGroups p n Side.R (mRof p q) (cutAtomsOfX cX.R (mRof p q).name))
-  let nc ← (List.range (nR p)).mapM (nonConnGroups p n cX cov)
+/-- The strict flow groups: the strict joint packs and the right-only packs, sliced at `k` hops
+(the groups the SOS oracle may answer, `docs/SOS-ORACLE.md`). -/
+def bridgeGroupsFlowS (k : Option ℕ) : Option (List (List (IForm n))) := do
   let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroupsS p n cX cov k l))
   let dy ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (fun q =>
     [true, false].mapM (dynGroups p n cX cov prog k l q)))
+  pure (jt.flatten.flatten ++ dy.flatten.flatten.flatten)
+
+/-- The groups after the strict flow packs: admissibility, the strict handoffs, progress and
+coverage (Z3 only). -/
+def bridgeGroupsPostS : Option (List (List (IForm n))) := do
   let ad ← (List.range (nL p)).mapM (admGroups p n cov)
   let ho ← (List.range (nL p)).mapM (handoffGroupsS p n)
   let pr ← prog.certs.mapM (progGroups p n cX)
   let cv ← ce.entries.mapM (coverageGroups p n cX)
-  pure (sL.flatten ++ sR.flatten ++ nc.flatten ++ jt.flatten.flatten ++
-    dy.flatten.flatten.flatten ++ ad.flatten ++ ho.flatten ++ pr.flatten ++ cv.flatten)
+  pure (ad.flatten ++ ho.flatten ++ pr.flatten ++ cv.flatten)
+
+/-- **Every query of the benchmark at its strict rows**, in groups (`bridgeGroups` with the
+strict flow packs and the strict handoffs: `bridgeGroupsPre ++ bridgeGroupsFlowS ++
+bridgeGroupsPostS`). -/
+def bridgeGroupsS (k : Option ℕ) : Option (List (List (IForm n))) := do
+  let a ← bridgeGroupsPre p n cX cov
+  let f ← bridgeGroupsFlowS p n cX cov prog k
+  let b ← bridgeGroupsPostS p n cX cov prog ce
+  pure (a ++ f ++ b)
 
 end BuildersS
 
@@ -67,9 +75,10 @@ section LinkS
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
   {ce : ChoiceEmitE}
 
-theorem jointVerdS_of_groups {k : Option ℕ} {l q : ℕ} {gs : List (List (IForm n))}
-    (h : jointGroupsS p n cX cov k l q = some gs) (hok : GroupsOK gs)
-    (hj : (flagsOf p cov l q).jointOK = true) : JointVerdS p n cX cov l q := by
+theorem jointVerdS_of_groups {O : UnsatOracle (Var n)} {k : Option ℕ} {l q : ℕ}
+    {gs : List (List (IForm n))}
+    (h : jointGroupsS p n cX cov k l q = some gs) (hok : GroupsOK gs O)
+    (hj : (flagsOf p cov l q).jointOK = true) : JointVerdS p n cX cov l q O := by
   unfold jointGroupsS at h
   rw [if_pos hj] at h
   unfold JointVerdS lam
@@ -89,22 +98,28 @@ theorem handoffVerdS_of_groups {m' : ℕ} {gs : List (List (IForm n))}
     rw [List.mem_singleton] at ha''; subst ha''
     exact ⟨_, hq, hz⟩
 
-/-- **A green strict run is the `VerdictsS` structure.** -/
-theorem verdictsS_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
-    (h : bridgeGroupsS p n cX cov prog ce k = some gs) (hok : GroupsOK gs) :
-    VerdictsS p n cX cov prog ce := by
-  unfold bridgeGroupsS at h
+/-- **A green strict run is the `VerdictsS` structure**, oracle-generic (the flow groups by `O`,
+the rest by Z3). -/
+theorem verdictsS_of_groups_O {O : UnsatOracle (Var n)} {k : Option ℕ}
+    {gP gF gQ : List (List (IForm n))}
+    (hP : bridgeGroupsPre p n cX cov = some gP) (hokP : GroupsOK gP)
+    (hF : bridgeGroupsFlowS p n cX cov prog k = some gF) (hokF : GroupsOK gF O)
+    (hQ : bridgeGroupsPostS p n cX cov prog ce = some gQ) (hokQ : GroupsOK gQ) :
+    VerdictsS p n cX cov prog ce O := by
+  unfold bridgeGroupsPre at hP
+  unfold bridgeGroupsFlowS at hF
+  unfold bridgeGroupsPostS at hQ
   simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff, Option.some.injEq]
-    at h
-  obtain ⟨sL, hsL, sR, hsR, nc, hnc, jt, hjt, dy, hdy, ad, had, ho, hho, pr, hpr, cv, hcv, rfl⟩ := h
-  obtain ⟨h1, h9⟩ := groupsOK_append hok
-  obtain ⟨h1, h8⟩ := groupsOK_append h1
-  obtain ⟨h1, h7⟩ := groupsOK_append h1
-  obtain ⟨h1, h6⟩ := groupsOK_append h1
-  obtain ⟨h1, h5⟩ := groupsOK_append h1
-  obtain ⟨h1, h4⟩ := groupsOK_append h1
-  obtain ⟨h1, h3⟩ := groupsOK_append h1
+    at hP hF hQ
+  obtain ⟨sL, hsL, sR, hsR, nc, hnc, rfl⟩ := hP
+  obtain ⟨jt, hjt, dy, hdy, rfl⟩ := hF
+  obtain ⟨ad, had, ho, hho, pr, hpr, cv, hcv, rfl⟩ := hQ
+  obtain ⟨h1, h3⟩ := groupsOK_append hokP
   obtain ⟨h1, h2⟩ := groupsOK_append h1
+  obtain ⟨h4, h5⟩ := groupsOK_append hokF
+  obtain ⟨h6, h9⟩ := groupsOK_append hokQ
+  obtain ⟨h6, h8⟩ := groupsOK_append h6
+  obtain ⟨h6, h7⟩ := groupsOK_append h6
   refine ⟨⟨?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro l hl
     obtain ⟨g, hg, hgl⟩ := mapM_range hsL l hl
@@ -137,6 +152,27 @@ theorem verdictsS_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
   · intro e he
     obtain ⟨g, hg, hge⟩ := mapM_option_forall hcv e he
     exact coverageVerd_of_groups hge (groupsOK_flatten h9 _ hg)
+
+/-- **A green strict run is the `VerdictsS` structure.** -/
+theorem verdictsS_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
+    (h : bridgeGroupsS p n cX cov prog ce k = some gs) (hok : GroupsOK gs) :
+    VerdictsS p n cX cov prog ce := by
+  unfold bridgeGroupsS at h
+  simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff, Option.some.injEq]
+    at h
+  obtain ⟨gP, hP, gF, hF, gQ, hQ, rfl⟩ := h
+  obtain ⟨hok', hokQ⟩ := groupsOK_append hok
+  obtain ⟨hokP, hokF⟩ := groupsOK_append hok'
+  exact verdictsS_of_groups_O hP hokP hF hokF hQ hokQ
+
+/-- **A green tagged strict run** (`RELCERT_SOS_SECS` set): the flow groups by Z3 or the exact
+SOS checker (`GroupsOKT`), the rest by Z3; `VerdictsS … anyOracle` holds. -/
+theorem verdictsS_of_tagged {k : Option ℕ} {gP gF gQ : List (List (IForm n))}
+    (hP : bridgeGroupsPre p n cX cov = some gP) (hokP : GroupsOK gP)
+    (hF : bridgeGroupsFlowS p n cX cov prog k = some gF) (hokF : GroupsOKT gF)
+    (hQ : bridgeGroupsPostS p n cX cov prog ce = some gQ) (hokQ : GroupsOK gQ) :
+    VerdictsS p n cX cov prog ce anyOracle :=
+  verdictsS_of_groups_O hP hokP hF (groupsOK_any_of_tagged hokF) hQ hokQ
 
 end LinkS
 
@@ -179,7 +215,8 @@ theorem bridgeGroupsS_eq_of_noStrict {p : PProblem} {cX : EvolStrengtheningX}
     funext k l q; exact jointGroupsS_eq h k l q
   have hh : handoffGroupsS p n = handoffGroups p n := by
     funext m'; exact handoffGroupsS_eq h m'
-  unfold bridgeGroupsS bridgeGroups
+  unfold bridgeGroupsS bridgeGroups bridgeGroupsFlowS bridgeGroupsFlow bridgeGroupsPostS
+    bridgeGroupsPost
   rw [hj, hh]
 
 /-- **Theorem 3 at strict rows from a green strict run**: if the runner's groups

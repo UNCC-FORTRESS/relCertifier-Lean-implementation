@@ -75,21 +75,22 @@ cover's `dynPreOrder` / `dynPostOrder`), the left frozen (`fL = 0`) at stretch 1
   non-strict component's routes A (`ġ > 0`), B (`g = 0 ∧ ġ ≥ 0`), C (`g ≥ 0 ∧ ġ > 0`) over
   `domain ∧ Bo`, is `UNSAT` (`OracleAPI.checkDynRepo` with a region). -/
 def VerdDynCore (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n → Term (Var n))
-    (D gL : Formula (Var n)) (rg : DynRegion n := .whole) : Prop :=
+    (D gL : Formula (Var n)) (rg : DynRegion n := .whole) (O : UnsatOracle (Var n) := z3Oracle) :
+    Prop :=
   match rg with
   | .whole => ∀ i (hi : i < comps.length),
-    Z3Unsat (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+    OracleUnsat O (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
       dynDomHost pre D gL (comps.take i)⟩)
   | .pre Bo Bc mask _ _ => ∀ i (hi : i < comps.length),
     if mask.getD i false then
-      Z3Unsat (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+      OracleUnsat O (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
         dynDomHost pre (Formula.and D Bc) gL (comps.take i)⟩)
     else
-      Z3Unsat (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+      OracleUnsat O (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
         dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩)
-      ∨ Z3Unsat (flowQueryStrict ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+      ∨ OracleUnsat O (flowQueryStrict ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
         dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩)
-      ∨ Z3Unsat (flowQuerySuperlevel ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+      ∨ OracleUnsat O (flowQuerySuperlevel ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
         dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩)
 
 /-- **The reposition pack, read off the IR and the extended mode-fact certificate.** Left mode
@@ -98,7 +99,8 @@ its evolve domain), the invariant row `invRow`'s components in the cover's repos
 `order`; `pre` selects the pre-joint form (the left guard conjoined). Exactly the queries
 `OracleAPI.checkDynRepo` sends (`segPartsRO`, `andCuts`, `strataDomIR`, route A). -/
 noncomputable def modalVerdDynX (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
-    (order : List ℕ) (pre : Bool) (l m : ℕ) (rg : DynRegion n := .whole) : Prop :=
+    (order : List ℕ) (pre : Bool) (l m : ℕ) (rg : DynRegion n := .whole)
+    (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
   let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mL := p.L.modes.getD l dm
@@ -109,7 +111,7 @@ noncomputable def modalVerdDynX (p : PProblem) (cX : EvolStrengtheningX) (n invR
   let cL := cutPairsX vars n Side.L (cutAtomsOfX cX.L mL.name)
   let cR := cutPairsX vars n Side.R (cutAtomsOfX cX.R mR.name)
   VerdDynCore pre comps (hostDyn vars n Side.R mR) (domCutX base cL cR)
-    (hostGuard vars n Side.L mL) rg
+    (hostGuard vars n Side.L mL) rg O
 
 /-! ## From the pack to preservation along the frozen-left flow -/
 
@@ -161,8 +163,9 @@ theorem boxle_dom_mono {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
 
 /-- The reposition pack gives simultaneous preservation of the components along the frozen-left
 right flow, on the (mode-fact-narrowed) base domain narrowed by the region's half-open part. -/
-theorem segPresAll_dyn (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n → Term (Var n))
-    (D gL : Formula (Var n)) {rg : DynRegion n} (hv : VerdDynCore pre comps fR D gL rg) :
+theorem segPresAll_dyn {O : UnsatOracle (Var n)} (pre : Bool) (comps : List (Term (Var n)))
+    (fR : Fin n → Term (Var n))
+    (D gL : Formula (Var n)) {rg : DynRegion n} (hv : VerdDynCore pre comps fR D gL rg O) :
     SegPreservesAllOn comps (jointSys (fun _ => Term.const 0) fR (Term.const 1))
       (dynBase pre (rg.dom D) gL) := by
   intro ν hinit
@@ -175,17 +178,17 @@ theorem segPresAll_dyn (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n �
   cases rg with
   | whole =>
       exact flow_cert_sound ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-        dynDomHost pre D gL (comps.take i)⟩ (z3Unsat_sound (hv i hi)) hν'
+        dynDomHost pre D gL (comps.take i)⟩ (oracleUnsat_sound (hv i hi)) hν'
   | pre Bo Bc mask hmono _ =>
       have h := hv i hi
       split_ifs at h with hm
       · refine boxle_dom_mono (dynDomHost_mono (D := Formula.and D Bo) (D' := Formula.and D Bc)
           pre _ (fun x hx => ⟨hx.1, hmono x hx.2⟩)) ?_
-        exact flow_cert_sound _ (z3Unsat_sound h) hν'
+        exact flow_cert_sound _ (oracleUnsat_sound h) hν'
       · rcases h with h | h | h
-        · exact flow_cert_sound _ (z3Unsat_sound h) hν'
-        · exact flow_cert_sound_strict _ (z3Unsat_sound h) hν'
-        · exact flow_cert_sound_superlevel _ (z3Unsat_sound h) hν'
+        · exact flow_cert_sound _ (oracleUnsat_sound h) hν'
+        · exact flow_cert_sound_strict _ (oracleUnsat_sound h) hν'
+        · exact flow_cert_sound_superlevel _ (oracleUnsat_sound h) hν'
 
 /-- Left coordinates are frozen at every instant of a frozen-left run. -/
 theorem frozen_left_all {fR : Fin n → Term (Var n)} {lam : Term (Var n)} {dom : Formula (Var n)}
@@ -242,7 +245,7 @@ theorem couple_box_dyn (pre : Bool) (g : Term (Var n)) (gs comps : List (Term (V
     (hgL : gL.fv ⊆ range Lv)
     (hstayR : AtomsStayC cR (jointSys (fun _ => Term.const 0) fR (Term.const 1))
       (dynBase pre (Formula.and domL (rg.dom domR)) gL))
-    (hverd : VerdDynCore pre comps fR (domCutX (Formula.and domL domR) cL cR) gL rg) :
+    (hverd : VerdDynCore pre comps fR (domCutX (Formula.and domL domR) cL cR) gL rg O) :
     ∀ σ ω, Formula.sat (FM g (gs ++ atomTerms cL cR)) σ → (pre = true → Formula.sat gL σ) →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR (Term.const 1))
         (Formula.and domL (rg.dom domR))) σ ω →

@@ -250,10 +250,12 @@ Done:
 
 Unfinished:
 
-* gate, knob 0: `RELCERT_SLICE_HOPS=0 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert
-  --check-quick-v2 benchmarks/suite_v2/*/input.txt` was started and killed at the pause
-  (expected: 50 certified, and the re-send of `main`'s records modal 1421/1421, reposition
-  950/950, since every group ends with the full text).
+* DONE (phase 2, `docs/SOS-ORACLE.md`): gate, knob 0, run as `RELCERT_SLICE_HOPS=0
+  RELCERT_SOS_SECS=120 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2
+  benchmarks/suite_v2/*/input.txt`: 50 certified, 0 declined, 0 error(s); the re-send of `main`'s
+  records modal 1421/1421, reposition 950/950 (every group ends with the full text, as expected),
+  handoff 2846, non-connection 32, pruned edges 16, STRICT 181/181, PASSED, wall 383 s
+  (52670 slice lines, no SOS call).
 * the `lit_freedm_meter` regeneration at hop 0 (`RELCERT_SLICE_HOPS=0 scripts/gen_v2_data.py
   lit_freedm_meter`, `scripts/gen_bridge.py lit_freedm_meter`, `lake build
   RelCertifier.InstancesV2.Bridge.LitFreedmMeter`, `RELCERT_BRIDGE_ONE=lit_freedm_meter

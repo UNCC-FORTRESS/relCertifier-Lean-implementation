@@ -85,7 +85,7 @@ theorem AG_start_any (hnc : NonConnAll p n cX cov) {l : ℕ} (hl : l < nL p) (q 
 a right region `reg` kept by every right flow, and Assumption 1 on `reg` (`WellFormedRIn`) for
 the pruned graph of the cover, `windowClaim` holds for every left cycle bound `dt ≤ ε_L`
 (Appendix B.1). -/
-theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
+theorem theorem3_window_of_records_O {O : UnsatOracle (Var n)} (hv : Verdicts p n cX cov prog ce O)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -121,6 +121,18 @@ theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
     have hF : Formula.sat (FRow p n l) y := this.1.1
     rw [FRow_same hsame] at hF; exact hF
 
+/-- **Theorem 3 of a one-row benchmark from its records**, the Z3 form:
+`theorem3_window_of_records_O` at `z3Oracle` (the statement the axiom audit prints). -/
+theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
+    (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
+    (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
+    (hdt : dt ≤ epsL p) :
+    windowClaim p n cX cov reg a b d dt :=
+  theorem3_window_of_records_O hs hv hpo hcovers hregR hinv hwf hsame a b d hab hda hdb dt hdt
+
 end Proofs
 
 
@@ -137,6 +149,20 @@ variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : Pro
 the records' theorem on the merged cover `withPL cov pl` (the claim reads the pruned edges
 only, which the merge keeps), behind the data gate `plOK` (the record only when the IR records the
 pre-landing feature as on). -/
+theorem theorem3_window_of_records_pl_O {O : UnsatOracle (Var n)} {pl : Preland.PrelandEmitE}
+    (_hpl : plOK p cov pl = true)
+    (hs : structOK p n (withPL cov pl) cX = true) (hv : Verdicts p n cX (withPL cov pl) prog ce O)
+    (hpo : progOK p n (withPL cov pl) prog = true)
+    (hcovers : coversOK p n (withPL cov pl) ce = true)
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
+    (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
+    (hdt : dt ≤ epsL p) :
+    windowClaim p n cX cov reg a b d dt :=
+  theorem3_window_of_records_O hs hv hpo hcovers hregR hinv hwf hsame a b d hab hda hdb dt hdt
+
+/-- The Z3 form of `theorem3_window_of_records_pl_O` (the statement the axiom audit prints). -/
 theorem theorem3_window_of_records_pl {pl : Preland.PrelandEmitE} (_hpl : plOK p cov pl = true)
     (hs : structOK p n (withPL cov pl) cX = true) (hv : Verdicts p n cX (withPL cov pl) prog ce)
     (hpo : progOK p n (withPL cov pl) prog = true)
@@ -147,13 +173,27 @@ theorem theorem3_window_of_records_pl {pl : Preland.PrelandEmitE} (_hpl : plOK p
     (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
     (hdt : dt ≤ epsL p) :
     windowClaim p n cX cov reg a b d dt :=
-  theorem3_window_of_records hs hv hpo hcovers hregR hinv hwf hsame a b d hab hda hdb dt hdt
+  theorem3_window_of_records_pl_O _hpl hs hv hpo hcovers hregR hinv hwf hsame a b d hab hda hdb dt hdt
 
 /-- **Theorem 3 of a benchmark with per-mode rows and a pre-landing record, over its EMITTED
 cover** (the mode-keyed form, Lemma 4 on the restricted mode `q|¬tgt`): the records' theorem on
 the merged cover
 `withPL cov pl` (the claim reads the pruned edges only, which the merge keeps), behind the data
 gate `plOK`. -/
+theorem theorem3_keyed_of_records_pl_O {O : UnsatOracle (Var n)} {pl : Preland.PrelandEmitE}
+    (_hpl : plOK p cov pl = true)
+    (hs : structOK p n (withPL cov pl) cX = true) (hv : Verdicts p n cX (withPL cov pl) prog ce O)
+    (hpo : progOK p n (withPL cov pl) prog = true)
+    (hcovers : coversOK p n (withPL cov pl) ce = true)
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
+    (a b c d : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (hda : d ≠ a) (hdb : d ≠ b)
+    (hdc : d ≠ c) (dt : ℝ) (hdt : dt ≤ epsL p) :
+    keyedClaim p n cX cov reg a b c d dt :=
+  theorem3_keyed_of_records_O hs hv hpo hcovers hregR hinv hwf a b c d hba hca hcb hda hdb hdc dt hdt
+
+/-- The Z3 form of `theorem3_keyed_of_records_pl_O` (the statement the axiom audit prints). -/
 theorem theorem3_keyed_of_records_pl {pl : Preland.PrelandEmitE} (_hpl : plOK p cov pl = true)
     (hs : structOK p n (withPL cov pl) cX = true) (hv : Verdicts p n cX (withPL cov pl) prog ce)
     (hpo : progOK p n (withPL cov pl) prog = true)
@@ -164,7 +204,8 @@ theorem theorem3_keyed_of_records_pl {pl : Preland.PrelandEmitE} (_hpl : plOK p 
     (a b c d : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (hda : d ≠ a) (hdb : d ≠ b)
     (hdc : d ≠ c) (dt : ℝ) (hdt : dt ≤ epsL p) :
     keyedClaim p n cX cov reg a b c d dt :=
-  theorem3_keyed_of_records hs hv hpo hcovers hregR hinv hwf a b c d hba hca hcb hda hdb hdc dt hdt
+  theorem3_keyed_of_records_pl_O _hpl hs hv hpo hcovers hregR hinv hwf a b c d hba hca hcb hda hdb hdc
+    dt hdt
 
 end PL
 

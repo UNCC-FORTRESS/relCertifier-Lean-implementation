@@ -118,7 +118,12 @@ Theorem 3's generic `theorem3_of_coverX` at the three standard axioms, and `flow
 lemmas) and the four record-level theorems `Emitted.theorem3_window_of_records(_pl)`,
 `Emitted.theorem3_keyed_of_records(_pl)` at the three plus `z3_unsat_sound`. No `sorryAx`, no
 other axiom. The bridge instances apply the record-level theorems and inherit exactly their
-axioms; their only Z3 leaf is the `Verdicts` hypothesis (check 6).
+axioms; their only Z3 leaf is the `Verdicts` hypothesis (check 6). The second oracle axiom
+`sos_unsat_sound` (`docs/SOS-ORACLE.md`, the exact SOS certificate checker behind
+`RELCERT_SOS_SECS`) appears in none of these lines and in no committed instance: the flow chain
+is generic in an `UnsatOracle`, the audited statements are its `z3Oracle` instances, and only an
+instance whose cover leaf carries the SOS marker (`-- oracles: z3 sos …`, emitted at `anyOracle`)
+lists it (`scripts/sos_axiom_check.lean` shows `watertank`'s two forms side by side).
 
 ## Check 3: certify the suite and discharge the verdict hypotheses
 

@@ -124,7 +124,10 @@ name.
 | the **Lean kernel**, with the statement of Theorem 3 | checks everything else |
 
 The development uses Lean's three standard axioms (`propext`, `Classical.choice`,
-`Quot.sound`) and `z3_unsat_sound`, nothing else. Assumption 1 is not assumed: it is proved per
+`Quot.sound`) and `z3_unsat_sound`, nothing else. (With the optional SOS oracle on,
+`RELCERT_SOS_SECS`, `docs/SOS-ORACLE.md`, an instance whose records carry an SOS verdict adds
+`sos_unsat_sound`, the same shape about the exact certificate checker; no committed instance
+does.) Assumption 1 is not assumed: it is proved per
 benchmark without Z3. The tool's own `--wellformed` check is untrusted and only ever
 declines. The Z3 session (`Trusted/Z3.lean`) uses a pinned binary, `(reset)` before every
 query, a 10 s timeout and a resource limit per query; `unknown` and errors are never counted

@@ -224,15 +224,17 @@ def NonConnAll : Prop :=
     NonConnVerd (vars p) n (cutAtomsOfX cX.R (mRof p q).name) (mRof p q) (mRof p t)
 
 /-- The joint flow pack of a certified pairing (Eq. (14)), at its strata order and stretch. -/
-def JointVerd (l q : ℕ) : Prop :=
-  modalVerdX p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q
+def JointVerd (l q : ℕ) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
+  modalVerdX p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q O
 
 /-- The right-only flow pack of a pairing (Eq. (15)), pre- or post-joint, on the region `rg`
 (default: the whole domain; with the `prelanding` feature on, `dynRegion`, the restricted mode
 `q|¬tgt` of the node's reposition certificate, Lemma 4). -/
-def DynVerd (l q : ℕ) (pre : Bool) (rg : DynRegion n := .whole) : Prop :=
+def DynVerd (l q : ℕ) (pre : Bool) (rg : DynRegion n := .whole)
+    (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
   modalVerdDynX p cX n (rowIdx p l)
-    (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder) pre l q rg
+    (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder) pre l q
+    rg O
 
 /-- The ordered components of a left mode's row under a strata order. -/
 noncomputable def compsAt (l : ℕ) (order : List ℕ) : List (Term (Var n)) :=
@@ -438,31 +440,32 @@ theorem comps_mem_equiv {l : ℕ} (hl : l < nL p) {order : List ℕ}
   have := mem_equiv_of_index_perm (comps p n l) order hperm'
   exact ⟨fun c hc => (this c).mp hc, fun c hc => (this c).mpr hc⟩
 
-theorem jointVerd_core {l q : ℕ} (hl : l < nL p) (hq : q < nR p)
-    (hv : JointVerd p n cX cov l q) :
+theorem jointVerd_core {O : UnsatOracle (Var n)} {l q : ℕ} (hl : l < nL p) (hq : q < nR p)
+    (hv : JointVerd p n cX cov l q O) :
     VerdXCore (compsAt p n l (strataOf p cov l q).order) (fL p n l) (fR p n q) (lam p cov l q)
-      (domCutX (env p n) (cL p n cX l) (cR p n cX q)) := by
+      (domCutX (env p n) (cL p n cX l) (cR p n cX q)) O := by
   have h : VerdXCore (compsAt p n l (strataOf p cov l q).order) (fL p n l) (fR p n q)
       (lam p cov l q)
       (domCutX (Formula.and (hostEvolve (vars p) n Side.L (mLof p l))
-        (hostEvolve (vars p) n Side.R (mRof p q))) (cL p n cX l) (cR p n cX q)) := hv
+        (hostEvolve (vars p) n Side.R (mRof p q))) (cL p n cX l) (cR p n cX q)) O := hv
   rwa [hostEvolve_L (hu hs) hl, hostEvolve_R (hu hs) hq] at h
 
-theorem dynVerd_core {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (pre : Bool) {rg : DynRegion n}
-    (hv : DynVerd p n cX cov l q pre rg) :
+theorem dynVerd_core {O : UnsatOracle (Var n)} {l q : ℕ} (hl : l < nL p) (hq : q < nR p)
+    (pre : Bool) {rg : DynRegion n} (hv : DynVerd p n cX cov l q pre rg O) :
     VerdDynCore pre (compsAt p n l
         (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder))
-      (fR p n q) (domCutX (env p n) (cL p n cX l) (cR p n cX q)) (guardL p n l) rg := by
+      (fR p n q) (domCutX (env p n) (cL p n cX l) (cR p n cX q)) (guardL p n l) rg O := by
   have h : VerdDynCore pre (compsAt p n l
         (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder))
       (fR p n q) (domCutX (Formula.and (hostEvolve (vars p) n Side.L (mLof p l))
         (hostEvolve (vars p) n Side.R (mRof p q))) (cL p n cX l) (cR p n cX q))
-      (guardL p n l) rg := hv
+      (guardL p n l) rg O := hv
   rwa [hostEvolve_L (hu hs) hl, hostEvolve_R (hu hs) hq] at h
 
 /-- A joint segment at the pairing's stretch keeps the anchor. -/
-theorem AG_box (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
-    (hq : q < nR p) (hj : (flagsOf p cov l q).jointOK = true) (hv : JointVerd p n cX cov l q) :
+theorem AG_box {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+    {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (hj : (flagsOf p cov l q).jointOK = true)
+    (hv : JointVerd p n cX cov l q O) :
     ∀ σ ω, Formula.sat (AG p n cX cov l q) σ →
       Program.sem (Program.ode (jointSys (fL p n l) (fR p n q) (Term.const (lam p cov l q)))
         (env p n)) σ ω → Formula.sat (AG p n cX cov l q) ω := by
@@ -480,10 +483,10 @@ theorem AG_box (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} 
   · exact barriers_keep hs hnc hst hq (fL p n l) _ (lam_nonneg hs hl hq) σ ω hcRσ hbar hω
 
 /-- A frozen-left segment keeps the anchor (pre-joint: under the left guard). -/
-theorem AG_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
-    (hq : q < nR p) (pre : Bool)
+theorem AG_boxD {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+    {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (pre : Bool)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true)
-    (hv : DynVerd p n cX cov l q pre) :
+    (hv : DynVerd p n cX cov l q pre .whole O) :
     ∀ σ ω, Formula.sat (AG p n cX cov l q) σ → (pre = true → Formula.sat (guardL p n l) σ) →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR p n q) (Term.const 1))
         (Formula.and (domL p n) (domR p n))) σ ω → Formula.sat (AG p n cX cov l q) ω := by
@@ -512,10 +515,10 @@ merged run. Restricted mode `q|¬tgt` (Lemma 4): on every proper prefix the run 
 half-open region, where the pack keeps the rows and atoms (`couple_box_dyn`); the row and atom
 terms are continuous along the run, so they are `≤ 0` at the end too; the barriers and the
 envelope are whole-domain facts. -/
-theorem AG_boxR (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
-    (hq : q < nR p) (pre : Bool)
+theorem AG_boxR {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+    {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (pre : Bool)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true)
-    {rg : DynRegion n} (hrg : rg.fvR) (hv : DynVerd p n cX cov l q pre rg) :
+    {rg : DynRegion n} (hrg : rg.fvR) (hv : DynVerd p n cX cov l q pre rg O) :
     ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (AG p n cX cov l q) y →
       (pre = true → Formula.sat (guardL p n l) y) →
       ∀ T Φ, DLCalTiming.ODESol (rightBlock (fR p n q) (Term.const 1)) (domR p n) ρ T Φ →

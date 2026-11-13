@@ -251,16 +251,17 @@ theorem boxle_dom_congr {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
   obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hsem
   exact hbox ω ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => (h (Φ t)).mp (hdom t ht)⟩
 
-/-- **Fold-shaped verdicts**: sliced `unsat` verdicts (`Z3Unsat`: `unsat` on the query or on a
-sub-conjunction of its hypotheses, `Trusted/Oracle.lean`) on the tool's stratified query domains
+/-- **Fold-shaped verdicts**: sliced `unsat` verdicts (`OracleUnsat O`: the oracle `O`, Z3 or
+Z3-or-SOS, answered `unsat` on the query or on a sub-conjunction of its hypotheses,
+`Trusted/Oracle.lean`) on the tool's stratified query domains
 (`strataDomHost`, the host image of `strataDomIR`) discharge the strata certificates in the
 `bigLe` shape `stratified_barrier_sound` consumes. -/
-theorem strata_hcert_from_verdicts' (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
-    (D : Formula (Var n)) (gs : List (Term (Var n)))
+theorem strata_hcert_from_verdicts' {O : UnsatOracle (Var n)} (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (D : Formula (Var n)) (gs : List (Term (Var n)))
     (hz3 : ∀ i (hi : i < gs.length),
-      Z3Unsat (flowQuery ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
-      ∨ Z3Unsat (flowQueryStrict ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
-      ∨ Z3Unsat (flowQuerySuperlevel ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)) :
+      OracleUnsat O (flowQuery ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
+      ∨ OracleUnsat O (flowQueryStrict ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
+      ∨ OracleUnsat O (flowQuerySuperlevel ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)) :
     ∀ i (hi : i < gs.length), ∀ ν', Term.eval gs[i] ν' ≤ 0 →
       BoxLe (Program.ode (jointSys fL fR lam) (Formula.and D (bigLe (gs.take i))))
         (fun ω => Term.eval gs[i] ω) ν' := by
@@ -276,18 +277,18 @@ theorem strata_hcert_from_verdicts' (fL fR : Fin n → Term (Var n)) (lam : Term
       exact ⟨hD, (sat_bigLe_iff _ _).mpr hall⟩
   refine boxle_dom_congr hcong ?_
   rcases hz3 i hi with h | h | h
-  · exact flow_cert_sound _ (z3Unsat_sound h) hinit
-  · exact flow_cert_sound_strict _ (z3Unsat_sound h) hinit
-  · exact flow_cert_sound_superlevel _ (z3Unsat_sound h) hinit
+  · exact flow_cert_sound _ (oracleUnsat_sound h) hinit
+  · exact flow_cert_sound_strict _ (oracleUnsat_sound h) hinit
+  · exact flow_cert_sound_superlevel _ (oracleUnsat_sound h) hinit
 
 /-- `segPresAll_from_strata_verdicts` with the verdicts on the fold-shaped query domains
 `strataDomHost` (the form the verdict layer uses). -/
-theorem segPresAll_from_strata_verdicts' (fL fR : Fin n → Term (Var n))
+theorem segPresAll_from_strata_verdicts' {O : UnsatOracle (Var n)} (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (D : Formula (Var n)) (gs : List (Term (Var n)))
     (hz3 : ∀ i (hi : i < gs.length),
-      Z3Unsat (flowQuery ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
-      ∨ Z3Unsat (flowQueryStrict ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
-      ∨ Z3Unsat (flowQuerySuperlevel ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)) :
+      OracleUnsat O (flowQuery ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
+      ∨ OracleUnsat O (flowQueryStrict ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
+      ∨ OracleUnsat O (flowQuerySuperlevel ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)) :
     SegPreservesAllOn gs (jointSys fL fR lam) D :=
   fun _ hinit => stratified_barrier_boxle (jointSys fL fR lam) D gs
     (strata_hcert_from_verdicts' fL fR lam D gs hz3) hinit

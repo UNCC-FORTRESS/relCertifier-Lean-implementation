@@ -14,6 +14,7 @@ three routes, every other group by its single query). The groups are exactly the
 import RelCertifier.Proofs.Encoding.Emitted.Run
 import RelCertifier.Proofs.Encoding.Emitted.StrictRun
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Trusted.Sos
 import RelCertifier.InstancesV2.BenchProgress
 import RelCertifier.InstancesV2.BenchChoice
 import RelCertifier.InstancesV2.BenchPrelanding
@@ -87,33 +88,68 @@ def expectedBridgeGroupsV2 : Nat := 13677
 def suiteRecV2 (b : String) : BridgeRec :=
   ⟨b, bridgeDimV2 b, irV2 b, cutV2 b, coverV2M b, progV2 b, choiceV2 b⟩
 
+/-- Discharge a list of groups: a group is discharged when a member is `unsat`. With `sos`
+set the SOS oracle is tried on a member Z3 answers `unknown` on (`Trusted/Sos.lean`; the
+flow groups only, `bridgeGroupsFlowS`, the hypothesis `GroupsOKT` of `verdictsS_of_tagged`);
+returns (all discharged, groups, groups discharged by the SOS oracle). -/
+def runGroups (s : Z3Session) (sos : Option Nat) (b : String) {n : ℕ} (coord : Fin n → String)
+    (gs : List (List (IForm n))) : IO (Bool × Nat × Nat) := do
+  let mut bad := 0
+  let mut bySos := 0
+  let mut gi := 0
+  for g in gs do
+    let mut hit := false
+    let mut mi := 0
+    for q in g do
+      if !hit then
+        match ← oracleCheck s sos (q.toScript coord) s!"[sos secs={sos.getD 0}] {b} group#{gi} member#{mi}" with
+        | .ok (.unsat, t) =>
+            hit := true
+            if t == .sos then bySos := bySos + 1
+        | _ => pure ()
+      mi := mi + 1
+    if hit then RelCertifier.Verdicts.counted
+    else bad := bad + 1
+    gi := gi + 1
+  pure (bad == 0, gs.length, bySos)
+
 def runBridgeBench (s : Z3Session) (k : Option ℕ) (r : BridgeRec) : IO (Bool × Nat) := do
   let b := r.name
   let p := r.ir
   let n := r.dim
   let vars := p.L.stateVars
   let coord := fun (i : Fin n) => vars.getD i.val s!"pad{i.val}"
+  let sos ← sosSecsFromEnv
   -- the strict groups (`bridgeGroupsS`, read as `VerdictsS`); the existing groups exactly
-  -- when no row has a strict atom (`bridgeGroupsS_eq_of_noStrict`)
-  match bridgeGroupsS p n r.cuts r.cov r.prog r.ce k with
+  -- when no row has a strict atom (`bridgeGroupsS_eq_of_noStrict`). With `RELCERT_SOS_SECS`
+  -- set the three parts are sent in the same order, the SOS oracle on the flow part only
+  -- (`verdictsS_of_tagged`)
+  match sos with
   | none =>
-      IO.println s!"  FAIL  {b}  (the query groups did not rebuild)"
-      pure (false, 0)
-  | some gs =>
-      let mut ok := true
-      let mut bad := 0
-      for g in gs do
-        let mut hit := false
-        for q in g do
-          if !hit then
-            match ← s.check (q.toScript coord) with
-            | .ok .unsat => hit := true
-            | _ => pure ()
-        if hit then RelCertifier.Verdicts.counted
-        else ok := false; bad := bad + 1
-      if ok then IO.println s!"  UNSAT {b}  ({gs.length} groups, dim {n})"
-      else IO.println s!"  FAIL  {b}  ({bad} of {gs.length} groups not discharged, dim {n})"
-      pure (ok, gs.length)
+      match bridgeGroupsS p n r.cuts r.cov r.prog r.ce k with
+      | none =>
+          IO.println s!"  FAIL  {b}  (the query groups did not rebuild)"
+          pure (false, 0)
+      | some gs =>
+          let (ok, cnt, _) ← runGroups s none b coord gs
+          if ok then IO.println s!"  UNSAT {b}  ({cnt} groups, dim {n})"
+          else IO.println s!"  FAIL  {b}  (some of {cnt} groups not discharged, dim {n})"
+          pure (ok, cnt)
+  | some _ =>
+      match bridgeGroupsPre p n r.cuts r.cov, bridgeGroupsFlowS p n r.cuts r.cov r.prog k,
+          bridgeGroupsPostS p n r.cuts r.cov r.prog r.ce with
+      | some gP, some gF, some gQ =>
+          let (okP, cP, _) ← runGroups s none b coord gP
+          let (okF, cF, bySos) ← runGroups s sos b coord gF
+          let (okQ, cQ, _) ← runGroups s none b coord gQ
+          let ok := okP && okF && okQ
+          let cnt := cP + cF + cQ
+          if ok then IO.println s!"  UNSAT {b}  ({cnt} groups, dim {n}, {bySos} by the SOS oracle)"
+          else IO.println s!"  FAIL  {b}  (some of {cnt} groups not discharged, dim {n}, {bySos} by the SOS oracle)"
+          pure (ok, cnt)
+      | _, _, _ =>
+          IO.println s!"  FAIL  {b}  (the query groups did not rebuild)"
+          pure (false, 0)
 
 def runBridgeV2 (cfg : Z3Config) : IO Bool := do
   match ← Z3Session.start cfg with
@@ -124,6 +160,8 @@ def runBridgeV2 (cfg : Z3Config) : IO Bool := do
       -- tool's own function, the instances' `Verdicts` are their sliced verdicts (`Z3Unsat`)
       let hops ← sliceHopsFromEnv
       if let some h := hops then IO.println s!"  [slice] RELCERT_SLICE_HOPS={h}: the flow groups are sliced"
+      if let some secs ← sosSecsFromEnv then
+        IO.println s!"  [sos] RELCERT_SOS_SECS={secs}: the SOS oracle on the flow groups Z3 leaves unknown"
       let mut ok := true
       let mut total := 0
       for rec in benchIRTableV2.map (fun x => suiteRecV2 x.1) ++ choiceRecsV2 do

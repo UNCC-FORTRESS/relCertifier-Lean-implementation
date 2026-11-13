@@ -44,7 +44,10 @@ Regenerate with `scripts/gen_v2_data.py {b}`.
 -/
 """
 
+LAST_STDERR = ""
+
 def run(args, env_extra=None):
+    global LAST_STDERR
     env = dict(os.environ)
     env.pop("RELCERT_NO_CUT", None); env.pop("RELCERT_NO_IMPLIED_CUT", None)
     env.pop("RELCERT_NO_LINEAR_CUT", None); env.pop("RELCERT_NO_PRUNE", None)
@@ -55,9 +58,20 @@ def run(args, env_extra=None):
     if env_extra:
         env.update(env_extra)
     r = subprocess.run(args, capture_output=True, text=True, env=env)
+    LAST_STDERR = r.stderr
     if r.returncode != 0:
         sys.exit(f"FAILED: {' '.join(args)}\n{r.stdout}\n{r.stderr}")
     return r.stdout
+
+def sos_marker():
+    """The SOS-oracle marker of a cover leaf (`docs/SOS-ORACLE.md`): with `RELCERT_SOS_SECS` set,
+    the run's stderr carries one `… : sos unsat …` line per flow level the exact checker verified;
+    the leaf records their number so that `gen_bridge.py` states the instance at `anyOracle`."""
+    n = sum(1 for l in LAST_STDERR.splitlines() if ": sos unsat " in l)
+    if n == 0:
+        return ""
+    return (f"-- oracles: z3 sos ({n} flow levels verified by the SOS oracle, "
+            f"RELCERT_SOS_SECS={os.environ.get('RELCERT_SOS_SECS', '?')}; docs/SOS-ORACLE.md)\n")
 
 def all_benches():
     return sorted(d for d in os.listdir(SUITE) if os.path.isfile(f"{SUITE}/{d}/input.txt"))
@@ -82,12 +96,14 @@ def emit_leaves(b):
     if os.path.exists(pl_leaf):
         os.remove(pl_leaf)
     cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"], env)
+    sos = sos_marker()
     pl = open(pl_leaf).read() if os.path.exists(pl_leaf) else ""
     if "PrelandEmitE" not in pl:
         sys.exit(f"{b}: no pre-landing record written")
     open(pl_leaf, "w").write(HDR.format(b=b, what="emitted pre-landing record") + pl)
     with open(f"{OUT}/BenchCovers/{b}.lean", "w") as f:
         f.write(HDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default"))
+        f.write(sos)
         f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")
         f.write(f"/-- `{b}` (emitted, suite_v2, implied mode-fact candidates on). -/\n")
         f.write(cov.rstrip() + "\n\nend RelCertifier\n")
@@ -234,6 +250,7 @@ def emit_choice_leaves(b):
     env = {"RELCERT_IMPLIED_CUT": "1", "RELCERT_PROGRESS_OUT": pr, "RELCERT_CHOICE_OUT": ch,
            "RELCERT_PRELANDING_OUT": pl}
     cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"], env)
+    sos = sos_marker()
     for x, what in ((pr, "emitted reposition certificates"), (ch, "emitted choice record"),
                     (pl, "emitted pre-landing record")):
         if not os.path.exists(x):
@@ -242,6 +259,7 @@ def emit_choice_leaves(b):
         open(x, "w").write(CHDR.format(b=b, what=what) + body)
     with open(f"{COUT}/BenchCovers/{b}.lean", "w") as f:
         f.write(CHDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`, reposition certificates by default"))
+        f.write(sos)
         f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")
         f.write(cov.rstrip() + "\n\n\nend RelCertifier\n")
 

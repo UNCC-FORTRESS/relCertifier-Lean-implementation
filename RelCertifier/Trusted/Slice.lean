@@ -232,12 +232,19 @@ theorem and_sliceFlowDom_weakens {n : ℕ} (k : Option ℕ) (g gdot : ITerm n) (
   exact ⟨sliceFlowDom_weakens k g gdot dom σ h.1, h.2⟩
 
 /-- **The sliced verdict of a flow query.** An `unsat` answer on the query over the sliced
-domain (what the runner prints under the knob) is the sliced verdict `Z3Unsat` of the query over
-the full domain (what the flow packs assume). With `k = none` the two queries coincide. -/
+domain (what the runner prints under the knob) is the sliced verdict `OracleUnsat O` of the query
+over the full domain (what the flow packs assume), for any oracle `O` (`Trusted/Oracle.lean`). With
+`k = none` the two queries coincide. -/
+theorem OracleUnsat_of_sliced {n : ℕ} {O : UnsatOracle (Var n)} {k : Option ℕ} {g gdot : ITerm n}
+    {dom G : IForm n}
+    (h : O.solve (IForm.and (sliceFlowDom k g gdot dom) G).toHost = Verdict.unsat) :
+    OracleUnsat O (IForm.and dom G).toHost :=
+  OracleUnsat.of_weaker (and_sliceFlowDom_weakens k g gdot dom G) h
+
 theorem Z3Unsat_of_sliced {n : ℕ} {k : Option ℕ} {g gdot : ITerm n} {dom G : IForm n}
     (h : z3solve (IForm.and (sliceFlowDom k g gdot dom) G).toHost = Verdict.unsat) :
     Z3Unsat (IForm.and dom G).toHost :=
-  Z3Unsat.of_weaker (and_sliceFlowDom_weakens k g gdot dom G) h
+  OracleUnsat_of_sliced (O := z3Oracle) h
 
 /-! ## Soundness of the levels: every level is implied by the full domain -/
 
@@ -290,13 +297,21 @@ theorem and_sliceFlowLevels_weakens {n : ℕ} (k : Option ℕ) (g gdot : ITerm n
   exact ⟨sliceFlowLevels_weakens k g gdot dom d hd σ h.1, h.2⟩
 
 /-- **The verdict of an escalated flow query.** An `unsat` answer on the query over any of its
-levels (what the tool sends, hop `k`, `k+1`, …, the full domain) is the sliced verdict `Z3Unsat`
-of the query over the full domain (what the flow packs assume). With `k = none` the only level
-is the full domain. -/
+levels (what the tool sends, hop `k`, `k+1`, …, the full domain) is the sliced verdict
+`OracleUnsat O` of the query over the full domain (what the flow packs assume), for any oracle `O`
+(Z3, or Z3-or-SOS when `RELCERT_SOS_SECS` is set, `docs/SOS-ORACLE.md`). With `k = none` the only
+level is the full domain. -/
+theorem OracleUnsat_of_level {n : ℕ} {O : UnsatOracle (Var n)} {k : Option ℕ} {g gdot : ITerm n}
+    {dom d G : IForm n} (hd : d ∈ sliceFlowLevels k g gdot dom)
+    (h : O.solve (IForm.and d G).toHost = Verdict.unsat) :
+    OracleUnsat O (IForm.and dom G).toHost :=
+  OracleUnsat.of_weaker (and_sliceFlowLevels_weakens k g gdot dom d G hd) h
+
+/-- The same for Z3 alone. -/
 theorem Z3Unsat_of_level {n : ℕ} {k : Option ℕ} {g gdot : ITerm n} {dom d G : IForm n}
     (hd : d ∈ sliceFlowLevels k g gdot dom)
     (h : z3solve (IForm.and d G).toHost = Verdict.unsat) :
     Z3Unsat (IForm.and dom G).toHost :=
-  Z3Unsat.of_weaker (and_sliceFlowLevels_weakens k g gdot dom d G hd) h
+  OracleUnsat_of_level (O := z3Oracle) hd h
 
 end RelCertifier

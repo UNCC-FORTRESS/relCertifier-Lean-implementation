@@ -96,12 +96,12 @@ theorem mem_orderTag_iff (comps : List (Term (Var n))) (mask : List Bool) (order
 /-- The stratified flow pack of one pairing over flagged components: a strict component by
 route A or B, the others by any of the three routes (the existing `VerdXCore` queries). -/
 def VerdXCoreS (ts : List (Bool × Term (Var n))) (fL fR : Fin n → Term (Var n)) (lam : ℝ)
-    (D : Formula (Var n)) : Prop :=
-  StrataVerdS fL fR (Term.const lam) D ts
+    (D : Formula (Var n)) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
+  StrataVerdS fL fR (Term.const lam) D ts O
 
 /-- **The suite_v2 modal verdict pack at a strict row** (`modalVerdX` with the row's mask). -/
 noncomputable def modalVerdXS (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
-    (order : List ℕ) (lam : ℝ) (l m : ℕ) : Prop :=
+    (order : List ℕ) (lam : ℝ) (l m : ℕ) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
   let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mL := p.L.modes.getD l dm
@@ -112,14 +112,14 @@ noncomputable def modalVerdXS (p : PProblem) (cX : EvolStrengtheningX) (n invRow
   let cL := cutPairsX vars n Side.L (cutAtomsOfX cX.L mL.name)
   let cR := cutPairsX vars n Side.R (cutAtomsOfX cX.R mR.name)
   VerdXCoreS ts (hostDyn vars n Side.L mL) (hostDyn vars n Side.R mR) lam
-    (domCutX base cL cR)
+    (domCutX base cL cR) O
 
 /-- **Collapse**: a row without strict atoms gives the existing pack. -/
 theorem modalVerdXS_allFalse (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
-    (order : List ℕ) (lam : ℝ) (l m : ℕ)
+    {O : UnsatOracle (Var n)} (order : List ℕ) (lam : ℝ) (l m : ℕ)
     (h : ∀ b ∈ (invStrictFlags p.L.stateVars n
       (p.invariants.getD invRow ("", PForm.tt)).2).getD [], b = false) :
-    modalVerdXS p cX n invRow order lam l m ↔ modalVerdX p cX n invRow order lam l m := by
+    modalVerdXS p cX n invRow order lam l m O ↔ modalVerdX p cX n invRow order lam l m O := by
   unfold modalVerdXS modalVerdX VerdXCoreS VerdXCore
   simp only
   rw [orderTag_allFalse _ h, strataVerdS_allFalse]
@@ -144,7 +144,7 @@ theorem couple_box_cutXS (g : Term (Var n)) (gs : List (Term (Var n))) (m : List
     (hiffL : AtomsIff cL) (hiffR : AtomsIff cR)
     (hstayL : AtomsStayC cL (jointSys fL fR (Term.const lamv)) (Formula.and domL domR))
     (hstayR : AtomsStayC cR (jointSys fL fR (Term.const lamv)) (Formula.and domL domR))
-    (hverd : VerdXCoreS ts fL fR lamv (domCutX (Formula.and domL domR) cL cR)) :
+    (hverd : VerdXCoreS ts fL fR lamv (domCutX (Formula.and domL domR) cL cR) O) :
     ∀ σ ω, Formula.sat (FMS g (gs ++ atomTerms cL cR) m) σ →
       Program.sem (Program.ode (jointSys fL fR (Term.const lamv)) (Formula.and domL domR)) σ ω →
       Formula.sat (FMS g (gs ++ atomTerms cL cR) m) ω := by
@@ -174,9 +174,9 @@ theorem couple_box_cutXS (g : Term (Var n)) (gs : List (Term (Var n))) (m : List
 base domain narrowed by the region's half-open part: route A preserves `< 0` as well as `≤ 0`
 (whole region: route A for every component; restricted mode `m|¬tgt` of Lemma 4: a strict
 component's route A holds over the closure, hence over the half-open part, `covers`). -/
-theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
+theorem segPresAllS_dyn {O : UnsatOracle (Var n)} (pre : Bool) (ts : List (Bool × Term (Var n)))
     (fR : Fin n → Term (Var n)) (D gL : Formula (Var n)) {rg : DynRegion n}
-    (hv : VerdDynCore pre (ts.map Prod.snd) fR D gL rg) (hrg : rg.covers (ts.map Prod.fst)) :
+    (hv : VerdDynCore pre (ts.map Prod.snd) fR D gL rg O) (hrg : rg.covers (ts.map Prod.fst)) :
     SegPreservesAllOnS ts (jointSys (fun _ => Term.const 0) fR (Term.const 1))
       (dynBase pre (rg.dom D) gL) := by
   intro ν hinit
@@ -192,7 +192,7 @@ theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
   have hget : (ts.map Prod.snd)[i] = ts[i].2 := by simp
   cases rg with
   | whole =>
-      have hz := z3Unsat_sound (hv i hi')
+      have hz := oracleUnsat_sound (hv i hi')
       rw [hget] at hz
       rcases hb : ts[i].1 with _ | _
       · rw [hb] at hν'
@@ -218,18 +218,18 @@ theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
         intro ω hω
         show Term.eval ts[i].2 ω ≤ 0
         split_ifs at h with hm
-        · exact flow_cert_sound _ (z3Unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
+        · exact flow_cert_sound _ (oracleUnsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
         · rcases h with h | h | h
-          · exact flow_cert_sound _ (z3Unsat_sound h) hν' ω hω
-          · exact flow_cert_sound_strict _ (z3Unsat_sound h) hν' ω hω
-          · exact flow_cert_sound_superlevel _ (z3Unsat_sound h) hν' ω hω
+          · exact flow_cert_sound _ (oracleUnsat_sound h) hν' ω hω
+          · exact flow_cert_sound_strict _ (oracleUnsat_sound h) hν' ω hω
+          · exact flow_cert_sound_superlevel _ (oracleUnsat_sound h) hν' ω hω
       · rw [hb] at hν'
         intro ω hω
         show Term.eval ts[i].2 ω < 0
         have hm : mask.getD i false = true := hrg i (by
           rw [List.getD_eq_getElem _ _ (by simpa using hi)]; simp [hb])
         rw [if_pos hm] at h
-        exact flow_cert_sound_lt _ (z3Unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
+        exact flow_cert_sound_lt _ (oracleUnsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
 
 /-- **`couple_box_dyn` at a strict row.** The anchor `FMS g (gs ++ atomTerms cL cR) m` is a box
 invariant of the right-only product program (Eq. (15), left frozen) on the base domain narrowed by
@@ -244,7 +244,7 @@ theorem couple_box_dynS (pre : Bool) (g : Term (Var n)) (gs : List (Term (Var n)
     (hgL : gL.fv ⊆ range Lv)
     (hstayR : AtomsStayC cR (jointSys (fun _ => Term.const 0) fR (Term.const 1))
       (dynBase pre (Formula.and domL (rg.dom domR)) gL))
-    (hverd : VerdDynCore pre (ts.map Prod.snd) fR (domCutX (Formula.and domL domR) cL cR) gL rg)
+    (hverd : VerdDynCore pre (ts.map Prod.snd) fR (domCutX (Formula.and domL domR) cL cR) gL rg O)
     (hrg : rg.covers (ts.map Prod.fst)) :
     ∀ σ ω, Formula.sat (FMS g (gs ++ atomTerms cL cR) m) σ → (pre = true → Formula.sat gL σ) →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR (Term.const 1))

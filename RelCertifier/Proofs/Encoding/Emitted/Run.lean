@@ -23,17 +23,33 @@ open DL Parse Run Oracle Bridge Progress Choice
 
 variable {n : ℕ}
 
-/-- A group of alternatives is discharged when one member is `unsat`. -/
-def GroupsOK (gs : List (List (IForm n))) : Prop :=
-  ∀ g ∈ gs, ∃ q ∈ g, z3solve q.toHost = Verdict.unsat
+/-- A group of alternatives is discharged when one member is `unsat` by the oracle `O`: Z3 by
+default; `anyOracle` (Z3 or the exact SOS checker) for the flow groups of a tagged run
+(`RELCERT_SOS_SECS`, `docs/SOS-ORACLE.md`). -/
+def GroupsOK (gs : List (List (IForm n))) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
+  ∀ g ∈ gs, ∃ q ∈ g, O.solve q.toHost = Verdict.unsat
 
-theorem groupsOK_append {a b : List (List (IForm n))} (h : GroupsOK (a ++ b)) :
-    GroupsOK a ∧ GroupsOK b :=
+theorem groupsOK_append {O : UnsatOracle (Var n)} {a b : List (List (IForm n))}
+    (h : GroupsOK (a ++ b) O) : GroupsOK a O ∧ GroupsOK b O :=
   ⟨fun g hg => h g (List.mem_append_left _ hg), fun g hg => h g (List.mem_append_right _ hg)⟩
 
-theorem groupsOK_flatten {gss : List (List (List (IForm n)))} (h : GroupsOK gss.flatten) :
-    ∀ gs ∈ gss, GroupsOK gs :=
+theorem groupsOK_flatten {O : UnsatOracle (Var n)} {gss : List (List (List (IForm n)))}
+    (h : GroupsOK gss.flatten O) : ∀ gs ∈ gss, GroupsOK gs O :=
   fun gs hgs g hg => h g (List.mem_flatten.mpr ⟨gs, hgs, hg⟩)
+
+/-- A tagged discharge: every group has a member some oracle (Z3 or the SOS checker; the runner
+logs which, per level) answered `unsat` on. -/
+def GroupsOKT (gs : List (List (IForm n))) : Prop :=
+  ∀ g ∈ gs, ∃ q ∈ g, ∃ t : OracleTag, (t.oracle (V := Var n)).solve q.toHost = Verdict.unsat
+
+/-- A tagged discharge is a discharge by `anyOracle`. -/
+theorem groupsOK_any_of_tagged {gs : List (List (IForm n))} (h : GroupsOKT gs) :
+    GroupsOK gs anyOracle :=
+  fun g hg => let ⟨q, hq, t, ht⟩ := h g hg; ⟨q, hq, anyOracle_of_tag t ht⟩
+
+/-- A Z3 discharge is a tagged one. -/
+theorem groupsOKT_of_z3 {gs : List (List (IForm n))} (h : GroupsOK gs) : GroupsOKT gs :=
+  fun g hg => let ⟨q, hq, hz⟩ := h g hg; ⟨q, hq, .z3, hz⟩
 
 theorem mapM_range {β : Type} {f : ℕ → Option β} {k : ℕ} {l' : List β}
     (h : (List.range k).mapM f = some l') : ∀ i < k, ∃ y ∈ l', f i = some y :=
@@ -83,24 +99,42 @@ def progGroups (c : ProgressE) : Option (List (List (IForm n))) :=
 def coverageGroups (e : ChoiceEntryE) : Option (List (List (IForm n))) :=
   (coverageQueryOf p n cX e).map ([[·]])
 
-/-- **Every query of the benchmark**, in groups, rebuilt from the records alone (`none` when a
-record fails to lower); the flow packs sliced at `k` hops (`none`: unsliced, the byte-identical
-queries of the tool without the knob). -/
-def bridgeGroups (k : Option ℕ) : Option (List (List (IForm n))) := do
+/-- The groups before the flow packs: the stays of both sides and the non-connection pairs
+(Z3 only). -/
+def bridgeGroupsPre : Option (List (List (IForm n))) := do
   let sL ← (List.range (nL p)).mapM (fun l =>
     stayGroups p n Side.L (mLof p l) (cutAtomsOfX cX.L (mLof p l).name))
   let sR ← (List.range (nR p)).mapM (fun q =>
     stayGroups p n Side.R (mRof p q) (cutAtomsOfX cX.R (mRof p q).name))
   let nc ← (List.range (nR p)).mapM (nonConnGroups p n cX cov)
+  pure (sL.flatten ++ sR.flatten ++ nc.flatten)
+
+/-- The flow groups: the joint and the right-only packs of every pairing, sliced at `k` hops
+(the groups the SOS oracle may answer, `docs/SOS-ORACLE.md`). -/
+def bridgeGroupsFlow (k : Option ℕ) : Option (List (List (IForm n))) := do
   let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroups p n cX cov k l))
   let dy ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (fun q =>
     [true, false].mapM (dynGroups p n cX cov prog k l q)))
+  pure (jt.flatten.flatten ++ dy.flatten.flatten.flatten)
+
+/-- The groups after the flow packs: admissibility, handoff, progress and coverage (Z3 only). -/
+def bridgeGroupsPost : Option (List (List (IForm n))) := do
   let ad ← (List.range (nL p)).mapM (admGroups p n cov)
   let ho ← (List.range (nL p)).mapM (handoffGroups p n)
   let pr ← prog.certs.mapM (progGroups p n cX)
   let cv ← ce.entries.mapM (coverageGroups p n cX)
-  pure (sL.flatten ++ sR.flatten ++ nc.flatten ++ jt.flatten.flatten ++
-    dy.flatten.flatten.flatten ++ ad.flatten ++ ho.flatten ++ pr.flatten ++ cv.flatten)
+  pure (ad.flatten ++ ho.flatten ++ pr.flatten ++ cv.flatten)
+
+/-- **Every query of the benchmark**, in groups, rebuilt from the records alone (`none` when a
+record fails to lower); the flow packs sliced at `k` hops (`none`: unsliced, the byte-identical
+queries of the tool without the knob). The stays, non-connection pairs, then the flow packs, then
+admissibility, handoff, progress and coverage (`bridgeGroupsPre ++ bridgeGroupsFlow ++
+bridgeGroupsPost`, the tool's order). -/
+def bridgeGroups (k : Option ℕ) : Option (List (List (IForm n))) := do
+  let a ← bridgeGroupsPre p n cX cov
+  let f ← bridgeGroupsFlow p n cX cov prog k
+  let b ← bridgeGroupsPost p n cX cov prog ce
+  pure (a ++ f ++ b)
 
 end Builders
 
@@ -159,18 +193,20 @@ theorem nonConnVerd_of_groups {q : ℕ} {gs : List (List (IForm n))}
   subst ha; subst hb
   exact ⟨cutR, _, _, hcut, hq, hza, hzb⟩
 
-theorem jointVerd_of_groups {k : Option ℕ} {l q : ℕ} {gs : List (List (IForm n))}
-    (h : jointGroups p n cX cov k l q = some gs) (hok : GroupsOK gs)
-    (hj : (flagsOf p cov l q).jointOK = true) : JointVerd p n cX cov l q := by
+theorem jointVerd_of_groups {O : UnsatOracle (Var n)} {k : Option ℕ} {l q : ℕ}
+    {gs : List (List (IForm n))}
+    (h : jointGroups p n cX cov k l q = some gs) (hok : GroupsOK gs O)
+    (hj : (flagsOf p cov l q).jointOK = true) : JointVerd p n cX cov l q O := by
   unfold jointGroups at h
   rw [if_pos hj] at h
   unfold JointVerd lam
   exact modalVerdX_of_queries h (fun i hi => hok _ (List.getElem_mem hi))
 
-theorem dynVerd_of_groups {k : Option ℕ} {l q : ℕ} {pre : Bool} {gs : List (List (IForm n))}
-    (h : dynGroups p n cX cov prog k l q pre = some gs) (hok : GroupsOK gs)
+theorem dynVerd_of_groups {O : UnsatOracle (Var n)} {k : Option ℕ} {l q : ℕ} {pre : Bool}
+    {gs : List (List (IForm n))}
+    (h : dynGroups p n cX cov prog k l q pre = some gs) (hok : GroupsOK gs O)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true) :
-    DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre) := by
+    DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre) O := by
   unfold dynGroups at h
   rw [if_pos hd] at h
   unfold dynRegionI at h
@@ -234,24 +270,30 @@ theorem progVerd_of_groups {c : ProgressE} {gs : List (List (IForm n))}
     rw [List.mem_singleton] at ha; subst ha
     exact hz
 
-/-- **A green run is the `Verdicts` structure.** If `bridgeGroups` yields `gs` and every group of
-`gs` has a member that `z3solve` reports `unsat` (`GroupsOK`), then `Verdicts` holds for the same
-records (Appendix B.4). -/
-theorem verdicts_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
-    (h : bridgeGroups p n cX cov prog ce k = some gs) (hok : GroupsOK gs) :
-    Verdicts p n cX cov prog ce := by
-  unfold bridgeGroups at h
+/-- **A green run is the `Verdicts` structure**, oracle-generic: the groups before and after the
+flow packs discharged by Z3 (`GroupsOK`), the flow groups by the oracle `O` (Z3, or `anyOracle`
+for a tagged run); then `Verdicts … O` holds for the same records (Appendix B.4,
+`docs/SOS-ORACLE.md`). -/
+theorem verdicts_of_groups_O {O : UnsatOracle (Var n)} {k : Option ℕ}
+    {gP gF gQ : List (List (IForm n))}
+    (hP : bridgeGroupsPre p n cX cov = some gP) (hokP : GroupsOK gP)
+    (hF : bridgeGroupsFlow p n cX cov prog k = some gF) (hokF : GroupsOK gF O)
+    (hQ : bridgeGroupsPost p n cX cov prog ce = some gQ) (hokQ : GroupsOK gQ) :
+    Verdicts p n cX cov prog ce O := by
+  unfold bridgeGroupsPre at hP
+  unfold bridgeGroupsFlow at hF
+  unfold bridgeGroupsPost at hQ
   simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff, Option.some.injEq]
-    at h
-  obtain ⟨sL, hsL, sR, hsR, nc, hnc, jt, hjt, dy, hdy, ad, had, ho, hho, pr, hpr, cv, hcv, rfl⟩ := h
-  obtain ⟨h1, h9⟩ := groupsOK_append hok
-  obtain ⟨h1, h8⟩ := groupsOK_append h1
-  obtain ⟨h1, h7⟩ := groupsOK_append h1
-  obtain ⟨h1, h6⟩ := groupsOK_append h1
-  obtain ⟨h1, h5⟩ := groupsOK_append h1
-  obtain ⟨h1, h4⟩ := groupsOK_append h1
-  obtain ⟨h1, h3⟩ := groupsOK_append h1
+    at hP hF hQ
+  obtain ⟨sL, hsL, sR, hsR, nc, hnc, rfl⟩ := hP
+  obtain ⟨jt, hjt, dy, hdy, rfl⟩ := hF
+  obtain ⟨ad, had, ho, hho, pr, hpr, cv, hcv, rfl⟩ := hQ
+  obtain ⟨h1, h3⟩ := groupsOK_append hokP
   obtain ⟨h1, h2⟩ := groupsOK_append h1
+  obtain ⟨h4, h5⟩ := groupsOK_append hokF
+  obtain ⟨h6, h9⟩ := groupsOK_append hokQ
+  obtain ⟨h6, h8⟩ := groupsOK_append h6
+  obtain ⟨h6, h7⟩ := groupsOK_append h6
   refine ⟨⟨?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro l hl
     obtain ⟨g, hg, hgl⟩ := mapM_range hsL l hl
@@ -284,6 +326,31 @@ theorem verdicts_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
   · intro e he
     obtain ⟨g, hg, hge⟩ := mapM_option_forall hcv e he
     exact coverageVerd_of_groups hge (groupsOK_flatten h9 _ hg)
+
+/-- **A green run is the `Verdicts` structure.** If `bridgeGroups` yields `gs` and every group of
+`gs` has a member that `z3solve` reports `unsat` (`GroupsOK`), then `Verdicts` holds for the same
+records (Appendix B.4). -/
+theorem verdicts_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
+    (h : bridgeGroups p n cX cov prog ce k = some gs) (hok : GroupsOK gs) :
+    Verdicts p n cX cov prog ce := by
+  unfold bridgeGroups at h
+  simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff, Option.some.injEq]
+    at h
+  obtain ⟨gP, hP, gF, hF, gQ, hQ, rfl⟩ := h
+  obtain ⟨hok', hokQ⟩ := groupsOK_append hok
+  obtain ⟨hokP, hokF⟩ := groupsOK_append hok'
+  exact verdicts_of_groups_O hP hokP hF hokF hQ hokQ
+
+/-- **A green tagged run** (`RELCERT_SOS_SECS` set, `relcert-bridge-verdicts`): the flow groups
+discharged by Z3 or the exact SOS checker, member by member (`GroupsOKT`), the other groups by
+Z3; `Verdicts … anyOracle` holds. The hypothesis shape of an instance whose records carry an SOS
+verdict. -/
+theorem verdicts_of_tagged {k : Option ℕ} {gP gF gQ : List (List (IForm n))}
+    (hP : bridgeGroupsPre p n cX cov = some gP) (hokP : GroupsOK gP)
+    (hF : bridgeGroupsFlow p n cX cov prog k = some gF) (hokF : GroupsOKT gF)
+    (hQ : bridgeGroupsPost p n cX cov prog ce = some gQ) (hokQ : GroupsOK gQ) :
+    Verdicts p n cX cov prog ce anyOracle :=
+  verdicts_of_groups_O hP hokP hF (groupsOK_any_of_tagged hokF) hQ hokQ
 
 end Link
 

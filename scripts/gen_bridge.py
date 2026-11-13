@@ -135,20 +135,25 @@ end RelCertifier.Bridge.{camel}
 '''
 
 WINDOW_CLAIM = '''/-- **Theorem 3 of `{b}`** (window form, a mode-independent invariant): every verdict group of
-the benchmark `unsat`. -/
-theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+the benchmark `unsat`{oracle_doc}. -/
+theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce{oracle}) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR {n} cX cov reg 0 1 2 dt :=
-  theorem3_window_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
+  theorem3_window_of_records{osuf} struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
     rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 '''
 
 KEYED_CLAIM = '''/-- **Theorem 3 of `{b}`** (mode-keyed form, the invariant keyed by the stored left mode as in
-Eq. (9)): every verdict group of the benchmark `unsat`. -/
-theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+Eq. (9)): every verdict group of the benchmark `unsat`{oracle_doc}. -/
+theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce{oracle}) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     keyedClaim IR {n} cX cov reg 0 1 2 3 dt :=
-  theorem3_keyed_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR 0 1 2 3
+  theorem3_keyed_of_records{osuf} struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR 0 1 2 3
     (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) dt hdt
 '''
+
+# the oracle of an instance (`docs/SOS-ORACLE.md`): `z3Oracle` (the default, no argument) unless the
+# cover leaf carries the SOS marker of `gen_v2_data.py`, then `anyOracle` through the `_O` theorems
+ORACLE_DOC = (" (the flow groups by Z3 or the exact SOS checker, `anyOracle`: the cover leaf records"
+              " SOS verdicts, `docs/SOS-ORACLE.md`; the instance's axioms include `sos_unsat_sound`)")
 
 TRANSPORT_BLOCK = """theorem nR_eq : nR IR = {ns}.{G}.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR {ns}.{G} = true := by decide +kernel
@@ -242,31 +247,45 @@ theorem prelanding_on : IR.prelanding = true := by decide +kernel
 theorem uses_prelanding : pl.nodes.isEmpty = false := by decide +kernel
 
 {claim}
-/-- The same from a green run of the benchmark's groups (`bridgeGroups` on the merged cover,
-`relcert-bridge-verdicts`), at any hypothesis slicing `k` (`docs/HYP-SLICING.md`). -/
-theorem {b}_bridge_run {{k : Option ℕ}} {{gs : List (List (IForm {n}))}}
-    (hrun : bridgeGroups IR {n} cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
-    (hdt : dt ≤ epsL IR) : {claim_ty} :=
-  {b}_bridge (verdicts_of_groups hrun hok) dt hdt
-
+{run_thm}
 end RelCertifier.Bridge.{camel}
 '''
 
 
 WINDOW_CLAIM_PL = '''/-- **Theorem 3 of `{b}`** (window form, a mode-independent invariant, over the emitted cover):
-every verdict group of the benchmark `unsat`. -/
-theorem {b}_bridge (hv : Verdicts IR {n} cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+every verdict group of the benchmark `unsat`{oracle_doc}. -/
+theorem {b}_bridge (hv : Verdicts IR {n} cX covM prog ce{oracle}) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR {n} cX cov reg 0 1 2 dt :=
-  theorem3_window_of_records_pl pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
+  theorem3_window_of_records_pl{osuf} pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
     rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 '''
 
 KEYED_CLAIM_PL = '''/-- **Theorem 3 of `{b}`** (mode-keyed form, the invariant keyed by the stored left mode as in
-Eq. (9), over the emitted cover): every verdict group of the benchmark `unsat`. -/
-theorem {b}_bridge (hv : Verdicts IR {n} cX covM prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+Eq. (9), over the emitted cover): every verdict group of the benchmark `unsat`{oracle_doc}. -/
+theorem {b}_bridge (hv : Verdicts IR {n} cX covM prog ce{oracle}) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     keyedClaim IR {n} cX cov reg 0 1 2 3 dt :=
-  theorem3_keyed_of_records_pl pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
+  theorem3_keyed_of_records_pl{osuf} pl_ok struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
     0 1 2 3 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) dt hdt
+'''
+
+RUN_THM = '''/-- The same from a green run of the benchmark's groups (`bridgeGroups` on the merged cover,
+`relcert-bridge-verdicts`), at any hypothesis slicing `k` (`docs/HYP-SLICING.md`). -/
+theorem {b}_bridge_run {{k : Option ℕ}} {{gs : List (List (IForm {n}))}}
+    (hrun : bridgeGroups IR {n} cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
+    (hdt : dt ≤ epsL IR) : {claim_ty} :=
+  {b}_bridge (verdicts_of_groups hrun hok) dt hdt
+'''
+
+RUN_THM_TAGGED = '''/-- The same from a green TAGGED run of the benchmark's groups (`relcert-bridge-verdicts` with
+`RELCERT_SOS_SECS` set, `docs/SOS-ORACLE.md`): the groups before and after the flow packs by Z3,
+the flow groups (`bridgeGroupsFlow`) member by member by Z3 or the exact SOS checker
+(`GroupsOKT`), at any hypothesis slicing `k`. -/
+theorem {b}_bridge_run {{k : Option ℕ}} {{gP gF gQ : List (List (IForm {n}))}}
+    (hP : bridgeGroupsPre IR {n} cX covM = some gP) (hokP : GroupsOK gP)
+    (hF : bridgeGroupsFlow IR {n} cX covM prog k = some gF) (hokF : GroupsOKT gF)
+    (hQ : bridgeGroupsPost IR {n} cX covM prog ce = some gQ) (hokQ : GroupsOK gQ) (dt : ℝ)
+    (hdt : dt ≤ epsL IR) : {claim_ty} :=
+  {b}_bridge (verdicts_of_tagged hP hokP hF hokF hQ hokQ) dt hdt
 '''
 
 def pl_leaf(b):
@@ -281,6 +300,13 @@ def has_pl_nodes(b):
         return False
     txt = open(f).read()
     return bool(re.search(r'⟨"\w+", "\w+", (true|false), \[', txt))
+
+def sos_used(b):
+    """`b`'s cover leaf carries the SOS marker of `gen_v2_data.py` (`-- oracles: z3 sos …`): the
+    records were found with the SOS oracle, the instance is stated at `anyOracle`."""
+    f = (f"RelCertifier/InstancesV2/Choice/BenchCovers/{b}.lean" if b in CHOICE
+         else f"RelCertifier/InstancesV2/BenchCovers/{b}.lean")
+    return os.path.exists(f) and "-- oracles: z3 sos" in open(f).read()
 
 def uses_stutter(b):
     """`b`'s emitted cover has a stretch-0 pairing (`lamN = 0`; the stutter feature)."""
@@ -347,7 +373,10 @@ def emit(b, n0):
         # stretch-0 pairing, both decided in the kernel (`structOK`'s `timeOK` admits `lamN = 0`
         # only when the IR records the feature)
         rows_thm += STUTTER_THMS
-    claim = (KEYED_CLAIM if keyed else WINDOW_CLAIM).format(b=b, n=n)
+    sos = sos_used(b)
+    ofmt = dict(oracle=" anyOracle" if sos else "", osuf="_O" if sos else "",
+                oracle_doc=ORACLE_DOC if sos else "")
+    claim = (KEYED_CLAIM if keyed else WINDOW_CLAIM).format(b=b, n=n, **ofmt)
     if direct:
         region_block = DIRECT_REGION.format(n=n, n0=n0, ns=info["ns"], b=b)
         transport_block = ""
@@ -357,15 +386,16 @@ def emit(b, n0):
     if has_pl_nodes(b):
         # the pre-landing right-only certificate (docs/PRELANDING.md, always on): the instance is
         # over the cover merged with the pre-landing record
-        claim_pl = (KEYED_CLAIM_PL if keyed else WINDOW_CLAIM_PL).format(b=b, n=n)
+        claim_pl = (KEYED_CLAIM_PL if keyed else WINDOW_CLAIM_PL).format(b=b, n=n, **ofmt)
         claim_ty = (f"keyedClaim IR {n} cX cov reg 0 1 2 3 dt" if keyed
                     else f"windowClaim IR {n} cX cov reg 0 1 2 dt")
+        run_thm = (RUN_THM_TAGGED if sos else RUN_THM).format(b=b, n=n, claim_ty=claim_ty)
         pl_module = (f"RelCertifier.InstancesV2.Choice.BenchPrelanding.{b}" if b in CHOICE
                      else f"RelCertifier.InstancesV2.BenchPrelanding.{b}")
         txt = PL_TEMPLATE.format(b=b, camel=camel(b), n=n, n0=n0, wfmod=info["module"],
                                  region_block=region_block, transport_block=transport_block,
                                  rows_doc="" if keyed else ", `rows_same`", rows_thm=rows_thm,
-                                 claim=claim_pl, claim_ty=claim_ty, pl_module=pl_module,
+                                 claim=claim_pl, run_thm=run_thm, pl_module=pl_module,
                                  **{k: v for k, v in rec.items() if k != "eps_thm"})
         os.makedirs(OUT, exist_ok=True)
         with open(f"{OUT}/{camel(b)}.lean", "w") as f:

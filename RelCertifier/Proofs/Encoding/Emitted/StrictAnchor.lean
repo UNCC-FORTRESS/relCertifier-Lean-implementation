@@ -62,8 +62,8 @@ noncomputable def AGrS (reg : Formula (Var n)) (l q : ℕ) : Formula (Var n) :=
   Formula.and (AGS p n cX cov l q) reg
 
 /-- The flagged joint pack of a certified pairing (strict components: routes A/B). -/
-def JointVerdS (l q : ℕ) : Prop :=
-  modalVerdXS p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q
+def JointVerdS (l q : ℕ) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
+  modalVerdXS p cX n (rowIdx p l) (strataOf p cov l q).order (lam p cov l q) l q O
 
 /-- The strict handoff verdict (Eq. (13) at the rows' masks) of a declared left mode change. -/
 def HandoffVerdS (tr : ℕ × ℕ) : Prop :=
@@ -94,8 +94,8 @@ theorem AGS_allFalse {l q : ℕ} (h : ∀ b ∈ maskOf p n l, b = false) :
     AGS p n cX cov l q = AG p n cX cov l q := by
   unfold AGS AG; rw [FMS_allFalse _ _ h]
 
-theorem jointVerdS_of_allFalse {l q : ℕ} (h : ∀ b ∈ maskOf p n l, b = false)
-    (hv : JointVerd p n cX cov l q) : JointVerdS p n cX cov l q :=
+theorem jointVerdS_of_allFalse {O : UnsatOracle (Var n)} {l q : ℕ} (h : ∀ b ∈ maskOf p n l, b = false)
+    (hv : JointVerd p n cX cov l q O) : JointVerdS p n cX cov l q O :=
   (modalVerdXS_allFalse p cX n (rowIdx p l) _ _ l q h).mpr hv
 
 end DataS
@@ -228,19 +228,20 @@ theorem orderTag_mem_equiv {l : ℕ} (hl : l < nL p) {order : List ℕ}
   exact ⟨fun c hc => (mem_orderTag_iff _ _ _ hperm' c).mp hc,
     fun c hc => (mem_orderTag_iff _ _ _ hperm' c).mpr hc⟩
 
-theorem jointVerdS_core {l q : ℕ} (hl : l < nL p) (hq : q < nR p)
-    (hv : JointVerdS p n cX cov l q) :
+theorem jointVerdS_core {O : UnsatOracle (Var n)} {l q : ℕ} (hl : l < nL p) (hq : q < nR p)
+    (hv : JointVerdS p n cX cov l q O) :
     VerdXCoreS (orderTag (comps p n l) (maskOf p n l) (strataOf p cov l q).order) (fL p n l)
-      (fR p n q) (lam p cov l q) (domCutX (env p n) (cL p n cX l) (cR p n cX q)) := by
+      (fR p n q) (lam p cov l q) (domCutX (env p n) (cL p n cX l) (cR p n cX q)) O := by
   have h : VerdXCoreS (orderTag (comps p n l) (maskOf p n l) (strataOf p cov l q).order)
       (fL p n l) (fR p n q) (lam p cov l q)
       (domCutX (Formula.and (hostEvolve (vars p) n Side.L (mLof p l))
-        (hostEvolve (vars p) n Side.R (mRof p q))) (cL p n cX l) (cR p n cX q)) := hv
+        (hostEvolve (vars p) n Side.R (mRof p q))) (cL p n cX l) (cR p n cX q)) O := hv
   rwa [hostEvolve_L (hu hs) hl, hostEvolve_R (hu hs) hq] at h
 
 /-- **A joint segment at the pairing's stretch keeps the strict anchor.** -/
-theorem AGS_box (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
-    (hq : q < nR p) (hj : (flagsOf p cov l q).jointOK = true) (hv : JointVerdS p n cX cov l q) :
+theorem AGS_box {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+    {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (hj : (flagsOf p cov l q).jointOK = true)
+    (hv : JointVerdS p n cX cov l q O) :
     ∀ σ ω, Formula.sat (AGS p n cX cov l q) σ →
       Program.sem (Program.ode (jointSys (fL p n l) (fR p n q) (Term.const (lam p cov l q)))
         (env p n)) σ ω → Formula.sat (AGS p n cX cov l q) ω := by
@@ -259,10 +260,10 @@ theorem AGS_box (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ}
   · exact barriers_keep hs hnc hst hq (fL p n l) _ (lam_nonneg hs hl hq) σ ω hcRσ hbar hω
 
 /-- **A frozen-left segment keeps the strict anchor** (the existing right-only flow pack). -/
-theorem AGS_boxD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
-    (hq : q < nR p) (pre : Bool)
+theorem AGS_boxD {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+    {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (pre : Bool)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true)
-    (hv : DynVerd p n cX cov l q pre) :
+    (hv : DynVerd p n cX cov l q pre .whole O) :
     ∀ σ ω, Formula.sat (AGS p n cX cov l q) σ → (pre = true → Formula.sat (guardL p n l) σ) →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR p n q) (Term.const 1))
         (Formula.and (domL p n) (domR p n))) σ ω → Formula.sat (AGS p n cX cov l q) ω := by
@@ -311,14 +312,14 @@ tagged rows and atoms (`couple_box_dynS`); every `≤ 0` term is `≤ 0` at the 
 a strict component's pack is route A over the CLOSED region (`covers`), and the run, up to and
 including its end, lies in that closed region narrowed by the domain, the atoms and the earlier
 strata (all `≤ 0` along it), so route A keeps it `< 0` at the end (`flow_cert_sound_lt`). -/
-theorem AGS_boxR (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ} (hl : l < nL p)
-    (hq : q < nR p) (pre : Bool)
+theorem AGS_boxR {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+    {l q : ℕ} (hl : l < nL p) (hq : q < nR p) (pre : Bool)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true)
     {rg : DynRegion n} (hrg : rg.fvR)
     (hcov : rg.covers ((orderTag (comps p n l) (maskOf p n l)
       (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder)).map
         Prod.fst))
-    (hv : DynVerd p n cX cov l q pre rg) :
+    (hv : DynVerd p n cX cov l q pre rg O) :
     ∀ y ρ, (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (AGS p n cX cov l q) y →
       (pre = true → Formula.sat (guardL p n l) y) →
       ∀ T Φ, DLCalTiming.ODESol (rightBlock (fR p n q) (Term.const 1)) (domR p n) ρ T Φ →
@@ -453,7 +454,7 @@ theorem AGS_boxR (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ
       have := (sat_FMS_iff _ _ _ _).mp ((sat_FMS_append _ _ _ _ (maskOf_len p n l) σ).mp hFA).1 c hc
       rw [hc1] at this; exact this
     exact flow_cert_sound_lt ⟨c.2, fun _ => Term.const 0, fR p n q, Term.const 1, Dom⟩
-      (z3Unsat_sound h) hinit _ hrun
+      (oracleUnsat_sound h) hinit _ hrun
   refine ⟨(sat_FMS_append _ _ _ _ (maskOf_len_app _) _).mpr ⟨?_, ?_⟩,
     sem_ode_ends_in_domain hrunW⟩
   · refine (sat_FMS_append _ _ _ _ (maskOf_len p n l) _).mpr ⟨?_, hatoms T ⟨hT.le, le_rfl⟩⟩
@@ -526,14 +527,14 @@ row** (Lemma 4), from the node's reposition certificate (Definition 7, its stage
 right-only flow pack on the node's region (`dynRegion`: the whole domain with `prelanding` off,
 the restricted mode `q|¬tgt` with it on). The landing cycle stops at the first entry into the
 certificate's closed target `tgt` (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
-theorem hrepoProg_ofS (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+theorem hrepoProg_ofS {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
     (hdyn : ∀ l < nL p, ∀ q < nR p, ∀ pre : Bool,
       (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true →
-      DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre))
+      DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre) O)
     (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
     {l : ℕ} (hl : l < nL p) :
     ∀ q m, (grOf p n (prunedOf cov)).modeAt q = some m → ∀ pre : Bool,

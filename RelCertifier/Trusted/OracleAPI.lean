@@ -53,6 +53,7 @@ it, the outcome is `error`, not `declined`. `certified` is only ever produced by
 -/
 import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.Slice
+import RelCertifier.Trusted.Sos
 import RelCertifier.Trusted.InvComponents
 import RelCertifier.Trusted.InvStrictFlags
 import RelCertifier.Trusted.NonConnQuery
@@ -409,6 +410,8 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     IO (Seg × List Nat) := do
   -- the hypothesis-slicing knob (`RELCERT_SLICE_HOPS`, `Trusted/Slice.lean`; unset = untouched)
   let hops ← sliceHopsFromEnv
+  -- the SOS-oracle knob (`RELCERT_SOS_SECS`, `Trusted/Sos.lean`; unset = Z3 alone)
+  let sos ← sosSecsFromEnv
   -- CERTIFICATION IN ROUNDS (soundness-critical; paper §4.1, Lemma 2). A component may
   -- narrow its query domain ONLY by components proven in EARLIER rounds (sequential,
   -- acyclic differential cuts), so no component assumes itself. MUTUAL narrowing (every
@@ -465,11 +468,16 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
                     if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
                     let script := q.toScript coord
                     if script.length > maxSmt then anyUnknown := true
-                    else match ← s.check script with
+                    else
+                      -- Z3, then (knob set) the SOS oracle on `unknown`: `unsat` only when the
+                      -- exact checker verified a certificate of THIS printed query
+                      -- (`Trusted/Sos.lean`; the pin is `modalVerdX_of_tagged` at `anyOracle`)
+                      let ctx := s!"[sos secs={sos.getD 0} level={levelLabel lv} {li + 1}/{levels.length}] {tag}"
+                      match ← oracleCheck s sos script ctx with
                       | .error _ => anyUnknown := true
-                      | .ok .unknown => anyUnknown := true
-                      | .ok .unsat => compPass := true
-                      | .ok .sat => pure ()
+                      | .ok (.unknown, _) => anyUnknown := true
+                      | .ok (.unsat, _) => compPass := true
+                      | .ok (.sat, _) => pure ()
                 compIncon := anyUnknown
                 logSliceOutcome hops lv li levels.length tag
                   (if compPass then "unsat" else if anyUnknown then "unknown" else "sat")
@@ -506,6 +514,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     IO (Bool × List Nat) := do
   let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
   let hops ← sliceHopsFromEnv
+  let sos ← sosSecsFromEnv
   let mut proven : List Nat := []
   for _ in List.range (comps.length + 1) do
     let mut progress := false
@@ -547,10 +556,12 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
                     cnt.modify (· + 1)
                     if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
                     if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-                    match ← s.check script with
-                    | .ok .unsat => compPass := true
-                    | .ok .sat   => pure ()
-                    | _          => anyUnknown := true
+                    -- Z3, then (knob set) the SOS oracle on `unknown`, as in `checkSeg`
+                    let ctx := s!"[sos secs={sos.getD 0} level={levelLabel lv} {li + 1}/{levels.length}] {tag}"
+                    match ← oracleCheck s sos script ctx with
+                    | .ok (.unsat, _) => compPass := true
+                    | .ok (.sat, _)   => pure ()
+                    | _               => anyUnknown := true
                 logSliceOutcome hops lv li levels.length tag
                   (if compPass then "unsat" else if anyUnknown then "unknown" else "sat")
                 li := li + 1

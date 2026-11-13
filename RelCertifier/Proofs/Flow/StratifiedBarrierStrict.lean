@@ -99,14 +99,14 @@ def strataObS (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (D : Formula
     (ts : List (Bool × Term (Var n))) (i : ℕ) (hi : i < ts.length) : FlowObligation n :=
   ⟨ts[i].2, fL, fR, lam, strataDomHost D ((ts.take i).map Prod.snd)⟩
 
-/-- **The flagged verdict pack** (sliced verdicts, `Z3Unsat`). A strict component is certified
+/-- **The flagged verdict pack** (sliced verdicts, `OracleUnsat O`). A strict component is certified
 by route A or B only; a non-strict one by any of the three routes (the existing group). -/
 def StrataVerdS (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (D : Formula (Var n))
-    (ts : List (Bool × Term (Var n))) : Prop :=
+    (ts : List (Bool × Term (Var n))) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
   ∀ i (hi : i < ts.length),
-    Z3Unsat (flowQuery (strataObS fL fR lam D ts i hi))
-    ∨ Z3Unsat (flowQueryStrict (strataObS fL fR lam D ts i hi))
-    ∨ (ts[i].1 = false ∧ Z3Unsat (flowQuerySuperlevel (strataObS fL fR lam D ts i hi)))
+    OracleUnsat O (flowQuery (strataObS fL fR lam D ts i hi))
+    ∨ OracleUnsat O (flowQueryStrict (strataObS fL fR lam D ts i hi))
+    ∨ (ts[i].1 = false ∧ OracleUnsat O (flowQuerySuperlevel (strataObS fL fR lam D ts i hi)))
 
 /-- Same-runs transfer between sat-equivalent ode domains, flagged conclusion. -/
 theorem holds_dom_congr {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
@@ -121,9 +121,9 @@ theorem holds_dom_congr {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
 /-- **The strata certificates from the flagged verdicts.** Strict strata: routes A/B give
 `BoxLt` (`flow_cert_sound_lt`, `flow_cert_sound_strict_lt`); non-strict strata: the existing
 three routes give `BoxLe`. -/
-theorem strata_hcert_from_verdictsS' (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
-    (D : Formula (Var n)) (ts : List (Bool × Term (Var n)))
-    (hz3 : StrataVerdS fL fR lam D ts) :
+theorem strata_hcert_from_verdictsS' {O : UnsatOracle (Var n)} (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (D : Formula (Var n)) (ts : List (Bool × Term (Var n)))
+    (hz3 : StrataVerdS fL fR lam D ts O) :
     ∀ i (hi : i < ts.length), ∀ ν', HoldsAt ts[i].1 ts[i].2 ν' →
       ∀ ω, Program.sem (Program.ode (jointSys fL fR lam)
         (Formula.and D (bigLe ((ts.take i).map Prod.snd)))) ν' ω →
@@ -147,17 +147,17 @@ theorem strata_hcert_from_verdictsS' (fL fR : Fin n → Term (Var n)) (lam : Ter
     intro ω hω
     show Term.eval ts[i].2 ω ≤ 0
     rcases hz3 i hi with h | h | ⟨-, h⟩
-    · exact flow_cert_sound _ (z3Unsat_sound h) hinit' ω hω
-    · exact flow_cert_sound_strict _ (z3Unsat_sound h) hinit' ω hω
-    · exact flow_cert_sound_superlevel _ (z3Unsat_sound h) hinit' ω hω
+    · exact flow_cert_sound _ (oracleUnsat_sound h) hinit' ω hω
+    · exact flow_cert_sound_strict _ (oracleUnsat_sound h) hinit' ω hω
+    · exact flow_cert_sound_superlevel _ (oracleUnsat_sound h) hinit' ω hω
   · -- strict stratum: routes A and B only
     rw [hb] at hinit
     have hinit' : Term.eval (strataObS fL fR lam D ts i hi).g ν' < 0 := hinit
     intro ω hω
     show Term.eval ts[i].2 ω < 0
     rcases hz3 i hi with h | h | ⟨hf, -⟩
-    · exact flow_cert_sound_lt _ (z3Unsat_sound h) hinit' ω hω
-    · exact flow_cert_sound_strict_lt _ (z3Unsat_sound h) hinit' ω hω
+    · exact flow_cert_sound_lt _ (oracleUnsat_sound h) hinit' ω hω
+    · exact flow_cert_sound_strict_lt _ (oracleUnsat_sound h) hinit' ω hω
     · rw [hb] at hf; exact absurd hf (by decide)
 
 /-- Multi-component segment preservation, flagged (the strict `SegPreservesAllOn`). -/
@@ -168,9 +168,9 @@ def SegPreservesAllOnS (ts : List (Bool × Term (Var n))) (sys : ODESystem (Var 
 
 /-- **The flagged multi-component flow certificate** (fold-shaped domains): the verdict pack
 `StrataVerdS` gives `SegPreservesAllOnS ts` for the joint system at stretch `lam` on `D`. -/
-theorem segPresAllS_from_strata_verdicts' (fL fR : Fin n → Term (Var n))
+theorem segPresAllS_from_strata_verdicts' {O : UnsatOracle (Var n)} (fL fR : Fin n → Term (Var n))
     (lam : Term (Var n)) (D : Formula (Var n)) (ts : List (Bool × Term (Var n)))
-    (hz3 : StrataVerdS fL fR lam D ts) :
+    (hz3 : StrataVerdS fL fR lam D ts O) :
     SegPreservesAllOnS ts (jointSys fL fR lam) D :=
   fun _ hinit => stratified_barrier_endS (jointSys fL fR lam) D ts
     (strata_hcert_from_verdictsS' fL fR lam D ts hz3) hinit
@@ -190,13 +190,13 @@ theorem segPresAllOnS_allFalse (gs : List (Term (Var n))) (sys : ODESystem (Var 
 
 /-- With every flag `false`, the flagged verdict pack is the existing one (the queries are
 the same strings: the obligation depends only on the components). -/
-theorem strataVerdS_allFalse (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
-    (D : Formula (Var n)) (gs : List (Term (Var n))) :
-    StrataVerdS fL fR lam D (gs.map (fun g => (false, g))) ↔
+theorem strataVerdS_allFalse {O : UnsatOracle (Var n)} (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (D : Formula (Var n)) (gs : List (Term (Var n))) :
+    StrataVerdS fL fR lam D (gs.map (fun g => (false, g))) O ↔
       ∀ i (hi : i < gs.length),
-        Z3Unsat (flowQuery ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
-        ∨ Z3Unsat (flowQueryStrict ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
-        ∨ Z3Unsat (flowQuerySuperlevel ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩) := by
+        OracleUnsat O (flowQuery ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
+        ∨ OracleUnsat O (flowQueryStrict ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩)
+        ∨ OracleUnsat O (flowQuerySuperlevel ⟨gs[i], fL, fR, lam, strataDomHost D (gs.take i)⟩) := by
   have hmap : (gs.map (fun g => ((false : Bool), g))).map Prod.snd = gs := by
     rw [List.map_map]; exact List.map_id' gs
   constructor

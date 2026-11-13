@@ -81,7 +81,7 @@ theorem getD_map_toHost (comps0 : List (ITerm n)) (j : ℕ) :
   · rfl
 
 /-- The IR groups of a flagged pack denote `StrataVerdS` over the ordered flagged components. -/
-theorem strataVerdS_of_IR (k : Option ℕ) (comps0 : List (ITerm n)) (fs : List Bool)
+theorem strataVerdS_of_IR {O : UnsatOracle (Var n)} (k : Option ℕ) (comps0 : List (ITerm n)) (fs : List Bool)
     (hfsl : fs.length ≤ comps0.length) (order : List ℕ) (fL fR : Fin n → ITerm n) (lam : ℚ)
     (D : IForm n)
     (hz3 : ∀ i (hi : i < ((List.range (order.map (fun i => comps0.getD i (ITerm.rat 0))).length).map
@@ -90,9 +90,9 @@ theorem strataVerdS_of_IR (k : Option ℕ) (comps0 : List (ITerm n)) (fs : List 
       ∃ q ∈ ((List.range (order.map (fun i => comps0.getD i (ITerm.rat 0))).length).map
       (fun i => strictCompQueries k (order.map (fun i => comps0.getD i (ITerm.rat 0)))
         (order.map (fun i => fs.getD i false)) fL fR lam D i))[i],
-        z3solve q.toHost = Verdict.unsat) :
+        O.solve q.toHost = Verdict.unsat) :
     StrataVerdS (fun i => (fL i).toHost) (fun i => (fR i).toHost) (Term.const (lam : ℝ)) D.toHost
-      (orderTag (comps0.map ITerm.toHost) fs order) := by
+      (orderTag (comps0.map ITerm.toHost) fs order) O := by
   intro i hi
   have hio : i < order.length := by simpa [orderTag] using hi
   obtain ⟨q, hqmem, hqz⟩ := hz3 i (by simpa using hio)
@@ -123,32 +123,33 @@ theorem strataVerdS_of_IR (k : Option ℕ) (comps0 : List (ITerm n)) (fs : List 
     simp only [Bool.false_eq_true, if_false, List.mem_cons, List.not_mem_nil, or_false] at hqmem
     rcases hqmem with rfl | rfl | rfl
     · left
-      have h1 := Z3Unsat_iflowQuery_of_level hd hqz
+      have h1 := OracleUnsat_iflowQuery_of_level hd hqz
       rw [imodalQuery_toHost, hlam] at h1; exact h1
     · right; left
-      have h1 := Z3Unsat_iflowQueryStrict_of_level hd hqz
+      have h1 := OracleUnsat_iflowQueryStrict_of_level hd hqz
       rw [imodalQueryStrict_toHost, hlam] at h1; exact h1
     · right; right
       refine ⟨by rw [hC, hb], ?_⟩
-      have h1 := Z3Unsat_iflowQuerySuperlevel_of_level hd hqz
+      have h1 := OracleUnsat_iflowQuerySuperlevel_of_level hd hqz
       rw [imodalQuerySuperlevel_toHost, hlam] at h1; exact h1
   · rw [hb] at hqmem
     simp only [if_true, List.mem_cons, List.not_mem_nil, or_false] at hqmem
     rcases hqmem with rfl | rfl
     · left
-      have h1 := Z3Unsat_iflowQuery_of_level hd hqz
+      have h1 := OracleUnsat_iflowQuery_of_level hd hqz
       rw [imodalQuery_toHost, hlam] at h1; exact h1
     · right; left
-      have h1 := Z3Unsat_iflowQueryStrict_of_level hd hqz
+      have h1 := OracleUnsat_iflowQueryStrict_of_level hd hqz
       rw [imodalQueryStrict_toHost, hlam] at h1; exact h1
 
 /-- **The strict pin.** If the rebuild succeeds and every group has an `unsat` member, the
 instance's hypothesis `modalVerdXS` holds. -/
-theorem modalVerdXS_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
-    {invRow : ℕ} {order : List ℕ} {lam : ℚ} {l m : ℕ} {qss : List (List (IForm n))}
+theorem modalVerdXS_of_queries {O : UnsatOracle (Var n)} {k : Option ℕ} {p : PProblem}
+    {cX : EvolStrengtheningX} {invRow : ℕ} {order : List ℕ} {lam : ℚ} {l m : ℕ}
+    {qss : List (List (IForm n))}
     (hq : modalVerdXQueriesS k p cX n invRow order lam l m = some qss)
-    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], z3solve q.toHost = Verdict.unsat) :
-    modalVerdXS p cX n invRow order (lam : ℝ) l m := by
+    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], O.solve q.toHost = Verdict.unsat) :
+    modalVerdXS p cX n invRow order (lam : ℝ) l m O := by
   unfold modalVerdXQueriesS at hq
   simp only [Option.bind_eq_bind] at hq
   set vars := p.L.stateVars
@@ -219,7 +220,7 @@ theorem modalVerdXS_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrengt
   have hfsl : fs.length = comps0.length := by
     obtain ⟨fs', hfs', hl'⟩ := Oracle.invStrictFlags_length vars n _ comps0 hc
     rw [hfs] at hfs'; cases hfs'; exact hl'
-  show VerdXCoreS _ _ _ _ _
+  show VerdXCoreS _ _ _ _ _ O
   rw [hcomps, hfs, Option.getD_some, hD, hostDyn_pin hfL, hostDyn_pin hfR]
   exact strataVerdS_of_IR k comps0 fs hfsl.le order fL fR lam D hz3
 

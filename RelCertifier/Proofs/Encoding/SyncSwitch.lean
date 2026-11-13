@@ -33,14 +33,14 @@ variable {n : ℕ}
 `fL`, right field stretched by `λ`), from a state satisfying the rows and both sides' kept
 atoms, the rows and atoms hold at the end: the joint flow certificate of Definition 5, from the
 Lie conditions of Lemma 2. -/
-theorem couple_box_cutX (g : Term (Var n)) (gs comps : List (Term (Var n)))
+theorem couple_box_cutX {O : UnsatOracle (Var n)} (g : Term (Var n)) (gs comps : List (Term (Var n)))
     (cL cR : List (CutAtomP n)) (fL fR : Fin n → Term (Var n)) (lamv : ℝ)
     (domL domR : Formula (Var n))
     (hsub1 : ∀ c ∈ comps, c ∈ g :: gs) (hsub2 : ∀ g' ∈ g :: gs, g' ∈ comps)
     (hiffL : AtomsIff cL) (hiffR : AtomsIff cR)
     (hstayL : AtomsStayC cL (jointSys fL fR (Term.const lamv)) (Formula.and domL domR))
     (hstayR : AtomsStayC cR (jointSys fL fR (Term.const lamv)) (Formula.and domL domR))
-    (hverd : VerdXCore comps fL fR lamv (domCutX (Formula.and domL domR) cL cR)) :
+    (hverd : VerdXCore comps fL fR lamv (domCutX (Formula.and domL domR) cL cR) O) :
     ∀ σ ω, Formula.sat (FM g (gs ++ atomTerms cL cR)) σ →
       Program.sem (Program.ode (jointSys fL fR (Term.const lamv)) (Formula.and domL domR)) σ ω →
       Formula.sat (FM g (gs ++ atomTerms cL cR)) ω := by

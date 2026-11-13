@@ -61,11 +61,12 @@ theorem hostGuard_getD (vars : List String) (side : Side) (m : PMode) :
 /-- **The v2 right-only pin.** If the runner's rebuild succeeds and, for every component, one
 of its printed queries (one per level) is `unsat`, the instance's right-only hypothesis
 `modalVerdDynX` holds. -/
-theorem modalVerdDynX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
-    {invRow : ℕ} {order : List ℕ} {pre : Bool} {l m : ℕ} {qss : List (List (IForm n))}
+theorem modalVerdDynX_of_queries {O : UnsatOracle (Var n)} {k : Option ℕ} {p : PProblem}
+    {cX : EvolStrengtheningX} {invRow : ℕ} {order : List ℕ} {pre : Bool} {l m : ℕ}
+    {qss : List (List (IForm n))}
     (hq : modalVerdDynXQueries k p cX n invRow order pre l m = some qss)
-    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], z3solve q.toHost = Verdict.unsat) :
-    modalVerdDynX p cX n invRow order pre l m := by
+    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], O.solve q.toHost = Verdict.unsat) :
+    modalVerdDynX p cX n invRow order pre l m .whole O := by
   unfold modalVerdDynXQueries at hq
   simp only [Option.bind_eq_bind] at hq
   set vars := p.L.stateVars
@@ -135,7 +136,7 @@ theorem modalVerdDynX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStren
     simp only [comps, List.map_map, Function.comp_def, hgetD]
   set gLI := (Run.lowerF vars n Side.L mL.guard).getD IForm.tt
   have hgL : hostGuard vars n Side.L mL = gLI.toHost := hostGuard_getD vars Side.L mL
-  show VerdDynCore _ _ _ _ _
+  show VerdDynCore _ _ _ _ _ .whole O
   unfold VerdDynCore
   rw [hD, hcompsH, hostDyn_pin hfR, hgL]
   intro i hi
@@ -163,7 +164,7 @@ theorem modalVerdDynX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStren
       = dynDomHost pre D.toHost gLI.toHost ((comps.take i).map ITerm.toHost) := by
     unfold dynDomHost
     cases pre <;> simp [IForm.toHost, istrataDomHost_toHost]
-  have h1 := Z3Unsat_iflowQuery_of_level hd hz
+  have h1 := OracleUnsat_iflowQuery_of_level hd hz
   rw [iflowQuery_toHost, hdom, zeroField_toHost, hone] at h1
   exact h1
 
@@ -207,15 +208,15 @@ def modalVerdDynXQueriesPre (k : Option ℕ) (p : PProblem) (cX : EvolStrengthen
 /-- **The pin on the pre-landing region** (the restricted mode of Lemma 4). If the rebuild succeeds and every group has an
 `unsat` member, the instance's hypothesis `modalVerdDynX` holds on the region (at the host forms
 of `BoI`, `BcI`). -/
-theorem modalVerdDynX_of_queriesPre {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
-    {invRow : ℕ} {order : List ℕ} {pre : Bool} {l m : ℕ} {BoI BcI : IForm n} {mask : List Bool}
-    {qss : List (List (IForm n))}
+theorem modalVerdDynX_of_queriesPre {O : UnsatOracle (Var n)} {k : Option ℕ} {p : PProblem}
+    {cX : EvolStrengtheningX} {invRow : ℕ} {order : List ℕ} {pre : Bool} {l m : ℕ}
+    {BoI BcI : IForm n} {mask : List Bool} {qss : List (List (IForm n))}
     (hq : modalVerdDynXQueriesPre k p cX n invRow order pre l m BoI BcI mask = some qss)
-    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], z3solve q.toHost = Verdict.unsat)
+    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], O.solve q.toHost = Verdict.unsat)
     (hmono : ∀ x, Formula.sat BoI.toHost x → Formula.sat BcI.toHost x)
     (hclosed : ∀ (f : ℝ → State (Var n)) (T : ℝ), 0 < T → ContinuousOn f (Set.Icc 0 T) →
       (∀ t ∈ Set.Ico (0 : ℝ) T, Formula.sat BoI.toHost (f t)) → Formula.sat BcI.toHost (f T)) :
-    modalVerdDynX p cX n invRow order pre l m (.pre BoI.toHost BcI.toHost mask hmono hclosed) := by
+    modalVerdDynX p cX n invRow order pre l m (.pre BoI.toHost BcI.toHost mask hmono hclosed) O := by
   unfold modalVerdDynXQueriesPre at hq
   simp only [Option.bind_eq_bind] at hq
   set vars := p.L.stateVars
@@ -285,7 +286,7 @@ theorem modalVerdDynX_of_queriesPre {k : Option ℕ} {p : PProblem} {cX : EvolSt
     simp only [comps, List.map_map, Function.comp_def, hgetD]
   set gLI := (Run.lowerF vars n Side.L mL.guard).getD IForm.tt
   have hgL : hostGuard vars n Side.L mL = gLI.toHost := hostGuard_getD vars Side.L mL
-  show VerdDynCore _ _ _ _ _ (DynRegion.pre BoI.toHost BcI.toHost mask hmono hclosed)
+  show VerdDynCore _ _ _ _ _ (DynRegion.pre BoI.toHost BcI.toHost mask hmono hclosed) O
   unfold VerdDynCore
   rw [hD, hcompsH, hostDyn_pin hfR, hgL]
   intro i hi
@@ -325,7 +326,7 @@ theorem modalVerdDynX_of_queriesPre {k : Option ℕ} {p : PProblem} {cX : EvolSt
   split_ifs with hm
   · simp only [hm, if_true, List.mem_map] at hqmem
     obtain ⟨d, hd, rfl⟩ := hqmem
-    have h1 := Z3Unsat_iflowQuery_of_level hd hqz
+    have h1 := OracleUnsat_iflowQuery_of_level hd hqz
     rw [iflowQuery_toHost, hdomB, zeroField_toHost, hone] at h1
     exact h1
   · simp only [hm, Bool.false_eq_true, if_false, List.mem_flatMap, List.mem_cons,
@@ -333,15 +334,15 @@ theorem modalVerdDynX_of_queriesPre {k : Option ℕ} {p : PProblem} {cX : EvolSt
     obtain ⟨d, hd, hqmem⟩ := hqmem
     rcases hqmem with rfl | rfl | rfl
     · left
-      have h1 := Z3Unsat_iflowQuery_of_level hd hqz
+      have h1 := OracleUnsat_iflowQuery_of_level hd hqz
       rw [iflowQuery_toHost, hdomB, zeroField_toHost, hone] at h1
       exact h1
     · right; left
-      have h1 := Z3Unsat_iflowQueryStrict_of_level hd hqz
+      have h1 := OracleUnsat_iflowQueryStrict_of_level hd hqz
       rw [iflowQueryStrict_toHost, hdomB, zeroField_toHost, hone] at h1
       exact h1
     · right; right
-      have h1 := Z3Unsat_iflowQuerySuperlevel_of_level hd hqz
+      have h1 := OracleUnsat_iflowQuerySuperlevel_of_level hd hqz
       rw [iflowQuerySuperlevel_toHost, hdomB, zeroField_toHost, hone] at h1
       exact h1
 

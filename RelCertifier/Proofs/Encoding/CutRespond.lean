@@ -69,15 +69,16 @@ theorem sat_domCutX (dom : Formula (Var n)) (cL cR : List (CutAtomP n))
       tauto
 
 /-- The stratified three-route verdict pack of one pairing (the hypothesis of
-`segPresAll_from_strata_verdicts'`), as sliced verdicts (`Z3Unsat`, `Trusted/Oracle.lean`: Z3
-answered `unsat` on the query or on its hypothesis slice, `docs/HYP-SLICING.md`). -/
+`segPresAll_from_strata_verdicts'`), as sliced verdicts (`OracleUnsat O`, `Trusted/Oracle.lean`: the
+oracle `O` answered `unsat` on the query or on its hypothesis slice, `docs/HYP-SLICING.md`; `O` is
+`z3Oracle` by default, `anyOracle` for an instance with an SOS verdict, `docs/SOS-ORACLE.md`). -/
 def VerdXCore (comps : List (Term (Var n))) (fL fR : Fin n → Term (Var n)) (lam : ℝ)
-    (D : Formula (Var n)) : Prop :=
+    (D : Formula (Var n)) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
   ∀ i (hi : i < comps.length),
-    Z3Unsat (flowQuery ⟨comps[i], fL, fR, Term.const lam, strataDomHost D (comps.take i)⟩)
-    ∨ Z3Unsat (flowQueryStrict ⟨comps[i], fL, fR, Term.const lam,
+    OracleUnsat O (flowQuery ⟨comps[i], fL, fR, Term.const lam, strataDomHost D (comps.take i)⟩)
+    ∨ OracleUnsat O (flowQueryStrict ⟨comps[i], fL, fR, Term.const lam,
       strataDomHost D (comps.take i)⟩)
-    ∨ Z3Unsat (flowQuerySuperlevel ⟨comps[i], fL, fR, Term.const lam,
+    ∨ OracleUnsat O (flowQuerySuperlevel ⟨comps[i], fL, fR, Term.const lam,
       strataDomHost D (comps.take i)⟩)
 
 /-- **The verdict pack of a pairing, read off the IR and the mode-fact certificate.**
@@ -86,7 +87,7 @@ the cover's strata `order`; the domain is the two modes' evolves narrowed by bot
 kept atoms (`andCuts`), the fields the two modes' own. Exactly the queries `checkSeg`
 sends (`segParts`, `andCuts`, `strataDomIR`, `routeQueries`). -/
 noncomputable def modalVerdX (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
-    (order : List ℕ) (lam : ℝ) (l m : ℕ) : Prop :=
+    (order : List ℕ) (lam : ℝ) (l m : ℕ) (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
   let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mL := p.L.modes.getD l dm
@@ -97,7 +98,7 @@ noncomputable def modalVerdX (p : PProblem) (cX : EvolStrengtheningX) (n invRow 
   let cL := cutPairsX vars n Side.L (cutAtomsOfX cX.L mL.name)
   let cR := cutPairsX vars n Side.R (cutAtomsOfX cX.R mR.name)
   VerdXCore comps (hostDyn vars n Side.L mL) (hostDyn vars n Side.R mR) lam
-    (domCutX base cL cR)
+    (domCutX base cL cR) O
 
 /-! ## Preservation over the narrowed domain, lifted -/
 
@@ -154,7 +155,7 @@ theorem atomTerms_iff {cL cR : List (CutAtomP n)} (hiffL : AtomsIff cL)
 carries the invariant components and the atoms of both families; it is preserved by the
 coupling (components: the narrowed verdicts lifted by the atoms' staying; atoms: their
 staying), and the joint envelope is re-established at the end. -/
-theorem couple_cutX (g : Term (Var n)) (gs comps : List (Term (Var n)))
+theorem couple_cutX {O : UnsatOracle (Var n)} (g : Term (Var n)) (gs comps : List (Term (Var n)))
     (cL cR : List (CutAtomP n)) (fL fR : Fin n → Term (Var n)) (lamv : ℝ) (hlam : 0 < lamv)
     (domL domR : Formula (Var n)) (b : Fin n) (dt : ℝ)
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hfR : ∀ i, (fR i).fv ⊆ range Rv)
@@ -164,7 +165,7 @@ theorem couple_cutX (g : Term (Var n)) (gs comps : List (Term (Var n)))
     (hiffL : AtomsIff cL) (hiffR : AtomsIff cR)
     (hstayL : AtomsStayC cL (jointSys fL fR (Term.const lamv)) (Formula.and domL domR))
     (hstayR : AtomsStayC cR (jointSys fL fR (Term.const lamv)) (Formula.and domL domR))
-    (hverd : VerdXCore comps fL fR lamv (domCutX (Formula.and domL domR) cL cR))
+    (hverd : VerdXCore comps fL fR lamv (domCutX (Formula.and domL domR) cL cR) O)
     (hES : ∀ σ, Formula.sat (Formula.and (FM g (gs ++ atomTerms cL cR))
         (Formula.and domL domR)) σ →
       HExistSegB fL fR (Term.const lamv) domL domR dt

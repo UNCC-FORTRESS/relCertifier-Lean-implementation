@@ -56,29 +56,31 @@ def modalVerdXQueries (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX) 
       (fun dom => [iflowQuery g fL fR (.rat lam) dom, iflowQueryStrict g fL fR (.rat lam) dom,
         iflowQuerySuperlevel g fL fR (.rat lam) dom])))
 
-/-! The verdict of each route at any level: `unsat` on the query over a level of the domain
-(a slice, or the full domain) is the sliced verdict `Z3Unsat` of the query over the full domain
-(`Z3Unsat_of_level`). -/
+/-! The verdict of each route at any level: `unsat` by the oracle `O` on the query over a level
+of the domain (a slice, or the full domain) is the sliced verdict `OracleUnsat O` of the query over
+the full domain (`OracleUnsat_of_level`). `O` is `z3Oracle` for a Z3 answer and `anyOracle` for a
+tagged answer, Z3's or the SOS checker's (`docs/SOS-ORACLE.md`). -/
 
-theorem Z3Unsat_iflowQuery_of_level {k : Option ℕ} {g gdot : ITerm n} {fL fR : Fin n → ITerm n}
-    {lam : ITerm n} {dom d : IForm n} (hd : d ∈ sliceFlowLevels k g gdot dom)
-    (h : z3solve (iflowQuery g fL fR lam d).toHost = Verdict.unsat) :
-    Z3Unsat (iflowQuery g fL fR lam dom).toHost :=
-  Z3Unsat_of_level hd h
-
-theorem Z3Unsat_iflowQueryStrict_of_level {k : Option ℕ} {g gdot : ITerm n}
+theorem OracleUnsat_iflowQuery_of_level {O : UnsatOracle (Var n)} {k : Option ℕ} {g gdot : ITerm n}
     {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom d : IForm n}
     (hd : d ∈ sliceFlowLevels k g gdot dom)
-    (h : z3solve (iflowQueryStrict g fL fR lam d).toHost = Verdict.unsat) :
-    Z3Unsat (iflowQueryStrict g fL fR lam dom).toHost :=
-  Z3Unsat_of_level hd h
+    (h : O.solve (iflowQuery g fL fR lam d).toHost = Verdict.unsat) :
+    OracleUnsat O (iflowQuery g fL fR lam dom).toHost :=
+  OracleUnsat_of_level hd h
 
-theorem Z3Unsat_iflowQuerySuperlevel_of_level {k : Option ℕ} {g gdot : ITerm n}
-    {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom d : IForm n}
+theorem OracleUnsat_iflowQueryStrict_of_level {O : UnsatOracle (Var n)} {k : Option ℕ}
+    {g gdot : ITerm n} {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom d : IForm n}
     (hd : d ∈ sliceFlowLevels k g gdot dom)
-    (h : z3solve (iflowQuerySuperlevel g fL fR lam d).toHost = Verdict.unsat) :
-    Z3Unsat (iflowQuerySuperlevel g fL fR lam dom).toHost :=
-  Z3Unsat_of_level hd h
+    (h : O.solve (iflowQueryStrict g fL fR lam d).toHost = Verdict.unsat) :
+    OracleUnsat O (iflowQueryStrict g fL fR lam dom).toHost :=
+  OracleUnsat_of_level hd h
+
+theorem OracleUnsat_iflowQuerySuperlevel_of_level {O : UnsatOracle (Var n)} {k : Option ℕ}
+    {g gdot : ITerm n} {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom d : IForm n}
+    (hd : d ∈ sliceFlowLevels k g gdot dom)
+    (h : O.solve (iflowQuerySuperlevel g fL fR lam d).toHost = Verdict.unsat) :
+    OracleUnsat O (iflowQuerySuperlevel g fL fR lam dom).toHost :=
+  OracleUnsat_of_level hd h
 
 theorem mapM_length {α β : Type} {f : α → Option β} :
     ∀ {l : List α} {r : List β}, l.mapM f = some r → r.length = l.length := by
@@ -98,13 +100,16 @@ theorem mapM_length {α β : Type} {f : α → Option β} :
       simp [ih ht]
 
 /-- **The v2 pin.** If the runner's rebuild (at any slicing `k`) succeeds and, for every
-component, one of its three printed queries is `unsat`, the instance's hypothesis `modalVerdX`
-(the sliced verdicts of the full queries) holds. -/
-theorem modalVerdX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
-    {invRow : ℕ} {order : List ℕ} {lam : ℚ} {l m : ℕ} {qss : List (List (IForm n))}
+component, one of its printed queries (three routes per level) is `unsat` by the oracle `O`, the
+instance's hypothesis `modalVerdX … O` (the sliced verdicts of the full queries) holds. With
+`O = z3Oracle` this is the Z3 pin; with `O = anyOracle` the tagged pin
+(`modalVerdX_of_tagged`). -/
+theorem modalVerdX_of_queries {O : UnsatOracle (Var n)} {k : Option ℕ} {p : PProblem}
+    {cX : EvolStrengtheningX} {invRow : ℕ} {order : List ℕ} {lam : ℚ} {l m : ℕ}
+    {qss : List (List (IForm n))}
     (hq : modalVerdXQueries k p cX n invRow order lam l m = some qss)
-    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], z3solve q.toHost = Verdict.unsat) :
-    modalVerdX p cX n invRow order (lam : ℝ) l m := by
+    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], O.solve q.toHost = Verdict.unsat) :
+    modalVerdX p cX n invRow order (lam : ℝ) l m O := by
   unfold modalVerdXQueries at hq
   simp only [Option.bind_eq_bind] at hq
   set vars := p.L.stateVars
@@ -176,7 +181,7 @@ theorem modalVerdX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrength
     rw [hcomps]
     simp only [comps, List.map_map, Function.comp_def, hgetD]
   -- the pack
-  show VerdXCore _ _ _ _ _
+  show VerdXCore _ _ _ _ _ O
   unfold VerdXCore
   rw [hD, hcompsH, hostDyn_pin hfL, hostDyn_pin hfR]
   intro i hi
@@ -199,16 +204,29 @@ theorem modalVerdX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrength
   have hlam : (ITerm.rat lam : ITerm n).toHost = Term.const (lam : ℝ) := rfl
   rcases hqmem with rfl | rfl | rfl
   · left
-    have h1 := Z3Unsat_iflowQuery_of_level hd hqz
+    have h1 := OracleUnsat_iflowQuery_of_level hd hqz
     rw [imodalQuery_toHost, hlam] at h1
     rw [hgi, htk]; exact h1
   · right; left
-    have h1 := Z3Unsat_iflowQueryStrict_of_level hd hqz
+    have h1 := OracleUnsat_iflowQueryStrict_of_level hd hqz
     rw [imodalQueryStrict_toHost, hlam] at h1
     rw [hgi, htk]; exact h1
   · right; right
-    have h1 := Z3Unsat_iflowQuerySuperlevel_of_level hd hqz
+    have h1 := OracleUnsat_iflowQuerySuperlevel_of_level hd hqz
     rw [imodalQuerySuperlevel_toHost, hlam] at h1
     rw [hgi, htk]; exact h1
+
+/-- **The tagged pin** (`RELCERT_SOS_SECS` set): every component has a printed query some oracle,
+Z3 or the exact SOS checker, answered `unsat` on (the runner logs the tag per level); the
+instance's hypothesis at `anyOracle` holds. -/
+theorem modalVerdX_of_tagged {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
+    {invRow : ℕ} {order : List ℕ} {lam : ℚ} {l m : ℕ} {qss : List (List (IForm n))}
+    (hq : modalVerdXQueries k p cX n invRow order lam l m = some qss)
+    (hz : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], ∃ t : OracleTag,
+      (t.oracle (V := Var n)).solve q.toHost = Verdict.unsat) :
+    modalVerdX p cX n invRow order (lam : ℝ) l m anyOracle :=
+  modalVerdX_of_queries hq (fun i hi =>
+    let ⟨q, hq', t, ht⟩ := hz i hi
+    ⟨q, hq', anyOracle_of_tag t ht⟩)
 
 end RelCertifier

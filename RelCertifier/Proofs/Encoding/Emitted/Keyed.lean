@@ -43,23 +43,26 @@ section Defs
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
   (prog : ProgressEmitE) (ce : ChoiceEmitE)
 
-def JointAll : Prop :=
-  ∀ l < nL p, ∀ q < nR p, (flagsOf p cov l q).jointOK = true → JointVerd p n cX cov l q
-def DynAll : Prop :=
+def JointAll (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
+  ∀ l < nL p, ∀ q < nR p, (flagsOf p cov l q).jointOK = true → JointVerd p n cX cov l q O
+def DynAll (O : UnsatOracle (Var n) := z3Oracle) : Prop :=
   ∀ l < nL p, ∀ q < nR p, ∀ pre : Bool,
     (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true →
-    DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre)
+    DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre) O
 def AdmAll : Prop :=
   ∀ l < nL p, ∀ q < nR p, q ∉ admissibleOf p cov l →
     AdmVerd (vars p) n (rowOf p l) (mLof p l) (mRof p q)
 def HandoffAll : Prop := ∀ m' < nL p, ∀ t ∈ (nextL p).getD m' [], HandoffVerd p n (m', t)
 
-/-- Every verdict a benchmark's instance rests on. -/
-structure Verdicts : Prop where
+/-- Every verdict a benchmark's instance rests on. The flow packs (`joint`, `dyn`) are the
+verdicts of the oracle `O`: `z3Oracle` (the default, Z3 alone) or `anyOracle` (Z3 or the exact SOS
+checker, `docs/SOS-ORACLE.md`, for an instance whose records carry an SOS verdict); the other
+families are Z3's. -/
+structure Verdicts (O : UnsatOracle (Var n) := z3Oracle) : Prop where
   stay : StayAll p n cX
   nonconn : NonConnAll p n cX cov
-  joint : JointAll p n cX cov
-  dyn : DynAll p n cX cov prog
+  joint : JointAll p n cX cov O
+  dyn : DynAll p n cX cov prog O
   adm : AdmAll p n cov
   handoff : HandoffAll p n
   prog : ProgAll p n cX prog
@@ -101,7 +104,7 @@ end Defs
 section Proofs
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
-  {ce : ChoiceEmitE} (hs : structOK p n cov cX = true)
+  {ce : ChoiceEmitE} (hs : structOK p n cov cX = true) {O : UnsatOracle (Var n)}
 
 omit hs in
 theorem cutF_fv_sub {atoms : List (CutAtomP n)} {S : Set (Var n)}
@@ -229,7 +232,7 @@ theorem budget_span {l : ℕ} (hl : l < nL p) : epsL p ≤ (B p cov l : ℝ) * �
   exact hbud
 
 /-- A committed subset's coverage premise, from its entry's verdict. -/
-theorem cov_of_entry (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
+theorem cov_of_entry (hv : Verdicts p n cX cov prog ce O) (hpo : progOK p n cov prog = true)
     {l q : ℕ} (hl : l < nL p) {k : ChoiceKind} {pre : Bool} {S : List ℕ}
     (hS : S ∈ (entriesAt p ce l q k pre).map (fun e => e.S.map (tgtIdx p)))
     (y : State (Var n)) (hreg : q < nR p → Formula.sat (regionF p n cX l q (if k = .joint then false else pre)) y)
@@ -248,7 +251,7 @@ theorem cov_of_entry (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
   exact regionSat_of_regionF hs hl _ y (hreg hq)
 
 /-- **The certificates of left mode `l`**, as `CoverHyps` (Appendix B.1). -/
-theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
+theorem coverHyps_of (hv : Verdicts p n cX cov prog ce O) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (d : Fin n) {l : ℕ}
@@ -308,7 +311,7 @@ theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
 
 /-- **Every admissible start is covered**: a start in `admissibleOf` by the decided
 `coversOK`, every other start is inadmissible by its admissibility verdict. -/
-theorem hcov_of (hv : Verdicts p n cX cov prog ce) (hcovers : coversOK p n cov ce = true)
+theorem hcov_of (hv : Verdicts p n cX cov prog ce O) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} {l : ℕ}
     (hl : l < nL p) (q : ℕ) (hq : q < (grOf p n (prunedOf cov)).modes.length)
     (hadm : AdmissibleStart (guardL p n l) (FRow p n l) (env p n) (guardR p n q) (cutsR p n cX reg q)) :
@@ -326,7 +329,7 @@ theorem hcov_of (hv : Verdicts p n cX cov prog ce) (hcovers : coversOK p n cov c
 /-! ### The left-mode responses -/
 
 /-- The response of left mode `l` from every admissible start of every right mode. -/
-theorem Hwindow (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
+theorem Hwindow (hv : Verdicts p n cX cov prog ce O) (hpo : progOK p n cov prog = true)
     (hcovers : coversOK p n cov ce = true) {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (b d : Fin n) (dt : ℝ)
@@ -430,7 +433,7 @@ def keyedClaim (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEm
 verdicts, the decided `progOK` and `coversOK` (with the section's `structOK`), Assumption 1
 relative to a right region `reg` kept by the right flows, and distinct auxiliary coordinates,
 `keyedClaim` holds for every left cycle length `dt ≤ ε_L`. -/
-theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
+theorem theorem3_keyed_of_records_O (hv : Verdicts p n cX cov prog ce O)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -572,6 +575,18 @@ theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
       (domR_fv (hnames hs)) rfl
       (fun v hv => mvRegion_fv_sub mv (gregion p n cX reg) Gr.modes.length
         (fun q _ => gregion_fv hs hregR q) hv)
+
+/-- **Theorem 3 of a benchmark, mode-keyed, from its records** (Appendix B.1), the Z3 form:
+`theorem3_keyed_of_records_O` at `z3Oracle` (the statement the axiom audit prints). -/
+theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
+    (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
+    (a b c d : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (hda : d ≠ a) (hdb : d ≠ b)
+    (hdc : d ≠ c) (dt : ℝ) (hdt : dt ≤ epsL p) :
+    keyedClaim p n cX cov reg a b c d dt :=
+  theorem3_keyed_of_records_O hs hv hpo hcovers hregR hinv hwf a b c d hba hca hcb hda hdb hdc dt hdt
 
 end Proofs
 

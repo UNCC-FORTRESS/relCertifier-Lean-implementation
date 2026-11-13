@@ -283,14 +283,14 @@ pack on the node's region (`dynRegion`: the whole domain with `prelanding` off, 
 mode `q|¬tgt` with it on), with Assumption 1 relative to a right region `reg` kept by the right
 flows. The landing cycle stops at the first entry into the certificate's closed target `tgt`
 (`Progress.lean`'s `*_reg` closers with `Bf` the region). -/
-theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
+theorem hrepoProg_of {O : UnsatOracle (Var n)} (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
     (hdyn : ∀ l < nL p, ∀ q < nR p, ∀ pre : Bool,
       (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true →
-      DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre))
+      DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre) O)
     (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
     {l : ℕ} (hl : l < nL p) :
     ∀ q m, (grOf p n (prunedOf cov)).modeAt q = some m → ∀ pre : Bool,

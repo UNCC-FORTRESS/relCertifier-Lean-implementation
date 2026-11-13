@@ -243,9 +243,9 @@ theorem uses_prelanding : pl.nodes.isEmpty = false := by decide +kernel
 
 {claim}
 /-- The same from a green run of the benchmark's groups (`bridgeGroups` on the merged cover,
-`relcert-bridge-verdicts`). -/
-theorem {b}_bridge_run {{gs : List (List (IForm {n}))}}
-    (hrun : bridgeGroups IR {n} cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+`relcert-bridge-verdicts`), at any hypothesis slicing `k` (`docs/HYP-SLICING.md`). -/
+theorem {b}_bridge_run {{k : Option ℕ}} {{gs : List (List (IForm {n}))}}
+    (hrun : bridgeGroups IR {n} cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : {claim_ty} :=
   {b}_bridge (verdicts_of_groups hrun hok) dt hdt
 

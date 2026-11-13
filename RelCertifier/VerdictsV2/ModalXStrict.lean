@@ -23,7 +23,7 @@ open DL Parse RelCertifier.Oracle
 variable {n : ℕ}
 
 /-- The flagged pack, rebuilt: per component (strata order), [A, B] if strict, else [A, B, C]. -/
-def modalVerdXQueriesS (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
+def modalVerdXQueriesS (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
     (order : List ℕ) (lam : ℚ) (l m : ℕ) : Option (List (List (IForm n))) := do
   let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
@@ -44,7 +44,7 @@ def modalVerdXQueriesS (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
   let D := if aR.isEmpty then b1 else IForm.and b1 (icutF aR)
   pure ((List.range comps.length).map (fun i =>
     let g := comps.getD i (.rat 0)
-    let dom := istrataDomHost D (comps.take i)
+    let dom := sliceFlowDom k g (ilieDeriv g fL fR (.rat lam)) (istrataDomHost D (comps.take i))
     if flags.getD i false then
       [iflowQuery g fL fR (.rat lam) dom, iflowQueryStrict g fL fR (.rat lam) dom]
     else
@@ -74,37 +74,37 @@ theorem getD_map_toHost (comps0 : List (ITerm n)) (j : ℕ) :
   · rfl
 
 /-- The IR groups of a flagged pack denote `StrataVerdS` over the ordered flagged components. -/
-theorem strataVerdS_of_IR (comps0 : List (ITerm n)) (fs : List Bool)
+theorem strataVerdS_of_IR (k : Option ℕ) (comps0 : List (ITerm n)) (fs : List Bool)
     (hfsl : fs.length ≤ comps0.length) (order : List ℕ) (fL fR : Fin n → ITerm n) (lam : ℚ)
     (D : IForm n)
     (hz3 : ∀ i (hi : i < ((List.range (order.map (fun i => comps0.getD i (ITerm.rat 0))).length).map
       (fun i => if (order.map (fun i => fs.getD i false)).getD i false then
           [iflowQuery ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)),
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))),
            iflowQueryStrict ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))]
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)))]
         else
           [iflowQuery ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)),
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))),
            iflowQueryStrict ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)),
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))),
            iflowQuerySuperlevel ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0))
             fL fR (ITerm.rat lam)
-            (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))])).length),
+            (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)))])).length),
       ∃ q ∈ ((List.range (order.map (fun i => comps0.getD i (ITerm.rat 0))).length).map
       (fun i => if (order.map (fun i => fs.getD i false)).getD i false then
           [iflowQuery ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)),
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))),
            iflowQueryStrict ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))]
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)))]
         else
           [iflowQuery ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)),
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))),
            iflowQueryStrict ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR
-            (ITerm.rat lam) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)),
+            (ITerm.rat lam) (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))),
            iflowQuerySuperlevel ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0))
             fL fR (ITerm.rat lam)
-            (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i))]))[i],
+            (sliceFlowDom k ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) (ilieDeriv ((order.map (fun i => comps0.getD i (ITerm.rat 0))).getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)) (istrataDomHost D ((order.map (fun i => comps0.getD i (ITerm.rat 0))).take i)))]))[i],
         z3solve q.toHost = Verdict.unsat) :
     StrataVerdS (fun i => (fL i).toHost) (fun i => (fR i).toHost) (Term.const (lam : ℝ)) D.toHost
       (orderTag (comps0.map ITerm.toHost) fs order) := by
@@ -137,25 +137,30 @@ theorem strataVerdS_of_IR (comps0 : List (ITerm n)) (fs : List Bool)
     simp only [Bool.false_eq_true, if_false, List.mem_cons, List.not_mem_nil, or_false] at hqmem
     rcases hqmem with rfl | rfl | rfl
     · left
-      rw [imodalQuery_toHost, hlam] at hqz; exact hqz
+      have h1 := Z3Unsat_iflowQuery_of_sliced hqz
+      rw [imodalQuery_toHost, hlam] at h1; exact h1
     · right; left
-      rw [imodalQueryStrict_toHost, hlam] at hqz; exact hqz
+      have h1 := Z3Unsat_iflowQueryStrict_of_sliced hqz
+      rw [imodalQueryStrict_toHost, hlam] at h1; exact h1
     · right; right
       refine ⟨by rw [hC, hb], ?_⟩
-      rw [imodalQuerySuperlevel_toHost, hlam] at hqz; exact hqz
+      have h1 := Z3Unsat_iflowQuerySuperlevel_of_sliced hqz
+      rw [imodalQuerySuperlevel_toHost, hlam] at h1; exact h1
   · rw [hb] at hqmem
     simp only [if_true, List.mem_cons, List.not_mem_nil, or_false] at hqmem
     rcases hqmem with rfl | rfl
     · left
-      rw [imodalQuery_toHost, hlam] at hqz; exact hqz
+      have h1 := Z3Unsat_iflowQuery_of_sliced hqz
+      rw [imodalQuery_toHost, hlam] at h1; exact h1
     · right; left
-      rw [imodalQueryStrict_toHost, hlam] at hqz; exact hqz
+      have h1 := Z3Unsat_iflowQueryStrict_of_sliced hqz
+      rw [imodalQueryStrict_toHost, hlam] at h1; exact h1
 
 /-- **The strict pin.** If the rebuild succeeds and every group has an `unsat` member, the
 instance's hypothesis `modalVerdXS` holds. -/
-theorem modalVerdXS_of_queries {p : PProblem} {cX : EvolStrengtheningX} {invRow : ℕ}
-    {order : List ℕ} {lam : ℚ} {l m : ℕ} {qss : List (List (IForm n))}
-    (hq : modalVerdXQueriesS p cX n invRow order lam l m = some qss)
+theorem modalVerdXS_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
+    {invRow : ℕ} {order : List ℕ} {lam : ℚ} {l m : ℕ} {qss : List (List (IForm n))}
+    (hq : modalVerdXQueriesS k p cX n invRow order lam l m = some qss)
     (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], z3solve q.toHost = Verdict.unsat) :
     modalVerdXS p cX n invRow order (lam : ℝ) l m := by
   unfold modalVerdXQueriesS at hq
@@ -230,14 +235,15 @@ theorem modalVerdXS_of_queries {p : PProblem} {cX : EvolStrengtheningX} {invRow 
     rw [hfs] at hfs'; cases hfs'; exact hl'
   show VerdXCoreS _ _ _ _ _
   rw [hcomps, hfs, Option.getD_some, hD, hostDyn_pin hfL, hostDyn_pin hfR]
-  exact strataVerdS_of_IR comps0 fs hfsl.le order fL fR lam D hz3
+  exact strataVerdS_of_IR k comps0 fs hfsl.le order fL fR lam D hz3
 
 /-- **Collapse**: a row without strict atoms gives the existing groups, query for query. -/
-theorem modalVerdXQueriesS_eq_of_allFalse (p : PProblem) (cX : EvolStrengtheningX)
+theorem modalVerdXQueriesS_eq_of_allFalse (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX)
     (n invRow : ℕ) (order : List ℕ) (lam : ℚ) (l m : ℕ)
     (h : ∀ fs, Oracle.invStrictFlags p.L.stateVars n (p.invariants.getD invRow ("", PForm.tt)).2
       = some fs → ∀ b ∈ fs, b = false) :
-    modalVerdXQueriesS p cX n invRow order lam l m = modalVerdXQueries p cX n invRow order lam l m := by
+    modalVerdXQueriesS k p cX n invRow order lam l m
+      = modalVerdXQueries k p cX n invRow order lam l m := by
   unfold modalVerdXQueriesS modalVerdXQueries
   dsimp only
   rcases hc : Oracle.invComponents p.L.stateVars n (p.invariants.getD invRow ("", PForm.tt)).2

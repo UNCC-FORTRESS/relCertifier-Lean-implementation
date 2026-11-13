@@ -78,19 +78,19 @@ def VerdDynCore (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n → Term 
     (D gL : Formula (Var n)) (rg : DynRegion n := .whole) : Prop :=
   match rg with
   | .whole => ∀ i (hi : i < comps.length),
-    z3solve (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-      dynDomHost pre D gL (comps.take i)⟩) = Verdict.unsat
+    Z3Unsat (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+      dynDomHost pre D gL (comps.take i)⟩)
   | .pre Bo Bc mask _ _ => ∀ i (hi : i < comps.length),
     if mask.getD i false then
-      z3solve (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-        dynDomHost pre (Formula.and D Bc) gL (comps.take i)⟩) = Verdict.unsat
+      Z3Unsat (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bc) gL (comps.take i)⟩)
     else
-      z3solve (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩) = Verdict.unsat
-      ∨ z3solve (flowQueryStrict ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩) = Verdict.unsat
-      ∨ z3solve (flowQuerySuperlevel ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩) = Verdict.unsat
+      Z3Unsat (flowQuery ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩)
+      ∨ Z3Unsat (flowQueryStrict ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩)
+      ∨ Z3Unsat (flowQuerySuperlevel ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
+        dynDomHost pre (Formula.and D Bo) gL (comps.take i)⟩)
 
 /-- **The reposition pack, read off the IR and the extended mode-fact certificate.** Left mode
 `l` (its guard, its kept atoms, its evolve domain), right mode `m` (its field, its kept atoms,
@@ -175,17 +175,17 @@ theorem segPresAll_dyn (pre : Bool) (comps : List (Term (Var n))) (fR : Fin n �
   cases rg with
   | whole =>
       exact flow_cert_sound ⟨comps[i], fun _ => Term.const 0, fR, Term.const 1,
-        dynDomHost pre D gL (comps.take i)⟩ (z3_unsat_sound (hv i hi)) hν'
+        dynDomHost pre D gL (comps.take i)⟩ (z3Unsat_sound (hv i hi)) hν'
   | pre Bo Bc mask hmono _ =>
       have h := hv i hi
       split_ifs at h with hm
       · refine boxle_dom_mono (dynDomHost_mono (D := Formula.and D Bo) (D' := Formula.and D Bc)
           pre _ (fun x hx => ⟨hx.1, hmono x hx.2⟩)) ?_
-        exact flow_cert_sound _ (z3_unsat_sound h) hν'
+        exact flow_cert_sound _ (z3Unsat_sound h) hν'
       · rcases h with h | h | h
-        · exact flow_cert_sound _ (z3_unsat_sound h) hν'
-        · exact flow_cert_sound_strict _ (z3_unsat_sound h) hν'
-        · exact flow_cert_sound_superlevel _ (z3_unsat_sound h) hν'
+        · exact flow_cert_sound _ (z3Unsat_sound h) hν'
+        · exact flow_cert_sound_strict _ (z3Unsat_sound h) hν'
+        · exact flow_cert_sound_superlevel _ (z3Unsat_sound h) hν'
 
 /-- Left coordinates are frozen at every instant of a frozen-left run. -/
 theorem frozen_left_all {fR : Fin n → Term (Var n)} {lam : Term (Var n)} {dom : Formula (Var n)}

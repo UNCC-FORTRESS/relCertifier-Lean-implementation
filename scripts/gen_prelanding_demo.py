@@ -113,8 +113,8 @@ theorem {b}_bridge (hv : {verd} IR 4 cX covM prog ce) (dt : ℝ) (hdt : dt ≤ e
 
 /-- The same from a green run of the benchmark's groups (`{groups}`,
 `scripts/prelanding_demo_verdicts.lean`). -/
-theorem {b}_bridge_run {{gs : List (List (IForm 4))}}
-    (hrun : {groups} IR 4 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+theorem {b}_bridge_run {{k : Option ℕ}} {{gs : List (List (IForm 4))}}
+    (hrun : {groups} IR 4 cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : {claim} IR 4 cX cov reg 0 1 2 dt :=
   {b}_bridge ({verd_of} hrun hok) dt hdt
 

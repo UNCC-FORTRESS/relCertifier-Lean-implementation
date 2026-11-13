@@ -1,0 +1,181 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# Per-row hypothesis slicing of the flow queries (`RELCERT_SLICE_HOPS`, `docs/HYP-SLICING.md`)
+
+A flow query of a row `g` carries, as its domain, every hypothesis established so far (the
+evolve boxes, the mode facts, the rows of earlier rounds). On wide models the full set is more
+than Z3 handles in its budget while a small slice of it is provable. With the knob
+`RELCERT_SLICE_HOPS=k` the tool keeps only the hypotheses within `k` variable-sharing hops of
+the row's goal variables (`goalVars`: the variables of `g` and of its Lie derivative):
+
+* hop 0: the rows (conjuncts reading two or more variables) whose variables intersect the goal
+  set;
+* hop `j+1`: the rows sharing a variable with a row kept at hop `j`;
+* the boxes (conjuncts reading at most one variable) of every kept variable are always kept.
+
+`sliceDom` replaces every dropped conjunct of the domain's `and` tree by `tt` IN PLACE (the
+tree shape is kept, so the sliced domain is a sub-conjunction of the full one leaf by leaf).
+With the knob unset (`sliceDomOpt none`) the domain is untouched and the printed query is
+byte-identical to the unsliced tool's.
+
+Soundness (`sliceDom_weakens`): the sliced domain is implied by the full one, so an `unsat`
+answer on the sliced query is an `unsat` answer on a query implied by the row's full query,
+which is exactly the sliced verdict `Z3Unsat` of `Trusted/Oracle.lean` (`Z3Unsat_of_sliced`).
+The same function serves the tool (`OracleAPI.checkSeg`, `checkDynRepo`) and the runners
+(`VerdictsV2/ModalX`, `ModalDynX`, `ModalXStrict`), so the pinned query IS the sliced query.
+-/
+import RelCertifier.Trusted.Smt
+import RelCertifier.Trusted.Oracle
+
+namespace RelCertifier
+
+open DL
+
+/-! ## Variables of a term, zero products dropped -/
+
+/-- A term that is syntactically zero (`0`, sums of zeros, products with a zero factor): the
+Lie derivative `ilieDeriv` carries `0 * f_i` for every coordinate the row does not read, and
+those read nothing. -/
+def ITerm.isZero {n : ℕ} : ITerm n → Bool
+  | .rat q => q == 0
+  | .var _ => false
+  | .bin .add a b => a.isZero && b.isZero
+  | .bin .sub a b => a.isZero && b.isZero
+  | .bin .mul a b => a.isZero || b.isZero
+
+/-- The variables a term reads (zero products dropped). -/
+def ITerm.vars {n : ℕ} : ITerm n → List (Var n)
+  | .var v => [v]
+  | .rat _ => []
+  | .bin .mul a b => if a.isZero || b.isZero then [] else a.vars ++ b.vars
+  | .bin .add a b => a.vars ++ b.vars
+  | .bin .sub a b => a.vars ++ b.vars
+
+/-- The variables a formula reads. -/
+def IForm.vars {n : ℕ} : IForm n → List (Var n)
+  | .tt => []
+  | .cmp _ a b => a.vars ++ b.vars
+  | .neg f => f.vars
+  | .and a b => a.vars ++ b.vars
+
+/-- The conjuncts of a domain: the leaves of its `and` tree (`tt` leaves dropped). -/
+def IForm.leaves {n : ℕ} : IForm n → List (IForm n)
+  | .and a b => a.leaves ++ b.leaves
+  | .tt => []
+  | f => [f]
+
+/-- The seed of the slice: the row's own variables and those its Lie derivative reads. -/
+def goalVars {n : ℕ} (g gdot : ITerm n) : List (Var n) := g.vars ++ gdot.vars
+
+/-! ## The hop closure -/
+
+/-- Two variable lists share a variable. -/
+def varsMeet {n : ℕ} (a b : List (Var n)) : Bool := a.any (fun v => b.contains v)
+
+/-- The variables of a conjunct, duplicates removed. -/
+def IForm.varSet {n : ℕ} (f : IForm n) : List (Var n) := f.vars.eraseDups
+
+/-- A row reads two or more variables; a box at most one. -/
+def IForm.isRow {n : ℕ} (f : IForm n) : Bool := 2 ≤ f.varSet.length
+
+/-- One hop: the kept variables plus those of every row meeting them. -/
+def hopStep {n : ℕ} (rows : List (List (Var n))) (K : List (Var n)) : List (Var n) :=
+  K ++ (rows.filter (fun r => varsMeet r K)).flatten
+
+/-- The variables reached after `k` hops from the seed. -/
+def hopVars {n : ℕ} (rows : List (List (Var n))) : ℕ → List (Var n) → List (Var n)
+  | 0, V => V
+  | k + 1, V => hopStep rows (hopVars rows k V)
+
+/-- Replace every leaf the predicate rejects by `tt`, in place. -/
+def IForm.pruneTT {n : ℕ} (keep : IForm n → Bool) : IForm n → IForm n
+  | .and a b => .and (a.pruneTT keep) (b.pruneTT keep)
+  | .tt => .tt
+  | .cmp op a b => if keep (.cmp op a b) then .cmp op a b else .tt
+  | .neg f => if keep (.neg f) then .neg f else .tt
+
+/-- **The slice of a domain at `k` hops from the seed `V`.** A row is kept when it meets the
+variables reached after `k` hops; a box when its variable is among the kept variables (the seed,
+the reached ones and those of the kept rows). -/
+def sliceDom {n : ℕ} (k : ℕ) (V : List (Var n)) (dom : IForm n) : IForm n :=
+  let rows := (dom.leaves.filter IForm.isRow).map IForm.varSet
+  let K := hopVars rows k V
+  let Kfin := hopStep rows K
+  dom.pruneTT (fun c =>
+    if c.isRow then varsMeet c.varSet K else c.varSet.all (fun v => Kfin.contains v))
+
+/-- The knob: `none` leaves the domain untouched (the unsliced tool), `some k` slices. -/
+def sliceDomOpt {n : ℕ} : Option ℕ → List (Var n) → IForm n → IForm n
+  | none, _, dom => dom
+  | some k, V, dom => sliceDom k V dom
+
+/-- The slice of a flow-query domain for the row `g` with Lie derivative `gdot`: the function
+the tool and the runners share. -/
+def sliceFlowDom {n : ℕ} (k : Option ℕ) (g gdot : ITerm n) (dom : IForm n) : IForm n :=
+  sliceDomOpt k (goalVars g gdot) dom
+
+/-- Hypothesis count of a domain (its non-`tt` leaves), for the log line. -/
+def IForm.hypCount {n : ℕ} (f : IForm n) : ℕ := f.leaves.length
+
+/-- Distinct variable count of a formula, for the log line. -/
+def IForm.varCount {n : ℕ} (f : IForm n) : ℕ := f.varSet.length
+
+/-- The knob, read once per runner: `RELCERT_SLICE_HOPS=k` (a natural number), else `none`. -/
+def sliceHopsFromEnv : IO (Option ℕ) := do
+  pure ((← IO.getEnv "RELCERT_SLICE_HOPS").bind String.toNat?)
+
+/-! ## Soundness: the slice is implied by the full domain -/
+
+theorem pruneTT_weakens {n : ℕ} (keep : IForm n → Bool) (f : IForm n) (σ : State (Var n))
+    (h : Formula.sat f.toHost σ) : Formula.sat (f.pruneTT keep).toHost σ := by
+  induction f with
+  | tt => simp [IForm.pruneTT, IForm.toHost, Formula.sat]
+  | cmp op a b =>
+      unfold IForm.pruneTT
+      split
+      · exact h
+      · simp [IForm.toHost, Formula.sat]
+  | neg f _ =>
+      unfold IForm.pruneTT
+      split
+      · exact h
+      · simp [IForm.toHost, Formula.sat]
+  | and a b iha ihb =>
+      simp only [IForm.pruneTT, IForm.toHost, Formula.sat] at h ⊢
+      exact ⟨iha h.1, ihb h.2⟩
+
+/-- **Monotonicity of the slice**: a state in the full domain is in the sliced one. -/
+theorem sliceDom_weakens {n : ℕ} (k : ℕ) (V : List (Var n)) (dom : IForm n) (σ : State (Var n))
+    (h : Formula.sat dom.toHost σ) : Formula.sat (sliceDom k V dom).toHost σ :=
+  pruneTT_weakens _ dom σ h
+
+theorem sliceDomOpt_weakens {n : ℕ} (k : Option ℕ) (V : List (Var n)) (dom : IForm n)
+    (σ : State (Var n)) (h : Formula.sat dom.toHost σ) :
+    Formula.sat (sliceDomOpt k V dom).toHost σ := by
+  cases k with
+  | none => exact h
+  | some k => exact sliceDom_weakens k V dom σ h
+
+theorem sliceFlowDom_weakens {n : ℕ} (k : Option ℕ) (g gdot : ITerm n) (dom : IForm n)
+    (σ : State (Var n)) (h : Formula.sat dom.toHost σ) :
+    Formula.sat (sliceFlowDom k g gdot dom).toHost σ :=
+  sliceDomOpt_weakens k _ dom σ h
+
+/-- A query over the sliced domain is implied by the same query over the full domain. -/
+theorem and_sliceFlowDom_weakens {n : ℕ} (k : Option ℕ) (g gdot : ITerm n) (dom G : IForm n)
+    (σ : State (Var n)) (h : Formula.sat (IForm.and dom G).toHost σ) :
+    Formula.sat (IForm.and (sliceFlowDom k g gdot dom) G).toHost σ := by
+  simp only [IForm.toHost, Formula.sat] at h ⊢
+  exact ⟨sliceFlowDom_weakens k g gdot dom σ h.1, h.2⟩
+
+/-- **The sliced verdict of a flow query.** An `unsat` answer on the query over the sliced
+domain (what the runner prints under the knob) is the sliced verdict `Z3Unsat` of the query over
+the full domain (what the flow packs assume). With `k = none` the two queries coincide. -/
+theorem Z3Unsat_of_sliced {n : ℕ} {k : Option ℕ} {g gdot : ITerm n} {dom G : IForm n}
+    (h : z3solve (IForm.and (sliceFlowDom k g gdot dom) G).toHost = Verdict.unsat) :
+    Z3Unsat (IForm.and dom G).toHost :=
+  Z3Unsat.of_weaker (and_sliceFlowDom_weakens k g gdot dom G) h
+
+end RelCertifier

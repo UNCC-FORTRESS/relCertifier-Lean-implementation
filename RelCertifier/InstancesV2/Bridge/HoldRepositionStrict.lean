@@ -82,8 +82,8 @@ theorem hold_reposition_strict_bridge (hv : VerdictsS IR 4 cX covM prog ce) (dt 
 
 /-- The same from a green run of the benchmark's groups (`bridgeGroupsS`,
 `scripts/prelanding_demo_verdicts.lean`). -/
-theorem hold_reposition_strict_bridge_run {gs : List (List (IForm 4))}
-    (hrun : bridgeGroupsS IR 4 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+theorem hold_reposition_strict_bridge_run {k : Option ℕ} {gs : List (List (IForm 4))}
+    (hrun : bridgeGroupsS IR 4 cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : windowClaimS IR 4 cX cov reg 0 1 2 dt :=
   hold_reposition_strict_bridge (verdictsS_of_groups hrun hok) dt hdt
 

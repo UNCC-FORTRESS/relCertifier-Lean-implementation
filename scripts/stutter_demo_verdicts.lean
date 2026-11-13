@@ -24,7 +24,7 @@ def runDemo : IO Unit := do
     | .error e => IO.eprintln s!"ERROR: z3: {e}"
     | .ok s =>
       match bridgeGroups p n Bridge.SaltTankStutter.cX Bridge.SaltTankStutter.covM
-          Bridge.SaltTankStutter.prog Bridge.SaltTankStutter.ce with
+          Bridge.SaltTankStutter.prog Bridge.SaltTankStutter.ce (← sliceHopsFromEnv) with
       | none => IO.println "  [stutter demo] the query groups did not rebuild"
       | some gs =>
         let mut bad := 0

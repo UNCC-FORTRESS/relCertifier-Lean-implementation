@@ -192,7 +192,7 @@ theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
   have hget : (ts.map Prod.snd)[i] = ts[i].2 := by simp
   cases rg with
   | whole =>
-      have hz := z3_unsat_sound (hv i hi')
+      have hz := z3Unsat_sound (hv i hi')
       rw [hget] at hz
       rcases hb : ts[i].1 with _ | _
       · rw [hb] at hν'
@@ -218,18 +218,18 @@ theorem segPresAllS_dyn (pre : Bool) (ts : List (Bool × Term (Var n)))
         intro ω hω
         show Term.eval ts[i].2 ω ≤ 0
         split_ifs at h with hm
-        · exact flow_cert_sound _ (z3_unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
+        · exact flow_cert_sound _ (z3Unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
         · rcases h with h | h | h
-          · exact flow_cert_sound _ (z3_unsat_sound h) hν' ω hω
-          · exact flow_cert_sound_strict _ (z3_unsat_sound h) hν' ω hω
-          · exact flow_cert_sound_superlevel _ (z3_unsat_sound h) hν' ω hω
+          · exact flow_cert_sound _ (z3Unsat_sound h) hν' ω hω
+          · exact flow_cert_sound_strict _ (z3Unsat_sound h) hν' ω hω
+          · exact flow_cert_sound_superlevel _ (z3Unsat_sound h) hν' ω hω
       · rw [hb] at hν'
         intro ω hω
         show Term.eval ts[i].2 ω < 0
         have hm : mask.getD i false = true := hrg i (by
           rw [List.getD_eq_getElem _ _ (by simpa using hi)]; simp [hb])
         rw [if_pos hm] at h
-        exact flow_cert_sound_lt _ (z3_unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
+        exact flow_cert_sound_lt _ (z3Unsat_sound h) hν' ω (sem_ode_dom_mono hwide hω)
 
 /-- **`couple_box_dyn` at a strict row.** The anchor `FMS g (gs ++ atomTerms cL cR) m` is a box
 invariant of the right-only product program (Eq. (15), left frozen) on the base domain narrowed by

@@ -69,16 +69,16 @@ theorem sat_domCutX (dom : Formula (Var n)) (cL cR : List (CutAtomP n))
       tauto
 
 /-- The stratified three-route verdict pack of one pairing (the hypothesis of
-`segPresAll_from_strata_verdicts'`). -/
+`segPresAll_from_strata_verdicts'`), as sliced verdicts (`Z3Unsat`, `Trusted/Oracle.lean`: Z3
+answered `unsat` on the query or on its hypothesis slice, `docs/HYP-SLICING.md`). -/
 def VerdXCore (comps : List (Term (Var n))) (fL fR : Fin n → Term (Var n)) (lam : ℝ)
     (D : Formula (Var n)) : Prop :=
   ∀ i (hi : i < comps.length),
-    z3solve (flowQuery ⟨comps[i], fL, fR, Term.const lam,
-      strataDomHost D (comps.take i)⟩) = Verdict.unsat
-    ∨ z3solve (flowQueryStrict ⟨comps[i], fL, fR, Term.const lam,
-      strataDomHost D (comps.take i)⟩) = Verdict.unsat
-    ∨ z3solve (flowQuerySuperlevel ⟨comps[i], fL, fR, Term.const lam,
-      strataDomHost D (comps.take i)⟩) = Verdict.unsat
+    Z3Unsat (flowQuery ⟨comps[i], fL, fR, Term.const lam, strataDomHost D (comps.take i)⟩)
+    ∨ Z3Unsat (flowQueryStrict ⟨comps[i], fL, fR, Term.const lam,
+      strataDomHost D (comps.take i)⟩)
+    ∨ Z3Unsat (flowQuerySuperlevel ⟨comps[i], fL, fR, Term.const lam,
+      strataDomHost D (comps.take i)⟩)
 
 /-- **The verdict pack of a pairing, read off the IR and the mode-fact certificate.**
 Left mode `l`, right mode `m`, stretch `lam`, the invariant row `invRow`'s components in

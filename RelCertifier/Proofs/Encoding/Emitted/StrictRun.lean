@@ -32,9 +32,9 @@ section BuildersS
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
   (prog : ProgressEmitE) (ce : ChoiceEmitE)
 
-def jointGroupsS (l q : ℕ) : Option (List (List (IForm n))) :=
+def jointGroupsS (k : Option ℕ) (l q : ℕ) : Option (List (List (IForm n))) :=
   if (flagsOf p cov l q).jointOK then
-    modalVerdXQueriesS p cX n (rowIdx p l) (strataOf p cov l q).order (lamQ p cov l q) l q
+    modalVerdXQueriesS k p cX n (rowIdx p l) (strataOf p cov l q).order (lamQ p cov l q) l q
   else some []
 
 def handoffGroupsS (m' : ℕ) : Option (List (List (IForm n))) :=
@@ -42,15 +42,15 @@ def handoffGroupsS (m' : ℕ) : Option (List (List (IForm n))) :=
 
 /-- **Every query of the benchmark at its strict rows**, in groups (`bridgeGroups` with the
 strict flow packs and the strict handoffs). -/
-def bridgeGroupsS : Option (List (List (IForm n))) := do
+def bridgeGroupsS (k : Option ℕ) : Option (List (List (IForm n))) := do
   let sL ← (List.range (nL p)).mapM (fun l =>
     stayGroups p n Side.L (mLof p l) (cutAtomsOfX cX.L (mLof p l).name))
   let sR ← (List.range (nR p)).mapM (fun q =>
     stayGroups p n Side.R (mRof p q) (cutAtomsOfX cX.R (mRof p q).name))
   let nc ← (List.range (nR p)).mapM (nonConnGroups p n cX cov)
-  let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroupsS p n cX cov l))
+  let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroupsS p n cX cov k l))
   let dy ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (fun q =>
-    [true, false].mapM (dynGroups p n cX cov prog l q)))
+    [true, false].mapM (dynGroups p n cX cov prog k l q)))
   let ad ← (List.range (nL p)).mapM (admGroups p n cov)
   let ho ← (List.range (nL p)).mapM (handoffGroupsS p n)
   let pr ← prog.certs.mapM (progGroups p n cX)
@@ -67,8 +67,8 @@ section LinkS
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
   {ce : ChoiceEmitE}
 
-theorem jointVerdS_of_groups {l q : ℕ} {gs : List (List (IForm n))}
-    (h : jointGroupsS p n cX cov l q = some gs) (hok : GroupsOK gs)
+theorem jointVerdS_of_groups {k : Option ℕ} {l q : ℕ} {gs : List (List (IForm n))}
+    (h : jointGroupsS p n cX cov k l q = some gs) (hok : GroupsOK gs)
     (hj : (flagsOf p cov l q).jointOK = true) : JointVerdS p n cX cov l q := by
   unfold jointGroupsS at h
   rw [if_pos hj] at h
@@ -90,8 +90,8 @@ theorem handoffVerdS_of_groups {m' : ℕ} {gs : List (List (IForm n))}
     exact ⟨_, hq, hz⟩
 
 /-- **A green strict run is the `VerdictsS` structure.** -/
-theorem verdictsS_of_groups {gs : List (List (IForm n))}
-    (h : bridgeGroupsS p n cX cov prog ce = some gs) (hok : GroupsOK gs) :
+theorem verdictsS_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
+    (h : bridgeGroupsS p n cX cov prog ce k = some gs) (hok : GroupsOK gs) :
     VerdictsS p n cX cov prog ce := by
   unfold bridgeGroupsS at h
   simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff, Option.some.injEq]
@@ -143,11 +143,11 @@ end LinkS
 /-! ## Collapse: without strict atoms, the existing queries -/
 
 theorem jointGroupsS_eq {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE}
-    (h : noStrictRows p n = true) (l q : ℕ) :
-    jointGroupsS p n cX cov l q = jointGroups p n cX cov l q := by
+    (h : noStrictRows p n = true) (k : Option ℕ) (l q : ℕ) :
+    jointGroupsS p n cX cov k l q = jointGroups p n cX cov k l q := by
   unfold jointGroupsS jointGroups
   split_ifs
-  · refine modalVerdXQueriesS_eq_of_allFalse p cX n _ _ _ l q ?_
+  · refine modalVerdXQueriesS_eq_of_allFalse k p cX n _ _ _ l q ?_
     intro fs hfs
     have hm := maskOf_allFalse h l
     unfold maskOf rowOf vars at hm
@@ -173,10 +173,10 @@ theorem handoffGroupsS_eq {p : PProblem} (h : noStrictRows p n = true) (m' : ℕ
 /-- **Without strict atoms the strict run issues exactly the existing queries.** -/
 theorem bridgeGroupsS_eq_of_noStrict {p : PProblem} {cX : EvolStrengtheningX}
     {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE}
-    (h : noStrictRows p n = true) :
-    bridgeGroupsS p n cX cov prog ce = bridgeGroups p n cX cov prog ce := by
+    (h : noStrictRows p n = true) (k : Option ℕ) :
+    bridgeGroupsS p n cX cov prog ce k = bridgeGroups p n cX cov prog ce k := by
   have hj : jointGroupsS p n cX cov = jointGroups p n cX cov := by
-    funext l q; exact jointGroupsS_eq h l q
+    funext k l q; exact jointGroupsS_eq h k l q
   have hh : handoffGroupsS p n = handoffGroups p n := by
     funext m'; exact handoffGroupsS_eq h m'
   unfold bridgeGroupsS bridgeGroups
@@ -188,8 +188,8 @@ Assumption 1 holds on a right region kept by every right flow, then the strict m
 `keyedClaimS` holds for every `dt ≤ ε_L`. -/
 theorem theorem3_keyed_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
     {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE}
-    (hs : structOK p n cov cX = true) {gs : List (List (IForm n))}
-    (hrun : bridgeGroupsS p n cX cov prog ce = some gs) (hok : GroupsOK gs)
+    (hs : structOK p n cov cX = true) {k : Option ℕ} {gs : List (List (IForm n))}
+    (hrun : bridgeGroupsS p n cX cov prog ce k = some gs) (hok : GroupsOK gs)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ Set.range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
@@ -204,8 +204,8 @@ theorem theorem3_keyed_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
 hypotheses as `theorem3_keyed_strict_of_run` plus `rowsSame`, concluding `windowClaimS`. -/
 theorem theorem3_window_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
     {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE}
-    (hs : structOK p n cov cX = true) {gs : List (List (IForm n))}
-    (hrun : bridgeGroupsS p n cX cov prog ce = some gs) (hok : GroupsOK gs)
+    (hs : structOK p n cov cX = true) {k : Option ℕ} {gs : List (List (IForm n))}
+    (hrun : bridgeGroupsS p n cX cov prog ce k = some gs) (hok : GroupsOK gs)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ Set.range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)

@@ -54,14 +54,17 @@ def nonConnGroups (q : ℕ) : Option (List (List (IForm n))) := do
     pure [[q1], [q2]])
   pure gs.flatten
 
-def jointGroups (l q : ℕ) : Option (List (List (IForm n))) :=
+/-- The joint flow pack of a pairing; `k` is the hypothesis-slicing knob (`RELCERT_SLICE_HOPS`,
+`docs/HYP-SLICING.md`), `none` for the unsliced queries. -/
+def jointGroups (k : Option ℕ) (l q : ℕ) : Option (List (List (IForm n))) :=
   if (flagsOf p cov l q).jointOK then
-    modalVerdXQueries p cX n (rowIdx p l) (strataOf p cov l q).order (lamQ p cov l q) l q
+    modalVerdXQueries k p cX n (rowIdx p l) (strataOf p cov l q).order (lamQ p cov l q) l q
   else some []
 
-def dynGroups (l q : ℕ) (pre : Bool) : Option (List (List (IForm n))) :=
+/-- The right-only flow pack of a pairing, sliced at `k` hops. -/
+def dynGroups (k : Option ℕ) (l q : ℕ) (pre : Bool) : Option (List (List (IForm n))) :=
   if (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) then
-    modalVerdDynXGroups p cX n (rowIdx p l)
+    modalVerdDynXGroups k p cX n (rowIdx p l)
       (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder)
       pre l q (dynRegionI p n cov prog l q pre)
   else some []
@@ -81,16 +84,17 @@ def coverageGroups (e : ChoiceEntryE) : Option (List (List (IForm n))) :=
   (coverageQueryOf p n cX e).map ([[·]])
 
 /-- **Every query of the benchmark**, in groups, rebuilt from the records alone (`none` when a
-record fails to lower). -/
-def bridgeGroups : Option (List (List (IForm n))) := do
+record fails to lower); the flow packs sliced at `k` hops (`none`: unsliced, the byte-identical
+queries of the tool without the knob). -/
+def bridgeGroups (k : Option ℕ) : Option (List (List (IForm n))) := do
   let sL ← (List.range (nL p)).mapM (fun l =>
     stayGroups p n Side.L (mLof p l) (cutAtomsOfX cX.L (mLof p l).name))
   let sR ← (List.range (nR p)).mapM (fun q =>
     stayGroups p n Side.R (mRof p q) (cutAtomsOfX cX.R (mRof p q).name))
   let nc ← (List.range (nR p)).mapM (nonConnGroups p n cX cov)
-  let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroups p n cX cov l))
+  let jt ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (jointGroups p n cX cov k l))
   let dy ← (List.range (nL p)).mapM (fun l => (List.range (nR p)).mapM (fun q =>
-    [true, false].mapM (dynGroups p n cX cov prog l q)))
+    [true, false].mapM (dynGroups p n cX cov prog k l q)))
   let ad ← (List.range (nL p)).mapM (admGroups p n cov)
   let ho ← (List.range (nL p)).mapM (handoffGroups p n)
   let pr ← prog.certs.mapM (progGroups p n cX)
@@ -155,16 +159,16 @@ theorem nonConnVerd_of_groups {q : ℕ} {gs : List (List (IForm n))}
   subst ha; subst hb
   exact ⟨cutR, _, _, hcut, hq, hza, hzb⟩
 
-theorem jointVerd_of_groups {l q : ℕ} {gs : List (List (IForm n))}
-    (h : jointGroups p n cX cov l q = some gs) (hok : GroupsOK gs)
+theorem jointVerd_of_groups {k : Option ℕ} {l q : ℕ} {gs : List (List (IForm n))}
+    (h : jointGroups p n cX cov k l q = some gs) (hok : GroupsOK gs)
     (hj : (flagsOf p cov l q).jointOK = true) : JointVerd p n cX cov l q := by
   unfold jointGroups at h
   rw [if_pos hj] at h
   unfold JointVerd lam
   exact modalVerdX_of_queries h (fun i hi => hok _ (List.getElem_mem hi))
 
-theorem dynVerd_of_groups {l q : ℕ} {pre : Bool} {gs : List (List (IForm n))}
-    (h : dynGroups p n cX cov prog l q pre = some gs) (hok : GroupsOK gs)
+theorem dynVerd_of_groups {k : Option ℕ} {l q : ℕ} {pre : Bool} {gs : List (List (IForm n))}
+    (h : dynGroups p n cX cov prog k l q pre = some gs) (hok : GroupsOK gs)
     (hd : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true) :
     DynVerd p n cX cov l q pre (dynRegion p n cov prog l q pre) := by
   unfold dynGroups at h
@@ -174,7 +178,7 @@ theorem dynVerd_of_groups {l q : ℕ} {pre : Bool} {gs : List (List (IForm n))}
   rcases hns : nodeStage p n prog l q pre with _ | ⟨v, st⟩
   · rw [hns] at h
     simp only [Option.map_none, modalVerdDynXGroups] at h
-    rcases hq : modalVerdDynXQueries p cX n (rowIdx p l)
+    rcases hq : modalVerdDynXQueries k p cX n (rowIdx p l)
         (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder)
         pre l q with _ | qs
     · rw [hq] at h; simp at h
@@ -237,8 +241,8 @@ theorem progVerd_of_groups {c : ProgressE} {gs : List (List (IForm n))}
 /-- **A green run is the `Verdicts` structure.** If `bridgeGroups` yields `gs` and every group of
 `gs` has a member that `z3solve` reports `unsat` (`GroupsOK`), then `Verdicts` holds for the same
 records (Appendix B.4). -/
-theorem verdicts_of_groups {gs : List (List (IForm n))}
-    (h : bridgeGroups p n cX cov prog ce = some gs) (hok : GroupsOK gs) :
+theorem verdicts_of_groups {k : Option ℕ} {gs : List (List (IForm n))}
+    (h : bridgeGroups p n cX cov prog ce k = some gs) (hok : GroupsOK gs) :
     Verdicts p n cX cov prog ce := by
   unfold bridgeGroups at h
   simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff, Option.some.injEq]

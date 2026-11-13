@@ -56,8 +56,8 @@ def cutV2 (b : String) : EvolStrengtheningX :=
 def packLam (r : PackV2) : ℚ := (r.lamN : ℚ) / (r.lamD : ℚ)
 
 /-- The pack's queries, as the runner builds them. -/
-def packQueries (r : PackV2) : Option (List (List (IForm r.dim))) :=
-  modalVerdXQueries (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order (packLam r) r.l r.m
+def packQueries (k : Option ℕ) (r : PackV2) : Option (List (List (IForm r.dim))) :=
+  modalVerdXQueries k (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order (packLam r) r.l r.m
 
 /-- The hypothesis a pack row stands for: the joint flow certificate of the pairing at the
 row's stretch, by the Lie conditions of Lemma 2. -/
@@ -368,11 +368,11 @@ another's). -/
 def expectedModalV2 : Nat := 1421
 
 /-- Run one pack. -/
-def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
+def runPack (s : Z3Session) (k : Option ℕ) (r : PackV2) : IO Bool := do
   let p := irV2 r.bench
   let vars := p.L.stateVars
   let coord := fun (i : Fin r.dim) => vars.getD i.val s!"pad{i.val}"
-  match packQueries r with
+  match packQueries k r with
   | none =>
       IO.println s!"  SKIP  {r.bench} (l={r.l},m={r.m})  (rebuild failed)"
       pure false
@@ -406,9 +406,11 @@ def runModalV2 (cfg : Z3Config) : IO Bool := do
   | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
   | .ok s =>
       IO.println s!"== suite_v2 modal instances : {packsV2.length} verdict packs =="
+      let k ← sliceHopsFromEnv
+      if let some h := k then IO.println s!"  [slice] RELCERT_SLICE_HOPS={h}: the flow queries are sliced"
       let mut ok := true
       for r in packsV2 do
-        ok := (← runPack s r) && ok
+        ok := (← runPack s k r) && ok
       s.close
       pure ok
 
@@ -457,8 +459,8 @@ structure DynPackV2 where
   preland : Bool := false
   deriving Repr, Inhabited
 
-def dynPackQueries (r : DynPackV2) : Option (List (IForm r.dim)) :=
-  modalVerdDynXQueries (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+def dynPackQueries (k : Option ℕ) (r : DynPackV2) : Option (List (IForm r.dim)) :=
+  modalVerdDynXQueries k (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
 
 /-- The node's region (a row on the restricted mode), read off the records as the bridge's
 `dynGroups` does; `none` for a whole-domain row. -/
@@ -469,8 +471,8 @@ def dynPackRegion (r : DynPackV2) : Option (IForm r.dim × IForm r.dim × List B
 
 /-- The pack's groups as the runner sends them: one group per component (the routes as
 members), `modalVerdDynXGroups` on the row's region. -/
-def dynPackGroups (r : DynPackV2) : Option (List (List (IForm r.dim))) :=
-  modalVerdDynXGroups (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+def dynPackGroups (k : Option ℕ) (r : DynPackV2) : Option (List (List (IForm r.dim))) :=
+  modalVerdDynXGroups k (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
     (dynPackRegion r)
 
 noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
@@ -756,7 +758,7 @@ reposition count of Appendix B.7: every right-only pack the replay consumes over
 packs in 19 benchmarks, `scripts/gen_pack_rows.py --dyn`), each on its restricted mode. -/
 def expectedDynV2 : Nat := 950
 
-def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
+def runDynPack (s : Z3Session) (k : Option ℕ) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
   let vars := p.L.stateVars
   let coord := fun (i : Fin r.dim) => vars.getD i.val s!"pad{i.val}"
@@ -764,7 +766,7 @@ def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   if r.preland && (dynPackRegion r).isNone then
     IO.println s!"  FAIL  {tag}  (no landing stage in the records)"
     return false
-  match dynPackGroups r with
+  match dynPackGroups k r with
   | none =>
       IO.println s!"  SKIP  {tag}  (rebuild failed)"
       pure false
@@ -794,9 +796,10 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
   | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
   | .ok s =>
       IO.println s!"== suite_v2 reposition packs : {dynPacksV2.length} verdict packs =="
+      let k ← sliceHopsFromEnv
       let mut ok := true
       for r in dynPacksV2 do
-        ok := (← runDynPack s r) && ok
+        ok := (← runDynPack s k r) && ok
       s.close
       pure ok
 

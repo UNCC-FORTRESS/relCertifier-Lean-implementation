@@ -87,7 +87,7 @@ def expectedBridgeGroupsV2 : Nat := 13677
 def suiteRecV2 (b : String) : BridgeRec :=
   ⟨b, bridgeDimV2 b, irV2 b, cutV2 b, coverV2M b, progV2 b, choiceV2 b⟩
 
-def runBridgeBench (s : Z3Session) (r : BridgeRec) : IO (Bool × Nat) := do
+def runBridgeBench (s : Z3Session) (k : Option ℕ) (r : BridgeRec) : IO (Bool × Nat) := do
   let b := r.name
   let p := r.ir
   let n := r.dim
@@ -95,7 +95,7 @@ def runBridgeBench (s : Z3Session) (r : BridgeRec) : IO (Bool × Nat) := do
   let coord := fun (i : Fin n) => vars.getD i.val s!"pad{i.val}"
   -- the strict groups (`bridgeGroupsS`, read as `VerdictsS`); the existing groups exactly
   -- when no row has a strict atom (`bridgeGroupsS_eq_of_noStrict`)
-  match bridgeGroupsS p n r.cuts r.cov r.prog r.ce with
+  match bridgeGroupsS p n r.cuts r.cov r.prog r.ce k with
   | none =>
       IO.println s!"  FAIL  {b}  (the query groups did not rebuild)"
       pure (false, 0)
@@ -120,10 +120,14 @@ def runBridgeV2 (cfg : Z3Config) : IO Bool := do
   | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
   | .ok s =>
       IO.println s!"== suite_v2 bridge verdicts : {benchIRTableV2.length} benchmarks =="
+      -- the hypothesis-slicing knob (`docs/HYP-SLICING.md`): the flow groups are sliced with the
+      -- tool's own function, the instances' `Verdicts` are their sliced verdicts (`Z3Unsat`)
+      let hops ← sliceHopsFromEnv
+      if let some h := hops then IO.println s!"  [slice] RELCERT_SLICE_HOPS={h}: the flow groups are sliced"
       let mut ok := true
       let mut total := 0
       for rec in benchIRTableV2.map (fun x => suiteRecV2 x.1) ++ choiceRecsV2 do
-        let (r, k) ← runBridgeBench s rec
+        let (r, k) ← runBridgeBench s hops rec
         ok := r && ok
         total := total + k
       s.close

@@ -18,6 +18,7 @@ about the theorem's own hypothesis, not about a lookalike (the discipline of
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Verdicts.ModalPins
 import RelCertifier.Verdicts.GenericPins
+import RelCertifier.Trusted.Slice
 
 namespace RelCertifier
 
@@ -27,9 +28,10 @@ variable {n : ℕ}
 
 /-- The pack, rebuilt: per component (in the cover's strata order, the rounds of
 Section 4.1), the three route queries A, B, C over the domain narrowed by the mode facts and
-by the earlier rounds. `none` if anything fails
+by the earlier rounds, the domain sliced at `k` hops when the knob is set (`sliceFlowDom`,
+`Trusted/Slice.lean`; `k = none` leaves it untouched). `none` if anything fails
 to lower (the runner reports that as a SKIP, never as a pass). -/
-def modalVerdXQueries (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
+def modalVerdXQueries (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
     (order : List ℕ) (lam : ℚ) (l m : ℕ) : Option (List (List (IForm n))) := do
   let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
@@ -48,9 +50,32 @@ def modalVerdXQueries (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
   let D := if aR.isEmpty then b1 else IForm.and b1 (icutF aR)
   pure ((List.range comps.length).map (fun i =>
     let g := comps.getD i (.rat 0)
-    let dom := istrataDomHost D (comps.take i)
+    let dom := sliceFlowDom k g (ilieDeriv g fL fR (.rat lam)) (istrataDomHost D (comps.take i))
     [iflowQuery g fL fR (.rat lam) dom, iflowQueryStrict g fL fR (.rat lam) dom,
      iflowQuerySuperlevel g fL fR (.rat lam) dom]))
+
+/-! The sliced verdict of each route: `unsat` on the query over the sliced domain is the
+sliced verdict `Z3Unsat` of the query over the full domain (`Z3Unsat_of_sliced`). -/
+
+theorem Z3Unsat_iflowQuery_of_sliced {k : Option ℕ} {g gdot : ITerm n} {fL fR : Fin n → ITerm n}
+    {lam : ITerm n} {dom : IForm n}
+    (h : z3solve (iflowQuery g fL fR lam (sliceFlowDom k g gdot dom)).toHost = Verdict.unsat) :
+    Z3Unsat (iflowQuery g fL fR lam dom).toHost :=
+  Z3Unsat_of_sliced h
+
+theorem Z3Unsat_iflowQueryStrict_of_sliced {k : Option ℕ} {g gdot : ITerm n}
+    {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom : IForm n}
+    (h : z3solve (iflowQueryStrict g fL fR lam (sliceFlowDom k g gdot dom)).toHost
+      = Verdict.unsat) :
+    Z3Unsat (iflowQueryStrict g fL fR lam dom).toHost :=
+  Z3Unsat_of_sliced h
+
+theorem Z3Unsat_iflowQuerySuperlevel_of_sliced {k : Option ℕ} {g gdot : ITerm n}
+    {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom : IForm n}
+    (h : z3solve (iflowQuerySuperlevel g fL fR lam (sliceFlowDom k g gdot dom)).toHost
+      = Verdict.unsat) :
+    Z3Unsat (iflowQuerySuperlevel g fL fR lam dom).toHost :=
+  Z3Unsat_of_sliced h
 
 theorem mapM_length {α β : Type} {f : α → Option β} :
     ∀ {l : List α} {r : List β}, l.mapM f = some r → r.length = l.length := by
@@ -69,11 +94,12 @@ theorem mapM_length {α β : Type} {f : α → Option β} :
       subst h
       simp [ih ht]
 
-/-- **The v2 pin.** If the runner's rebuild succeeds and, for every component, one of
-its three printed queries is `unsat`, the instance's hypothesis `modalVerdX` holds. -/
-theorem modalVerdX_of_queries {p : PProblem} {cX : EvolStrengtheningX} {invRow : ℕ}
-    {order : List ℕ} {lam : ℚ} {l m : ℕ} {qss : List (List (IForm n))}
-    (hq : modalVerdXQueries p cX n invRow order lam l m = some qss)
+/-- **The v2 pin.** If the runner's rebuild (at any slicing `k`) succeeds and, for every
+component, one of its three printed queries is `unsat`, the instance's hypothesis `modalVerdX`
+(the sliced verdicts of the full queries) holds. -/
+theorem modalVerdX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
+    {invRow : ℕ} {order : List ℕ} {lam : ℚ} {l m : ℕ} {qss : List (List (IForm n))}
+    (hq : modalVerdXQueries k p cX n invRow order lam l m = some qss)
     (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], z3solve q.toHost = Verdict.unsat) :
     modalVerdX p cX n invRow order (lam : ℝ) l m := by
   unfold modalVerdXQueries at hq
@@ -153,12 +179,11 @@ theorem modalVerdX_of_queries {p : PProblem} {cX : EvolStrengtheningX} {invRow :
   intro i hi
   rw [List.length_map] at hi
   have hi' : i < ((List.range comps.length).map (fun i =>
-      [iflowQuery (comps.getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)
-        (istrataDomHost D (comps.take i)),
-       iflowQueryStrict (comps.getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)
-        (istrataDomHost D (comps.take i)),
-       iflowQuerySuperlevel (comps.getD i (ITerm.rat 0)) fL fR (ITerm.rat lam)
-        (istrataDomHost D (comps.take i))])).length := by simpa using hi
+      let g := comps.getD i (ITerm.rat 0)
+      let dom := sliceFlowDom k g (ilieDeriv g fL fR (ITerm.rat lam))
+        (istrataDomHost D (comps.take i))
+      [iflowQuery g fL fR (ITerm.rat lam) dom, iflowQueryStrict g fL fR (ITerm.rat lam) dom,
+       iflowQuerySuperlevel g fL fR (ITerm.rat lam) dom])).length := by simpa using hi
   obtain ⟨q, hqmem, hqz⟩ := hz3 i hi'
   simp only [List.getElem_map, List.getElem_range, List.mem_cons, List.not_mem_nil,
     or_false] at hqmem
@@ -170,13 +195,16 @@ theorem modalVerdX_of_queries {p : PProblem} {cX : EvolStrengtheningX} {invRow :
   have hlam : (ITerm.rat lam : ITerm n).toHost = Term.const (lam : ℝ) := rfl
   rcases hqmem with rfl | rfl | rfl
   · left
-    rw [imodalQuery_toHost, hlam] at hqz
-    rw [hgi, htk]; exact hqz
+    have h1 := Z3Unsat_iflowQuery_of_sliced hqz
+    rw [imodalQuery_toHost, hlam] at h1
+    rw [hgi, htk]; exact h1
   · right; left
-    rw [imodalQueryStrict_toHost, hlam] at hqz
-    rw [hgi, htk]; exact hqz
+    have h1 := Z3Unsat_iflowQueryStrict_of_sliced hqz
+    rw [imodalQueryStrict_toHost, hlam] at h1
+    rw [hgi, htk]; exact h1
   · right; right
-    rw [imodalQuerySuperlevel_toHost, hlam] at hqz
-    rw [hgi, htk]; exact hqz
+    have h1 := Z3Unsat_iflowQuerySuperlevel_of_sliced hqz
+    rw [imodalQuerySuperlevel_toHost, hlam] at h1
+    rw [hgi, htk]; exact h1
 
 end RelCertifier

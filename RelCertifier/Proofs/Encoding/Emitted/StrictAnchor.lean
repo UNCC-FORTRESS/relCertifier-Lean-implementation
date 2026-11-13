@@ -453,7 +453,7 @@ theorem AGS_boxR (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : ℕ
       have := (sat_FMS_iff _ _ _ _).mp ((sat_FMS_append _ _ _ _ (maskOf_len p n l) σ).mp hFA).1 c hc
       rw [hc1] at this; exact this
     exact flow_cert_sound_lt ⟨c.2, fun _ => Term.const 0, fR p n q, Term.const 1, Dom⟩
-      (z3_unsat_sound h) hinit _ hrun
+      (z3Unsat_sound h) hinit _ hrun
   refine ⟨(sat_FMS_append _ _ _ _ (maskOf_len_app _) _).mpr ⟨?_, ?_⟩,
     sem_ode_ends_in_domain hrunW⟩
   · refine (sat_FMS_append _ _ _ _ (maskOf_len p n l) _).mpr ⟨?_, hatoms T ⟨hT.le, le_rfl⟩⟩

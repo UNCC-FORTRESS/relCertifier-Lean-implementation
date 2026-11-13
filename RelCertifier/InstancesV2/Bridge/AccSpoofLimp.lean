@@ -87,9 +87,9 @@ theorem acc_spoof_limp_bridge (hv : Verdicts IR 4 cX covM prog ce) (dt : ℝ) (h
     rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 
 /-- The same from a green run of the benchmark's groups (`bridgeGroups` on the merged cover,
-`relcert-bridge-verdicts`). -/
-theorem acc_spoof_limp_bridge_run {gs : List (List (IForm 4))}
-    (hrun : bridgeGroups IR 4 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+`relcert-bridge-verdicts`), at any hypothesis slicing `k` (`docs/HYP-SLICING.md`). -/
+theorem acc_spoof_limp_bridge_run {k : Option ℕ} {gs : List (List (IForm 4))}
+    (hrun : bridgeGroups IR 4 cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : windowClaim IR 4 cX cov reg 0 1 2 dt :=
   acc_spoof_limp_bridge (verdicts_of_groups hrun hok) dt hdt
 

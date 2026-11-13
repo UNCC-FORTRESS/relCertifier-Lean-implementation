@@ -62,8 +62,8 @@ theorem {b}_bridge (hv : VerdictsS IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt �
     rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 
 /-- The same from a green strict run of the benchmark's groups (`bridgeGroupsS`). -/
-theorem {b}_bridge_run {{gs : List (List (IForm {n}))}}
-    (hrun : bridgeGroupsS IR {n} cX cov prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+theorem {b}_bridge_run {{k : Option ℕ}} {{gs : List (List (IForm {n}))}}
+    (hrun : bridgeGroupsS IR {n} cX cov prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : windowClaimS IR {n} cX cov reg 0 1 2 dt :=
   theorem3_window_strict_of_run struct_ok hrun hok prog_ok covers_ok reg_fv reg_inv wellFormedR
     rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt

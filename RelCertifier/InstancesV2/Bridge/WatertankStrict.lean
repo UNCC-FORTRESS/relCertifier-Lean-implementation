@@ -95,9 +95,9 @@ theorem watertank_strict_bridge (hv : VerdictsS IR 3 cX covM prog ce) (dt : ℝ)
     wellFormedR rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 
 /-- The same from a green run of the benchmark's groups (`bridgeGroupsS` on the merged cover,
-`scripts/strict_demo_verdicts.lean`). -/
-theorem watertank_strict_bridge_run {gs : List (List (IForm 3))}
-    (hrun : bridgeGroupsS IR 3 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+`scripts/strict_demo_verdicts.lean`), at any hypothesis slicing `k` (`docs/HYP-SLICING.md`). -/
+theorem watertank_strict_bridge_run {k : Option ℕ} {gs : List (List (IForm 3))}
+    (hrun : bridgeGroupsS IR 3 cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : windowClaimS IR 3 cX cov reg 0 1 2 dt :=
   watertank_strict_bridge (verdictsS_of_groups hrun hok) dt hdt
 

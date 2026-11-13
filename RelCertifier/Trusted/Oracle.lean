@@ -37,6 +37,40 @@ at the IO boundary, outside the pure core. Shared by every stage. -/
 axiom z3_unsat_sound {V : Type*} {q : Formula V} :
     z3solve q = Verdict.unsat → ∀ σ, ¬ Formula.sat q σ
 
+/-! ## The sliced verdict (`docs/HYP-SLICING.md`)
+
+A flow-query hypothesis set may be SLICED before it is sent (`RELCERT_SLICE_HOPS`,
+`Trusted/Slice.lean`): the query Z3 sees keeps a subset of the domain's conjuncts, so it is
+IMPLIED by the row's full query. `Z3Unsat q` is the hypothesis shape the flow packs assume: Z3
+answered `unsat` on some query implied by `q` (the full query itself when the knob is unset,
+`Z3Unsat.of_eq`; the sliced one when it is set, `Z3Unsat_of_sliced`). The monotonicity lemma
+`z3Unsat_sound` turns it back into unsatisfiability of `q`, through `z3_unsat_sound` alone. -/
+
+/-- Z3 answered `unsat` on a formula implied by `q` (a sub-conjunction of `q`'s hypotheses, or
+`q` itself). -/
+def Z3Unsat {V : Type*} (q : Formula V) : Prop :=
+  ∃ q' : Formula V, (∀ σ, Formula.sat q σ → Formula.sat q' σ) ∧ z3solve q' = Verdict.unsat
+
+/-- The unsliced verdict: `unsat` on `q` itself. -/
+theorem Z3Unsat.of_eq {V : Type*} {q : Formula V} (h : z3solve q = Verdict.unsat) :
+    Z3Unsat q :=
+  ⟨q, fun _ hs => hs, h⟩
+
+/-- `unsat` on any formula implied by `q`. -/
+theorem Z3Unsat.of_weaker {V : Type*} {q q' : Formula V}
+    (hw : ∀ σ, Formula.sat q σ → Formula.sat q' σ) (h : z3solve q' = Verdict.unsat) :
+    Z3Unsat q :=
+  ⟨q', hw, h⟩
+
+/-- **Monotonicity of the sliced verdict**: an `unsat` answer on a query implied by `q` makes
+`q` itself unsatisfiable (the sliced hypothesis set is a subset of the full one). The only
+axiom used is `z3_unsat_sound`. -/
+theorem z3Unsat_sound {V : Type*} {q : Formula V} (h : Z3Unsat q) :
+    ∀ σ, ¬ Formula.sat q σ := by
+  intro σ hs
+  obtain ⟨q', hw, hz⟩ := h
+  exact z3_unsat_sound hz σ (hw σ hs)
+
 /-- **`flow_certified`** — top-level composition. If Z3 reports `unsat` on the flow
 query, and `g ≤ 0` initially, then the invariant component `g ≤ 0` is preserved along
 the joint product program at stretch λ (paper Eq. (14)) on `domain`: one component

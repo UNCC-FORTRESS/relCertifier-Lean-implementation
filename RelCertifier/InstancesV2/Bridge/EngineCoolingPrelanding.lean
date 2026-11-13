@@ -77,8 +77,8 @@ theorem engine_cooling_prelanding_bridge (hv : Verdicts IR 4 cX covM prog ce) (d
 
 /-- The same from a green run of the benchmark's groups (`bridgeGroups`,
 `scripts/prelanding_demo_verdicts.lean`). -/
-theorem engine_cooling_prelanding_bridge_run {gs : List (List (IForm 4))}
-    (hrun : bridgeGroups IR 4 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+theorem engine_cooling_prelanding_bridge_run {k : Option ℕ} {gs : List (List (IForm 4))}
+    (hrun : bridgeGroups IR 4 cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : windowClaim IR 4 cX cov reg 0 1 2 dt :=
   engine_cooling_prelanding_bridge (verdicts_of_groups hrun hok) dt hdt
 

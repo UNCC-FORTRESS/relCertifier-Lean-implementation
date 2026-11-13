@@ -80,7 +80,8 @@ def runDemo : IO Unit := do
       let nMixed := (prog.certs.filter isMixed).length
       IO.println s!"  [progress demo] {prog.certs.length} certificates, {nMixed} of the mixed shape (helper up, landing down)"
       IO.println s!"  [progress demo] kernel gate progOK on the merged cover: {progOK IR 4 covM prog}"
-      match bridgeGroups IR 4 cX covM prog ce with
+      let k ← sliceHopsFromEnv
+      match bridgeGroups IR 4 cX covM prog ce k with
       | none => IO.println "  [progress demo] the query groups did not rebuild"
       | some gs =>
         let (ok, tot) ← runGroups s gs
@@ -94,7 +95,7 @@ def runDemo : IO Unit := do
             total := total + 1
             let prog' := replaceAt i c'
             let shape := certOK IR 4 covM (qOf c') c'
-            match bridgeGroups IR 4 cX covM prog' ce with
+            match bridgeGroups IR 4 cX covM prog' ce k with
             | none =>
               declined := declined + 1
               IO.println s!"    mutant {c.mL}/{c.mR} pre={c.pre} [{nm}]: groups do not rebuild, DECLINED (certOK {shape})"

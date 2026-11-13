@@ -86,9 +86,9 @@ theorem stopline_tyre_bridge (hv : Verdicts IR 12 cX covM prog ce) (dt : ℝ) (h
     0 1 2 3 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) dt hdt
 
 /-- The same from a green run of the benchmark's groups (`bridgeGroups` on the merged cover,
-`relcert-bridge-verdicts`). -/
-theorem stopline_tyre_bridge_run {gs : List (List (IForm 12))}
-    (hrun : bridgeGroups IR 12 cX covM prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
+`relcert-bridge-verdicts`), at any hypothesis slicing `k` (`docs/HYP-SLICING.md`). -/
+theorem stopline_tyre_bridge_run {k : Option ℕ} {gs : List (List (IForm 12))}
+    (hrun : bridgeGroups IR 12 cX covM prog ce k = some gs) (hok : GroupsOK gs) (dt : ℝ)
     (hdt : dt ≤ epsL IR) : keyedClaim IR 12 cX cov reg 0 1 2 3 dt :=
   stopline_tyre_bridge (verdicts_of_groups hrun hok) dt hdt
 

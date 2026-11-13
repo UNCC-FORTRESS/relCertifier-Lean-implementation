@@ -52,6 +52,7 @@ it, the outcome is `error`, not `declined`. `certified` is only ever produced by
 `unsat` verdicts, so it is trustworthy regardless of errors on unneeded routes.
 -/
 import RelCertifier.Trusted.Run
+import RelCertifier.Trusted.Slice
 import RelCertifier.Trusted.InvComponents
 import RelCertifier.Trusted.InvStrictFlags
 import RelCertifier.Trusted.NonConnQuery
@@ -345,6 +346,17 @@ def andCuts {n : ℕ} (base cutL cutR : IForm n) : IForm n :=
   let b1 := if cutL == IForm.tt then base else IForm.and base cutL
   if cutR == IForm.tt then b1 else IForm.and b1 cutR
 
+/-- The per-query slicing log (knob set only): full and sliced variable, hypothesis and
+byte counts of the row's route-A query. -/
+def logSlice {n : ℕ} (hops : Option ℕ) (tag : String) (coord : Fin n → String)
+    (domFull dom : IForm n) (gdot : ITerm n) : IO Unit := do
+  match hops with
+  | none => pure ()
+  | some k =>
+      let qF := IForm.and domFull (IForm.cmp .gt gdot (.rat 0))
+      let qS := IForm.and dom (IForm.cmp .gt gdot (.rat 0))
+      IO.eprintln s!"[slice hops={k}] {tag}: vars {qF.varCount}->{qS.varCount} hyps {domFull.hypCount}->{dom.hypCount} bytes {(qF.toScript coord).length}->{(qS.toScript coord).length}"
+
 /-- Check the joint flow certificate of one pairing `(qL=mL, qR=mR)` at stretch `λ`
 (paper Definition 5, by Lemma 2): `pass` iff EVERY component has a route query (A, B or C,
 `Run.routeQueries`; A or B for a strict component, `routeQueriesS`) that is Z3-`unsat`;
@@ -355,6 +367,8 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ)
     (strict : List Bool := []) :
     IO (Seg × List Nat) := do
+  -- the hypothesis-slicing knob (`RELCERT_SLICE_HOPS`, `Trusted/Slice.lean`; unset = untouched)
+  let hops ← sliceHopsFromEnv
   -- CERTIFICATION IN ROUNDS (soundness-critical; paper §4.1, Lemma 2). A component may
   -- narrow its query domain ONLY by components proven in EARLIER rounds (sequential,
   -- acyclic differential cuts), so no component assumes itself. MUTUAL narrowing (every
@@ -384,7 +398,12 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         | some (baseDom, gdot) =>
             -- MODE-FACT domains + the components PROVEN in earlier rounds (never unproven siblings)
             let baseDom := andCuts baseDom cutL cutR
-            let dom := strataDomIR comps proven baseDom
+            let domFull := strataDomIR comps proven baseDom
+            -- PER-ROW SLICING (knob set): the domain's conjuncts within `hops` variable-sharing
+            -- hops of the row's goal variables; the pin layer (`VerdictsV2/ModalX`) slices with
+            -- the same function, the sliced verdict is `Z3Unsat` (`Trusted/Oracle.lean`)
+            let dom := sliceFlowDom hops g gdot domFull
+            logSlice hops s!"joint comp#{i} {mL.name}->{mR.name} λ={lam}" coord domFull dom gdot
             let mut compPass := false
             let mut compIncon := false
             -- a strict component (`invStrictFlags`) is certified by route A or B only
@@ -431,6 +450,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (rg : Option (IForm n × IForm n) := none) (strict : List Bool := []) :
     IO (Bool × List Nat) := do
   let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
+  let hops ← sliceHopsFromEnv
   let mut proven : List Nat := []
   for _ in List.range (comps.length + 1) do
     let mut progress := false
@@ -449,7 +469,11 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
               | some (bo, bc) => IForm.and baseDom (if isStrict then bc else bo)
             let dom0 := strataDomIR comps proven baseDom
             -- σ-matched, shape-normalized: conjoin guardL ONLY pre-j (no tt-noise post-j)
-            let dom := if withGuardL then IForm.and dom0 gLform else dom0
+            let domFull := if withGuardL then IForm.and dom0 gLform else dom0
+            -- PER-ROW SLICING (knob set), as in `checkSeg`; the pin is `VerdictsV2/ModalDynX`
+            let dom := sliceFlowDom hops g gdot domFull
+            logSlice hops s!"right-only comp#{i} {mL.name}->{mR.name} pre={withGuardL}" coord
+              domFull dom gdot
             -- route A first (the whole-domain pack's only route); B, C on the pre-landing region
             let qs := match rg with
               | none => (routeQueries dom g gdot).take 1

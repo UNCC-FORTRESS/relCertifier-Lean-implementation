@@ -44,20 +44,21 @@ def runGroups (tag : String) (p : Parse.PProblem) (dyn : Nat)
 def dynCount (p : Parse.PProblem) (cX : Oracle.EvolStrengtheningX) (covM : CoverEmitE)
     (prog : Progress.ProgressEmitE) : Nat :=
   ((List.range (nL p)).flatMap (fun l => (List.range (nR p)).flatMap (fun q =>
-    [true, false].flatMap (fun pre => ((dynGroups p (3 + 1) cX covM prog l q pre).getD []))))).length
+    [true, false].flatMap (fun pre => ((dynGroups p (3 + 1) cX covM prog none l q pre).getD []))))).length
 
 def runDemos : IO Unit := do
+  let k ← sliceHopsFromEnv
   runGroups "prelanding demo, engine cooling" Bridge.EngineCoolingPrelanding.IR
     (dynCount Bridge.EngineCoolingPrelanding.IR Bridge.EngineCoolingPrelanding.cX
       Bridge.EngineCoolingPrelanding.covM Bridge.EngineCoolingPrelanding.prog)
     (bridgeGroups Bridge.EngineCoolingPrelanding.IR 4 Bridge.EngineCoolingPrelanding.cX
       Bridge.EngineCoolingPrelanding.covM Bridge.EngineCoolingPrelanding.prog
-      Bridge.EngineCoolingPrelanding.ce)
+      Bridge.EngineCoolingPrelanding.ce k)
   runGroups "prelanding demo, strict row" Bridge.HoldRepositionStrict.IR
     (dynCount Bridge.HoldRepositionStrict.IR Bridge.HoldRepositionStrict.cX
       Bridge.HoldRepositionStrict.covM Bridge.HoldRepositionStrict.prog)
     (bridgeGroupsS Bridge.HoldRepositionStrict.IR 4 Bridge.HoldRepositionStrict.cX
       Bridge.HoldRepositionStrict.covM Bridge.HoldRepositionStrict.prog
-      Bridge.HoldRepositionStrict.ce)
+      Bridge.HoldRepositionStrict.ce k)
 
 #eval runDemos

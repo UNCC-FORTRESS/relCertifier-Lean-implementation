@@ -23,7 +23,7 @@ def runDemo : IO Unit := do
     match ← Z3Session.start cfg with
     | .error e => IO.eprintln s!"ERROR: z3: {e}"
     | .ok s =>
-      let (ok, k) ← runBridgeBench s demoRec
+      let (ok, k) ← runBridgeBench s (← sliceHopsFromEnv) demoRec
       s.close
       IO.println s!"  [strict demo] {k} groups, {if ok then "ALL DISCHARGED" else "NOT ALL DISCHARGED"}"
 

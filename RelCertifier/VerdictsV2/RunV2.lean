@@ -385,8 +385,11 @@ def runPack (s : Z3Session) (k : Option ℕ) (r : PackV2) : IO Bool := do
         let qs := qss.getD i []
         let mut good := false
         let mut detail := ""
-        for (rn, q) in [("A", qs.getD 0 IForm.tt), ("B", qs.getD 1 IForm.tt),
-            ("C", qs.getD 2 IForm.tt)] do
+        -- the members in the tool's order: the routes A, B, C of each level, the full
+        -- domain last (`modalVerdXQueries`); `A@j` is route A at level `j`
+        for j in List.range qs.length do
+          let q := qs.getD j IForm.tt
+          let rn := s!"{["A", "B", "C"].getD (j % 3) "?"}{if qs.length > 3 then s!"@{j / 3}" else ""}"
           if good then pure () else
           match ← s.check (q.toScript coord) with
           | .ok .unsat => good := true; detail := detail ++ s!"{rn}=unsat"
@@ -459,7 +462,7 @@ structure DynPackV2 where
   preland : Bool := false
   deriving Repr, Inhabited
 
-def dynPackQueries (k : Option ℕ) (r : DynPackV2) : Option (List (IForm r.dim)) :=
+def dynPackQueries (k : Option ℕ) (r : DynPackV2) : Option (List (List (IForm r.dim))) :=
   modalVerdDynXQueries k (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
 
 /-- The node's region (a row on the restricted mode), read off the records as the bridge's

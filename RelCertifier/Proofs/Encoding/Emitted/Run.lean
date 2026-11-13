@@ -177,21 +177,17 @@ theorem dynVerd_of_groups {k : Option ℕ} {l q : ℕ} {pre : Bool} {gs : List (
   unfold dynRegion
   rcases hns : nodeStage p n prog l q pre with _ | ⟨v, st⟩
   · rw [hns] at h
-    simp only [Option.map_none, modalVerdDynXGroups] at h
+    simp only [modalVerdDynXGroups] at h
     rcases hq : modalVerdDynXQueries k p cX n (rowIdx p l)
         (if pre then (strataOf p cov l q).dynPreOrder else (strataOf p cov l q).dynPostOrder)
         pre l q with _ | qs
     · rw [hq] at h; simp at h
     · rw [hq] at h
-      simp only [Option.map_some, Option.some.injEq] at h
-      subst h
+      cases h
       unfold DynVerd
-      refine modalVerdDynX_of_queries hq (fun i hi => ?_)
-      obtain ⟨a, ha, hz⟩ := hok [qs[i]] (List.mem_map.mpr ⟨qs[i], List.getElem_mem hi, rfl⟩)
-      rw [List.mem_singleton] at ha; subst ha
-      exact hz
+      exact modalVerdDynX_of_queries hq (fun i hi => hok _ (List.getElem_mem hi))
   · rw [hns] at h
-    simp only [Option.map_some, modalVerdDynXGroups] at h
+    simp only [modalVerdDynXGroups] at h
     exact modalVerdDynX_of_queriesPre h (fun i hi => hok _ (List.getElem_mem hi)) _ _
 
 theorem admVerd_of_groups {l : ℕ} {gs : List (List (IForm n))}

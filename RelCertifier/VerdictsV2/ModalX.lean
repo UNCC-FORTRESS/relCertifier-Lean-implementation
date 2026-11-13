@@ -28,9 +28,11 @@ variable {n : ℕ}
 
 /-- The pack, rebuilt: per component (in the cover's strata order, the rounds of
 Section 4.1), the three route queries A, B, C over the domain narrowed by the mode facts and
-by the earlier rounds, the domain sliced at `k` hops when the knob is set (`sliceFlowDom`,
-`Trusted/Slice.lean`; `k = none` leaves it untouched). `none` if anything fails
-to lower (the runner reports that as a SKIP, never as a pass). -/
+by the earlier rounds, at every escalation level of that domain when the knob is set (the
+slices at `k`, `k+1`, … hops, then the full domain, `sliceFlowLevels`, `Trusted/Slice.lean`;
+`k = none` gives the full domain alone), the three routes of a level before the next level,
+as `checkSeg` sends them. `none` if anything fails to lower (the runner reports that as a
+SKIP, never as a pass). -/
 def modalVerdXQueries (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ)
     (order : List ℕ) (lam : ℚ) (l m : ℕ) : Option (List (List (IForm n))) := do
   let vars := p.L.stateVars
@@ -50,32 +52,33 @@ def modalVerdXQueries (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX) 
   let D := if aR.isEmpty then b1 else IForm.and b1 (icutF aR)
   pure ((List.range comps.length).map (fun i =>
     let g := comps.getD i (.rat 0)
-    let dom := sliceFlowDom k g (ilieDeriv g fL fR (.rat lam)) (istrataDomHost D (comps.take i))
-    [iflowQuery g fL fR (.rat lam) dom, iflowQueryStrict g fL fR (.rat lam) dom,
-     iflowQuerySuperlevel g fL fR (.rat lam) dom]))
+    (sliceFlowLevels k g (ilieDeriv g fL fR (.rat lam)) (istrataDomHost D (comps.take i))).flatMap
+      (fun dom => [iflowQuery g fL fR (.rat lam) dom, iflowQueryStrict g fL fR (.rat lam) dom,
+        iflowQuerySuperlevel g fL fR (.rat lam) dom])))
 
-/-! The sliced verdict of each route: `unsat` on the query over the sliced domain is the
-sliced verdict `Z3Unsat` of the query over the full domain (`Z3Unsat_of_sliced`). -/
+/-! The verdict of each route at any level: `unsat` on the query over a level of the domain
+(a slice, or the full domain) is the sliced verdict `Z3Unsat` of the query over the full domain
+(`Z3Unsat_of_level`). -/
 
-theorem Z3Unsat_iflowQuery_of_sliced {k : Option ℕ} {g gdot : ITerm n} {fL fR : Fin n → ITerm n}
-    {lam : ITerm n} {dom : IForm n}
-    (h : z3solve (iflowQuery g fL fR lam (sliceFlowDom k g gdot dom)).toHost = Verdict.unsat) :
+theorem Z3Unsat_iflowQuery_of_level {k : Option ℕ} {g gdot : ITerm n} {fL fR : Fin n → ITerm n}
+    {lam : ITerm n} {dom d : IForm n} (hd : d ∈ sliceFlowLevels k g gdot dom)
+    (h : z3solve (iflowQuery g fL fR lam d).toHost = Verdict.unsat) :
     Z3Unsat (iflowQuery g fL fR lam dom).toHost :=
-  Z3Unsat_of_sliced h
+  Z3Unsat_of_level hd h
 
-theorem Z3Unsat_iflowQueryStrict_of_sliced {k : Option ℕ} {g gdot : ITerm n}
-    {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom : IForm n}
-    (h : z3solve (iflowQueryStrict g fL fR lam (sliceFlowDom k g gdot dom)).toHost
-      = Verdict.unsat) :
+theorem Z3Unsat_iflowQueryStrict_of_level {k : Option ℕ} {g gdot : ITerm n}
+    {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom d : IForm n}
+    (hd : d ∈ sliceFlowLevels k g gdot dom)
+    (h : z3solve (iflowQueryStrict g fL fR lam d).toHost = Verdict.unsat) :
     Z3Unsat (iflowQueryStrict g fL fR lam dom).toHost :=
-  Z3Unsat_of_sliced h
+  Z3Unsat_of_level hd h
 
-theorem Z3Unsat_iflowQuerySuperlevel_of_sliced {k : Option ℕ} {g gdot : ITerm n}
-    {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom : IForm n}
-    (h : z3solve (iflowQuerySuperlevel g fL fR lam (sliceFlowDom k g gdot dom)).toHost
-      = Verdict.unsat) :
+theorem Z3Unsat_iflowQuerySuperlevel_of_level {k : Option ℕ} {g gdot : ITerm n}
+    {fL fR : Fin n → ITerm n} {lam : ITerm n} {dom d : IForm n}
+    (hd : d ∈ sliceFlowLevels k g gdot dom)
+    (h : z3solve (iflowQuerySuperlevel g fL fR lam d).toHost = Verdict.unsat) :
     Z3Unsat (iflowQuerySuperlevel g fL fR lam dom).toHost :=
-  Z3Unsat_of_sliced h
+  Z3Unsat_of_level hd h
 
 theorem mapM_length {α β : Type} {f : α → Option β} :
     ∀ {l : List α} {r : List β}, l.mapM f = some r → r.length = l.length := by
@@ -180,13 +183,14 @@ theorem modalVerdX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrength
   rw [List.length_map] at hi
   have hi' : i < ((List.range comps.length).map (fun i =>
       let g := comps.getD i (ITerm.rat 0)
-      let dom := sliceFlowDom k g (ilieDeriv g fL fR (ITerm.rat lam))
-        (istrataDomHost D (comps.take i))
-      [iflowQuery g fL fR (ITerm.rat lam) dom, iflowQueryStrict g fL fR (ITerm.rat lam) dom,
-       iflowQuerySuperlevel g fL fR (ITerm.rat lam) dom])).length := by simpa using hi
+      (sliceFlowLevels k g (ilieDeriv g fL fR (ITerm.rat lam))
+        (istrataDomHost D (comps.take i))).flatMap (fun dom =>
+        [iflowQuery g fL fR (ITerm.rat lam) dom, iflowQueryStrict g fL fR (ITerm.rat lam) dom,
+         iflowQuerySuperlevel g fL fR (ITerm.rat lam) dom]))).length := by simpa using hi
   obtain ⟨q, hqmem, hqz⟩ := hz3 i hi'
-  simp only [List.getElem_map, List.getElem_range, List.mem_cons, List.not_mem_nil,
-    or_false] at hqmem
+  simp only [List.getElem_map, List.getElem_range, List.mem_flatMap, List.mem_cons,
+    List.not_mem_nil, or_false] at hqmem
+  obtain ⟨d, hd, hqmem⟩ := hqmem
   have hgi : (comps.map ITerm.toHost)[i]'(by simpa using hi)
       = (comps.getD i (ITerm.rat 0)).toHost := by
     rw [List.getElem_map, List.getD_eq_getElem _ _ hi]
@@ -195,15 +199,15 @@ theorem modalVerdX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrength
   have hlam : (ITerm.rat lam : ITerm n).toHost = Term.const (lam : ℝ) := rfl
   rcases hqmem with rfl | rfl | rfl
   · left
-    have h1 := Z3Unsat_iflowQuery_of_sliced hqz
+    have h1 := Z3Unsat_iflowQuery_of_level hd hqz
     rw [imodalQuery_toHost, hlam] at h1
     rw [hgi, htk]; exact h1
   · right; left
-    have h1 := Z3Unsat_iflowQueryStrict_of_sliced hqz
+    have h1 := Z3Unsat_iflowQueryStrict_of_level hd hqz
     rw [imodalQueryStrict_toHost, hlam] at h1
     rw [hgi, htk]; exact h1
   · right; right
-    have h1 := Z3Unsat_iflowQuerySuperlevel_of_sliced hqz
+    have h1 := Z3Unsat_iflowQuerySuperlevel_of_level hd hqz
     rw [imodalQuerySuperlevel_toHost, hlam] at h1
     rw [hgi, htk]; exact h1
 

@@ -346,16 +346,56 @@ def andCuts {n : ℕ} (base cutL cutR : IForm n) : IForm n :=
   let b1 := if cutL == IForm.tt then base else IForm.and base cutL
   if cutR == IForm.tt then b1 else IForm.and b1 cutR
 
-/-- The per-query slicing log (knob set only): full and sliced variable, hypothesis and
-byte counts of the row's route-A query. -/
-def logSlice {n : ℕ} (hops : Option ℕ) (tag : String) (coord : Fin n → String)
-    (domFull dom : IForm n) (gdot : ITerm n) : IO Unit := do
+/-! ## The goal part of a route is never sliced
+
+Slicing acts on the DOMAIN argument alone (`sliceFlowLevels` over `dom`, then `routeQueries`
+over each level), so the goal part of every route, route A's `ġ > 0`, route B's boundary atom
+`g = 0` with `ġ ≥ 0`, route C's `g ≥ 0` with `ġ > 0`, stays in the query at every level,
+unconditionally (it is not a conjunct of the domain and is never looked at by `sliceDom`). The
+probe's offline slicer once dropped route B's boundary atom as an ordinary hypothesis, making
+hop-0 slices spuriously `sat`; the lemma below rules that out for the tool by `rfl`, and
+`relcert-test` checks it on a concrete query (`[slice]`). -/
+
+/-- The goal part of a route query `d ∧ G`: `G`. -/
+def _root_.RelCertifier.IForm.goalPart {n : ℕ} : IForm n → IForm n
+  | .and _ G => G
+  | f => f
+
+/-- The goal parts of the routes over any level `d` are those over the full domain. -/
+theorem routeQueries_goalPart {n : ℕ} (d dom : IForm n) (g gdot : ITerm n) :
+    (routeQueries d g gdot).map IForm.goalPart = (routeQueries dom g gdot).map IForm.goalPart :=
+  rfl
+
+theorem routeQueriesS_goalPart {n : ℕ} (strict : Bool) (d dom : IForm n) (g gdot : ITerm n) :
+    (routeQueriesS strict d g gdot).map IForm.goalPart
+      = (routeQueriesS strict dom g gdot).map IForm.goalPart := by
+  cases strict <;> rfl
+
+/-- The label of an escalation level: its hop, or `full` for the full domain. -/
+def levelLabel : Option ℕ → String
+  | none => "full"
+  | some j => s!"hop {j}"
+
+/-- The per-attempt slicing log (knob set only): the level (`hop j` or `full`, its index among
+the row's levels), then the full and sliced variable, hypothesis and byte counts of the row's
+route-A query. -/
+def logSlice {n : ℕ} (hops : Option ℕ) (lv : Option ℕ) (li lcount : ℕ) (tag : String)
+    (coord : Fin n → String) (domFull dom : IForm n) (gdot : ITerm n) : IO Unit := do
   match hops with
   | none => pure ()
   | some k =>
       let qF := IForm.and domFull (IForm.cmp .gt gdot (.rat 0))
       let qS := IForm.and dom (IForm.cmp .gt gdot (.rat 0))
-      IO.eprintln s!"[slice hops={k}] {tag}: vars {qF.varCount}->{qS.varCount} hyps {domFull.hypCount}->{dom.hypCount} bytes {(qF.toScript coord).length}->{(qS.toScript coord).length}"
+      IO.eprintln s!"[slice hops={k} level={levelLabel lv} {li + 1}/{lcount}] {tag}: vars {qF.varCount}->{qS.varCount} hyps {domFull.hypCount}->{dom.hypCount} bytes {(qF.toScript coord).length}->{(qS.toScript coord).length}"
+
+/-- The outcome of one level (knob set only): `unsat` (the verdict), `sat` or `unknown`
+(escalate; at the full level FAIL, resp. inconclusive). -/
+def logSliceOutcome (hops : Option ℕ) (lv : Option ℕ) (li lcount : ℕ) (tag outcome : String) :
+    IO Unit := do
+  match hops with
+  | none => pure ()
+  | some k =>
+      IO.eprintln s!"[slice hops={k} level={levelLabel lv} {li + 1}/{lcount}] {tag}: {outcome}"
 
 /-- Check the joint flow certificate of one pairing `(qL=mL, qR=mR)` at stretch `λ`
 (paper Definition 5, by Lemma 2): `pass` iff EVERY component has a route query (A, B or C,
@@ -399,26 +439,41 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
             -- MODE-FACT domains + the components PROVEN in earlier rounds (never unproven siblings)
             let baseDom := andCuts baseDom cutL cutR
             let domFull := strataDomIR comps proven baseDom
-            -- PER-ROW SLICING (knob set): the domain's conjuncts within `hops` variable-sharing
-            -- hops of the row's goal variables; the pin layer (`VerdictsV2/ModalX`) slices with
-            -- the same function, the sliced verdict is `Z3Unsat` (`Trusted/Oracle.lean`)
-            let dom := sliceFlowDom hops g gdot domFull
-            logSlice hops s!"joint comp#{i} {mL.name}->{mR.name} λ={lam}" coord domFull dom gdot
+            -- PER-ROW SLICING WITH ESCALATION (knob set): the levels of the domain, the
+            -- conjuncts within `hops`, `hops+1`, … variable-sharing hops of the row's goal
+            -- variables, the full domain last (`sliceFlowLevelsL`, `Trusted/Slice.lean`; knob
+            -- unset: the full domain alone). `unsat` at any level certifies the component;
+            -- `sat` or `unknown` at a sliced level escalates (a slice can have spurious models);
+            -- only the full level classifies (sat: FAIL, unknown/error: inconclusive). The pin
+            -- layer (`VerdictsV2/ModalX`) builds the same levels with the same function, the
+            -- verdict is `Z3Unsat` (`Trusted/Oracle.lean`, `Z3Unsat_of_level`)
+            let levels := sliceFlowLevelsL hops g gdot domFull
+            let tag := s!"joint comp#{i} {mL.name}->{mR.name} λ={lam}"
             let mut compPass := false
             let mut compIncon := false
-            -- a strict component (`invStrictFlags`) is certified by route A or B only
-            for q in routeQueriesS (strict.getD i false) dom g gdot do
+            let mut li := 0
+            for (lv, dom) in levels do
               if compPass then pure () else do
-                cnt.modify (· + 1)
-                if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-                if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-                let script := q.toScript coord
-                if script.length > maxSmt then compIncon := true
-                else match ← s.check script with
-                  | .error _ => compIncon := true
-                  | .ok .unknown => compIncon := true
-                  | .ok .unsat => compPass := true
-                  | .ok .sat => pure ()
+                compIncon := false
+                let mut anyUnknown := false
+                logSlice hops lv li levels.length tag coord domFull dom gdot
+                -- a strict component (`invStrictFlags`) is certified by route A or B only
+                for q in routeQueriesS (strict.getD i false) dom g gdot do
+                  if compPass then pure () else do
+                    cnt.modify (· + 1)
+                    if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+                    if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+                    let script := q.toScript coord
+                    if script.length > maxSmt then anyUnknown := true
+                    else match ← s.check script with
+                      | .error _ => anyUnknown := true
+                      | .ok .unknown => anyUnknown := true
+                      | .ok .unsat => compPass := true
+                      | .ok .sat => pure ()
+                compIncon := anyUnknown
+                logSliceOutcome hops lv li levels.length tag
+                  (if compPass then "unsat" else if anyUnknown then "unknown" else "sat")
+                li := li + 1
             if compPass then do
               proven := proven ++ [i]
               progress := true
@@ -470,26 +525,35 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
             let dom0 := strataDomIR comps proven baseDom
             -- σ-matched, shape-normalized: conjoin guardL ONLY pre-j (no tt-noise post-j)
             let domFull := if withGuardL then IForm.and dom0 gLform else dom0
-            -- PER-ROW SLICING (knob set), as in `checkSeg`; the pin is `VerdictsV2/ModalDynX`
-            let dom := sliceFlowDom hops g gdot domFull
-            logSlice hops s!"right-only comp#{i} {mL.name}->{mR.name} pre={withGuardL}" coord
-              domFull dom gdot
-            -- route A first (the whole-domain pack's only route); B, C on the pre-landing region
-            let qs := match rg with
-              | none => (routeQueries dom g gdot).take 1
-              | some _ => if isStrict then (routeQueries dom g gdot).take 1 else routeQueries dom g gdot
+            -- PER-ROW SLICING WITH ESCALATION (knob set), as in `checkSeg`: the levels of the
+            -- domain, the full domain last; the pin is `VerdictsV2/ModalDynX`
+            let levels := sliceFlowLevelsL hops g gdot domFull
+            let tag := s!"right-only comp#{i} {mL.name}->{mR.name} pre={withGuardL}"
             let mut compPass := false
-            for q in qs do
-              if compPass then pure () else
-              let script := q.toScript coord
-              if script.length > maxSmt then pure ()
-              else do
-                cnt.modify (· + 1)
-                if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-                if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-                match ← s.check script with
-                | .ok .unsat => compPass := true
-                | _          => pure ()
+            let mut li := 0
+            for (lv, dom) in levels do
+              if compPass then pure () else do
+                logSlice hops lv li levels.length tag coord domFull dom gdot
+                -- route A first (the whole-domain pack's only route); B, C on the pre-landing region
+                let qs := match rg with
+                  | none => (routeQueries dom g gdot).take 1
+                  | some _ => if isStrict then (routeQueries dom g gdot).take 1 else routeQueries dom g gdot
+                let mut anyUnknown := false
+                for q in qs do
+                  if compPass then pure () else
+                  let script := q.toScript coord
+                  if script.length > maxSmt then anyUnknown := true
+                  else do
+                    cnt.modify (· + 1)
+                    if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+                    if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+                    match ← s.check script with
+                    | .ok .unsat => compPass := true
+                    | .ok .sat   => pure ()
+                    | _          => anyUnknown := true
+                logSliceOutcome hops lv li levels.length tag
+                  (if compPass then "unsat" else if anyUnknown then "unknown" else "sat")
+                li := li + 1
             if compPass then
               proven := proven ++ [i]
               progress := true

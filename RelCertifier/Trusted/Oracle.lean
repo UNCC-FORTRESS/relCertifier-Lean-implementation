@@ -43,8 +43,9 @@ A flow-query hypothesis set may be SLICED before it is sent (`RELCERT_SLICE_HOPS
 `Trusted/Slice.lean`): the query Z3 sees keeps a subset of the domain's conjuncts, so it is
 IMPLIED by the row's full query. `Z3Unsat q` is the hypothesis shape the flow packs assume: Z3
 answered `unsat` on some query implied by `q` (the full query itself when the knob is unset,
-`Z3Unsat.of_eq`; the sliced one when it is set, `Z3Unsat_of_sliced`). The monotonicity lemma
-`z3Unsat_sound` turns it back into unsatisfiability of `q`, through `z3_unsat_sound` alone. -/
+`Z3Unsat.of_eq`; one of its escalation levels, a slice or the full query, when it is set,
+`Z3Unsat_of_level`). The monotonicity lemma `z3Unsat_sound` turns it back into
+unsatisfiability of `q`, through `z3_unsat_sound` alone. -/
 
 /-- Z3 answered `unsat` on a formula implied by `q` (a sub-conjunction of `q`'s hypotheses, or
 `q` itself). -/

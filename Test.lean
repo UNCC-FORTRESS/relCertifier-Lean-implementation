@@ -215,6 +215,44 @@ def testLowering : IO Unit := do
   check "unlowerable (division of vars) → none"
         (comps "smt2:(<= (/ v[l] r[l]) 1.0)" == none)
 
+/-! ## Slicing: the boundary atom of routes B and C survives every level -/
+def testSlicing : IO Unit := do
+  IO.println "[slice]"
+  -- four variables x y z w; the row g = x - y; a domain with a box on x, a row on (z, w) two
+  -- hops away from the goal variables, and a box on z
+  let n := 4
+  let x : ITerm n := .var (Side.L, ⟨0, by omega⟩)
+  let y : ITerm n := .var (Side.L, ⟨1, by omega⟩)
+  let z : ITerm n := .var (Side.L, ⟨2, by omega⟩)
+  let w : ITerm n := .var (Side.L, ⟨3, by omega⟩)
+  let g : ITerm n := .bin .sub x y
+  let gdot : ITerm n := .bin .sub y x
+  let dom : IForm n := .and (.cmp .le x (.rat 1)) (.and (.cmp .le (.bin .mul z w) (.rat 1))
+    (.cmp .le z (.rat 2)))
+  let coord : Fin n → String := fun i => ["x", "y", "z", "w"].getD i.val "?"
+  let levels := sliceFlowLevels (some 0) g gdot dom
+  let full := Run.routeQueries dom g gdot
+  check "knob unset: the full domain alone" (sliceFlowLevels none g gdot dom == [dom])
+  check "hop 0: a sliced level then the full domain"
+    (levels.length == 2 && levels.getLast? == some dom && levels.head? != some dom)
+  check "hop 0 drops the far row (fewer hypotheses)"
+    ((levels.headD dom).hypCount < dom.hypCount)
+  -- the goal part of every route at every level is the goal part over the full domain
+  let goalsOk := levels.all (fun d =>
+    (Run.routeQueries d g gdot).map IForm.goalPart == full.map IForm.goalPart)
+  check "goal part (route A ġ>0, B g=0∧ġ≥0, C g≥0∧ġ>0) identical at every level" goalsOk
+  -- the printed text of routes B and C at the sliced level still carries the boundary atom
+  -- (`(= ...)`, resp. `(>= ...)` on g), while the sliced text differs from the full one
+  let printedOk := match Run.routeQueries (levels.headD dom) g gdot, full with
+    | [_, qB, qC], [_, fB, fC] =>
+        qB.goalPart == IForm.and (.cmp .eq g (.rat 0)) (.cmp .ge gdot (.rat 0)) &&
+        qC.goalPart == IForm.and (.cmp .ge g (.rat 0)) (.cmp .gt gdot (.rat 0)) &&
+        ((qB.toScript coord).splitOn "(= ").length > 1 &&
+        ((qC.toScript coord).splitOn "(>= ").length > 1 &&
+        qB.toScript coord != fB.toScript coord && qC.toScript coord != fC.toScript coord
+    | _, _ => false
+  check "route B/C boundary atom printed at the sliced level, domain sliced" printedOk
+
 /-! ## Outcome-integrity: environment failures → ERROR, never a verdict -/
 def testOutcomeIntegrity (cfg : Z3Config) : IO Unit := do
   IO.println "[outcome-integrity]"
@@ -263,6 +301,7 @@ def main : IO Unit := do
       testIRDriftV2
       testPrinter cfg
       testLowering
+      testSlicing
       testOutcomeIntegrity cfg
       testDeterminism cfg
       let fails ← failCount.get

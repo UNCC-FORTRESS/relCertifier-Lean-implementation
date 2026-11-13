@@ -5,13 +5,15 @@ Lemma 2) carries, as its domain, every hypothesis established so far: the evolve
 modes, the mode facts, and the rows of the earlier certification rounds. On wide models (the
 CPS-QRC probe's rung files: 32 variables, 58 rows, 65 KB per query) Z3 answers `unknown` on
 the full query inside the tool's budget while a slice of it (8 variables, 11 hypotheses) is
-`unsat` in a fraction of a second. The knob keeps, per row, only the hypotheses near the row.
+`unsat` in a fraction of a second. The knob keeps, per row, only the hypotheses near the row,
+and escalates to the farther ones, up to the full query, when the slice does not prove it.
 
 ## What the knob does
 
-`RELCERT_SLICE_HOPS=k` (a natural number; unset = today's behaviour, the printed queries are
-byte-identical to `main`'s). For every joint flow query (`OracleAPI.checkSeg`) and every
-right-only flow query (`OracleAPI.checkDynRepo`), with `H` the conjuncts of the query's domain:
+`RELCERT_SLICE_HOPS=k` (a natural number, "start at hop `k`"; unset = today's behaviour, the
+printed queries are byte-identical to `main`'s). For every joint flow query
+(`OracleAPI.checkSeg`) and every right-only flow query (`OracleAPI.checkDynRepo`), with `H`
+the conjuncts of the query's domain:
 
 * the goal variables are `vars(g) ∪ vars(Lie(g))` (`goalVars`; the Lie derivative's variables
   are read with zero products dropped, so a coordinate the row does not read is not a goal
@@ -24,16 +26,51 @@ right-only flow query (`OracleAPI.checkDynRepo`), with `H` the conjuncts of the 
 
 The sliced domain keeps the `and` tree of the full one and replaces each dropped conjunct by
 `true` in place (`sliceDom`, `Trusted/Slice.lean`), so it is a sub-conjunction leaf by leaf.
-With the knob set the tool logs one line per query on stderr:
+
+**Escalation.** A `sat` on a sliced query is inconclusive for the full one (a dropped
+hypothesis can admit a spurious model), so a row's query is tried level by level
+(`sliceFlowLevelsL`, `Trusted/Slice.lean`): the slice at hop `k`, then at `k+1`, …, while
+each level adds a conjunct (a level that repeats the previous one, the hop closure being
+saturated, or that is already the full domain is not sent), and the full domain last. At each
+level the component's routes (A, B, C; A, B for a strict component; A alone for a whole-domain
+right-only row) are sent in the usual order:
+
+* `unsat` on any route of any level certifies the component (the verdict);
+* `sat` or `unknown` (or a Z3 error, or an over-long script) on every route of a sliced level
+  escalates to the next level;
+* the full level classifies as before: all routes `sat` is `FAIL comp#i`, any route `unknown`
+  is inconclusive (the pairing `incon`).
+
+So a FAIL is only ever a `sat` on the full query, and the knob can only add verdicts, never
+lose one: a row the unsliced tool proves is proven at the latest on its full level. The cost is
+the budget spent on the sliced levels of rows that need the far hypotheses (one Z3 call per
+route per level, each under the per-query Z3 timeout, each counted against the query and time
+budgets). With the knob set the tool logs two lines per level on stderr:
 
 ```
-[slice hops=1] joint comp#37 BRAKE->BRAKE λ=1: vars 32->9 hyps 58->12 bytes 65012->8830
+[slice hops=1 level=hop 1 1/3] joint comp#37 BRAKE->BRAKE λ=1: vars 32->9 hyps 58->12 bytes 65012->8830
+[slice hops=1 level=hop 1 1/3] joint comp#37 BRAKE->BRAKE λ=1: unsat
 ```
 
-(full and sliced variable count of the route-A query, hypothesis count of the domain, bytes of
-the printed script). The same slicing is applied by the verdict runners (`--check-quick-v2`'s
-modal and reposition phases, `relcert-bridge-verdicts`, the demo verdict scripts) when the knob
-is set in their environment, through the same function.
+(the level's hop or `full`, its index among the row's levels; full and sliced variable count
+of the route-A query, hypothesis count of the domain, bytes of the printed script; then the
+level's outcome `unsat`, `sat` or `unknown`).
+
+**The goal part of a route is never sliced.** Slicing acts on the domain argument alone
+(`sliceFlowLevels` over the domain, then `routeQueries` over each level), so route A's `ġ > 0`,
+route B's boundary atom `g = 0` with `ġ ≥ 0` and route C's `g ≥ 0` with `ġ > 0` are in the
+query at every level, unconditionally: they are not conjuncts of the domain and `sliceDom`
+never sees them (the goal variables include `vars(g)` besides, but nothing rests on that).
+`Oracle.routeQueries_goalPart` / `routeQueriesS_goalPart` (`Trusted/OracleAPI.lean`) state it
+by `rfl`, and `relcert-test`'s `[slice]` block checks it on a concrete four-variable query
+(hop 0 drops a far row, the full domain follows, the goal part of every route is the same at
+both levels, route B's `(= …)` and route C's `(>= …)` atoms are in the sliced text). The
+probe's offline slicer (`z3sos.py`) had the opposite bug, treating the boundary atom of routes
+B and C (the second-to-last conjunct of the script) as an ordinary hypothesis and dropping it,
+which made zero-hop slices spuriously `sat`; the tool's slicer cannot, by construction. The same levels are built by the verdict runners
+(`--check-quick-v2`'s modal and reposition phases, `relcert-bridge-verdicts`, the demo verdict
+scripts) when the knob is set in their environment, through the same function: a group's
+members are the level texts in the tool's order, the full text last.
 
 Not sliced: the mode-fact (implied-cut) channel. Its O2 queries (`checkedCutX`, `probeUnsat`)
 carry only the bare evolve domain of one mode and, for a derived bound, the one linear atom it
@@ -52,9 +89,11 @@ runner is described by the same theorems, with one change of hypothesis shape at
 * **The monotonicity lemma.** `z3Unsat_sound : Z3Unsat q → ∀ σ, ¬ q.sat σ`
   (`Trusted/Oracle.lean`), proved from `z3_unsat_sound` alone: an `unsat` answer on the sliced
   query implies the row's original obligation. Its slicing-specific instance is
-  `Z3Unsat_of_sliced` (`Trusted/Slice.lean`): `unsat` on `dom' ∧ G` with
-  `dom' = sliceFlowDom k g ġ dom` gives `Z3Unsat (dom ∧ G)`, through `sliceDom_weakens`
-  (a state in the full domain is in the sliced one, by induction on the `and` tree).
+  `Z3Unsat_of_level` (`Trusted/Slice.lean`): `unsat` on `d ∧ G` with
+  `d ∈ sliceFlowLevels k g ġ dom` (a slice at some hop, or `dom` itself) gives
+  `Z3Unsat (dom ∧ G)`, through `sliceDom_weakens` (a state in the full domain is in the
+  sliced one, by induction on the `and` tree) and `mem_sliceLevelsL` (every level is the full
+  domain or a slice of it). `Z3Unsat_of_sliced` is the one-level form.
 * **Where it enters.** The flow verdict packs assume `Z3Unsat` instead of `z3solve _ = unsat`:
   `VerdXCore` (`Proofs/Encoding/CutRespond.lean`, the joint pack), `StrataVerdS`
   (`Proofs/Flow/StratifiedBarrierStrict.lean`, the strict pack, `VerdXCoreS`), `VerdDynCore`
@@ -64,13 +103,17 @@ runner is described by the same theorems, with one change of hypothesis shape at
   applied `z3_unsat_sound` and continue into `flow_cert_sound` unchanged. The record-level
   theorems `theorem3_window_of_records(_pl)` and `theorem3_keyed_of_records(_pl)` and the
   bridge instances keep their statements.
-* **The pin layer.** `modalVerdXQueries`, `modalVerdXQueriesS`, `modalVerdDynXQueries`,
-  `modalVerdDynXQueriesPre` (`VerdictsV2/ModalX.lean`, `ModalXStrict.lean`, `ModalDynX.lean`)
-  take the knob `k : Option ℕ` and slice each component's domain with `sliceFlowDom`, the
-  function `checkSeg` and `checkDynRepo` call. The pin theorems `modalVerdX_of_queries`,
-  `modalVerdXS_of_queries`, `modalVerdDynX_of_queries(Pre)` prove that an `unsat` answer on
-  the printed (sliced) text is the instance's `Z3Unsat` hypothesis on the full query
-  (`Z3Unsat_iflowQuery_of_sliced` and the route B, C variants, `VerdictsV2/ModalX.lean`).
+* **The pin layer.** `modalVerdXQueries`, `modalVerdXQueriesS` (per component
+  `strictCompQueries`), `modalVerdDynXQueries`, `modalVerdDynXQueriesPre`
+  (`VerdictsV2/ModalX.lean`, `ModalXStrict.lean`, `ModalDynX.lean`) take the knob
+  `k : Option ℕ` and build each component's group as the routes at every level of its domain
+  (`sliceFlowLevels`, the function `checkSeg` and `checkDynRepo` loop over), level by level,
+  the full domain's routes last: exactly the texts the tool sends, in its order (a
+  whole-domain right-only component's group is its route-A text per level, no longer a
+  singleton). The pin theorems `modalVerdX_of_queries`, `modalVerdXS_of_queries`,
+  `modalVerdDynX_of_queries(Pre)` prove that an `unsat` answer on any member is the
+  instance's `Z3Unsat` hypothesis on the full query (`Z3Unsat_iflowQuery_of_level` and the
+  route B, C variants, `VerdictsV2/ModalX.lean`, applied memberwise with the member's level).
   `bridgeGroups k`, `bridgeGroupsS k` and `verdicts_of_groups` / `verdictsS_of_groups`
   (`Proofs/Encoding/Emitted/Run.lean`, `StrictRun.lean`) carry the knob; the per-benchmark
   pins `<b>_bridge_run {k : Option ℕ} (hrun : bridgeGroups IR n cX covM prog ce k = some gs)
@@ -131,12 +174,10 @@ Knob set:
   records, all 1386 unsliced). The regenerated leaves are not committed: `main`'s records stay
   the branch's, so the unset gate above is the regression guarantee.
 
-Under the knob a `sat` answer on a sliced query is reported like a `sat` on the full query
-(`FAIL comp#i`, the component not certified in that round, the pairing `fail` if no route of a
-component is `unsat` and none is inconclusive). For the full query it is inconclusive, since
-the sliced query is weaker; a sliced `sat` could be escalated to the full query (another
-member of the component's group, `sliceDomOpt none`), which the pin layer would absorb as a
-fourth to sixth alternative. Not done here.
+The first commit of the branch (`96797ac`) reported a `sat` on a sliced query like a `sat` on
+the full query (`FAIL comp#i`); the probe re-runs below are from that version and show the
+cost (the pass → fail flips). The escalation above (second commit) removes it: see the
+section after the re-runs.
 
 The probe's stalled rung files (`CPS-QRC-reduction/docs/probe-2026-11/p20-ladder/logs/slice_*`,
 same command lines as `run_p20.sh`, proxy `z3sos.py`, 1 h budget, 3 s Z3 timeout):
@@ -180,3 +221,58 @@ hypotheses (rung 1 rows 28 to 34 at one hop, rung 2 BRAKE at hop 0), and the run
 (dv-, drollL, the ghost level) are unknown on any slice. The
 pass → fail flips of `STRAIGHT_L`'s off-diagonal pairings are the completeness cost of
 reporting a sliced `sat` as a `sat` (above); the escalation to the full query would remove it.
+
+## Resume here (WIP, paused 2026-11-13 08:49)
+
+The escalation is implemented and kernel-checked; the gate is half run; the probe re-runs
+were killed at the user's pause. State of the branch at this commit:
+
+Done:
+
+* code: `sliceLevelsGo` / `sliceLevelsL` / `sliceLevels` / `sliceFlowLevels(L)` and the
+  lemmas `mem_sliceLevelsL`, `sliceLevels_weakens`, `Z3Unsat_of_level` (`Trusted/Slice.lean`);
+  `checkSeg` and `checkDynRepo` loop over the levels (`Trusted/OracleAPI.lean`, log lines
+  `[slice hops=k level=hop j i/N] …: vars …` and `…: unsat|sat|unknown`); the pins build the
+  levels with the same function (`modalVerdXQueries`, `strictCompQueries` in
+  `modalVerdXQueriesS`, `modalVerdDynXQueries` now `List (List (IForm n))`,
+  `modalVerdDynXQueriesPre`), the pin theorems use `Z3Unsat_iflowQuery_of_level` and the B, C
+  variants memberwise; `Run.dynVerd_of_groups` and `RunV2.runPack` (all members, label
+  `A@j`) adjusted; `Z3Unsat`, `z3Unsat_sound`, `AxiomCheck.lean`, the battery untouched;
+  the goal-part lemma `Oracle.routeQueries_goalPart` and the `relcert-test` block `[slice]`
+  (the boundary atom of routes B, C survives every level).
+* gate, knob unset: `lake build` clean (9485 jobs, 0 errors, no `sorry`), the five
+  executables built; AxiomCheck 16 lines (7 with `z3_unsat_sound`), battery 78 (2), no
+  `sorryAx`; `--check-quick-v2` 50 certified, 0 declined, 0 error(s), modal 1421/1421,
+  handoff 2846/2846, non-connection 32/32, pruned 16/16, reposition 950/950, STRICT 181/181,
+  `SUITE_V2 QUICK CHECKS PASSED` (434 s); `relcert-test` (with `BENCH_PATHS`) `ALL PASS`;
+  `relcert-bridge-verdicts` 13677/13677 (79 s). Queries byte-identical to `main`'s:
+  `sliceFlowLevels none g ġ dom = [dom]` by `rfl` (`sliceFlowLevels_none`).
+
+Unfinished:
+
+* gate, knob 0: `RELCERT_SLICE_HOPS=0 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert
+  --check-quick-v2 benchmarks/suite_v2/*/input.txt` was started and killed at the pause
+  (expected: 50 certified, and the re-send of `main`'s records modal 1421/1421, reposition
+  950/950, since every group ends with the full text).
+* the `lit_freedm_meter` regeneration at hop 0 (`RELCERT_SLICE_HOPS=0 scripts/gen_v2_data.py
+  lit_freedm_meter`, `scripts/gen_bridge.py lit_freedm_meter`, `lake build
+  RelCertifier.InstancesV2.Bridge.LitFreedmMeter`, `RELCERT_BRIDGE_ONE=lit_freedm_meter
+  RELCERT_SLICE_HOPS=0 lake env lean scripts/bridge_one_verdicts.lean`, then unsliced; revert
+  the regenerated leaves afterwards, they are not committed).
+* the probe re-runs `slice2_r1_h0` and `slice2_r2_h0` (`p20-ladder/logs/slice_run.sh
+  slice2_r1_h0 r1_lam2 0`, `… slice2_r2_h0 r2_lam3 0`, knob 0, 1 h cap, the worktree binary)
+  ran about 15 min concurrently with the gate and were killed; their partial logs are kept
+  (`slice2_r1_h0.*`: 1835 slice lines, 1594 Z3 queries; `slice2_r2_h0.*`: 2373 slice lines,
+  2276 queries; no verdict line in `.out`). Re-run them from scratch (the script overwrites the
+  tag's files), then summarize per segment with the levels at which rows were proven
+  (the `…: unsat` outcome lines carry `level=hop j` or `level=full`).
+* this document's gate section for the escalation (numbers above plus the knob-0 and probe
+  results) and the pin-layer paragraph of `docs/CERTIFICATION-CHECK.md`, if it names the
+  group shapes.
+
+Next command, in the worktree `/Users/jxiang1/Develop/relcert-hypslice-wt` (binary already
+built at this commit):
+
+```bash
+RELCERT_SLICE_HOPS=0 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
+```

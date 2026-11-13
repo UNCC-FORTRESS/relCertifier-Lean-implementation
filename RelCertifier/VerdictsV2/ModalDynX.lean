@@ -25,11 +25,12 @@ variable {n : ℕ}
 
 /-- The right-only pack, rebuilt: per component (in the cover's right-only strata order), the
 route-A query over the domain narrowed by the mode facts and the earlier rounds, with the left
-guard conjoined
-before the first joint segment (`pre`); the left field frozen, stretch 1. `none` if anything
-fails to lower (the runner reports a SKIP, never a pass). -/
+guard conjoined before the first joint segment (`pre`), at every escalation level of that domain
+(`sliceFlowLevels`: the slices at `k`, `k+1`, … hops, then the full domain; `k = none` the full
+domain alone), as `checkDynRepo` sends them; the left field frozen, stretch 1. `none` if
+anything fails to lower (the runner reports a SKIP, never a pass). -/
 def modalVerdDynXQueries (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX)
-    (n invRow : ℕ) (order : List ℕ) (pre : Bool) (l m : ℕ) : Option (List (IForm n)) := do
+    (n invRow : ℕ) (order : List ℕ) (pre : Bool) (l m : ℕ) : Option (List (List (IForm n))) := do
   let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mL := p.L.modes.getD l dm
@@ -48,21 +49,22 @@ def modalVerdDynXQueries (k : Option ℕ) (p : PProblem) (cX : EvolStrengthening
   pure ((List.range comps.length).map (fun i =>
     let dom0 := istrataDomHost D (comps.take i)
     let g := comps.getD i (.rat 0)
-    iflowQuery g (fun _ => .rat 0) fR (.rat 1)
-      (sliceFlowDom k g (ilieDeriv g (fun _ => .rat 0) fR (.rat 1))
-        (if pre then IForm.and dom0 gL else dom0))))
+    (sliceFlowLevels k g (ilieDeriv g (fun _ => .rat 0) fR (.rat 1))
+      (if pre then IForm.and dom0 gL else dom0)).map (fun dom =>
+        iflowQuery g (fun _ => .rat 0) fR (.rat 1) dom)))
 
 theorem hostGuard_getD (vars : List String) (side : Side) (m : PMode) :
     hostGuard vars n side m = ((Run.lowerF vars n side m.guard).getD IForm.tt).toHost := by
   unfold hostGuard
   rcases Run.lowerF vars n side m.guard with _ | g <;> rfl
 
-/-- **The v2 right-only pin.** If the runner's rebuild succeeds and every printed query is
-`unsat`, the instance's right-only hypothesis `modalVerdDynX` holds. -/
+/-- **The v2 right-only pin.** If the runner's rebuild succeeds and, for every component, one
+of its printed queries (one per level) is `unsat`, the instance's right-only hypothesis
+`modalVerdDynX` holds. -/
 theorem modalVerdDynX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStrengtheningX}
-    {invRow : ℕ} {order : List ℕ} {pre : Bool} {l m : ℕ} {qs : List (IForm n)}
-    (hq : modalVerdDynXQueries k p cX n invRow order pre l m = some qs)
-    (hz3 : ∀ i (hi : i < qs.length), z3solve (qs[i]).toHost = Verdict.unsat) :
+    {invRow : ℕ} {order : List ℕ} {pre : Bool} {l m : ℕ} {qss : List (List (IForm n))}
+    (hq : modalVerdDynXQueries k p cX n invRow order pre l m = some qss)
+    (hz3 : ∀ i (hi : i < qss.length), ∃ q ∈ qss[i], z3solve q.toHost = Verdict.unsat) :
     modalVerdDynX p cX n invRow order pre l m := by
   unfold modalVerdDynXQueries at hq
   simp only [Option.bind_eq_bind] at hq
@@ -141,11 +143,12 @@ theorem modalVerdDynX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStren
   have hi' : i < ((List.range comps.length).map (fun i =>
       let dom0 := istrataDomHost D (comps.take i)
       let g := comps.getD i (ITerm.rat 0)
-      iflowQuery g (fun _ => ITerm.rat 0) fR (ITerm.rat 1)
-        (sliceFlowDom k g (ilieDeriv g (fun _ => ITerm.rat 0) fR (ITerm.rat 1))
-          (if pre then IForm.and dom0 gLI else dom0)))).length := by simpa using hi
-  have hz := hz3 i hi'
-  simp only [List.getElem_map, List.getElem_range] at hz
+      (sliceFlowLevels k g (ilieDeriv g (fun _ => ITerm.rat 0) fR (ITerm.rat 1))
+        (if pre then IForm.and dom0 gLI else dom0)).map (fun dom =>
+          iflowQuery g (fun _ => ITerm.rat 0) fR (ITerm.rat 1) dom))).length := by simpa using hi
+  obtain ⟨q, hqmem, hz⟩ := hz3 i hi'
+  simp only [List.getElem_map, List.getElem_range, List.mem_map] at hqmem
+  obtain ⟨d, hd, rfl⟩ := hqmem
   have hgi : (comps.map ITerm.toHost)[i]'(by simpa using hi)
       = (comps.getD i (ITerm.rat 0)).toHost := by
     rw [List.getElem_map, List.getD_eq_getElem _ _ hi]
@@ -160,7 +163,7 @@ theorem modalVerdDynX_of_queries {k : Option ℕ} {p : PProblem} {cX : EvolStren
       = dynDomHost pre D.toHost gLI.toHost ((comps.take i).map ITerm.toHost) := by
     unfold dynDomHost
     cases pre <;> simp [IForm.toHost, istrataDomHost_toHost]
-  have h1 := Z3Unsat_iflowQuery_of_sliced hz
+  have h1 := Z3Unsat_iflowQuery_of_level hd hz
   rw [iflowQuery_toHost, hdom, zeroField_toHost, hone] at h1
   exact h1
 
@@ -191,14 +194,15 @@ def modalVerdDynXQueriesPre (k : Option ℕ) (p : PProblem) (cX : EvolStrengthen
     let g := comps.getD i (.rat 0)
     let gdot := ilieDeriv g (fun _ => .rat 0) fR (.rat 1)
     let domc0 := istrataDomHost (IForm.and D BcI) (comps.take i)
-    let domc := sliceFlowDom k g gdot (if pre then IForm.and domc0 gL else domc0)
     let dom0 := istrataDomHost (IForm.and D BoI) (comps.take i)
-    let dom := sliceFlowDom k g gdot (if pre then IForm.and dom0 gL else dom0)
-    if mask.getD i false then [iflowQuery g (fun _ => .rat 0) fR (.rat 1) domc]
+    if mask.getD i false then
+      (sliceFlowLevels k g gdot (if pre then IForm.and domc0 gL else domc0)).map (fun domc =>
+        iflowQuery g (fun _ => .rat 0) fR (.rat 1) domc)
     else
-    [iflowQuery g (fun _ => .rat 0) fR (.rat 1) dom,
-     iflowQueryStrict g (fun _ => .rat 0) fR (.rat 1) dom,
-     iflowQuerySuperlevel g (fun _ => .rat 0) fR (.rat 1) dom]))
+      (sliceFlowLevels k g gdot (if pre then IForm.and dom0 gL else dom0)).flatMap (fun dom =>
+        [iflowQuery g (fun _ => .rat 0) fR (.rat 1) dom,
+         iflowQueryStrict g (fun _ => .rat 0) fR (.rat 1) dom,
+         iflowQuerySuperlevel g (fun _ => .rat 0) fR (.rat 1) dom])))
 
 /-- **The pin on the pre-landing region** (the restricted mode of Lemma 4). If the rebuild succeeds and every group has an
 `unsat` member, the instance's hypothesis `modalVerdDynX` holds on the region (at the host forms
@@ -290,14 +294,16 @@ theorem modalVerdDynX_of_queriesPre {k : Option ℕ} {p : PProblem} {cX : EvolSt
       let g := comps.getD i (.rat 0)
       let gdot := ilieDeriv g (fun _ => .rat 0) fR (.rat 1)
       let domc0 := istrataDomHost (IForm.and D BcI) (comps.take i)
-      let domc := sliceFlowDom k g gdot (if pre then IForm.and domc0 gLI else domc0)
       let dom0 := istrataDomHost (IForm.and D BoI) (comps.take i)
-      let dom := sliceFlowDom k g gdot (if pre then IForm.and dom0 gLI else dom0)
-      if mask.getD i false then [iflowQuery g (fun _ => .rat 0) fR (.rat 1) domc]
+      if mask.getD i false then
+        (sliceFlowLevels k g gdot (if pre then IForm.and domc0 gLI else domc0)).map (fun domc =>
+          iflowQuery g (fun _ => .rat 0) fR (.rat 1) domc)
       else
-      [iflowQuery g (fun _ => .rat 0) fR (.rat 1) dom,
-       iflowQueryStrict g (fun _ => .rat 0) fR (.rat 1) dom,
-       iflowQuerySuperlevel g (fun _ => .rat 0) fR (.rat 1) dom])).length := by simpa using hi
+        (sliceFlowLevels k g gdot (if pre then IForm.and dom0 gLI else dom0)).flatMap (fun dom =>
+          [iflowQuery g (fun _ => .rat 0) fR (.rat 1) dom,
+           iflowQueryStrict g (fun _ => .rat 0) fR (.rat 1) dom,
+           iflowQuerySuperlevel g (fun _ => .rat 0) fR (.rat 1) dom]))).length := by
+    simpa using hi
   obtain ⟨q, hqmem, hqz⟩ := hz3 i hi'
   simp only [List.getElem_map, List.getElem_range] at hqmem
   have hgi : (comps.map ITerm.toHost)[i]'(by simpa using hi)
@@ -317,23 +323,25 @@ theorem modalVerdDynX_of_queriesPre {k : Option ℕ} {p : PProblem} {cX : EvolSt
     cases pre <;> simp [IForm.toHost, istrataDomHost_toHost]
   rw [hgi, htk]
   split_ifs with hm
-  · simp only [hm, if_true, List.mem_singleton] at hqmem
-    subst hqmem
-    have h1 := Z3Unsat_iflowQuery_of_sliced hqz
+  · simp only [hm, if_true, List.mem_map] at hqmem
+    obtain ⟨d, hd, rfl⟩ := hqmem
+    have h1 := Z3Unsat_iflowQuery_of_level hd hqz
     rw [iflowQuery_toHost, hdomB, zeroField_toHost, hone] at h1
     exact h1
-  · simp only [hm, Bool.false_eq_true, if_false, List.mem_cons, List.not_mem_nil, or_false] at hqmem
+  · simp only [hm, Bool.false_eq_true, if_false, List.mem_flatMap, List.mem_cons,
+      List.not_mem_nil, or_false] at hqmem
+    obtain ⟨d, hd, hqmem⟩ := hqmem
     rcases hqmem with rfl | rfl | rfl
     · left
-      have h1 := Z3Unsat_iflowQuery_of_sliced hqz
+      have h1 := Z3Unsat_iflowQuery_of_level hd hqz
       rw [iflowQuery_toHost, hdomB, zeroField_toHost, hone] at h1
       exact h1
     · right; left
-      have h1 := Z3Unsat_iflowQueryStrict_of_sliced hqz
+      have h1 := Z3Unsat_iflowQueryStrict_of_level hd hqz
       rw [iflowQueryStrict_toHost, hdomB, zeroField_toHost, hone] at h1
       exact h1
     · right; right
-      have h1 := Z3Unsat_iflowQuerySuperlevel_of_sliced hqz
+      have h1 := Z3Unsat_iflowQuerySuperlevel_of_level hd hqz
       rw [iflowQuerySuperlevel_toHost, hdomB, zeroField_toHost, hone] at h1
       exact h1
 
@@ -344,7 +352,7 @@ def modalVerdDynXGroups (k : Option ℕ) (p : PProblem) (cX : EvolStrengtheningX
     (order : List ℕ) (pre : Bool) (l m : ℕ) (rg : Option (IForm n × IForm n × List Bool)) :
     Option (List (List (IForm n))) :=
   match rg with
-  | none => (modalVerdDynXQueries k p cX n invRow order pre l m).map (·.map ([·]))
+  | none => modalVerdDynXQueries k p cX n invRow order pre l m
   | some (BoI, BcI, mask) => modalVerdDynXQueriesPre k p cX n invRow order pre l m BoI BcI mask
 
 end RelCertifier

@@ -229,13 +229,78 @@ An instance whose records contain an SOS verdict is stated at `anyOracle` and sh
 theorem at `anyOracle` beside the committed Z3 one (`lake env lean scripts/sos_axiom_check.lean`):
 
 ```
-AXIOMS_PLACEHOLDER
+'RelCertifier.Bridge.Watertank.watertank_bridge' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ z3_unsat_sound]
+'RelCertifier.Bridge.Watertank.watertank_bridge_run' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ z3_unsat_sound]
+'watertank_bridge_any' depends on axioms: [propext, Classical.choice, Quot.sound, sos_unsat_sound, z3_unsat_sound]
+'watertank_bridge_run_any' depends on axioms: [propext, Classical.choice, Quot.sound, sos_unsat_sound, z3_unsat_sound]
 ```
 
 ## The gate (this branch, 2026-11-13)
 
-GATE_PLACEHOLDER
+Knob unset (the regression guarantee, `docs/CERTIFICATION-CHECK.md`), at `8e4b90d`:
+
+* `lake build` clean (9486 jobs, 0 errors, no `sorry`), `relcert`, `relcert-test`,
+  `relcert-bridge-verdicts` built;
+* `--check-quick-v2` on the 50 suite benchmarks: `50 certified, 0 declined, 0 error(s)`; modal
+  1421/1421, handoff 2846/2846, non-connection 32/32, pruned edges 16/16, reposition 950/950;
+  `STRICT: 181/181 right modes ok` (75 invariant, 106 exit, 0 UNKNOWN, 0 BLOCKING);
+  `SUITE_V2 QUICK CHECKS PASSED` (wall 369 s);
+* `relcert-test` (with `BENCH_PATHS`): `ALL PASS`;
+* `relcert-bridge-verdicts`: 13677/13677 (wall 42 s);
+* the axiom audit: `AxiomCheck` 16 lines (9 at the three standard axioms, 7 adding
+  `z3_unsat_sound`), the battery 78 lines (76 standard, 2 with `z3_unsat_sound`), both diffed
+  against `main`'s checkout (`daf26c8`): the axiom lines are textually identical (the only
+  differences are `lake`'s replay progress counters and the job total, 8800 against 8802);
+  `sos_unsat_sound` appears nowhere; no `sorryAx`.
+
+Knob on, `RELCERT_SOS_SECS=120 RELCERT_SLICE_HOPS=0`:
+
+* `--check-quick-v2`: `50 certified, 0 declined, 0 error(s)`, modal 1421/1421, reposition
+  950/950 (the re-send of `main`'s records escalates to the full text; this is the knob-0 gate
+  `docs/HYP-SLICING.md` left open), handoff 2846, non-connection 32, pruned edges 16, STRICT
+  181/181, PASSED, wall 383 s; 52670 slice lines on stderr and NO SOS call: the suite never
+  reaches the oracle, as expected (every level Z3 answers `unsat` or `sat` on);
+* `RELCERT_SOS_SECS=120 ./.lake/build/bin/relcert-bridge-verdicts`: 13677/13677, every
+  benchmark `… 0 by the SOS oracle` (wall 45 s).
+
+Exercising the hook (the suite never reaches it): `watertank` under a proxy Z3 that answers
+`unknown` on every script longer than 450 bytes (its flow queries; the mode-fact and other
+channels pass through to the real Z3), `RELCERT_SOS_SECS=60`, 1 s per call: at the time of
+writing 950 SOS calls had been made, 194 `sos unsat` (verified exactly: 2 variables, `s₀` basis
+6, degree 4, `maxres` ≤ 4e-12, `minpivot` ≥ 1.4, 0.9 s median), 629 `unknown` (the routes
+that are not the certifying one, or beyond degree 4), 127 `rejected`; the run is the proof
+that the file write, the script, the certificate round trip and the log line work end to end
+on the tool's own queries. The certificates are kept with `RELCERT_SOS_CERT_DIR`.
 
 ## Open items
 
-OPEN_PLACEHOLDER
+* `lit_freedm_meter` regenerated at hop 0 and its `bridge_one` discharge (the escalation
+  leftover of `docs/HYP-SLICING.md`), and the probe re-runs `slice2_r1_h0` / `slice2_r2_h0`:
+  still open (not run in this phase).
+* No benchmark or probe run has yet produced an instance whose records carry an SOS verdict:
+  the generator path (`-- oracles: z3 sos` marker, `anyOracle` instance, tagged `_bridge_run`)
+  is exercised only by `scripts/sos_axiom_check.lean`; the first real one will be a probe rung
+  file run with `RELCERT_SOS_SECS` set, regenerated with `gen_v2_data.py` and bridged with
+  `RELCERT_SOS_SECS` set in the runner's environment.
+* `--check-quick-v2`'s modal and reposition re-send phases (`VerdictsV2/RunV2.lean`) are
+  Z3-only; a knob-on record set re-sent there would need `oracleCheck` and the tagged pin as the
+  bridge runner has.
+* The probe's Phase 1 certificates (feasibility solve, no margin) are rejected exactly; Phase 1
+  should adopt `sos_prove.py`'s margin maximization (`Gᵢ = Qᵢ + t·I`, maximize `t`) and emit
+  the justification of every multiplier; then `sos_check.py --phase1` is expected to verify them.
+* A certificate whose `s₀` must be singular (the target vanishes at a feasible point, routes A
+  and C with `ε = 0`) cannot be made exact by rounding; a basis reduction (facial reduction,
+  dropping the kernel monomials) is the standard remedy and is not implemented.
+* The exact LDLᵀ is pure Python over `Fraction`; a basis of 400 monomials takes about a minute.
+  Fine for the probe's slices (≤ 153 so far); an integer-preserving elimination would be the
+  next step for the full queries.
+* `relcert-test` has no `[sos]` block; the checker's negative tests (tampered Gram, wrong atom
+  index, `ε = 0` on route B, wrong query) were run by hand and are listed above.
+* The hand-written `vehicle_hypercert` instance and the demo verdict scripts are untouched (they
+  state Z3-only hypotheses, the defaults).
